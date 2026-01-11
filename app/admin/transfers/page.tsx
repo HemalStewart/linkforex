@@ -1,20 +1,152 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
+
+// Extended Transfer Type Definition based on WBS
+interface Transfer {
+    id: string; // Transaction No
+    // Transaction Info
+    date: string;
+    status: 'completed' | 'in_transit' | 'pending' | 'in_review' | 'pending_payment';
+    amountAfn: string; // Payout Amount in PKR/AFN (using requirement PKR but existing app has AFN, keeping consistent with app context for now or switching? Requirement says 'Amount in PKR'. I will check requirement closely. Requirement says 'Receiver receiving final payout amount in 'PKR''. But previous data was AFN. I will stick to the requirement list which implies this might be for a specific corridor, but I will simulate multi-currency or stick to the requirement. Let's use 'PKR' as per requirement list to be precise, or maybe 'AFN' if that's the main corridor. The user requirement explicitly says 'Valid value is 'PKR'' for Currency. I will follow the user requirement and change to PKR)
+    amountGbp: string; // Collection Amount
+    exchangeRate: string;
+
+    // Remitter Info
+    remitterName: string;
+    remitterCountry: string;
+    remitterId: string; // Unique ID
+    remitterAddress: string;
+    remitterCity: string;
+    remitterPostCode: string;
+    remitterEmail: string;
+    remitterContact: string;
+    remitterIdType: string;
+    remitterIdNo: string;
+    remitterIdExpiry: string;
+    remitterDob: string;
+    remitterPlaceOfBirth: string;
+    sourceOfFunds: string;
+
+    // Receiver Info
+    receiverName: string;
+    receiverCountryCode: string; // e.g., PK
+    receiverCity: string;
+    receiverContact: string;
+    relationship: string;
+    paymentMode: 'D' | 'C' | 'P'; // Direct (ABL), Other Bank, Cash
+    receiverBank: string;
+    receiverAccountNo?: string;
+    receiverBranchCode?: string;
+    receiverIban?: string;
+    receiverIdType?: string; // P, C, D, O
+    receiverIdNo?: string;
+    purpose: string;
+}
 
 export default function TransfersPage() {
     const [filterStatus, setFilterStatus] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
+    const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
-    const transfers = [
-        { id: 'TRX-001', sender: 'John Smith', senderEmail: 'john@example.com', recipient: 'Ahmad Khan', recipientPhone: '+93 700 123 456', amount: '£850', amountAfn: '৳98,600', status: 'completed', date: '2026-01-11 10:30', branch: 'London Central', method: 'Cash Pickup' },
-        { id: 'TRX-002', sender: 'Sarah Johnson', senderEmail: 'sarah@example.com', recipient: 'Fatima Noor', recipientPhone: '+93 700 234 567', amount: '£1,200', amountAfn: '৳139,200', status: 'in_transit', date: '2026-01-11 08:15', branch: 'Manchester', method: 'Cash Pickup' },
-        { id: 'TRX-003', sender: 'Michael Brown', senderEmail: 'michael@example.com', recipient: 'Hassan Ali', recipientPhone: '+93 700 345 678', amount: '£650', amountAfn: '৳75,400', status: 'pending', date: '2026-01-11 06:45', branch: 'Birmingham', method: 'Cash Pickup' },
-        { id: 'TRX-004', sender: 'Emma Wilson', senderEmail: 'emma@example.com', recipient: 'Zahra Ahmad', recipientPhone: '+93 700 456 789', amount: '£2,100', amountAfn: '৳243,600', status: 'completed', date: '2026-01-10 14:20', branch: 'London East', method: 'Cash Pickup' },
-        { id: 'TRX-005', sender: 'David Lee', senderEmail: 'david@example.com', recipient: 'Abdul Rahman', recipientPhone: '+93 700 567 890', amount: '£900', amountAfn: '৳104,400', status: 'in_review', date: '2026-01-10 12:00', branch: 'Leeds', method: 'Cash Pickup' },
-        { id: 'TRX-006', sender: 'Olivia Taylor', senderEmail: 'olivia@example.com', recipient: 'Mariam Aziz', recipientPhone: '+93 700 678 901', amount: '£1,500', amountAfn: '৳174,000', status: 'pending_payment', date: '2026-01-10 09:30', branch: 'Glasgow', method: 'Cash Pickup' },
-        { id: 'TRX-007', sender: 'James Anderson', senderEmail: 'james@example.com', recipient: 'Hamid Karimi', recipientPhone: '+93 700 789 012', amount: '£3,200', amountAfn: '৳371,200', status: 'in_review', date: '2026-01-09 16:45', branch: 'London Central', method: 'Cash Pickup' },
-        { id: 'TRX-008', sender: 'Sophie Martin', senderEmail: 'sophie@example.com', recipient: 'Nadia Sultana', recipientPhone: '+93 700 890 123', amount: '£750', amountAfn: '৳87,000', status: 'completed', date: '2026-01-09 11:20', branch: 'Liverpool', method: 'Cash Pickup' },
+    // Mock Data based on Requirements
+    const transfers: Transfer[] = [
+        {
+            id: 'TRX-109283',
+            date: '2026-01-11 10:30',
+            status: 'completed',
+            amountGbp: '£850.00',
+            amountAfn: '₨306,000', // PKR approx
+            exchangeRate: '360.00',
+            remitterName: 'John Smith',
+            remitterCountry: 'United Kingdom',
+            remitterId: 'R-99821',
+            remitterAddress: '12 Baker Street',
+            remitterCity: 'London',
+            remitterPostCode: 'W1U 8ED',
+            remitterEmail: 'john@example.com',
+            remitterContact: '+44 7700 900123',
+            remitterIdType: 'Passport',
+            remitterIdNo: 'GB123456789',
+            remitterIdExpiry: '2028-05-20',
+            remitterDob: '1985-04-12',
+            remitterPlaceOfBirth: 'London',
+            sourceOfFunds: 'Salary',
+            receiverName: 'Ahmad Khan',
+            receiverCountryCode: 'PK',
+            receiverCity: 'Lahore',
+            receiverContact: '+92 300 1234567',
+            relationship: 'Family Support',
+            paymentMode: 'D', // Direct ABL
+            receiverBank: 'ABL',
+            receiverAccountNo: '0010020030040050',
+            purpose: 'Family Maintenance'
+        },
+        {
+            id: 'TRX-109284',
+            date: '2026-01-11 11:15',
+            status: 'in_transit',
+            amountGbp: '£1,200.00',
+            amountAfn: '₨432,000',
+            exchangeRate: '360.00',
+            remitterName: 'Sarah Johnson',
+            remitterCountry: 'United Kingdom',
+            remitterId: 'R-77210',
+            remitterAddress: '45 Oxford Road',
+            remitterCity: 'Manchester',
+            remitterPostCode: 'M1 5AN',
+            remitterEmail: 'sarah@example.com',
+            remitterContact: '+44 7700 900456',
+            remitterIdType: 'Driving Licence',
+            remitterIdNo: 'JOHNS854012SJ99',
+            remitterIdExpiry: '2030-01-15',
+            remitterDob: '1990-08-22',
+            remitterPlaceOfBirth: 'Manchester',
+            sourceOfFunds: 'Savings',
+            receiverName: 'Fatima Noor',
+            receiverCountryCode: 'PK',
+            receiverCity: 'Karachi',
+            receiverContact: '+92 321 7654321',
+            relationship: 'Sister',
+            paymentMode: 'P', // Cash Pickup
+            receiverBank: 'N/A',
+            receiverIdType: 'C', // CNIC
+            receiverIdNo: '42101-1234567-1',
+            purpose: 'Gift'
+        },
+        {
+            id: 'TRX-109285',
+            date: '2026-01-10 16:45',
+            status: 'pending',
+            amountGbp: '£500.00',
+            amountAfn: '₨180,000',
+            exchangeRate: '360.00',
+            remitterName: 'Michael Brown',
+            remitterCountry: 'United Kingdom',
+            remitterId: 'R-55321',
+            remitterAddress: '88 Broad Street',
+            remitterCity: 'Birmingham',
+            remitterPostCode: 'B1 2HE',
+            remitterEmail: 'mike@example.com',
+            remitterContact: '+44 7700 900789',
+            remitterIdType: 'Passport',
+            remitterIdNo: 'GB987654321',
+            remitterIdExpiry: '2027-11-30',
+            remitterDob: '1978-02-14',
+            remitterPlaceOfBirth: 'Leeds',
+            sourceOfFunds: 'Business Profit',
+            receiverName: 'Bilal Ahmed',
+            receiverCountryCode: 'PK',
+            receiverCity: 'Islamabad',
+            receiverContact: '+92 333 9876543',
+            relationship: 'Business Partner',
+            paymentMode: 'C', // Other Bank
+            receiverBank: 'HBL',
+            receiverAccountNo: '1122334455667788',
+            receiverIban: 'PK36HABB00112233445566',
+            purpose: 'Service Payment'
+        }
     ];
 
     const statusConfig = {
@@ -45,10 +177,18 @@ export default function TransfersPage() {
         const matchesStatus = filterStatus === 'all' || transfer.status === filterStatus;
         const matchesSearch = searchQuery === '' ||
             transfer.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            transfer.sender.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            transfer.recipient.toLowerCase().includes(searchQuery.toLowerCase());
+            transfer.remitterName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            transfer.receiverName.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesStatus && matchesSearch;
     });
+
+    const toggleRow = (id: string) => {
+        if (expandedRow === id) {
+            setExpandedRow(null);
+        } else {
+            setExpandedRow(id);
+        }
+    };
 
     return (
         <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
@@ -64,17 +204,15 @@ export default function TransfersPage() {
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
-                            <span>Export</span>
+                            <span>Export CSV</span>
                         </span>
                     </button>
-                    <button className="px-4 py-2 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-medium hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors shadow-sm">
-                        <span className="flex items-center space-x-2">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
-                            <span>New Transfer</span>
-                        </span>
-                    </button>
+                    <Link href="/admin/transfers/create" className="px-4 py-2 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-medium hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors shadow-sm inline-flex items-center space-x-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        <span>New Transfer</span>
+                    </Link>
                 </div>
             </div>
 
@@ -104,37 +242,21 @@ export default function TransfersPage() {
                 </div>
             </div>
 
-            {/* Search and Filters */}
+            {/* Search */}
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4">
-                <div className="flex flex-col md:flex-row gap-4">
-                    <div className="flex-1 relative group">
-                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                            <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </div>
-                        <input
-                            type="search"
-                            placeholder="Search by ID, sender, or recipient..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-200 dark:focus:ring-slate-700"
-                        />
+                <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
                     </div>
-                    <div className="flex space-x-3">
-                        <select className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-200">
-                            <option>All Branches</option>
-                            <option>London Central</option>
-                            <option>Manchester</option>
-                            <option>Birmingham</option>
-                        </select>
-                        <select className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-200">
-                            <option>Last 7 Days</option>
-                            <option>Last 30 Days</option>
-                            <option>Last 90 Days</option>
-                            <option>All Time</option>
-                        </select>
-                    </div>
+                    <input
+                        type="search"
+                        placeholder="Search by Transaction No, Remitter Name, or Receiver Name..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-200 dark:focus:ring-slate-700"
+                    />
                 </div>
             </div>
 
@@ -144,88 +266,135 @@ export default function TransfersPage() {
                     <table className="w-full">
                         <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
                             <tr>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Transfer ID</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Sender</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Recipient</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Amount</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Branch</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Transaction</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Remitter</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Receiver</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Amounts</th>
+                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Mode</th>
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                             {filteredTransfers.map((transfer) => (
-                                <tr
-                                    key={transfer.id}
-                                    className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
-                                >
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex items-center space-x-2">
-                                            <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-xs">
-                                                🇬🇧
-                                            </div>
-                                            <span className="font-mono text-sm font-medium text-slate-900 dark:text-white">{transfer.id}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div>
-                                            <p className="font-medium text-slate-900 dark:text-white">{transfer.sender}</p>
-                                            <p className="text-xs text-slate-500">{transfer.senderEmail}</p>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center space-x-2">
-                                            <span className="text-xl">🇦🇫</span>
-                                            <div>
-                                                <p className="font-medium text-slate-900 dark:text-white">{transfer.recipient}</p>
-                                                <p className="text-xs text-slate-500">{transfer.recipientPhone}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div>
-                                            <p className="font-bold text-slate-900 dark:text-white">{transfer.amount}</p>
-                                            <p className="text-xs text-slate-500">{transfer.amountAfn}</p>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className="text-sm text-slate-600 dark:text-slate-400">{transfer.branch}</span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadge(transfer.status)}`}>
-                                            {formatStatus(transfer.status)}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                                        {transfer.date}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <button className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors">
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
+                                <React.Fragment key={transfer.id}>
+                                    <tr
+                                        onClick={() => toggleRow(transfer.id)}
+                                        className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group"
+                                    >
+                                        <td className="px-6 py-4">
+                                            <div className="font-mono text-sm font-bold text-slate-900 dark:text-white">{transfer.id}</div>
+                                            <div className="text-xs text-slate-500">{transfer.date}</div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="font-medium text-slate-900 dark:text-white">{transfer.remitterName}</div>
+                                            <div className="text-xs text-slate-500">{transfer.remitterCountry}</div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="font-medium text-slate-900 dark:text-white">{transfer.receiverName}</div>
+                                            <div className="text-xs text-slate-500">{transfer.receiverCity}, {transfer.receiverCountryCode}</div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="font-bold text-slate-900 dark:text-white">{transfer.amountGbp}</div>
+                                            <div className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">→ {transfer.amountAfn} (PKR)</div>
+                                            <div className="text-[10px] text-slate-400">Rate: {transfer.exchangeRate}</div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-bold border ${transfer.paymentMode === 'D' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400' :
+                                                transfer.paymentMode === 'C' ? 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-400' :
+                                                    'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400'
+                                                }`}>
+                                                {transfer.paymentMode === 'D' && 'Direct (ABL)'}
+                                                {transfer.paymentMode === 'C' && 'Other Bank'}
+                                                {transfer.paymentMode === 'P' && 'Cash Pickup'}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadge(transfer.status)}`}>
+                                                {formatStatus(transfer.status)}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <svg className={`w-5 h-5 text-slate-400 transition-transform ${expandedRow === transfer.id ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                             </svg>
-                                        </button>
-                                    </td>
-                                </tr>
+                                        </td>
+                                    </tr>
+                                    {/* Expanded Details Row */}
+                                    {expandedRow === transfer.id && (
+                                        <tr className="bg-slate-50 dark:bg-slate-800/50">
+                                            <td colSpan={7} className="px-6 py-4 border-t border-slate-200 dark:border-slate-700">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm">
+                                                    {/* Remitter Details */}
+                                                    <div className="space-y-3">
+                                                        <h4 className="font-bold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 pb-2">Remitter Details</h4>
+                                                        <div className="grid grid-cols-2 gap-2">
+                                                            <span className="text-slate-500">Full Name:</span>
+                                                            <span className="text-slate-900 dark:text-white font-medium">{transfer.remitterName}</span>
+
+                                                            <span className="text-slate-500">ID ({transfer.remitterIdType}):</span>
+                                                            <span className="text-slate-900 dark:text-white font-medium">{transfer.remitterIdNo}</span>
+
+                                                            <span className="text-slate-500">Address:</span>
+                                                            <span className="text-slate-900 dark:text-white font-medium">{transfer.remitterAddress}, {transfer.remitterCity}, {transfer.remitterPostCode}</span>
+
+                                                            <span className="text-slate-500">Contact:</span>
+                                                            <span className="text-slate-900 dark:text-white font-medium">{transfer.remitterContact}</span>
+
+                                                            <span className="text-slate-500">Email:</span>
+                                                            <span className="text-slate-900 dark:text-white font-medium">{transfer.remitterEmail}</span>
+
+                                                            <span className="text-slate-500">Source of Funds:</span>
+                                                            <span className="text-slate-900 dark:text-white font-medium">{transfer.sourceOfFunds}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Receiver Details */}
+                                                    <div className="space-y-3">
+                                                        <h4 className="font-bold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 pb-2">Receiver Details</h4>
+                                                        <div className="grid grid-cols-2 gap-2">
+                                                            <span className="text-slate-500">Full Name:</span>
+                                                            <span className="text-slate-900 dark:text-white font-medium">{transfer.receiverName}</span>
+
+                                                            <span className="text-slate-500">Bank:</span>
+                                                            <span className="text-slate-900 dark:text-white font-medium">{transfer.receiverBank}</span>
+
+                                                            {transfer.receiverAccountNo && (
+                                                                <>
+                                                                    <span className="text-slate-500">Account No:</span>
+                                                                    <span className="text-slate-900 dark:text-white font-medium font-mono">{transfer.receiverAccountNo}</span>
+                                                                </>
+                                                            )}
+
+                                                            {transfer.receiverIban && (
+                                                                <>
+                                                                    <span className="text-slate-500">IBAN:</span>
+                                                                    <span className="text-slate-900 dark:text-white font-medium font-mono">{transfer.receiverIban}</span>
+                                                                </>
+                                                            )}
+
+                                                            {(transfer.receiverIdType || transfer.receiverIdNo) && (
+                                                                <>
+                                                                    <span className="text-slate-500">ID ({transfer.receiverIdType || 'N/A'}):</span>
+                                                                    <span className="text-slate-900 dark:text-white font-medium">{transfer.receiverIdNo || 'N/A'}</span>
+                                                                </>
+                                                            )}
+
+                                                            <span className="text-slate-500">Relationship:</span>
+                                                            <span className="text-slate-900 dark:text-white font-medium">{transfer.relationship}</span>
+
+                                                            <span className="text-slate-500">Purpose:</span>
+                                                            <span className="text-slate-900 dark:text-white font-medium">{transfer.purpose}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </React.Fragment>
                             ))}
                         </tbody>
                     </table>
-                </div>
-
-                {/* Pagination */}
-                <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between bg-slate-50 dark:bg-slate-900">
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                        Showing <span className="font-medium text-slate-900 dark:text-white">{filteredTransfers.length}</span> of <span className="font-medium text-slate-900 dark:text-white">{transfers.length}</span> results
-                    </p>
-                    <div className="flex space-x-2">
-                        <button className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50">
-                            Previous
-                        </button>
-                        <button className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50">
-                            Next
-                        </button>
-                    </div>
                 </div>
             </div>
         </div>

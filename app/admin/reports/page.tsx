@@ -2,17 +2,51 @@
 
 import React, { useState } from 'react';
 
+// Icons for Report Types
+const Icons = {
+    financial: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+    ),
+    transfers: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+        </svg>
+    ),
+    kyc: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+    ),
+    branches: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        </svg>
+    ),
+    users: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+    ),
+    audit: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+    ),
+};
+
 export default function ReportsPage() {
     const [selectedReport, setSelectedReport] = useState('financial');
     const [dateRange, setDateRange] = useState('month');
 
     const reportTypes = [
-        { id: 'financial', name: 'Financial Summary', icon: '💰', description: 'Revenue, fees, and profitability' },
-        { id: 'transfers', name: 'Transfer Analytics', icon: '📊', description: 'Volume and trends analysis' },
-        { id: 'kyc', name: 'KYC Compliance', icon: '📋', description: 'Verification status and metrics' },
-        { id: 'branches', name: 'Branch Performance', icon: '🏢', description: 'Per-location statistics' },
-        { id: 'users', name: 'User Activity', icon: '👥', description: 'Customer engagement metrics' },
-        { id: 'audit', name: 'Audit Logs', icon: '🔍', description: 'System activity and changes' },
+        { id: 'financial', name: 'Financial Summary', icon: Icons.financial, description: 'Revenue, fees, and profitability' },
+        { id: 'transfers', name: 'Transfer Analytics', icon: Icons.transfers, description: 'Volume and trends analysis' },
+        { id: 'kyc', name: 'KYC Compliance', icon: Icons.kyc, description: 'Verification status and metrics' },
+        { id: 'branches', name: 'Branch Performance', icon: Icons.branches, description: 'Per-location statistics' },
+        { id: 'users', name: 'User Activity', icon: Icons.users, description: 'Customer engagement metrics' },
+        { id: 'audit', name: 'Audit Logs', icon: Icons.audit, description: 'System activity and changes' },
     ];
 
     const quickStats = [
@@ -83,7 +117,12 @@ export default function ReportsPage() {
                                 }`}
                         >
                             <div className="flex items-start space-x-3">
-                                <span className="text-2xl">{report.icon}</span>
+                                <span className={`p-2 rounded-lg ${selectedReport === report.id
+                                        ? 'bg-slate-200 dark:bg-slate-600 text-slate-900 dark:text-white'
+                                        : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                                    }`}>
+                                    {report.icon}
+                                </span>
                                 <div className="flex-1">
                                     <h3 className={`font-semibold mb-1 ${selectedReport === report.id ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-200'}`}>
                                         {report.name}

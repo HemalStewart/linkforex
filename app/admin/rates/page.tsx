@@ -6,11 +6,11 @@ export default function ExchangeRatesPage() {
     const [editingRate, setEditingRate] = useState<string | null>(null);
 
     const exchangeRates = [
-        { id: 1, fromCurrency: 'GBP', toCurrency: 'AFN', flag: '🇬🇧→🇦🇫', rate: 116.00, buy: 115.50, sell: 116.50, lastUpdated: '2026-01-11 11:30', change: '+0.5%', trend: 'up' },
-        { id: 2, fromCurrency: 'USD', toCurrency: 'AFN', flag: '🇺🇸→🇦🇫', rate: 92.50, buy: 92.00, sell: 93.00, lastUpdated: '2026-01-11 11:30', change: '+0.3%', trend: 'up' },
-        { id: 3, fromCurrency: 'EUR', toCurrency: 'AFN', flag: '🇪🇺→🇦🇫', rate: 100.25, buy: 99.75, sell: 100.75, lastUpdated: '2026-01-11 11:30', change: '-0.2%', trend: 'down' },
-        { id: 4, fromCurrency: 'GBP', toCurrency: 'USD', flag: '🇬🇧→🇺🇸', rate: 1.25, buy: 1.24, sell: 1.26, lastUpdated: '2026-01-11 11:30', change: '+0.1%', trend: 'up' },
-        { id: 5, fromCurrency: 'GBP', toCurrency: 'EUR', flag: '🇬🇧→🇪🇺', rate: 1.16, buy: 1.15, sell: 1.17, lastUpdated: '2026-01-11 11:30', change: '0.0%', trend: 'neutral' },
+        { id: 1, fromCurrency: 'GBP', toCurrency: 'AFN', rate: 116.00, buy: 115.50, sell: 116.50, lastUpdated: '2026-01-11 11:30', change: '+0.5%', trend: 'up' },
+        { id: 2, fromCurrency: 'USD', toCurrency: 'AFN', rate: 92.50, buy: 92.00, sell: 93.00, lastUpdated: '2026-01-11 11:30', change: '+0.3%', trend: 'up' },
+        { id: 3, fromCurrency: 'EUR', toCurrency: 'AFN', rate: 100.25, buy: 99.75, sell: 100.75, lastUpdated: '2026-01-11 11:30', change: '-0.2%', trend: 'down' },
+        { id: 4, fromCurrency: 'GBP', toCurrency: 'USD', rate: 1.25, buy: 1.24, sell: 1.26, lastUpdated: '2026-01-11 11:30', change: '+0.1%', trend: 'up' },
+        { id: 5, fromCurrency: 'GBP', toCurrency: 'EUR', rate: 1.16, buy: 1.15, sell: 1.17, lastUpdated: '2026-01-11 11:30', change: '0.0%', trend: 'neutral' },
     ];
 
     const getTrendIcon = (trend: string) => {
@@ -88,7 +88,11 @@ export default function ExchangeRatesPage() {
                             <p className="text-2xl font-bold text-slate-900 dark:text-white">116.00</p>
                             <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-1">+0.5%</p>
                         </div>
-                        <div className="text-3xl">🇬🇧→🇦🇫</div>
+                        <div className="flex items-center space-x-2">
+                            <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded text-xs font-bold text-slate-600 dark:text-slate-300">GBP</span>
+                            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                            <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded text-xs font-bold text-slate-600 dark:text-slate-300">AFN</span>
+                        </div>
                     </div>
                 </div>
 
@@ -99,7 +103,11 @@ export default function ExchangeRatesPage() {
                             <p className="text-2xl font-bold text-slate-900 dark:text-white">92.50</p>
                             <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-1">+0.3%</p>
                         </div>
-                        <div className="text-3xl">🇺🇸→🇦🇫</div>
+                        <div className="flex items-center space-x-2">
+                            <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded text-xs font-bold text-slate-600 dark:text-slate-300">USD</span>
+                            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                            <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded text-xs font-bold text-slate-600 dark:text-slate-300">AFN</span>
+                        </div>
                     </div>
                 </div>
 
@@ -110,7 +118,11 @@ export default function ExchangeRatesPage() {
                             <p className="text-2xl font-bold text-slate-900 dark:text-white">100.25</p>
                             <p className="text-xs font-semibold text-red-600 dark:text-red-400 mt-1">-0.2%</p>
                         </div>
-                        <div className="text-3xl">🇪🇺→🇦🇫</div>
+                        <div className="flex items-center space-x-2">
+                            <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded text-xs font-bold text-slate-600 dark:text-slate-300">EUR</span>
+                            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                            <span className="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded text-xs font-bold text-slate-600 dark:text-slate-300">AFN</span>
+                        </div>
                     </div>
                 </div>
 
@@ -193,14 +205,12 @@ export default function ExchangeRatesPage() {
                                 >
                                     <td className="px-6 py-4">
                                         <div className="flex items-center space-x-3">
-                                            <span className="text-2xl">{rate.flag}</span>
-                                            <div>
-                                                <p className="font-bold text-slate-900 dark:text-white">
-                                                    {rate.fromCurrency} → {rate.toCurrency}
-                                                </p>
-                                                <p className="text-xs text-slate-500">
-                                                    {rate.fromCurrency}/{rate.toCurrency}
-                                                </p>
+                                            <div className="flex flex-col items-center justify-center p-2 rounded bg-slate-100 dark:bg-slate-700 min-w-[3rem]">
+                                                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{rate.fromCurrency}</span>
+                                            </div>
+                                            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                                            <div className="flex flex-col items-center justify-center p-2 rounded bg-slate-100 dark:bg-slate-700 min-w-[3rem]">
+                                                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{rate.toCurrency}</span>
                                             </div>
                                         </div>
                                     </td>

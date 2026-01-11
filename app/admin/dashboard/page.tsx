@@ -90,8 +90,8 @@ export default function DashboardPage() {
                         <div className="flex justify-between items-start mb-2">
                             <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{stat.label}</p>
                             <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${stat.trend === 'up'
-                                    ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400'
-                                    : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400'
+                                ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400'
+                                : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400'
                                 }`}>
                                 {stat.change}
                             </span>
@@ -113,11 +113,11 @@ export default function DashboardPage() {
                             <AreaChart data={transferVolumeData}>
                                 <defs>
                                     <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#0f172a" stopOpacity={0.1} />
-                                        <stop offset="95%" stopColor="#0f172a" stopOpacity={0} />
+                                        <stop offset="5%" stopColor="var(--chart-primary)" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="var(--chart-primary)" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--chart-grid)" />
                                 <XAxis
                                     dataKey="name"
                                     tickLine={false}
@@ -135,7 +135,7 @@ export default function DashboardPage() {
                                     type="monotone"
                                     dataKey="value"
                                     name="Transfers"
-                                    stroke="#0f172a"
+                                    stroke="var(--chart-primary)"
                                     strokeWidth={2}
                                     fillOpacity={1}
                                     fill="url(#colorVolume)"
@@ -193,7 +193,7 @@ export default function DashboardPage() {
                     <div className="h-72 w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={branchRevenueData} barSize={40}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--chart-grid)" />
                                 <XAxis
                                     dataKey="name"
                                     tickLine={false}
@@ -213,7 +213,7 @@ export default function DashboardPage() {
                                 />
                                 <Bar
                                     dataKey="value"
-                                    fill="#334155"
+                                    fill="var(--chart-primary)"
                                     radius={[4, 4, 0, 0]}
                                 />
                             </BarChart>

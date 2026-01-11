@@ -130,8 +130,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                 key={item.name}
                                 href={item.href}
                                 className={`flex items-center ${sidebarOpen ? 'justify-between px-3' : 'justify-center px-2'} py-2.5 rounded-lg transition-all duration-200 group ${isActive
-                                        ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white font-medium'
-                                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                                    ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white font-medium'
+                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
                                     }`}
                             >
                                 <div className="flex items-center space-x-3">
@@ -142,8 +142,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                 </div>
                                 {sidebarOpen && item.badge && (
                                     <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${isActive
-                                            ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
-                                            : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                                        ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                                        : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
                                         }`}>
                                         {item.badge}
                                     </span>
@@ -154,18 +154,37 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </nav>
 
                 {/* User Profile */}
-                <div className="p-4 border-t border-slate-200 dark:border-slate-700">
+                <div className="p-4 border-t border-slate-200 dark:border-slate-700 relative">
+                    {userMenuOpen && (
+                        <div className="absolute bottom-full left-4 right-4 mb-2 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                            <Link
+                                href="/admin/login"
+                                className="flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors w-full text-left"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                </svg>
+                                <span className="font-medium text-sm">Sign Out</span>
+                            </Link>
+                        </div>
+                    )}
                     <button
                         onClick={() => setUserMenuOpen(!userMenuOpen)}
-                        className={`w-full flex items-center ${sidebarOpen ? 'space-x-3' : 'justify-center'} p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors`}
+                        className={`w-full flex items-center ${sidebarOpen ? 'space-x-3' : 'justify-center'} p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700`}
                     >
-                        <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 text-xs font-bold border border-slate-300 dark:border-slate-600">
+                        <div className="w-8 h-8 rounded-full bg-slate-900 dark:bg-white flex items-center justify-center text-white dark:text-slate-900 text-xs font-bold shrink-0">
                             AD
                         </div>
                         {sidebarOpen && (
                             <div className="flex-1 text-left overflow-hidden">
-                                <p className="text-sm font-medium text-slate-900 dark:text-white truncate">Admin User</p>
+                                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">Admin User</p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Super Admin</p>
                             </div>
+                        )}
+                        {sidebarOpen && (
+                            <svg className={`w-4 h-4 text-slate-500 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
                         )}
                     </button>
                 </div>
@@ -197,9 +216,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                             </svg>
                             <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-slate-800"></span>
                         </button>
-                        <button className="px-4 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-sm font-medium rounded-lg transition-colors shadow-sm">
+                        <Link href="/admin/transfers/create" className="px-4 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-sm font-medium rounded-lg transition-colors shadow-sm">
                             New Transfer
-                        </button>
+                        </Link>
                     </div>
                 </header>
 
