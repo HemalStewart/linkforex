@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -14,6 +14,8 @@ const MOCK_BENEFICIARIES = [
     { id: 'b1', name: 'Ahmad Khan', bank: 'ABL', account: '0010020030040050' },
     { id: 'b2', name: 'Fatima Noor', bank: 'HBL', account: '1122334455667788' },
 ];
+
+// Helpers and Modal code removed - functionality moved to /admin/users/create
 
 export default function CreateTransferPage() {
     const router = useRouter();
@@ -48,6 +50,7 @@ export default function CreateTransferPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState<typeof MOCK_REMITTERS>([]);
     const [selectedRemitter, setSelectedRemitter] = useState<any>(null);
+    // const [isSenderModalOpen, setIsSenderModalOpen] = useState(false);
 
     const handleSearchRemitter = () => {
         // Mock search logic
@@ -126,8 +129,8 @@ export default function CreateTransferPage() {
                     {[1, 2, 3, 4].map((s) => (
                         <div key={s} className={`flex flex-col items-center bg-slate-50 dark:bg-slate-900 px-2`}>
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-colors duration-300 ${step >= s
-                                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
-                                    : 'bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
+                                ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                                : 'bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
                                 }`}>
                                 {s}
                             </div>
@@ -198,15 +201,12 @@ export default function CreateTransferPage() {
                                         <span className="text-slate-400 text-sm">or</span>
                                     </div>
 
-                                    <button
-                                        className="w-full py-3 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg text-slate-500 font-medium hover:border-slate-400 dark:hover:border-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-                                        onClick={() => {
-                                            setFormData(prev => ({ ...prev, isNewRemitter: true }));
-                                            selectRemitter({ id: 'new', name: 'New Customer', phone: '' });
-                                        }}
+                                    <Link
+                                        href="/admin/customers/create?returnUrl=/admin/transfers/create"
+                                        className="w-full py-3 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg text-slate-500 font-medium hover:border-slate-400 dark:hover:border-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors flex items-center justify-center"
                                     >
                                         + Add New Customer
-                                    </button>
+                                    </Link>
                                 </div>
                             ) : (
                                 <div className="bg-slate-50 dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-700 text-center relative animate-fade-in">
@@ -284,8 +284,8 @@ export default function CreateTransferPage() {
                                     key={b.id}
                                     onClick={() => selectReceiver(b)}
                                     className={`p-4 border rounded-xl cursor-pointer transition-all ${formData.receiverName === b.name
-                                            ? 'border-slate-900 dark:border-white bg-slate-50 dark:bg-slate-700 ring-1 ring-slate-900 dark:ring-white'
-                                            : 'border-slate-200 dark:border-slate-700 hover:border-slate-400'
+                                        ? 'border-slate-900 dark:border-white bg-slate-50 dark:bg-slate-700 ring-1 ring-slate-900 dark:ring-white'
+                                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-400'
                                         }`}
                                 >
                                     <div className="flex items-start justify-between">
@@ -492,8 +492,8 @@ export default function CreateTransferPage() {
                         onClick={prevStep}
                         disabled={step === 1}
                         className={`px-6 py-2.5 font-bold rounded-lg transition-colors ${step === 1
-                                ? 'text-slate-300 dark:text-slate-700 cursor-not-allowed'
-                                : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                            ? 'text-slate-300 dark:text-slate-700 cursor-not-allowed'
+                            : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                             }`}
                     >
                         Back
@@ -524,6 +524,7 @@ export default function CreateTransferPage() {
                     )}
                 </div>
             </div>
+
         </div>
     );
 }
