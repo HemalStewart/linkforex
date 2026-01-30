@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { ENDPOINTS } from '@/app/lib/api';
 
 export default function KYCPage() {
     const [filterStatus, setFilterStatus] = useState('all');
@@ -13,7 +14,7 @@ export default function KYCPage() {
 
     const fetchRemitters = async () => {
         try {
-            const res = await fetch('http://localhost:8888/linforex_backend/public/api/remitters');
+            const res = await fetch(ENDPOINTS.REMITTERS.LIST);
             if (res.ok) {
                 const data = await res.json();
                 setRemitters(data);

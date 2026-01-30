@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { ENDPOINTS } from '@/app/lib/api';
 
 export default function CreateUserPage() {
     const router = useRouter();
@@ -26,7 +27,7 @@ export default function CreateUserPage() {
         }
 
         try {
-            const res = await fetch('http://localhost:8888/linforex_backend/public/api/users', {
+            const res = await fetch(ENDPOINTS.USERS.LIST, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { ENDPOINTS } from '@/app/lib/api';
 
 // Mock Data for Search
 const MOCK_REMITTERS = [
@@ -59,7 +60,7 @@ export default function CreateTransferPage() {
             return;
         }
         try {
-            const res = await fetch(`http://localhost:8888/linforex_backend/public/api/remitters?search=${searchTerm}`);
+            const res = await fetch(`${ENDPOINTS.REMITTERS.LIST}?search=${searchTerm}`);
             if (res.ok) {
                 const data = await res.json();
                 setSearchResults(data);
@@ -96,7 +97,7 @@ export default function CreateTransferPage() {
 
         // Fetch Beneficiaries
         try {
-            const res = await fetch(`http://localhost:8888/linforex_backend/public/api/beneficiaries?customer_id=${remitter.id}`);
+            const res = await fetch(`${ENDPOINTS.BENEFICIARIES.LIST}?customer_id=${remitter.id}`);
             if (res.ok) {
                 setBeneficiaries(await res.json());
             }
@@ -133,7 +134,7 @@ export default function CreateTransferPage() {
                 status: 'pending'
             };
 
-            const res = await fetch('http://localhost:8888/linforex_backend/public/api/transfers', {
+            const res = await fetch(ENDPOINTS.TRANSFERS.LIST, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(apiData)

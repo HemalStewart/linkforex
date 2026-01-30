@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
+import { ENDPOINTS } from '@/app/lib/api';
 
 export default function EditRemitterPage() {
     const router = useRouter();
@@ -33,7 +34,7 @@ export default function EditRemitterPage() {
 
     const fetchRemitter = async () => {
         try {
-            const res = await fetch(`http://localhost:8888/linforex_backend/public/api/remitters/${id}`);
+            const res = await fetch(ENDPOINTS.REMITTERS.DETAIL(id));
             if (res.ok) {
                 const data = await res.json();
                 setFormData(data);
@@ -50,7 +51,7 @@ export default function EditRemitterPage() {
         setSubmitting(true);
 
         try {
-            const res = await fetch(`http://localhost:8888/linforex_backend/public/api/remitters/${id}`, {
+            const res = await fetch(ENDPOINTS.REMITTERS.DETAIL(id), {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

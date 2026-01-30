@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import ConfirmModal from '../../components/ConfirmModal';
+import { ENDPOINTS } from '@/app/lib/api';
 
 export default function TransferDetailsPage() {
     const router = useRouter();
@@ -31,7 +32,7 @@ export default function TransferDetailsPage() {
 
     const fetchTransfer = async () => {
         try {
-            const res = await fetch(`http://localhost:8888/linforex_backend/public/api/transfers/${id}`);
+            const res = await fetch(ENDPOINTS.TRANSFERS.DETAIL(id));
             if (res.ok) {
                 const data = await res.json();
                 setTransfer(data);
@@ -76,7 +77,7 @@ export default function TransferDetailsPage() {
         const newStatus = confirmModal.status;
 
         try {
-            const res = await fetch(`http://localhost:8888/linforex_backend/public/api/transfers/${id}`, {
+            const res = await fetch(ENDPOINTS.TRANSFERS.DETAIL(id), {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

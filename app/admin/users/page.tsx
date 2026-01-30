@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-
+import { ENDPOINTS } from '@/app/lib/api';
 
 export default function UsersPage() {
     const [searchQuery, setSearchQuery] = useState('');
@@ -21,7 +21,7 @@ export default function UsersPage() {
                 if (searchQuery) params.append('search', searchQuery);
 
                 // Using users API
-                const res = await fetch(`http://localhost:8888/linforex_backend/public/api/users?${params.toString()}`);
+                const res = await fetch(`${ENDPOINTS.USERS.LIST}?${params.toString()}`);
                 if (res.ok) {
                     const data = await res.json();
                     const mappedData = data.map((u: any) => ({
@@ -43,7 +43,7 @@ export default function UsersPage() {
         if (!confirm('Are you sure you want to delete this user?')) return;
 
         try {
-            const res = await fetch(`http://localhost:8888/linforex_backend/public/api/users/${id}`, {
+            const res = await fetch(ENDPOINTS.USERS.DETAIL(id), {
                 method: 'DELETE'
             });
 

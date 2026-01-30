@@ -3,6 +3,7 @@
 import React from 'react';
 
 import { useRouter } from 'next/navigation';
+import { ENDPOINTS } from '@/app/lib/api';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -25,7 +26,7 @@ export default function AdminLoginPage() {
     const password = formData.get('password');
 
     try {
-      const response = await fetch('http://localhost:8888/linforex_backend/public/api/login', {
+      const response = await fetch(ENDPOINTS.AUTH.LOGIN, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

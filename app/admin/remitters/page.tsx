@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { ENDPOINTS } from '@/app/lib/api';
 
 export default function RemittersPage() {
     const router = useRouter();
@@ -19,7 +20,7 @@ export default function RemittersPage() {
                 if (statusFilter !== 'all') params.append('status', statusFilter);
                 if (searchQuery) params.append('search', searchQuery);
 
-                const res = await fetch(`http://localhost:8888/linforex_backend/public/api/remitters?${params.toString()}`);
+                const res = await fetch(`${ENDPOINTS.REMITTERS.LIST}?${params.toString()}`);
                 if (!res.ok) throw new Error('Failed to fetch');
                 const data = await res.json();
 

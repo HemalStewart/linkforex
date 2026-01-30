@@ -15,6 +15,7 @@ import {
     BarChart,
     Bar
 } from 'recharts';
+import { ENDPOINTS } from '../../lib/api';
 
 // Demo Data Removed - using real data from API
 
@@ -54,15 +55,17 @@ export default function DashboardPage() {
         fetchDashboardData();
     }, []);
 
+
     const fetchDashboardData = async () => {
         try {
             // Fetch transfers
-            const transfersRes = await fetch('http://localhost:8888/linforex_backend/public/api/transfers');
+            const transfersRes = await fetch(ENDPOINTS.TRANSFERS.LIST);
             const transfers = transfersRes.ok ? await transfersRes.json() : [];
 
             // Fetch customers
-            const customersRes = await fetch('http://localhost:8888/linforex_backend/public/api/remitters');
+            const customersRes = await fetch(ENDPOINTS.REMITTERS.LIST);
             const customers = customersRes.ok ? await customersRes.json() : [];
+
 
             // Calculate stats
             const completedTransfers = transfers.filter((t: any) => t.status === 'completed');

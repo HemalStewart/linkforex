@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { ENDPOINTS } from '@/app/lib/api';
 
 export default function CreateReceiverPage() {
     const router = useRouter();
@@ -20,7 +21,7 @@ export default function CreateReceiverPage() {
         // Fetch remitters for selection
         const fetchRemitters = async () => {
             try {
-                const res = await fetch('http://localhost:8888/linforex_backend/public/api/remitters');
+                const res = await fetch(ENDPOINTS.REMITTERS.LIST);
                 if (res.ok) {
                     const data = await res.json();
                     setRemitters(data);
@@ -37,7 +38,7 @@ export default function CreateReceiverPage() {
         setLoading(true);
 
         try {
-            const res = await fetch('http://localhost:8888/linforex_backend/public/api/beneficiaries', {
+            const res = await fetch(ENDPOINTS.BENEFICIARIES.LIST, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

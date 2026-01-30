@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 
 // Icons for Report Types
+import { ENDPOINTS } from '../../lib/api';
+
 const Icons = {
     financial: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -45,12 +47,13 @@ export default function ReportsPage() {
     });
     const [loading, setLoading] = useState(true);
 
+
     React.useEffect(() => {
         const fetchData = async () => {
             try {
                 const [transfersRes, remittersRes] = await Promise.all([
-                    fetch('http://localhost:8888/linforex_backend/public/api/transfers'),
-                    fetch('http://localhost:8888/linforex_backend/public/api/remitters')
+                    fetch(ENDPOINTS.TRANSFERS.LIST),
+                    fetch(ENDPOINTS.REMITTERS.LIST)
                 ]);
 
                 const transfers = transfersRes.ok ? await transfersRes.json() : [];

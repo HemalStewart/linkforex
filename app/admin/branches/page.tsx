@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { ENDPOINTS } from '@/app/lib/api';
 
 export default function BranchesPage() {
     const [branches, setBranches] = React.useState<any[]>([]);
@@ -21,7 +22,7 @@ export default function BranchesPage() {
     const fetchBranches = async () => {
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:8888/linforex_backend/public/api/branches');
+            const res = await fetch(ENDPOINTS.BRANCHES.LIST);
             if (res.ok) {
                 const data = await res.json();
                 const augmented = data.map((b: any) => ({
@@ -48,8 +49,8 @@ export default function BranchesPage() {
         e.preventDefault();
         try {
             const url = formData.id
-                ? `http://localhost:8888/linforex_backend/public/api/branches/${formData.id}`
-                : 'http://localhost:8888/linforex_backend/public/api/branches';
+                ? ENDPOINTS.BRANCHES.DETAIL(formData.id)
+                : ENDPOINTS.BRANCHES.LIST;
 
             const method = formData.id ? 'PUT' : 'POST';
 

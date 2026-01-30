@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { ENDPOINTS } from '@/app/lib/api';
 
 export default function ReceiversPage() {
     const [receivers, setReceivers] = useState<any[]>([]);
@@ -15,7 +16,7 @@ export default function ReceiversPage() {
     const fetchReceivers = async () => {
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:8888/linforex_backend/public/api/beneficiaries');
+            const res = await fetch(ENDPOINTS.BENEFICIARIES.LIST);
             if (res.ok) {
                 const data = await res.json();
                 setReceivers(data);
@@ -31,7 +32,7 @@ export default function ReceiversPage() {
         if (!confirm('Are you sure you want to delete this receiver?')) return;
 
         try {
-            const res = await fetch(`http://localhost:8888/linforex_backend/public/api/beneficiaries/${id}`, {
+            const res = await fetch(ENDPOINTS.BENEFICIARIES.DETAIL(id), {
                 method: 'DELETE'
             });
 

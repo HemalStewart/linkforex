@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
+import { ENDPOINTS } from '@/app/lib/api';
 
 export default function EditUserPage() {
     const router = useRouter();
@@ -30,7 +31,7 @@ export default function EditUserPage() {
 
     const fetchUser = async () => {
         try {
-            const res = await fetch(`http://localhost:8888/linforex_backend/public/api/users/${id}`);
+            const res = await fetch(ENDPOINTS.USERS.DETAIL(id));
             if (res.ok) {
                 const data = await res.json();
                 setFormData({
@@ -66,7 +67,7 @@ export default function EditUserPage() {
         };
 
         try {
-            const res = await fetch(`http://localhost:8888/linforex_backend/public/api/users/${id}`, {
+            const res = await fetch(ENDPOINTS.USERS.DETAIL(id), {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

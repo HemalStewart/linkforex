@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { ENDPOINTS } from '@/app/lib/api';
 
 export default function ExchangeRatesPage() {
     const [currencies, setCurrencies] = useState<any[]>([]);
@@ -14,7 +15,7 @@ export default function ExchangeRatesPage() {
 
     const fetchRates = async () => {
         try {
-            const res = await fetch('http://localhost:8888/linforex_backend/public/api/currencies');
+            const res = await fetch(ENDPOINTS.CURRENCIES.LIST);
             if (res.ok) {
                 const data = await res.json();
                 setCurrencies(data);
@@ -33,7 +34,7 @@ export default function ExchangeRatesPage() {
 
     const handleSave = async (id: number) => {
         try {
-            await fetch(`http://localhost:8888/linforex_backend/public/api/currencies/${id}`, {
+            await fetch(ENDPOINTS.CURRENCIES.DETAIL(id), {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ rate: editForm.rate })

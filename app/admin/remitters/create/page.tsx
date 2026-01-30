@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { ENDPOINTS } from '@/app/lib/api';
 
 // --- HELPER COMPONENTS (Reused) ---
 
@@ -139,7 +140,7 @@ export default function CreateRemitterPage() {
         };
 
         try {
-            const res = await fetch('http://localhost:8888/linforex_backend/public/api/remitters', {
+            const res = await fetch(ENDPOINTS.REMITTERS.LIST, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

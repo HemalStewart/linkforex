@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { ENDPOINTS } from '@/app/lib/api';
 
 export default function BeneficiariesPage() {
     const [beneficiaries, setBeneficiaries] = useState<any[]>([]);
@@ -16,7 +17,7 @@ export default function BeneficiariesPage() {
     const fetchBeneficiaries = async () => {
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:8888/linforex_backend/public/api/beneficiaries');
+            const res = await fetch(ENDPOINTS.BENEFICIARIES.LIST);
             if (res.ok) {
                 const data = await res.json();
                 setBeneficiaries(data);
