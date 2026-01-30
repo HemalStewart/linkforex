@@ -109,15 +109,82 @@ export default function CreateCustomerPage() {
         { id: 'directors', label: 'Directors' },
     ];
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        // In a real app, you would save data here.
-        alert('Customer Created Successfully!');
+    const [loading, setLoading] = useState(false);
 
-        if (returnUrl) {
-            router.push(returnUrl);
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setLoading(true);
+        const formData = new FormData(e.currentTarget);
+        const data: any = {};
+        formData.forEach((value, key) => {
+            data[key] = value;
+        });
+
+        // Map fields to API expects
+        const apiData: any = {
+            client_type: clientType,
+            status: 'active',
+            branch: data.branch_id,
+            role: 'customer',
+        };
+
+        if (clientType === 'individual') {
+            apiData.name = data.sender_name;
+            apiData.phone = data.telephone;
+            apiData.dob = data.date_of_birth;
+            apiData.place_of_birth = data.place_of_birth;
+            apiData.occupation = data.occupation;
+            apiData.address_1 = data.address_1;
+            apiData.address_2 = data.address_2;
+            apiData.city = data.city;
+            apiData.postcode = data.postcode;
+            apiData.county = data.county;
+            apiData.country = data.country;
+            apiData.id_type = data.id_type;
+            apiData.id_number = data.id_no;
+            apiData.id_expiry = data.id_expire_date;
+            apiData.email = 'individual@example.com'; // Placeholder as form lacks email
         } else {
-            router.push('/admin/customers');
+            apiData.company_name = data.bc_company_name;
+            apiData.name = data.bc_company_name; // Use company name as main name
+            apiData.company_type = data.bc_type_of_company;
+            apiData.company_reg_no = data.bc_company_house_no;
+            apiData.phone = data.bc_landline_no;
+            apiData.email = 'business@example.com'; // Placeholder
+            // Map business address to main address fields for now
+            apiData.address_1 = data.bc_compnay_address;
+            apiData.address_2 = data.bc_trading_address; // Use trading as address 2 or ignore
+        }
+
+        try {
+            const res = await fetch('http://localhost:8888/linforex_backend/public/api/customers', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(apiData),
+            });
+
+            if (!res.ok) {
+                const errData = await res.json();
+                console.error('Error creating customer:', errData);
+                alert('Failed to create customer: ' + (JSON.stringify(errData.messages) || res.statusText));
+                return;
+            }
+
+            const result = await res.json();
+            alert('Customer Created Successfully!');
+
+            if (returnUrl) {
+                router.push(returnUrl);
+            } else {
+                router.push('/admin/customers');
+            }
+        } catch (error) {
+            console.error('Failed to submit:', error);
+            alert('An error occurred. Please try again.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -355,9 +422,10 @@ export default function CreateCustomerPage() {
                     <button
                         type="submit"
                         form="createSenderForm"
-                        className="px-8 py-2.5 rounded-lg bg-emerald-600 text-white font-bold hover:bg-emerald-500 transition-colors shadow-lg shadow-emerald-500/20 flex items-center"
+                        disabled={loading}
+                        className={`px-8 py-2.5 rounded-lg bg-emerald-600 text-white font-bold hover:bg-emerald-500 transition-colors shadow-lg shadow-emerald-500/20 flex items-center ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                        <span>Create Customer</span>
+                        <span>{loading ? 'Creating...' : 'Create Customer'}</span>
                     </button>
                 </div>
             </div>

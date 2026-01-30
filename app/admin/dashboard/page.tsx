@@ -59,6 +59,71 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export default function DashboardPage() {
+    const [isClient, setIsClient] = React.useState(false);
+    const [stats, setStats] = React.useState({
+        totalTransfers: 0,
+        activeUsers: 0,
+        pendingKYC: 0,
+        totalRevenue: 0
+    });
+    const [recentActivity, setRecentActivity] = React.useState<any[]>([]);
+
+    React.useEffect(() => {
+        setIsClient(true);
+        fetchDashboardData();
+    }, []);
+
+    const fetchDashboardData = async () => {
+        try {
+            // Fetch transfers
+            const transfersRes = await fetch('http://localhost:8888/linforex_backend/public/api/transfers');
+            const transfers = transfersRes.ok ? await transfersRes.json() : [];
+
+            // Fetch customers
+            const customersRes = await fetch('http://localhost:8888/linforex_backend/public/api/customers');
+            const customers = customersRes.ok ? await customersRes.json() : [];
+
+            // Calculate stats
+            const completedTransfers = transfers.filter((t: any) => t.status === 'completed');
+            const totalRevenue = completedTransfers.reduce((sum: number, t: any) => sum + parseFloat(t.source_amount || 0), 0);
+            const pendingKYC = customers.filter((c: any) => c.kyc_status === 'pending').length;
+
+            setStats({
+                totalTransfers: transfers.length,
+                activeUsers: customers.filter((c: any) => c.status === 'active').length,
+                pendingKYC: pendingKYC,
+                totalRevenue: totalRevenue
+            });
+
+            // Get recent 4 transfers with customer info
+            const recent = transfers.slice(0, 4).map((t: any) => {
+                const customer = customers.find((c: any) => c.id === t.remitter_id);
+                return {
+                    ...t,
+                    customerName: customer?.name || 'Unknown',
+                    customerInitials: customer?.name?.split(' ').map((n: string) => n[0]).join('') || 'UK'
+                };
+            });
+            setRecentActivity(recent);
+
+        } catch (error) {
+            console.error('Failed to fetch dashboard data:', error);
+        }
+    };
+
+    if (!isClient) {
+        return (
+            <div className="max-w-7xl mx-auto space-y-8 p-4">
+                <div className="h-8 bg-slate-100 dark:bg-slate-800 rounded w-1/4 animate-pulse"></div>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    {[1, 2, 3, 4].map(i => (
+                        <div key={i} className="h-32 bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse"></div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-up">
             {/* Header */}
@@ -81,10 +146,10 @@ export default function DashboardPage() {
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                    { label: 'Total Transfers', value: '1,284', change: '+12.5%', trend: 'up' },
-                    { label: 'Active Users', value: '845', change: '+5.2%', trend: 'up' },
-                    { label: 'Pending KYC', value: '24', change: '-2.4%', trend: 'down' },
-                    { label: 'Total Revenue', value: '£48,200', change: '+18.3%', trend: 'up' },
+                    { label: 'Total Transfers', value: stats.totalTransfers.toLocaleString(), change: '+12.5%', trend: 'up' },
+                    { label: 'Active Users', value: stats.activeUsers.toLocaleString(), change: '+5.2%', trend: 'up' },
+                    { label: 'Pending KYC', value: stats.pendingKYC.toLocaleString(), change: '-2.4%', trend: 'down' },
+                    { label: 'Total Revenue', value: `£${stats.totalRevenue.toLocaleString()}`, change: '+18.3%', trend: 'up' },
                 ].map((stat, index) => (
                     <div key={index} className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
                         <div className="flex justify-between items-start mb-2">
@@ -109,7 +174,7 @@ export default function DashboardPage() {
                 <div className="lg:col-span-2 bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
                     <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Transfer Volume</h2>
                     <div className="h-80 w-full">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                             <AreaChart data={transferVolumeData}>
                                 <defs>
                                     <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
@@ -149,7 +214,7 @@ export default function DashboardPage() {
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
                     <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Status Breakdown</h2>
                     <div className="h-64 w-full relative">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                             <PieChart>
                                 <Pie
                                     data={statusData}
@@ -191,7 +256,7 @@ export default function DashboardPage() {
                         <h2 className="text-lg font-bold text-slate-900 dark:text-white">Revenue by Branch</h2>
                     </div>
                     <div className="h-72 w-full">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                             <BarChart data={branchRevenueData} barSize={40}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--chart-grid)" />
                                 <XAxis
@@ -228,20 +293,32 @@ export default function DashboardPage() {
                         <button className="text-sm text-blue-600 font-medium hover:text-blue-700">View All</button>
                     </div>
                     <div className="p-0">
-                        {[1, 2, 3, 4].map((i) => (
-                            <div key={i} className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-700 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        {recentActivity.length > 0 ? recentActivity.map((activity) => (
+                            <div key={activity.id} className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-700 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                                 <div className="flex items-center space-x-3">
                                     <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold text-xs">
-                                        JD
+                                        {activity.customerInitials}
                                     </div>
                                     <div>
-                                        <p className="text-sm font-medium text-slate-900 dark:text-white">John Doe</p>
-                                        <p className="text-xs text-slate-500">Sent £1,250.00 to US</p>
+                                        <p className="text-sm font-medium text-slate-900 dark:text-white">{activity.customerName}</p>
+                                        <p className="text-xs text-slate-500">Sent £{parseFloat(activity.source_amount || 0).toLocaleString()}</p>
                                     </div>
                                 </div>
-                                <span className="text-xs text-emerald-600 font-medium bg-emerald-50 px-2 py-1 rounded-full">Completed</span>
+                                <span className={`text-xs font-medium px-2 py-1 rounded-full ${activity.status === 'completed' ? 'text-emerald-600 bg-emerald-50' :
+                                        activity.status === 'in_transit' ? 'text-blue-600 bg-blue-50' :
+                                            activity.status === 'pending' ? 'text-amber-600 bg-amber-50' :
+                                                'text-slate-600 bg-slate-50'
+                                    }`}>
+                                    {activity.status === 'in_transit' ? 'In Transit' :
+                                        activity.status === 'in_review' ? 'In Review' :
+                                            activity.status.charAt(0).toUpperCase() + activity.status.slice(1)}
+                                </span>
                             </div>
-                        ))}
+                        )) : (
+                            <div className="p-8 text-center text-slate-500">
+                                No recent transfers
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

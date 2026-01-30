@@ -50,19 +50,23 @@ export default function CreateTransferPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState<typeof MOCK_REMITTERS>([]);
     const [selectedRemitter, setSelectedRemitter] = useState<any>(null);
+    const [beneficiaries, setBeneficiaries] = useState<any[]>([]);
     // const [isSenderModalOpen, setIsSenderModalOpen] = useState(false);
 
-    const handleSearchRemitter = () => {
-        // Mock search logic
+    const handleSearchRemitter = async () => {
         if (!searchTerm) {
             setSearchResults([]);
             return;
         }
-        const results = MOCK_REMITTERS.filter(r =>
-            r.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            r.phone.includes(searchTerm)
-        );
-        setSearchResults(results);
+        try {
+            const res = await fetch(`http://localhost:8888/linforex_backend/public/api/customers?search=${searchTerm}`);
+            if (res.ok) {
+                const data = await res.json();
+                setSearchResults(data);
+            }
+        } catch (e) {
+            console.error(e);
+        }
     };
 
     const simulateScreening = (type: 'remitter' | 'receiver') => {
@@ -79,7 +83,7 @@ export default function CreateTransferPage() {
         }
     };
 
-    const selectRemitter = (remitter: any) => {
+    const selectRemitter = async (remitter: any) => {
         setSelectedRemitter(remitter);
         setFormData(prev => ({
             ...prev,
@@ -89,22 +93,62 @@ export default function CreateTransferPage() {
         }));
         // Reset results to hide list
         setSearchResults([]);
+
+        // Fetch Beneficiaries
+        try {
+            const res = await fetch(`http://localhost:8888/linforex_backend/public/api/beneficiaries?customer_id=${remitter.id}`);
+            if (res.ok) {
+                setBeneficiaries(await res.json());
+            }
+        } catch (e) { console.error(e); }
+
         // Trigger screening
         simulateScreening('remitter');
     };
 
     const selectReceiver = (receiver: any) => {
-        setFormData(prev => ({ ...prev, receiverName: receiver.name, receiverBank: receiver.bank }));
+        setFormData(prev => ({
+            ...prev,
+            receiverId: receiver.id,
+            receiverName: receiver.name,
+            receiverBank: receiver.bank_name || receiver.bank // Handle API field name
+        }));
         simulateScreening('receiver');
     };
 
     const nextStep = () => setStep(prev => prev + 1);
     const prevStep = () => setStep(prev => prev - 1);
 
-    const handleSubmit = () => {
-        // In a real app, submit data to API
-        alert('Transfer Created Successfully (Mock)');
-        router.push('/admin/transfers');
+    const handleSubmit = async () => {
+        try {
+            const apiData = {
+                remitter_id: formData.remitterId,
+                beneficiary_id: formData.receiverId, // Should make sure we have this from receiver selection
+                source_amount: formData.sourceAmount,
+                dest_amount: formData.destAmount,
+                rate: formData.rate,
+                payment_mode: formData.paymentMode,
+                source_of_funds: formData.sourceOfFunds,
+                purpose: formData.purpose,
+                status: 'pending'
+            };
+
+            const res = await fetch('http://localhost:8888/linforex_backend/public/api/transfers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(apiData)
+            });
+
+            if (res.ok) {
+                alert('Transfer Created Successfully');
+                router.push('/admin/transfers');
+            } else {
+                alert('Failed to create transfer');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Error submitting transfer');
+        }
     };
 
     return (
@@ -154,7 +198,7 @@ export default function CreateTransferPage() {
                     <div className="p-8 space-y-6">
                         <div className="text-center mb-8">
                             <h2 className="text-xl font-bold text-slate-900 dark:text-white">Who is sending money?</h2>
-                            <p className="text-slate-500 text-sm">Search for an existing customer or add a new one.</p>
+                            <p className="text-slate-500 text-sm">Search for an existing remitter or add a new one.</p>
                         </div>
 
                         {/* Search & Select */}
@@ -205,7 +249,7 @@ export default function CreateTransferPage() {
                                         href="/admin/customers/create?returnUrl=/admin/transfers/create"
                                         className="w-full py-3 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg text-slate-500 font-medium hover:border-slate-400 dark:hover:border-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors flex items-center justify-center"
                                     >
-                                        + Add New Customer
+                                        + Add New Remitter
                                     </Link>
                                 </div>
                             ) : (
@@ -250,7 +294,7 @@ export default function CreateTransferPage() {
                                             <input
                                                 className="w-full p-2 border rounded bg-white dark:bg-slate-800 dark:border-slate-600"
                                                 placeholder="Full Name"
-                                                value={formData.remitterName === 'New Customer' ? '' : formData.remitterName}
+                                                value={formData.remitterName === 'New Remitter' ? '' : formData.remitterName}
                                                 onChange={e => setFormData({ ...formData, remitterName: e.target.value })}
                                             />
                                             <input
@@ -279,7 +323,7 @@ export default function CreateTransferPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {/* Existing Beneficiaries */}
-                            {MOCK_BENEFICIARIES.map(b => (
+                            {beneficiaries.map(b => (
                                 <div
                                     key={b.id}
                                     onClick={() => selectReceiver(b)}

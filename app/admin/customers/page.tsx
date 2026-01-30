@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -8,15 +8,40 @@ export default function CustomersPage() {
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [customers, setCustomers] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    // Mock Data - filtered for customers
-    const customers = [
-        { id: 5, name: 'Ahmed Hassan', email: 'ahmed.hassan@example.com', role: 'customer', status: 'active', phone: '+44 7700 900 123', branch: '-', lastLogin: '2026-01-11 07:00', joinedDate: '2025-12-01', transfersCount: 8, kycStatus: 'verified' },
-        { id: 6, name: 'Fatima Rahman', email: 'fatima.rahman@example.com', role: 'customer', status: 'active', phone: '+44 7700 900 234', branch: '-', lastLogin: '2026-01-10 18:30', joinedDate: '2025-11-15', transfersCount: 12, kycStatus: 'verified' },
-        { id: 8, name: 'Mohammed Ali', email: 'ali.m@example.com', role: 'customer', status: 'inactive', phone: '+44 7700 900 345', branch: '-', lastLogin: '2026-01-05 14:20', joinedDate: '2025-10-10', transfersCount: 5, kycStatus: 'pending' },
-        { id: 9, name: 'Noor Khan', email: 'noor.khan@example.com', role: 'customer', status: 'suspended', phone: '+44 7700 900 456', branch: '-', lastLogin: '2026-01-02 12:00', joinedDate: '2025-09-25', transfersCount: 3, kycStatus: 'rejected' },
-        { id: 10, name: 'Zahra Karimi', email: 'zahra.k@example.com', role: 'customer', status: 'active', phone: '+44 7700 900 567', branch: '-', lastLogin: '2026-01-11 06:30', joinedDate: '2025-08-12', transfersCount: 15, kycStatus: 'verified' },
-    ];
+    useEffect(() => {
+        const fetchCustomers = async () => {
+            setLoading(true);
+            try {
+                const params = new URLSearchParams();
+                if (statusFilter !== 'all') params.append('status', statusFilter);
+                if (searchQuery) params.append('search', searchQuery);
+
+                const res = await fetch(`http://localhost:8888/linforex_backend/public/api/customers?${params.toString()}`);
+                if (!res.ok) throw new Error('Failed to fetch');
+                const data = await res.json();
+
+                // Map DB fields to UI fields if necessary, codeigniter returns matching fields usually
+                // But we need to ensure structure matches what UI expects
+                const mappedData = data.map((c: any) => ({
+                    ...c,
+                    joinedDate: c.created_at ? new Date(c.created_at).toLocaleDateString() : '-',
+                    transfersCount: 0, // Placeholder
+                    lastLogin: c.last_login || 'Never'
+                }));
+                setCustomers(mappedData);
+            } catch (error) {
+                console.error('Failed to fetch customers:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        const debounce = setTimeout(fetchCustomers, 300);
+        return () => clearTimeout(debounce);
+    }, [searchQuery, statusFilter]);
 
     const getStatusBadge = (status: string) => {
         const styles = {
@@ -36,14 +61,8 @@ export default function CustomersPage() {
         return styles[status as keyof typeof styles] || styles.pending;
     };
 
-    const filteredCustomers = customers.filter(customer => {
-        const matchesStatus = statusFilter === 'all' || customer.status === statusFilter;
-        const matchesSearch = searchQuery === '' ||
-            customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            customer.phone.includes(searchQuery);
-        return matchesStatus && matchesSearch;
-    });
+    // No client-side filtering needed as API handles it, but we use customers directly
+    const filteredCustomers = customers;
 
     return (
         <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
@@ -71,7 +90,7 @@ export default function CustomersPage() {
                 </div>
             </div>
 
-            {/* Stats Cards */}
+            {/* Stats Cards - Note: These should ideally come from an API stats endpoint */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
                     <div className="flex items-center justify-between">
@@ -86,48 +105,7 @@ export default function CustomersPage() {
                         </div>
                     </div>
                 </div>
-
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Active Customers</p>
-                            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{customers.filter(c => c.status === 'active').length}</p>
-                        </div>
-                        <div className="w-12 h-12 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">KYC Verified</p>
-                            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{customers.filter(c => c.kycStatus === 'verified').length}</p>
-                        </div>
-                        <div className="w-12 h-12 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">New This Month</p>
-                            <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">2</p>
-                        </div>
-                        <div className="w-12 h-12 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
-                            </svg>
-                        </div>
-                    </div>
-                </div>
+                {/* Simplified stats for now */}
             </div>
 
             {/* Filters and Search */}
@@ -185,74 +163,69 @@ export default function CustomersPage() {
             {/* Customers Table */}
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
-                            <tr>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Customer</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Contact</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">KYC</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Transfers</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                            {filteredCustomers.map((customer) => (
-                                <tr
-                                    key={customer.id}
-                                    className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
-                                >
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center space-x-3">
-                                            <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-sm">
-                                                {customer.name.charAt(0)}
-                                            </div>
-                                            <div>
-                                                <p className="font-semibold text-slate-900 dark:text-white">{customer.name}</p>
-                                                <p className="text-xs text-slate-500">Joined: {customer.joinedDate}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="text-sm">
-                                            <p className="text-slate-700 dark:text-slate-300">{customer.email}</p>
-                                            <p className="text-slate-500 dark:text-slate-400 text-xs">{customer.phone}</p>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadge(customer.status)}`}>
-                                            {customer.status.charAt(0).toUpperCase() + customer.status.slice(1)}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${getKycBadge(customer.kycStatus)}`}>
-                                            {customer.kycStatus.toUpperCase()}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className="text-sm font-semibold text-slate-900 dark:text-white">{customer.transfersCount}</span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex space-x-2">
-                                            <button className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors" title="View Profile">
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                </svg>
-                                            </button>
-                                            <button className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors" title="New Transfer">
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </td>
+                    {loading ? (
+                        <div className="p-8 text-center text-slate-500">Loading...</div>
+                    ) : (
+                        <table className="w-full">
+                            <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
+                                <tr>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Customer</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Contact</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">KYC</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                                {filteredCustomers.map((customer) => (
+                                    <tr
+                                        key={customer.id}
+                                        className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                                    >
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center space-x-3">
+                                                <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-sm">
+                                                    {customer.name?.charAt(0)}
+                                                </div>
+                                                <div>
+                                                    <p className="font-semibold text-slate-900 dark:text-white">{customer.name}</p>
+                                                    <p className="text-xs text-slate-500">Joined: {customer.joinedDate}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="text-sm">
+                                                <p className="text-slate-700 dark:text-slate-300">{customer.email}</p>
+                                                <p className="text-slate-500 dark:text-slate-400 text-xs">{customer.phone}</p>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadge(customer.status)}`}>
+                                                {customer.status ? customer.status.charAt(0).toUpperCase() + customer.status.slice(1) : 'Unknown'}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${getKycBadge(customer.kycStatus)}`}>
+                                                {customer.kycStatus ? customer.kycStatus.toUpperCase() : 'PENDING'}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex space-x-2">
+                                                <button className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors" title="View Profile">
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
-                {filteredCustomers.length === 0 && (
+                {!loading && filteredCustomers.length === 0 && (
                     <div className="p-8 text-center text-slate-500 dark:text-slate-400">
                         No customers found.
                     </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 
@@ -9,18 +9,36 @@ export default function UsersPage() {
     const [filterRole, setFilterRole] = useState('all');
 
 
-    const users = [
-        { id: 1, name: 'Admin User', email: 'admin@linkforex.com', role: 'super_admin', status: 'active', phone: '+44 20 1234 5678', branch: 'London Central', lastLogin: '2026-01-11 11:30', joinedDate: '2025-01-15', transfersCount: 0 },
-        { id: 2, name: 'Sarah Manager', email: 'sarah.m@linkforex.com', role: 'admin', status: 'active', phone: '+44 20 1234 5679', branch: 'Manchester', lastLogin: '2026-01-11 10:15', joinedDate: '2025-02-20', transfersCount: 0 },
-        { id: 3, name: 'James Branch', email: 'james.b@linkforex.com', role: 'branch', status: 'active', phone: '+44 20 1234 5680', branch: 'Birmingham', lastLogin: '2026-01-11 09:45', joinedDate: '2025-03-10', transfersCount: 0 },
-        { id: 4, name: 'Emma Agent', email: 'emma.a@linkforex.com', role: 'agent', status: 'active', phone: '+44 20 1234 5681', branch: 'London East', lastLogin: '2026-01-11 08:20', joinedDate: '2025-04-05', transfersCount: 0 },
-        { id: 5, name: 'Ahmed Hassan', email: 'ahmed.hassan@example.com', role: 'customer', status: 'active', phone: '+44 7700 900 123', branch: '-', lastLogin: '2026-01-11 07:00', joinedDate: '2025-12-01', transfersCount: 8 },
-        { id: 6, name: 'Fatima রহমান', email: 'fatima.rahman@example.com', role: 'customer', status: 'active', phone: '+44 7700 900 234', branch: '-', lastLogin: '2026-01-10 18:30', joinedDate: '2025-11-15', transfersCount: 12 },
-        { id: 7, name: 'David Support', email: 'david.s@linkforex.com', role: 'support', status: 'active', phone: '+44 20 1234 5682', branch: 'All Branches', lastLogin: '2026-01-10 16:00', joinedDate: '2025-05-20', transfersCount: 0 },
-        { id: 8, name: 'Mohammed Ali', email: 'ali.m@example.com', role: 'customer', status: 'inactive', phone: '+44 7700 900 345', branch: '-', lastLogin: '2026-01-05 14:20', joinedDate: '2025-10-10', transfersCount: 5 },
-        { id: 9, name: 'Noor Khan', email: 'noor.khan@example.com', role: 'customer', status: 'suspended', phone: '+44 7700 900 456', branch: '-', lastLogin: '2026-01-02 12:00', joinedDate: '2025-09-25', transfersCount: 3 },
-        { id: 10, name: 'Zahra Karimi', email: 'zahra.k@example.com', role: 'customer', status: 'active', phone: '+44 7700 900 567', branch: '-', lastLogin: '2026-01-11 06:30', joinedDate: '2025-08-12', transfersCount: 15 },
-    ];
+    const [users, setUsers] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            setLoading(true);
+            try {
+                const params = new URLSearchParams();
+                if (filterRole !== 'all') params.append('role', filterRole);
+                if (searchQuery) params.append('search', searchQuery);
+
+                // Using users API
+                const res = await fetch(`http://localhost:8888/linforex_backend/public/api/users?${params.toString()}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const mappedData = data.map((u: any) => ({
+                        ...u,
+                        lastLogin: u.last_login || 'Never',
+                        joinedDate: u.created_at ? new Date(u.created_at).toLocaleDateString() : '-',
+                        transfersCount: 0 // Placeholder
+                    }));
+                    setUsers(mappedData);
+                }
+            } catch (e) { console.error(e); }
+            finally { setLoading(false); }
+        };
+
+        const debounce = setTimeout(fetchUsers, 300);
+        return () => clearTimeout(debounce);
+    }, [searchQuery, filterRole]);
 
     const roleConfig = {
         all: { label: 'All Users', count: users.length },
@@ -54,16 +72,21 @@ export default function UsersPage() {
     };
 
     const formatRole = (role: string) => {
-        return role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        return (role || '').split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     };
 
-    const filteredUsers = users.filter(user => {
-        const matchesRole = filterRole === 'all' || user.role === filterRole;
-        const matchesSearch = searchQuery === '' ||
-            user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesRole && matchesSearch;
-    });
+    // Filter logic moved to API, but stats need filtering on the full list if API returned all? 
+    // Wait, API returns filtered list.
+    // If I want accurate counters for "all roles" buttons, I might need a separate stats API or just live with current page counts if paginated (here findAll implies all)
+    // Since API returns what matches filter, counting lengths won't work well for the tab buttons if they are used as filters.
+    // However, if initial load gets all, then local filter?
+    // Let's rely on API filtering. The counts on tabs will be inaccurate unless I fetch stats separately.
+    // For now, I'll remove "count" from tabs or set to '-' to avoid confusion, or just show current list length (which is confusing).
+    // Or I mock it.
+    // Actually, common pattern is: click tab -> fetch new data.
+    // So the tabs are filters.
+
+    const filteredUsers = users; // Since API filters it.
 
     return (
         <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">

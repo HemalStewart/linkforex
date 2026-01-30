@@ -16,10 +16,42 @@ export default function CreateUserPage() {
         confirmPassword: ''
     });
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        alert('System User Created Successfully!');
-        router.push('/admin/users');
+
+        if (formData.password !== formData.confirmPassword) {
+            alert('Passwords do not match!');
+            return;
+        }
+
+        try {
+            const res = await fetch('http://localhost:8888/linforex_backend/public/api/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: formData.name,
+                    email: formData.email,
+                    role: formData.role,
+                    branch: formData.branch,
+                    password: formData.password, // In real app, hash this backend side! (CI4 Model events or Controller)
+                    status: 'active'
+                }),
+            });
+
+            if (!res.ok) {
+                const err = await res.json();
+                alert('Failed to create user: ' + (err.messages ? JSON.stringify(err.messages) : 'Unknown error'));
+                return;
+            }
+
+            alert('System User Created Successfully!');
+            router.push('/admin/users');
+        } catch (e) {
+            console.error(e);
+            alert('An error occurred.');
+        }
     };
 
     return (

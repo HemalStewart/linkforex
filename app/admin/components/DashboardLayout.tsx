@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
@@ -11,16 +11,43 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
+    const [isLoadingNav, setIsLoadingNav] = useState(true);
+    const [currentUser, setCurrentUser] = useState<any>(null);
+    const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
+        'Operations': true,
+        'Management': true
+    });
+
     const pathname = usePathname();
+    const router = useRouter();
+
+    React.useEffect(() => {
+        const stored = localStorage.getItem('user');
+        if (stored) {
+            try {
+                setCurrentUser(JSON.parse(stored));
+            } catch (e) { }
+        }
+    }, []);
+
+    // Initial Auth Check
+    React.useEffect(() => {
+        if (!pathname.startsWith('/admin/login')) {
+            const user = localStorage.getItem('user');
+            if (!user) {
+                router.replace('/admin/login');
+            } else {
+                setIsLoadingNav(false);
+            }
+        }
+    }, [pathname, router]);
 
     if (pathname.startsWith('/admin/login')) {
         return <>{children}</>;
     }
 
-    const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
-        'Operations': true,
-        'Management': true
-    });
+    // While checking auth, show nothing or a spinner to prevent flashing content
+    if (isLoadingNav) return <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">Loading...</div>;
 
     const toggleMenu = (name: string) => {
         setExpandedMenus(prev => ({
@@ -192,15 +219,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <div className="p-4 border-t border-slate-200 dark:border-slate-700 relative">
                     {userMenuOpen && (
                         <div className="absolute bottom-full left-4 right-4 mb-2 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-                            <Link
-                                href="/admin/login"
+                            <button
+                                onClick={() => {
+                                    localStorage.removeItem('user');
+                                    router.replace('/admin/login');
+                                }}
                                 className="flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors w-full text-left"
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                 </svg>
                                 <span className="font-medium text-sm">Sign Out</span>
-                            </Link>
+                            </button>
                         </div>
                     )}
                     <button
@@ -208,12 +238,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         className={`w-full flex items-center ${sidebarOpen ? 'space-x-3' : 'justify-center'} p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700`}
                     >
                         <div className="w-8 h-8 rounded-full bg-slate-900 dark:bg-white flex items-center justify-center text-white dark:text-slate-900 text-xs font-bold shrink-0">
-                            AD
+                            {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
                         </div>
                         {sidebarOpen && (
                             <div className="flex-1 text-left overflow-hidden">
-                                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">Admin User</p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Super Admin</p>
+                                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                                    {currentUser?.name || 'User'}
+                                </p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                                    {currentUser?.role || 'Guest'}
+                                </p>
                             </div>
                         )}
                         {sidebarOpen && (

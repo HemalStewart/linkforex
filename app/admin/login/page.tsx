@@ -6,10 +6,49 @@ import { useRouter } from 'next/navigation';
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const [loading, setLoading] = React.useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  // Check if already logged in
+  React.useEffect(() => {
+    const user = localStorage.getItem('user');
+    if (user) {
+      router.replace('/admin/dashboard');
+    }
+  }, [router]);
+
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    router.push('/admin/dashboard');
+    setLoading(true);
+
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email');
+    const password = formData.get('password');
+
+    try {
+      const response = await fetch('http://localhost:8888/linforex_backend/public/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Save user to local storage (Simple Auth)
+        localStorage.setItem('user', JSON.stringify(data.user));
+        // Redirect
+        router.push('/admin/dashboard');
+      } else {
+        alert(data.messages?.error || 'Login failed. Please check credentials.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error. Is backend running?');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -48,9 +87,11 @@ export default function AdminLoginPage() {
                 <input
                   id="email"
                   type="email"
+                  name="email"
                   placeholder="admin@linkforex.com"
                   className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white focus:border-transparent transition-all"
                   autoComplete="email"
+                  required
                 />
               </div>
             </div>
@@ -69,9 +110,11 @@ export default function AdminLoginPage() {
                 <input
                   id="password"
                   type="password"
+                  name="password"
                   placeholder="••••••••"
                   className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white focus:border-transparent transition-all"
                   autoComplete="current-password"
+                  required
                 />
               </div>
             </div>
@@ -95,9 +138,10 @@ export default function AdminLoginPage() {
             {/* Sign In Button */}
             <button
               type="submit"
+              disabled={loading}
               className="w-full py-2.5 px-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-lg hover:bg-slate-800 dark:hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 dark:focus:ring-white transition-all shadow-sm"
             >
-              Sign In
+              {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
 
