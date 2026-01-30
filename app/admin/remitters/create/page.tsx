@@ -97,16 +97,11 @@ export default function CreateCustomerPage() {
     const searchParams = useSearchParams();
     const returnUrl = searchParams.get('returnUrl');
 
-    const [clientType, setClientType] = useState('individual'); // 'individual' or 'business'
     const [activeTab, setActiveTab] = useState('general');
 
-    // Define tabs based on client type
-    const tabs = clientType === 'individual' ? [
+    const tabs = [
         { id: 'general', label: 'General' },
         { id: 'kyc', label: 'KYC & ID' },
-    ] : [
-        { id: 'business', label: 'Business Client' },
-        { id: 'directors', label: 'Directors' },
     ];
 
     const [loading, setLoading] = useState(false);
@@ -120,41 +115,28 @@ export default function CreateCustomerPage() {
             data[key] = value;
         });
 
-        // Map fields to API expects
+        // Map fields to API expects for individual client
         const apiData: any = {
-            client_type: clientType,
+            client_type: 'individual',
             status: 'active',
             branch: data.branch_id,
             role: 'customer',
+            name: data.sender_name,
+            phone: data.telephone,
+            dob: data.date_of_birth,
+            place_of_birth: data.place_of_birth,
+            occupation: data.occupation,
+            address_1: data.address_1,
+            address_2: data.address_2,
+            city: data.city,
+            postcode: data.postcode,
+            county: data.county,
+            country: data.country,
+            id_type: data.id_type,
+            id_number: data.id_no,
+            id_expiry: data.id_expire_date,
+            email: 'individual@example.com', // Placeholder as form lacks email
         };
-
-        if (clientType === 'individual') {
-            apiData.name = data.sender_name;
-            apiData.phone = data.telephone;
-            apiData.dob = data.date_of_birth;
-            apiData.place_of_birth = data.place_of_birth;
-            apiData.occupation = data.occupation;
-            apiData.address_1 = data.address_1;
-            apiData.address_2 = data.address_2;
-            apiData.city = data.city;
-            apiData.postcode = data.postcode;
-            apiData.county = data.county;
-            apiData.country = data.country;
-            apiData.id_type = data.id_type;
-            apiData.id_number = data.id_no;
-            apiData.id_expiry = data.id_expire_date;
-            apiData.email = 'individual@example.com'; // Placeholder as form lacks email
-        } else {
-            apiData.company_name = data.bc_company_name;
-            apiData.name = data.bc_company_name; // Use company name as main name
-            apiData.company_type = data.bc_type_of_company;
-            apiData.company_reg_no = data.bc_company_house_no;
-            apiData.phone = data.bc_landline_no;
-            apiData.email = 'business@example.com'; // Placeholder
-            // Map business address to main address fields for now
-            apiData.address_1 = data.bc_compnay_address;
-            apiData.address_2 = data.bc_trading_address; // Use trading as address 2 or ignore
-        }
 
         try {
             const res = await fetch('http://localhost:8888/linforex_backend/public/api/remitters', {
@@ -203,42 +185,6 @@ export default function CreateCustomerPage() {
             </div>
 
             <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 overflow-hidden">
-                {/* VISIBLE CLIENT TYPE TOGGLE */}
-                <div className="px-8 py-6 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
-                    <span className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
-                        client type
-                    </span>
-                    <div className="flex p-1 bg-slate-200 dark:bg-slate-950 rounded-lg max-w-md">
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setClientType('individual');
-                                setActiveTab('general');
-                            }}
-                            className={`flex-1 py-3 px-4 rounded-md text-sm font-bold transition-all flex items-center justify-center space-x-2 ${clientType === 'individual'
-                                ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-white shadow-sm ring-1 ring-black/5'
-                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-                                }`}
-                        >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                            <span>Private Individual</span>
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setClientType('business');
-                                setActiveTab('business');
-                            }}
-                            className={`flex-1 py-3 px-4 rounded-md text-sm font-bold transition-all flex items-center justify-center space-x-2 ${clientType === 'business'
-                                ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-white shadow-sm ring-1 ring-black/5'
-                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-                                }`}
-                        >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-                            <span>Business Client</span>
-                        </button>
-                    </div>
-                </div>
 
                 {/* Tabs */}
                 <div className="px-8 pt-6 border-b border-slate-200 dark:border-slate-800">
@@ -261,8 +207,8 @@ export default function CreateCustomerPage() {
 
                 {/* Form Content */}
                 <form id="createSenderForm" onSubmit={handleSubmit} className="p-8 space-y-8">
-                    {/* GENERAL TAB (Individual) */}
-                    {clientType === 'individual' && activeTab === 'general' && (
+                    {/* GENERAL TAB */}
+                    {activeTab === 'general' && (
                         <div className="space-y-6 animate-fade-in">
                             {/* Branch Selection Highlight */}
                             <div className="p-5 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 grid gap-4">
@@ -312,8 +258,8 @@ export default function CreateCustomerPage() {
                         </div>
                     )}
 
-                    {/* KYC & ID TAB (Individual) */}
-                    {clientType === 'individual' && activeTab === 'kyc' && (
+                    {/* KYC & ID TAB */}
+                    {activeTab === 'kyc' && (
                         <div className="space-y-6 animate-fade-in">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <FormSelect label="ID Type *" name="id_type" options={['Passport', 'Driving License', 'National ID', 'Residence Permit']} />
@@ -337,75 +283,14 @@ export default function CreateCustomerPage() {
                             <div className="space-y-4 pt-6">
                                 <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide">Document Uploads</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <FormFileUpload label="Passport Copy" name="passport_copy" />
-                                    <FormFileUpload label="Other Document" name="other_doc" />
-                                    <FormFileUpload label="Work Related Docs" name="work_related_docs" />
+                                    <FormFileUpload label="ID Copy / Passport" name="passport_copy" />
+                                    <FormFileUpload label="Proof of Address" name="proof_of_address_doc" />
+                                    <FormFileUpload label="Source of Income/Funds" name="work_related_docs" />
                                     <FormFileUpload label="Signature" name="signature_file_name" />
                                     <FormFileUpload label="AML Screening Doc" name="sender_details_aml_screening_doc" />
+                                    <FormFileUpload label="Other Supporting Document" name="other_doc" />
                                 </div>
                             </div>
-                        </div>
-                    )}
-
-                    {/* BUSINESS CLIENT TAB */}
-                    {clientType === 'business' && activeTab === 'business' && (
-                        <div className="space-y-6 animate-fade-in">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="md:col-span-2">
-                                    <FormInput label="Company Name *" name="bc_company_name" placeholder="e.g. Acme Trading Ltd" />
-                                </div>
-                                <FormSelect label="Company Type *" name="bc_type_of_company" options={['LTD', 'PLC', 'Sole Trader', 'Partnership', 'LLP']} />
-                                <FormInput label="Registration No. *" name="bc_company_house_no" />
-                                <div className="md:col-span-2">
-                                    <FormInput label="Trading Name" name="bc_trading_name" placeholder="If different from Company Name" />
-                                </div>
-                                <div className="md:col-span-2">
-                                    <FormInput label="Registered Address *" name="bc_compnay_address" placeholder="Official Registered Address" />
-                                </div>
-                                <div className="md:col-span-2">
-                                    <FormInput label="Trading Address" name="bc_trading_address" placeholder="Physical location if different" />
-                                </div>
-                                <FormInput label="Business Landline *" name="bc_landline_no" />
-                            </div>
-                        </div>
-                    )}
-
-                    {/* DIRECTORS TAB (Business) */}
-                    {clientType === 'business' && activeTab === 'directors' && (
-                        <div className="space-y-8 animate-fade-in">
-                            {[1, 2, 3].map((num) => (
-                                <div key={num} className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-xl border border-slate-200 dark:border-slate-700 relative">
-                                    <div className="absolute top-0 left-0 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-3 py-1 rounded-br-xl text-xs font-bold uppercase tracking-wider">
-                                        Director {num}
-                                    </div>
-
-                                    <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                                        <FormInput label="Full Name" name={`bc_d${num}_name`} />
-                                        <FormInput label="Shareholding (%)" name={`bc_d${num}_number_of_shares`} type="number" step="0.01" />
-                                        <FormInput label="Date of Birth" name={`bc_d${num}_dob`} type="date" />
-                                        <FormInput label="Place of Birth" name={`bc_d${num}_place_of_birth`} />
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 pb-6 border-b border-slate-200 dark:border-slate-700">
-                                        <div className="md:col-span-2">
-                                            <FormInput label="Address Line 1" name={`bc_d${num}_address1`} />
-                                        </div>
-                                        <div className="md:col-span-2">
-                                            <FormInput label="Address Line 2" name={`bc_d${num}_address2`} />
-                                        </div>
-                                        <FormInput label="Postcode" name={`bc_d${num}_post_code`} />
-                                        <FormInput label="Country" name={`bc_d${num}_country`} />
-                                    </div>
-
-                                    <div>
-                                        <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">Required Documents</h4>
-                                        <div className="grid grid-cols-1 gap-2">
-                                            <DocumentRow label="ID Document" name={`bc_d${num}_file_director_id`} />
-                                            <DocumentRow label="Proof Of Address" name={`bc_d${num}_file_proof_of_address`} />
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
                         </div>
                     )}
                 </form>

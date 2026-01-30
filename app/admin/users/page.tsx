@@ -27,8 +27,7 @@ export default function UsersPage() {
                     const mappedData = data.map((u: any) => ({
                         ...u,
                         lastLogin: u.last_login || 'Never',
-                        joinedDate: u.created_at ? new Date(u.created_at).toLocaleDateString() : '-',
-                        transfersCount: 0 // Placeholder
+                        joinedDate: u.created_at ? new Date(u.created_at).toLocaleDateString() : '-'
                     }));
                     setUsers(mappedData);
                 }
@@ -251,7 +250,7 @@ export default function UsersPage() {
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Branch</th>
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Last Login</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Transfers</th>
+
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
@@ -268,6 +267,7 @@ export default function UsersPage() {
                                             </div>
                                             <div>
                                                 <p className="font-semibold text-slate-900 dark:text-white">{user.name}</p>
+                                                {user.username && <p className="text-xs text-slate-400 font-mono">@{user.username}</p>}
                                                 <p className="text-xs text-slate-500">{user.email}</p>
                                             </div>
                                         </div>
@@ -288,9 +288,7 @@ export default function UsersPage() {
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
                                         {user.lastLogin}
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <span className="text-sm font-semibold text-slate-900 dark:text-white">{user.transfersCount}</span>
-                                    </td>
+
                                     <td className="px-6 py-4">
                                         <div className="flex space-x-2">
                                             <Link href={`/admin/users/${user.id}`} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors">

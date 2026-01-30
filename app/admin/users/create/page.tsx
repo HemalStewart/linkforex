@@ -9,6 +9,7 @@ export default function CreateUserPage() {
 
     const [formData, setFormData] = useState({
         name: '',
+        username: '',
         email: '',
         role: 'agent',
         branch: '',
@@ -32,6 +33,7 @@ export default function CreateUserPage() {
                 },
                 body: JSON.stringify({
                     name: formData.name,
+                    username: formData.username,
                     email: formData.email,
                     role: formData.role,
                     branch: formData.branch,
@@ -78,6 +80,18 @@ export default function CreateUserPage() {
                             className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Username</label>
+                        <input
+                            type="text"
+                            required
+                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
+                            placeholder="e.g. jdoe"
+                            value={formData.username}
+                            onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                         />
                     </div>
 

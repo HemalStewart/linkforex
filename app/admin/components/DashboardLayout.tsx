@@ -76,6 +76,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             children: [
                 { name: 'Transfers', href: '/admin/transfers', badge: '24' },
                 { name: 'Remitters', href: '/admin/remitters' },
+                { name: 'Receivers', href: '/admin/receivers' },
                 { name: 'KYC Reviews', href: '/admin/kyc', badge: '8' },
             ]
         },
@@ -107,24 +108,24 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     ];
 
     return (
-        <div className="flex h-screen bg-slate-50 dark:bg-slate-900 overflow-hidden">
+        <div className="flex h-screen bg-slate-50 dark:bg-slate-900 overflow-hidden font-sans antialiased text-slate-900 dark:text-white">
             {/* Sidebar */}
-            <aside className={`flex flex-col bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-20'}`}>
+            <aside className={`flex flex-col bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl border-r border-slate-200/60 dark:border-slate-700/60 transition-all duration-300 ${sidebarOpen ? 'w-72' : 'w-20'}`}>
                 {/* Logo */}
-                <div className="h-16 flex items-center justify-between px-4 border-b border-slate-200 dark:border-slate-700">
+                <div className="h-20 flex items-center justify-between px-6 border-b border-slate-200/60 dark:border-slate-700/60">
                     {sidebarOpen && (
-                        <div className="flex items-center space-x-2">
-                            <div className="w-8 h-8 bg-slate-900 dark:bg-white rounded-lg flex items-center justify-center">
-                                <span className="text-white dark:text-slate-900 font-bold text-lg">L</span>
+                        <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-slate-900 dark:bg-white rounded-xl shadow-lg shadow-slate-900/10 flex items-center justify-center">
+                                <span className="text-white dark:text-slate-900 font-bold text-xl font-display">L</span>
                             </div>
-                            <span className="text-lg font-bold text-slate-900 dark:text-white">
+                            <span className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
                                 LinkForex
                             </span>
                         </div>
                     )}
                     <button
                         onClick={() => setSidebarOpen(!sidebarOpen)}
-                        className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-slate-500"
+                        className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-slate-500"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
@@ -133,7 +134,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </div>
 
                 {/* Navigation */}
-                <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+                <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
                     {navigation.map((item) => {
                         // Check if any child is active
                         const isChildActive = item.children?.some(child => pathname === child.href || pathname.startsWith(child.href!));
@@ -142,19 +143,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
                         if (item.children) {
                             return (
-                                <div key={item.name} className="mb-1">
+                                <div key={item.name} className="mb-2">
                                     <button
                                         onClick={() => sidebarOpen ? toggleMenu(item.name) : setSidebarOpen(true)}
-                                        className={`w-full flex items-center ${sidebarOpen ? 'justify-between px-3' : 'justify-center px-2'} py-2.5 rounded-lg transition-all duration-200 group ${isActive
-                                            ? 'text-slate-900 dark:text-white font-medium bg-slate-50 dark:bg-slate-800'
-                                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                                        className={`w-full flex items-center ${sidebarOpen ? 'justify-between px-4' : 'justify-center px-2'} py-3 rounded-xl transition-all duration-200 group ${isActive
+                                            ? 'text-slate-900 dark:text-white font-semibold bg-slate-50 dark:bg-white/5'
+                                            : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
                                             }`}
                                     >
                                         <div className="flex items-center space-x-3">
-                                            <span className={`${isActive ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300'}`}>
+                                            <span className={`${isActive ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`}>
                                                 {item.icon}
                                             </span>
-                                            {sidebarOpen && <span>{item.name}</span>}
+                                            {sidebarOpen && <span className="tracking-tight">{item.name}</span>}
                                         </div>
                                         {sidebarOpen && (
                                             <svg className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -165,23 +166,23 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
                                     {/* Submenu Items */}
                                     {sidebarOpen && isExpanded && (
-                                        <div className="mt-1 ml-4 pl-4 border-l-2 border-slate-100 dark:border-slate-700 space-y-1">
+                                        <div className="mt-1 ml-4 pl-4 border-l-2 border-slate-100 dark:border-slate-800 space-y-1">
                                             {item.children.map((child) => {
                                                 const isChildItemActive = pathname === child.href;
                                                 return (
                                                     <Link
                                                         key={child.name}
                                                         href={child.href!}
-                                                        className={`flex items-center justify-between px-3 py-2 rounded-lg transition-all text-sm ${isChildItemActive
-                                                            ? 'text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-900/10'
-                                                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
+                                                        className={`flex items-center justify-between px-4 py-2.5 rounded-lg transition-all text-sm font-medium ${isChildItemActive
+                                                            ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-white/10'
+                                                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/5'
                                                             }`}
                                                     >
                                                         <span>{child.name}</span>
                                                         {child.badge && (
-                                                            <span className={`px-1.5 py-0.5 text-[10px] font-bold rounded-full ${isChildItemActive
-                                                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300'
-                                                                : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                                                            <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${isChildItemActive
+                                                                ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
                                                                 }`}>
                                                                 {child.badge}
                                                             </span>
@@ -199,16 +200,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                             <Link
                                 key={item.name}
                                 href={item.href!}
-                                className={`flex items-center ${sidebarOpen ? 'justify-between px-3' : 'justify-center px-2'} py-2.5 rounded-lg transition-all duration-200 mb-1 group ${isActive
-                                    ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md shadow-slate-900/10'
-                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                                className={`flex items-center ${sidebarOpen ? 'justify-between px-4' : 'justify-center px-2'} py-3 rounded-xl transition-all duration-200 mb-2 group ${isActive
+                                    ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xl shadow-slate-900/10'
+                                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
                                     }`}
                             >
                                 <div className="flex items-center space-x-3">
-                                    <span className={`${isActive ? 'text-white dark:text-slate-900' : 'text-slate-500 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300'}`}>
+                                    <span className={`${isActive ? 'text-white dark:text-slate-900' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`}>
                                         {item.icon}
                                     </span>
-                                    {sidebarOpen && <span>{item.name}</span>}
+                                    {sidebarOpen && <span className="font-semibold tracking-tight">{item.name}</span>}
                                 </div>
                             </Link>
                         );
