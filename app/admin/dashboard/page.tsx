@@ -80,7 +80,7 @@ export default function DashboardPage() {
             const transfers = transfersRes.ok ? await transfersRes.json() : [];
 
             // Fetch customers
-            const customersRes = await fetch('http://localhost:8888/linforex_backend/public/api/customers');
+            const customersRes = await fetch('http://localhost:8888/linforex_backend/public/api/remitters');
             const customers = customersRes.ok ? await customersRes.json() : [];
 
             // Calculate stats
@@ -305,9 +305,9 @@ export default function DashboardPage() {
                                     </div>
                                 </div>
                                 <span className={`text-xs font-medium px-2 py-1 rounded-full ${activity.status === 'completed' ? 'text-emerald-600 bg-emerald-50' :
-                                        activity.status === 'in_transit' ? 'text-blue-600 bg-blue-50' :
-                                            activity.status === 'pending' ? 'text-amber-600 bg-amber-50' :
-                                                'text-slate-600 bg-slate-50'
+                                    activity.status === 'in_transit' ? 'text-blue-600 bg-blue-50' :
+                                        activity.status === 'pending' ? 'text-amber-600 bg-amber-50' :
+                                            'text-slate-600 bg-slate-50'
                                     }`}>
                                     {activity.status === 'in_transit' ? 'In Transit' :
                                         activity.status === 'in_review' ? 'In Review' :

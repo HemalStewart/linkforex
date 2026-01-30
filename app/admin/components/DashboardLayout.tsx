@@ -75,7 +75,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             ),
             children: [
                 { name: 'Transfers', href: '/admin/transfers', badge: '24' },
-                { name: 'Customers', href: '/admin/customers' },
+                { name: 'Remitters', href: '/admin/remitters' },
                 { name: 'KYC Reviews', href: '/admin/kyc', badge: '8' },
             ]
         },

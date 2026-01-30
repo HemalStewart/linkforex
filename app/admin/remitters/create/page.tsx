@@ -157,7 +157,7 @@ export default function CreateCustomerPage() {
         }
 
         try {
-            const res = await fetch('http://localhost:8888/linforex_backend/public/api/customers', {
+            const res = await fetch('http://localhost:8888/linforex_backend/public/api/remitters', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -178,7 +178,7 @@ export default function CreateCustomerPage() {
             if (returnUrl) {
                 router.push(returnUrl);
             } else {
-                router.push('/admin/customers');
+                router.push('/admin/remitters');
             }
         } catch (error) {
             console.error('Failed to submit:', error);
@@ -194,7 +194,7 @@ export default function CreateCustomerPage() {
                 <nav className="flex items-center text-sm text-slate-500 mb-2">
                     <Link href="/admin/dashboard" className="hover:text-slate-900 dark:hover:text-white transition-colors">Dashboard</Link>
                     <span className="mx-2">/</span>
-                    <Link href="/admin/customers" className="hover:text-slate-900 dark:hover:text-white transition-colors">Customers</Link>
+                    <Link href="/admin/remitters" className="hover:text-slate-900 dark:hover:text-white transition-colors">Remitters</Link>
                     <span className="mx-2">/</span>
                     <span className="text-slate-900 dark:text-white font-medium">Add New</span>
                 </nav>

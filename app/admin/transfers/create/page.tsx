@@ -59,7 +59,7 @@ export default function CreateTransferPage() {
             return;
         }
         try {
-            const res = await fetch(`http://localhost:8888/linforex_backend/public/api/customers?search=${searchTerm}`);
+            const res = await fetch(`http://localhost:8888/linforex_backend/public/api/remitters?search=${searchTerm}`);
             if (res.ok) {
                 const data = await res.json();
                 setSearchResults(data);
@@ -246,7 +246,7 @@ export default function CreateTransferPage() {
                                     </div>
 
                                     <Link
-                                        href="/admin/customers/create?returnUrl=/admin/transfers/create"
+                                        href="/admin/remitters/create?returnUrl=/admin/transfers/create"
                                         className="w-full py-3 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg text-slate-500 font-medium hover:border-slate-400 dark:hover:border-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors flex items-center justify-center"
                                     >
                                         + Add New Remitter

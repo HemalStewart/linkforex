@@ -19,7 +19,7 @@ export default function CustomersPage() {
                 if (statusFilter !== 'all') params.append('status', statusFilter);
                 if (searchQuery) params.append('search', searchQuery);
 
-                const res = await fetch(`http://localhost:8888/linforex_backend/public/api/customers?${params.toString()}`);
+                const res = await fetch(`http://localhost:8888/linforex_backend/public/api/remitters?${params.toString()}`);
                 if (!res.ok) throw new Error('Failed to fetch');
                 const data = await res.json();
 
@@ -81,7 +81,7 @@ export default function CustomersPage() {
                             <span>Export</span>
                         </span>
                     </button>
-                    <Link href="/admin/customers/create" className="px-4 py-2 rounded-lg bg-emerald-600 text-white dark:bg-emerald-500 dark:text-white font-medium hover:bg-emerald-500 dark:hover:bg-emerald-400 transition-colors shadow-sm inline-flex items-center space-x-2">
+                    <Link href="/admin/remitters/create" className="px-4 py-2 rounded-lg bg-emerald-600 text-white dark:bg-emerald-500 dark:text-white font-medium hover:bg-emerald-500 dark:hover:bg-emerald-400 transition-colors shadow-sm inline-flex items-center space-x-2">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                         </svg>
