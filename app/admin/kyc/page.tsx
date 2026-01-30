@@ -1,28 +1,59 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function KYCPage() {
     const [filterStatus, setFilterStatus] = useState('all');
+    const [remitters, setRemitters] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    const kycApplications = [
-        { id: 'KYC-001', user: 'Ahmed Hassan', email: 'ahmed.hassan@example.com', phone: '+44 7700 900 123', submittedDate: '2026-01-11 09:00', status: 'pending', documents: ['Passport', 'Proof of Address', 'Source of Funds'], riskLevel: 'low', country: 'UK' },
-        { id: 'KYC-002', user: 'Fatima Rahman', email: 'fatima.rahman@example.com', phone: '+44 7700 900 234', submittedDate: '2026-01-11 07:30', status: 'in_review', documents: ['National ID', 'Proof of Address'], riskLevel: 'low', country: 'UK' },
-        { id: 'KYC-003', user: 'Mohammed Ali', email: 'ali.m@example.com', phone: '+44 7700 900 345', submittedDate: '2026-01-10 16:20', status: 'approved', documents: ['Passport', 'Proof of Address', 'Bank Statement'], riskLevel: 'low', country: 'UK' },
-        { id: 'KYC-004', user: 'Noor Khan', email: 'noor.khan@example.com', phone: '+44 7700 900 456', submittedDate: '2026-01-10 14:15', status: 'needs_info', documents: ['Passport', 'Utility Bill'], riskLevel: 'medium', country: 'UK' },
-        { id: 'KYC-005', user: 'Zahra Karimi', email: 'zahra.k@example.com', phone: '+44 7700 900 567', submittedDate: '2026-01-10 11:45', status: 'rejected', documents: ['Expired Passport', 'Proof of Address'], riskLevel: 'high', country: 'UK' },
-        { id: 'KYC-006', user: 'Rashid Ahmad', email: 'rashid.ahmad@example.com', phone: '+44 7700 900 678', submittedDate: '2026-01-09 13:30', status: 'pending', documents: ['Passport', 'Bank Statement'], riskLevel: 'low', country: 'UK' },
-        { id: 'KYC-007', user: 'Amina Sultana', email: 'amina.s@example.com', phone: '+44 7700 900 789', submittedDate: '2026-01-09 10:00', status: 'in_review', documents: ['National ID', 'Proof of Address', 'Employment Letter'], riskLevel: 'medium', country: 'UK' },
-        { id: 'KYC-008', user: 'Hassan Yusuf', email: 'hassan.y@example.com', phone: '+44 7700 900 890', submittedDate: '2026-01-08 15:20', status: 'approved', documents: ['Passport', 'Proof of Address', 'Tax Return'], riskLevel: 'low', country: 'UK' },
-    ];
+    useEffect(() => {
+        fetchRemitters();
+    }, []);
+
+    const fetchRemitters = async () => {
+        try {
+            const res = await fetch('http://localhost:8888/linforex_backend/public/api/remitters');
+            if (res.ok) {
+                const data = await res.json();
+                setRemitters(data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch remitters:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Map API status to UI status if needed, or stick to API values
+    // API likely uses: pending, verified, rejected.
+    // UI uses: pending, in_review, needs_info, approved, rejected.
+    // Mapping: verified -> approved.
+
+    const mapStatus = (status: string) => {
+        if (status === 'verified') return 'approved';
+        return status || 'pending';
+    };
+
+    const processedApplications = remitters.map(r => ({
+        id: r.id.toString(),
+        user: r.name,
+        email: r.email,
+        phone: r.phone,
+        submittedDate: new Date(r.created_at).toLocaleString(),
+        status: mapStatus(r.kyc_status),
+        documents: ['Passport'], // Placeholder as we don't have separate docs table yet
+        riskLevel: 'low', // Placeholder
+        country: r.country || 'UK'
+    }));
 
     const statusConfig = {
-        all: { label: 'All Applications', count: kycApplications.length },
-        pending: { label: 'Pending', count: kycApplications.filter(k => k.status === 'pending').length },
-        in_review: { label: 'In Review', count: kycApplications.filter(k => k.status === 'in_review').length },
-        needs_info: { label: 'Needs Info', count: kycApplications.filter(k => k.status === 'needs_info').length },
-        approved: { label: 'Approved', count: kycApplications.filter(k => k.status === 'approved').length },
-        rejected: { label: 'Rejected', count: kycApplications.filter(k => k.status === 'rejected').length },
+        all: { label: 'All Applications', count: processedApplications.length },
+        pending: { label: 'Pending', count: processedApplications.filter(k => k.status === 'pending').length },
+        in_review: { label: 'In Review', count: processedApplications.filter(k => k.status === 'in_review').length },
+        needs_info: { label: 'Needs Info', count: processedApplications.filter(k => k.status === 'needs_info').length },
+        approved: { label: 'Approved', count: processedApplications.filter(k => k.status === 'approved').length },
+        rejected: { label: 'Rejected', count: processedApplications.filter(k => k.status === 'rejected').length },
     };
 
     const getStatusBadge = (status: string) => {
@@ -33,7 +64,7 @@ export default function KYCPage() {
             approved: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800',
             rejected: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800',
         };
-        return styles[status as keyof typeof styles];
+        return styles[status as keyof typeof styles] || styles.pending;
     };
 
     const getRiskBadge = (risk: string) => {
@@ -49,9 +80,13 @@ export default function KYCPage() {
         return status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     };
 
-    const filteredApplications = kycApplications.filter(app =>
+    const filteredApplications = processedApplications.filter(app =>
         filterStatus === 'all' || app.status === filterStatus
     );
+
+    if (loading) {
+        return <div className="p-8 text-center text-slate-500">Loading KYC applications...</div>;
+    }
 
     return (
         <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
@@ -59,7 +94,7 @@ export default function KYCPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900 dark:text-white">KYC Reviews</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">Review and verify customer documents</p>
+                    <p className="text-slate-500 dark:text-slate-400 mt-1">Review and verify remitter documents</p>
                 </div>
                 <div className="flex items-center space-x-3">
                     <button className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
@@ -169,7 +204,7 @@ export default function KYCPage() {
 
             {/* KYC Applications Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {filteredApplications.map((app, index) => (
+                {filteredApplications.length > 0 ? filteredApplications.map((app, index) => (
                     <div
                         key={app.id}
                         className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow"
@@ -216,7 +251,7 @@ export default function KYCPage() {
                         <div className="mb-4">
                             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Documents</p>
                             <div className="flex flex-wrap gap-2">
-                                {app.documents.map((doc, idx) => (
+                                {app.documents.map((doc: string, idx: number) => (
                                     <span
                                         key={idx}
                                         className="px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-300 text-xs font-medium border border-slate-200 dark:border-slate-700"
@@ -242,7 +277,11 @@ export default function KYCPage() {
                             </button>
                         </div>
                     </div>
-                ))}
+                )) : (
+                    <div className="col-span-full p-12 text-center text-slate-500">
+                        No KYC applications found for this status.
+                    </div>
+                )}
             </div>
         </div>
     );

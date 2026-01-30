@@ -37,6 +37,65 @@ const Icons = {
 };
 
 export default function ReportsPage() {
+    const [stats, setStats] = useState({
+        totalTransfersMTD: 0,
+        revenueMTD: 0,
+        activeCustomers: 0,
+        avgTransfer: 0
+    });
+    const [loading, setLoading] = useState(true);
+
+    React.useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [transfersRes, remittersRes] = await Promise.all([
+                    fetch('http://localhost:8888/linforex_backend/public/api/transfers'),
+                    fetch('http://localhost:8888/linforex_backend/public/api/remitters')
+                ]);
+
+                const transfers = transfersRes.ok ? await transfersRes.json() : [];
+                const remitters = remittersRes.ok ? await remittersRes.json() : [];
+
+                // MTD Logic
+                const now = new Date();
+                const currentMonth = now.getMonth();
+                const currentYear = now.getFullYear();
+
+                const mtdTransfers = transfers.filter((t: any) => {
+                    const d = new Date(t.created_at);
+                    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+                });
+
+                const totalTransfersMTD = mtdTransfers.reduce((sum: number, t: any) => sum + parseFloat(t.source_amount || 0), 0);
+                // Assuming revenue is a % of transfer, or for now just using total volume as "Total Transfers Value" 
+                // and maybe a fixed fee for "Revenue". 
+                // Let's assume the "Revenue (MTD)" label in the UI meant "Volume" based on the high value £2M, 
+                // OR if it's actual profit. The UI had £2M for transfers and £48k for revenue.
+                // I'll calculate Volume as Total Transfers.
+                // And Revenue as approx 2% for estimation if no fee field exists.
+
+                const revenueMTD = totalTransfersMTD * 0.02; // estimated 2%
+
+                const activeCustomers = remitters.filter((r: any) => r.status === 'active').length;
+                const avgTransfer = mtdTransfers.length > 0 ? totalTransfersMTD / mtdTransfers.length : 0;
+
+                setStats({
+                    totalTransfersMTD,
+                    revenueMTD,
+                    activeCustomers,
+                    avgTransfer
+                });
+
+            } catch (error) {
+                console.error('Failed to fetch report stats:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
     const [selectedReport, setSelectedReport] = useState('financial');
     const [dateRange, setDateRange] = useState('month');
 
@@ -50,10 +109,10 @@ export default function ReportsPage() {
     ];
 
     const quickStats = [
-        { label: 'Total Transfers (MTD)', value: '£2,847,394', change: '+12.5%', trend: 'up' },
-        { label: 'Revenue (MTD)', value: '£48,392', change: '+18.2%', trend: 'up' },
-        { label: 'Active Customers', value: '1,429', change: '+5.2%', trend: 'up' },
-        { label: 'Avg. Transfer Size', value: '£967', change: '+2.1%', trend: 'up' },
+        { label: 'Total Volume (MTD)', value: `£${stats.totalTransfersMTD.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, change: '+0%', trend: 'neutral' },
+        { label: 'Est. Revenue (MTD)', value: `£${stats.revenueMTD.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, change: '+0%', trend: 'neutral' },
+        { label: 'Active Customers', value: stats.activeCustomers.toLocaleString(), change: '+0%', trend: 'neutral' },
+        { label: 'Avg. Transfer Size', value: `£${stats.avgTransfer.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, change: '+0%', trend: 'neutral' },
     ];
 
     const recentReports = [
@@ -118,8 +177,8 @@ export default function ReportsPage() {
                         >
                             <div className="flex items-start space-x-3">
                                 <span className={`p-2 rounded-lg ${selectedReport === report.id
-                                        ? 'bg-slate-200 dark:bg-slate-600 text-slate-900 dark:text-white'
-                                        : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                                    ? 'bg-slate-200 dark:bg-slate-600 text-slate-900 dark:text-white'
+                                    : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
                                     }`}>
                                     {report.icon}
                                 </span>

@@ -16,31 +16,8 @@ import {
     Bar
 } from 'recharts';
 
-// Demo Data
-const transferVolumeData = [
-    { name: 'Mon', value: 145, revenue: 6200 },
-    { name: 'Tue', value: 167, revenue: 7100 },
-    { name: 'Wed', value: 132, revenue: 5800 },
-    { name: 'Thu', value: 189, revenue: 8200 },
-    { name: 'Fri', value: 198, revenue: 8900 },
-    { name: 'Sat', value: 156, revenue: 6800 },
-    { name: 'Sun', value: 142, revenue: 6300 },
-];
+// Demo Data Removed - using real data from API
 
-const statusData = [
-    { name: 'Completed', value: 142, color: '#10b981' }, // Emerald
-    { name: 'In Transit', value: 45, color: '#3b82f6' }, // Blue
-    { name: 'Pending', value: 18, color: '#f59e0b' },    // Amber
-    { name: 'In Review', value: 12, color: '#64748b' },  // Slate
-];
-
-const branchRevenueData = [
-    { name: 'London', value: 18400 },
-    { name: 'Manchester', value: 12800 },
-    { name: 'Birmingham', value: 9600 },
-    { name: 'Leeds', value: 7600 },
-    { name: 'Glasgow', value: 5400 },
-];
 
 const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -67,6 +44,10 @@ export default function DashboardPage() {
         totalRevenue: 0
     });
     const [recentActivity, setRecentActivity] = React.useState<any[]>([]);
+
+    const [volumeData, setVolumeData] = React.useState<any[]>([]);
+    const [statusChartData, setStatusChartData] = React.useState<any[]>([]);
+    const [revenueData, setRevenueData] = React.useState<any[]>([]);
 
     React.useEffect(() => {
         setIsClient(true);
@@ -95,15 +76,79 @@ export default function DashboardPage() {
                 totalRevenue: totalRevenue
             });
 
-            // Get recent 4 transfers with customer info
-            const recent = transfers.slice(0, 4).map((t: any) => {
-                const customer = customers.find((c: any) => c.id === t.remitter_id);
-                return {
-                    ...t,
-                    customerName: customer?.name || 'Unknown',
-                    customerInitials: customer?.name?.split(' ').map((n: string) => n[0]).join('') || 'UK'
-                };
+            // --- Process Chart Data ---
+
+            // 1. Status Data (Pie Chart)
+            const statusCounts: Record<string, number> = {};
+            transfers.forEach((t: any) => {
+                const s = t.status || 'unknown';
+                statusCounts[s] = (statusCounts[s] || 0) + 1;
             });
+
+            const statusColors: Record<string, string> = {
+                completed: '#10b981',
+                in_transit: '#3b82f6',
+                pending: '#f59e0b',
+                in_review: '#64748b',
+                rejected: '#ef4444',
+                cancelled: '#94a3b8'
+            };
+
+            const newStatusData = Object.keys(statusCounts).map(status => ({
+                name: status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' '),
+                value: statusCounts[status],
+                color: statusColors[status] || '#cbd5e1'
+            }));
+            setStatusChartData(newStatusData);
+
+            // 2. Volume Data (Area Chart - Last 7 Days)
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const last7Days = Array.from({ length: 7 }, (_, i) => {
+                const d = new Date();
+                d.setDate(d.getDate() - (6 - i));
+                return d;
+            });
+
+            const newVolumeData = last7Days.map(date => {
+                const dayName = days[date.getDay()];
+                const dateStr = date.toISOString().split('T')[0];
+
+                // Sum transfers for this day
+                const dayTransfers = transfers.filter((t: any) => t.created_at && t.created_at.startsWith(dateStr));
+                const count = dayTransfers.length;
+                const revenue = dayTransfers.reduce((sum: number, t: any) => sum + parseFloat(t.source_amount || 0), 0);
+
+                return { name: dayName, value: count, revenue: revenue };
+            });
+            setVolumeData(newVolumeData);
+
+            // 3. Branch Revenue (Bar Chart)
+            const branchRevenue: Record<string, number> = {};
+            transfers.forEach((t: any) => {
+                const customer = customers.find((c: any) => c.id === t.remitter_id);
+                const branch = customer?.branch || 'Unknown';
+                const amount = parseFloat(t.source_amount || 0);
+                branchRevenue[branch] = (branchRevenue[branch] || 0) + amount;
+            });
+
+            const newRevenueData = Object.keys(branchRevenue).map(branch => ({
+                name: branch.replace('Link Forex Ltd', '').replace('-', '').trim() || branch, // Clean up long names
+                value: branchRevenue[branch]
+            })).sort((a, b) => b.value - a.value).slice(0, 5); // Top 5
+            setRevenueData(newRevenueData);
+
+
+            // Get recent 4 transfers with customer info
+            const recent = transfers.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                .slice(0, 4)
+                .map((t: any) => {
+                    const customer = customers.find((c: any) => c.id === t.remitter_id);
+                    return {
+                        ...t,
+                        customerName: customer?.name || 'Unknown',
+                        customerInitials: customer?.name?.split(' ').map((n: string) => n[0]).join('') || 'UK'
+                    };
+                });
             setRecentActivity(recent);
 
         } catch (error) {
@@ -172,10 +217,10 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Transfer Volume Area Chart */}
                 <div className="lg:col-span-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60">
-                    <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-6 tracking-tight">Transfer Volume</h2>
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-6 tracking-tight">Transfer Volume (Last 7 Days)</h2>
                     <div className="h-80 w-full">
                         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                            <AreaChart data={transferVolumeData}>
+                            <AreaChart data={volumeData}>
                                 <defs>
                                     <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
@@ -217,7 +262,7 @@ export default function DashboardPage() {
                         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                             <PieChart>
                                 <Pie
-                                    data={statusData}
+                                    data={statusChartData}
                                     cx="50%"
                                     cy="50%"
                                     innerRadius={70}
@@ -226,7 +271,7 @@ export default function DashboardPage() {
                                     dataKey="value"
                                     cornerRadius={4}
                                 >
-                                    {statusData.map((entry, index) => (
+                                    {statusChartData.map((entry: any, index: number) => (
                                         <Cell key={`cell-${index}`} fill={entry.color} strokeWidth={0} />
                                     ))}
                                 </Pie>
@@ -234,13 +279,15 @@ export default function DashboardPage() {
                             </PieChart>
                         </ResponsiveContainer>
                         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                            <span className="text-4xl font-bold text-slate-900 dark:text-white tracking-tight">217</span>
+                            <span className="text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
+                                {statusChartData.reduce((acc, curr) => acc + curr.value, 0)}
+                            </span>
                             <span className="text-sm font-medium text-slate-500 uppercase tracking-widest mt-1">Total</span>
                         </div>
                     </div>
                     {/* Legend */}
                     <div className="grid grid-cols-2 gap-y-4 gap-x-4 mt-6">
-                        {statusData.map((status, index) => (
+                        {statusChartData.map((status: any, index: number) => (
                             <div key={index} className="flex items-center space-x-2">
                                 <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: status.color }}></div>
                                 <span className="text-sm font-medium text-slate-600 dark:text-slate-300">{status.name}</span>
@@ -258,7 +305,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="h-72 w-full">
                         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                            <BarChart data={branchRevenueData} barSize={32}>
+                            <BarChart data={revenueData} barSize={32}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" strokeOpacity={0.8} />
                                 <XAxis
                                     dataKey="name"
@@ -271,7 +318,7 @@ export default function DashboardPage() {
                                     tickLine={false}
                                     axisLine={false}
                                     tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }}
-                                    tickFormatter={(value) => `£${value / 1000}k`}
+                                    tickFormatter={(value) => `£${value}`}
                                 />
                                 <Tooltip
                                     cursor={{ fill: 'transparent' }}

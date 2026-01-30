@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 
 // Icons
 const Icons = {
@@ -39,6 +40,35 @@ const Icons = {
 
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState('branding');
+    const [settings, setSettings] = useState({
+        companyName: 'LinkForex',
+        tagline: 'Connecting UK to Afghanistan with trust',
+        supportEmail: 'support@linkforex.com',
+        primaryColor: '#6366f1',
+        secondaryColor: '#8b5cf6',
+        maintenanceMode: false,
+        autoUpdateRates: true
+    });
+
+    useEffect(() => {
+        const savedSettings = localStorage.getItem('appSettings');
+        if (savedSettings) {
+            setSettings(JSON.parse(savedSettings));
+        }
+    }, []);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value, type, checked } = e.target;
+        setSettings(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
+    };
+
+    const handleSave = () => {
+        localStorage.setItem('appSettings', JSON.stringify(settings));
+        alert('Settings saved successfully!');
+    };
 
     const tabs = [
         { id: 'branding', name: 'Branding', icon: Icons.branding },
@@ -57,7 +87,10 @@ export default function SettingsPage() {
                     <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Settings</h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-1">Manage system configuration and preferences</p>
                 </div>
-                <button className="px-4 py-2 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-semibold hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors shadow-sm">
+                <button
+                    onClick={handleSave}
+                    className="px-4 py-2 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-semibold hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors shadow-sm"
+                >
                     <span className="flex items-center space-x-2">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -159,12 +192,16 @@ export default function SettingsPage() {
                                 <div className="flex space-x-3">
                                     <input
                                         type="color"
-                                        defaultValue="#6366f1"
+                                        name="primaryColor"
+                                        value={settings.primaryColor}
+                                        onChange={handleChange}
                                         className="h-10 w-16 rounded border border-slate-200 dark:border-slate-700 cursor-pointer"
                                     />
                                     <input
                                         type="text"
-                                        defaultValue="#6366f1"
+                                        name="primaryColor"
+                                        value={settings.primaryColor}
+                                        onChange={handleChange}
                                         className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm"
                                     />
                                 </div>
@@ -174,12 +211,16 @@ export default function SettingsPage() {
                                 <div className="flex space-x-3">
                                     <input
                                         type="color"
-                                        defaultValue="#8b5cf6"
+                                        name="secondaryColor"
+                                        value={settings.secondaryColor}
+                                        onChange={handleChange}
                                         className="h-10 w-16 rounded border border-slate-200 dark:border-slate-700 cursor-pointer"
                                     />
                                     <input
                                         type="text"
-                                        defaultValue="#8b5cf6"
+                                        name="secondaryColor"
+                                        value={settings.secondaryColor}
+                                        onChange={handleChange}
                                         className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm"
                                     />
                                 </div>
@@ -195,7 +236,9 @@ export default function SettingsPage() {
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Company Name</label>
                                 <input
                                     type="text"
-                                    defaultValue="LinkForex"
+                                    name="companyName"
+                                    value={settings.companyName}
+                                    onChange={handleChange}
                                     className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm"
                                 />
                             </div>
@@ -203,7 +246,9 @@ export default function SettingsPage() {
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Tagline</label>
                                 <input
                                     type="text"
-                                    defaultValue="Connecting UK to Afghanistan with trust"
+                                    name="tagline"
+                                    value={settings.tagline}
+                                    onChange={handleChange}
                                     className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm"
                                 />
                             </div>
@@ -211,7 +256,9 @@ export default function SettingsPage() {
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Support Email</label>
                                 <input
                                     type="email"
-                                    defaultValue="support@linkforex.com"
+                                    name="supportEmail"
+                                    value={settings.supportEmail}
+                                    onChange={handleChange}
                                     className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm"
                                 />
                             </div>
@@ -232,7 +279,13 @@ export default function SettingsPage() {
                                     <p className="text-sm text-slate-500 dark:text-slate-400">Disable public access for maintenance</p>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" className="sr-only peer" />
+                                    <input
+                                        type="checkbox"
+                                        name="maintenanceMode"
+                                        checked={settings.maintenanceMode}
+                                        onChange={handleChange}
+                                        className="sr-only peer"
+                                    />
                                     <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-slate-900"></div>
                                 </label>
                             </div>
@@ -243,7 +296,13 @@ export default function SettingsPage() {
                                     <p className="text-sm text-slate-500 dark:text-slate-400">Automatically fetch latest rates every 30 minutes</p>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" className="sr-only peer" defaultChecked />
+                                    <input
+                                        type="checkbox"
+                                        name="autoUpdateRates"
+                                        checked={settings.autoUpdateRates}
+                                        onChange={handleChange}
+                                        className="sr-only peer"
+                                    />
                                     <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-slate-900"></div>
                                 </label>
                             </div>
