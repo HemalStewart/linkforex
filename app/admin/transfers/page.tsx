@@ -120,22 +120,22 @@ export default function TransfersPage() {
                 <table className="w-full">
                     <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
                         <tr>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">ID</th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Amount (GBP)</th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Payout</th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Rate</th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Date</th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Actions</th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">ID</th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Amount (GBP)</th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Payout (PKR)</th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Rate</th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Status</th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Date</th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                         {filteredTransfers.map((transfer) => (
                             <tr key={transfer.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                <td className="px-6 py-4 font-mono text-sm">{transfer.id}</td>
-                                <td className="px-6 py-4 font-bold">£{parseFloat(transfer.source_amount).toFixed(2)}</td>
-                                <td className="px-6 py-4 text-emerald-600">£{parseFloat(transfer.dest_amount).toFixed(2)}</td>
-                                <td className="px-6 py-4">{transfer.rate}</td>
+                                <td className="px-6 py-4 font-mono text-sm text-slate-500 dark:text-slate-400">{transfer.id}</td>
+                                <td className="px-6 py-4 font-bold text-slate-900 dark:text-white">£{parseFloat(transfer.source_amount).toFixed(2)}</td>
+                                <td className="px-6 py-4 text-emerald-600 dark:text-emerald-400">PKR {parseFloat(transfer.dest_amount).toFixed(2)}</td>
+                                <td className="px-6 py-4 text-slate-700 dark:text-slate-300">{transfer.rate}</td>
                                 <td className="px-6 py-4">
                                     <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadge(transfer.status)}`}>
                                         {formatStatus(transfer.status)}

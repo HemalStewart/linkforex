@@ -414,18 +414,33 @@ export default function CreateTransferPage() {
 
                                     <div className="flex items-center justify-center py-2 relative">
                                         <div className="h-px bg-slate-300 dark:bg-slate-600 w-full absolute"></div>
-                                        <div className="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 px-3 py-1 rounded-full text-xs font-mono font-medium z-10 text-slate-500">
-                                            1 GBP = {formData.rate} PKR
+                                        <div className="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 px-4 py-1.5 rounded-full text-sm font-mono font-medium z-10 text-slate-500 flex items-center shadow-sm">
+                                            <span>1 GBP = </span>
+                                            <input
+                                                type="number"
+                                                className="w-20 mx-2 px-1 py-0.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded text-center text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-slate-400"
+                                                value={formData.rate}
+                                                onChange={(e) => {
+                                                    const newRate = e.target.value;
+                                                    const source = parseFloat(formData.sourceAmount);
+                                                    setFormData({
+                                                        ...formData,
+                                                        rate: newRate,
+                                                        destAmount: source && newRate ? (source * parseFloat(newRate)).toFixed(2) : ''
+                                                    });
+                                                }}
+                                            />
+                                            <span>PKR</span>
                                         </div>
                                     </div>
 
                                     <div>
                                         <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">They Get (PKR)</label>
                                         <div className="relative">
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">₨</span>
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">PKR</span>
                                             <input
                                                 type="number"
-                                                className="w-full pl-8 pr-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-lg font-bold"
+                                                className="w-full pl-12 pr-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-lg font-bold"
                                                 placeholder="0.00"
                                                 value={formData.destAmount}
                                                 readOnly
@@ -488,7 +503,7 @@ export default function CreateTransferPage() {
                             {/* Amount Summary */}
                             <div className="p-6 text-center bg-slate-900 dark:bg-slate-800 text-white">
                                 <p className="text-slate-400 text-sm uppercase tracking-wide font-semibold mb-1">Total Payout Amount</p>
-                                <div className="text-3xl font-bold">₨ {Number(formData.destAmount).toLocaleString()} <span className="text-lg text-slate-400 font-normal">PKR</span></div>
+                                <div className="text-3xl font-bold">PKR {Number(formData.destAmount).toLocaleString()}</div>
                                 <div className="text-sm text-slate-400 mt-2">Rate: 1 GBP = {formData.rate} PKR</div>
                                 <div className="mt-4 flex justify-center space-x-4">
                                     <span className="flex items-center space-x-1 text-emerald-400 text-xs font-medium bg-emerald-400/10 px-2 py-1 rounded">

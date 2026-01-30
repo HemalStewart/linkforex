@@ -3,16 +3,40 @@
 import React from 'react';
 
 export default function BranchesPage() {
-    const branches = [
-        { id: 1, name: 'London Central', address: '123 Oxford Street, London, W1D 2HG', manager: 'Sarah Manager', phone: '+44 20 1234 5678', email: 'london.central@linkforex.com', status: 'active', staff: 12, transfers: 1247, revenue: '£487,392' },
-        { id: 2, name: 'Manchester', address: '45 Market Street, Manchester, M1 1WR', manager: 'John Smith', phone: '+44 161 234 5678', email: 'manchester@linkforex.com', status: 'active', staff: 8, transfers: 843, revenue: '£324,156' },
-        { id: 3, name: 'Birmingham', address: '78 Bull Street, Birmingham, B4 6AF', manager: 'James Branch', phone: '+44 121 234 5678', email: 'birmingham@linkforex.com', status: 'active', staff: 10, transfers: 965, revenue: '£398,245' },
-        { id: 4, name: 'London East', address: '234 Commercial Road, London, E1 2BN', manager: 'Emma Agent', phone: '+44 20 2345 6789', email: 'london.east@linkforex.com', status: 'active', staff: 7, transfers: 678, revenue: '£267,891' },
-        { id: 5, name: 'Leeds', address: '56 Briggate, Leeds, LS1 6BR', manager: 'Michael Brown', phone: '+44 113 234 5678', email: 'leeds@linkforex.com', status: 'active', staff: 6, transfers: 534, revenue: '£198,432' },
-        { id: 6, name: 'Glasgow', address: '89 Buchanan Street, Glasgow, G1 3HL', manager: 'Olivia Taylor', phone: '+44 141 234 5678', email: 'glasgow@linkforex.com', status: 'active', staff: 9, transfers: 723, revenue: '£289,567' },
-        { id: 7, name: 'Liverpool', address: '12 Lord Street, Liverpool, L2 1TP', manager: 'Sophie Martin', phone: '+44 151 234 5678', email: 'liverpool@linkforex.com', status: 'active', staff: 5, transfers: 456, revenue: '£167,234' },
-        { id: 8, name: 'Bristol', address: '34 Broadmead, Bristol, BS1 3DS', manager: 'David Lee', phone: '+44 117 234 5678', email: 'bristol@linkforex.com', status: 'inactive', staff: 4, transfers: 289, revenue: '£112,345' },
-    ];
+    const [branches, setBranches] = React.useState<any[]>([]);
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        fetchBranches();
+    }, []);
+
+    const fetchBranches = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch('http://localhost:8888/linforex_backend/public/api/branches');
+            if (res.ok) {
+                const data = await res.json();
+                // Augment with dummy stats for UI richness
+                const augmented = data.map((b: any) => ({
+                    ...b,
+                    manager: 'John Smith', // Placeholder
+                    email: b.code.toLowerCase() + '@linkforex.com',
+                    staff: Math.floor(Math.random() * 10) + 2,
+                    transfers: Math.floor(Math.random() * 1000) + 100,
+                    revenue: '£' + (Math.random() * 500).toFixed(0) + 'K'
+                }));
+                setBranches(augmented);
+            } else {
+                console.error('Failed to fetch branches:', res.status, res.statusText);
+                setBranches([]); // Clear branches on error
+            }
+        } catch (error) {
+            console.error('Failed to fetch branches', error);
+            setBranches([]); // Clear branches on error
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const getStatusBadge = (status: string) => {
         return status === 'active'
@@ -24,7 +48,7 @@ export default function BranchesPage() {
         totalBranches: branches.length,
         activeBranches: branches.filter(b => b.status === 'active').length,
         totalStaff: branches.reduce((sum, b) => sum + b.staff, 0),
-        totalRevenue: branches.reduce((sum, b) => sum + parseFloat(b.revenue.replace(/[£,]/g, '')), 0),
+        totalRevenue: branches.reduce((sum, b) => sum + parseFloat(b.revenue.replace(/[£K]/g, '')), 0),
     };
 
     return (
@@ -36,6 +60,14 @@ export default function BranchesPage() {
                     <p className="text-slate-500 dark:text-slate-400 mt-1">Manage branch locations and staff</p>
                 </div>
                 <div className="flex items-center space-x-3">
+                    <button onClick={fetchBranches} className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        <span className="flex items-center space-x-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            <span>Refresh</span>
+                        </span>
+                    </button>
                     <button className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                         <span className="flex items-center space-x-2">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -61,7 +93,7 @@ export default function BranchesPage() {
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Total Branches</p>
-                            <p className="text-2xl font-bold text-slate-900 dark:text-white">{totalStats.totalBranches}</p>
+                            <p className="text-2xl font-bold text-slate-900 dark:text-white">{loading ? '-' : totalStats.totalBranches}</p>
                         </div>
                         <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300">
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -75,7 +107,7 @@ export default function BranchesPage() {
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Active Branches</p>
-                            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{totalStats.activeBranches}</p>
+                            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{loading ? '-' : totalStats.activeBranches}</p>
                         </div>
                         <div className="w-12 h-12 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -89,7 +121,7 @@ export default function BranchesPage() {
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Total Staff</p>
-                            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{totalStats.totalStaff}</p>
+                            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{loading ? '-' : totalStats.totalStaff}</p>
                         </div>
                         <div className="w-12 h-12 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -104,7 +136,7 @@ export default function BranchesPage() {
                         <div>
                             <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Total Revenue</p>
                             <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
-                                £{(totalStats.totalRevenue / 1000).toFixed(0)}K
+                                {loading ? '-' : `£${(totalStats.totalRevenue).toFixed(0)}K`}
                             </p>
                         </div>
                         <div className="w-12 h-12 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
