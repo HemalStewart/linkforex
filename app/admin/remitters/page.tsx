@@ -4,15 +4,15 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-export default function CustomersPage() {
+export default function RemittersPage() {
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
-    const [customers, setCustomers] = useState<any[]>([]);
+    const [remitters, setRemitters] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchCustomers = async () => {
+        const fetchRemitters = async () => {
             setLoading(true);
             try {
                 const params = new URLSearchParams();
@@ -29,17 +29,18 @@ export default function CustomersPage() {
                     ...c,
                     joinedDate: c.created_at ? new Date(c.created_at).toLocaleDateString() : '-',
                     transfersCount: 0, // Placeholder
-                    lastLogin: c.last_login || 'Never'
+                    lastLogin: c.last_login || 'Never',
+                    kycStatus: c.kyc_status || 'pending'
                 }));
-                setCustomers(mappedData);
+                setRemitters(mappedData);
             } catch (error) {
-                console.error('Failed to fetch customers:', error);
+                console.error('Failed to fetch remitters:', error);
             } finally {
                 setLoading(false);
             }
         };
 
-        const debounce = setTimeout(fetchCustomers, 300);
+        const debounce = setTimeout(fetchRemitters, 300);
         return () => clearTimeout(debounce);
     }, [searchQuery, statusFilter]);
 
@@ -61,16 +62,16 @@ export default function CustomersPage() {
         return styles[status as keyof typeof styles] || styles.pending;
     };
 
-    // No client-side filtering needed as API handles it, but we use customers directly
-    const filteredCustomers = customers;
+    // No client-side filtering needed as API handles it, but we use remitters directly
+    const filteredRemitters = remitters;
 
     return (
         <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
             {/* Page Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Customers</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">Manage customer profiles and activity</p>
+                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Remitters</h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-1">Manage remitter profiles and activity</p>
                 </div>
                 <div className="flex items-center space-x-3">
                     <button className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
@@ -85,7 +86,7 @@ export default function CustomersPage() {
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                         </svg>
-                        <span>Add Customer</span>
+                        <span>Add Remitter</span>
                     </Link>
                 </div>
             </div>
@@ -95,8 +96,8 @@ export default function CustomersPage() {
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Total Customers</p>
-                            <p className="text-2xl font-bold text-slate-900 dark:text-white">{customers.length}</p>
+                            <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Total Remitters</p>
+                            <p className="text-2xl font-bold text-slate-900 dark:text-white">{remitters.length}</p>
                         </div>
                         <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300">
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -119,7 +120,7 @@ export default function CustomersPage() {
                     </div>
                     <input
                         type="search"
-                        placeholder="Search customers by name, email or phone..."
+                        placeholder="Search remitters by name, email or phone..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 shadow-sm transition-all"
@@ -160,7 +161,7 @@ export default function CustomersPage() {
                 </div>
             </div>
 
-            {/* Customers Table */}
+            {/* Remitters Table */}
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
                 <div className="overflow-x-auto">
                     {loading ? (
@@ -169,7 +170,7 @@ export default function CustomersPage() {
                         <table className="w-full">
                             <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Customer</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Remitter</th>
                                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Contact</th>
                                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
                                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">KYC</th>
@@ -177,42 +178,42 @@ export default function CustomersPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                                {filteredCustomers.map((customer) => (
+                                {filteredRemitters.map((remitter) => (
                                     <tr
-                                        key={customer.id}
+                                        key={remitter.id}
                                         className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                                     >
                                         <td className="px-6 py-4">
                                             <div className="flex items-center space-x-3">
                                                 <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-sm">
-                                                    {customer.name?.charAt(0)}
+                                                    {remitter.name?.charAt(0)}
                                                 </div>
                                                 <div>
-                                                    <p className="font-semibold text-slate-900 dark:text-white">{customer.name}</p>
-                                                    <p className="text-xs text-slate-500">Joined: {customer.joinedDate}</p>
+                                                    <p className="font-semibold text-slate-900 dark:text-white">{remitter.name}</p>
+                                                    <p className="text-xs text-slate-500">Joined: {remitter.joinedDate}</p>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="text-sm">
-                                                <p className="text-slate-700 dark:text-slate-300">{customer.email}</p>
-                                                <p className="text-slate-500 dark:text-slate-400 text-xs">{customer.phone}</p>
+                                                <p className="text-slate-700 dark:text-slate-300">{remitter.email}</p>
+                                                <p className="text-slate-500 dark:text-slate-400 text-xs">{remitter.phone}</p>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadge(customer.status)}`}>
-                                                {customer.status ? customer.status.charAt(0).toUpperCase() + customer.status.slice(1) : 'Unknown'}
+                                            <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadge(remitter.status)}`}>
+                                                {remitter.status ? remitter.status.charAt(0).toUpperCase() + remitter.status.slice(1) : 'Unknown'}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${getKycBadge(customer.kycStatus)}`}>
-                                                {customer.kycStatus ? customer.kycStatus.toUpperCase() : 'PENDING'}
+                                            <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${getKycBadge(remitter.kycStatus)}`}>
+                                                {remitter.kycStatus ? remitter.kycStatus.toUpperCase() : 'PENDING'}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex space-x-2">
                                                 <Link
-                                                    href={`/admin/remitters/${customer.id}`}
+                                                    href={`/admin/remitters/${remitter.id}`}
                                                     className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors"
                                                     title="View/Edit Profile"
                                                 >
@@ -229,9 +230,9 @@ export default function CustomersPage() {
                         </table>
                     )}
                 </div>
-                {!loading && filteredCustomers.length === 0 && (
+                {!loading && filteredRemitters.length === 0 && (
                     <div className="p-8 text-center text-slate-500 dark:text-slate-400">
-                        No customers found.
+                        No remitters found.
                     </div>
                 )}
             </div>

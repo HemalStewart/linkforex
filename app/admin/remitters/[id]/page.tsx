@@ -73,7 +73,7 @@ export default function EditRemitterPage() {
     };
 
     if (loading) {
-        return <div className="max-w-4xl mx-auto p-8 text-center text-slate-500">Loading customer details...</div>;
+        return <div className="max-w-4xl mx-auto p-8 text-center text-slate-500">Loading remitter details...</div>;
     }
 
     return (
@@ -86,7 +86,7 @@ export default function EditRemitterPage() {
                     <span className="mx-2">/</span>
                     <span className="text-slate-900 dark:text-white font-medium">Edit</span>
                 </nav>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Edit Customer</h1>
+                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Edit Remitter</h1>
             </div>
 
             <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 space-y-6">
@@ -219,3 +219,4 @@ export default function EditRemitterPage() {
         </div>
     );
 }
+

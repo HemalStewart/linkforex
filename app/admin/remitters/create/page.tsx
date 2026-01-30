@@ -92,7 +92,7 @@ function DocumentRow({ label, name }: any) {
     );
 }
 
-export default function CreateCustomerPage() {
+export default function CreateRemitterPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const returnUrl = searchParams.get('returnUrl');
@@ -120,7 +120,7 @@ export default function CreateCustomerPage() {
             client_type: 'individual',
             status: 'active',
             branch: data.branch_id,
-            role: 'customer',
+            role: 'customer', // Keep 'customer' role for backend consistency if that's what backend expects for remitters
             name: data.sender_name,
             phone: data.telephone,
             dob: data.date_of_birth,
@@ -149,13 +149,13 @@ export default function CreateCustomerPage() {
 
             if (!res.ok) {
                 const errData = await res.json();
-                console.error('Error creating customer:', errData);
-                alert('Failed to create customer: ' + (JSON.stringify(errData.messages) || res.statusText));
+                console.error('Error creating remitter:', errData);
+                alert('Failed to create remitter: ' + (JSON.stringify(errData.messages) || res.statusText));
                 return;
             }
 
             const result = await res.json();
-            alert('Customer Created Successfully!');
+            alert('Remitter Created Successfully!');
 
             if (returnUrl) {
                 router.push(returnUrl);
@@ -180,8 +180,8 @@ export default function CreateCustomerPage() {
                     <span className="mx-2">/</span>
                     <span className="text-slate-900 dark:text-white font-medium">Add New</span>
                 </nav>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Add New Customer</h1>
-                <p className="text-slate-500 dark:text-slate-400 mt-1">Enter the details of the new customer below.</p>
+                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Add New Remitter</h1>
+                <p className="text-slate-500 dark:text-slate-400 mt-1">Enter the details of the new remitter below.</p>
             </div>
 
             <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 overflow-hidden">
@@ -310,7 +310,7 @@ export default function CreateCustomerPage() {
                         disabled={loading}
                         className={`px-8 py-2.5 rounded-lg bg-emerald-600 text-white font-bold hover:bg-emerald-500 transition-colors shadow-lg shadow-emerald-500/20 flex items-center ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                        <span>{loading ? 'Creating...' : 'Create Customer'}</span>
+                        <span>{loading ? 'Creating...' : 'Create Remitter'}</span>
                     </button>
                 </div>
             </div>

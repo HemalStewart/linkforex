@@ -5,6 +5,14 @@ import React from 'react';
 export default function BranchesPage() {
     const [branches, setBranches] = React.useState<any[]>([]);
     const [loading, setLoading] = React.useState(true);
+    const [isModalOpen, setIsModalOpen] = React.useState(false);
+    const [formData, setFormData] = React.useState({
+        id: null,
+        name: '',
+        code: '',
+        address: '',
+        phone: ''
+    });
 
     React.useEffect(() => {
         fetchBranches();
@@ -16,10 +24,9 @@ export default function BranchesPage() {
             const res = await fetch('http://localhost:8888/linforex_backend/public/api/branches');
             if (res.ok) {
                 const data = await res.json();
-                // Augment with dummy stats for UI richness
                 const augmented = data.map((b: any) => ({
                     ...b,
-                    manager: 'John Smith', // Placeholder
+                    manager: 'John Smith',
                     email: b.code.toLowerCase() + '@linkforex.com',
                     staff: Math.floor(Math.random() * 10) + 2,
                     transfers: Math.floor(Math.random() * 1000) + 100,
@@ -27,15 +34,55 @@ export default function BranchesPage() {
                 }));
                 setBranches(augmented);
             } else {
-                console.error('Failed to fetch branches:', res.status, res.statusText);
-                setBranches([]); // Clear branches on error
+                setBranches([]);
             }
         } catch (error) {
             console.error('Failed to fetch branches', error);
-            setBranches([]); // Clear branches on error
+            setBranches([]);
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleSave = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const url = formData.id
+                ? `http://localhost:8888/linforex_backend/public/api/branches/${formData.id}`
+                : 'http://localhost:8888/linforex_backend/public/api/branches';
+
+            const method = formData.id ? 'PUT' : 'POST';
+
+            const res = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+
+            if (res.ok) {
+                setIsModalOpen(false);
+                fetchBranches();
+                setFormData({ id: null, name: '', code: '', address: '', phone: '' });
+            }
+        } catch (error) {
+            console.error('Failed to save branch', error);
+        }
+    };
+
+    const openCreateModal = () => {
+        setFormData({ id: null, name: '', code: '', address: '', phone: '' });
+        setIsModalOpen(true);
+    };
+
+    const openEditModal = (branch: any) => {
+        setFormData({
+            id: branch.id,
+            name: branch.name,
+            code: branch.code,
+            address: branch.address,
+            phone: branch.phone
+        });
+        setIsModalOpen(true);
     };
 
     const getStatusBadge = (status: string) => {
@@ -53,6 +100,70 @@ export default function BranchesPage() {
 
     return (
         <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
+            {/* Modal */}
+            {isModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-slate-800 p-6 rounded-xl w-full max-w-md shadow-2xl">
+                        <h2 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">
+                            {formData.id ? 'Edit Branch' : 'Add New Branch'}
+                        </h2>
+                        <form onSubmit={handleSave} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Name</label>
+                                <input
+                                    required
+                                    className="w-full p-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                                    value={formData.name}
+                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Code</label>
+                                <input
+                                    required
+                                    className="w-full p-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                                    value={formData.code}
+                                    onChange={e => setFormData({ ...formData, code: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Address</label>
+                                <input
+                                    required
+                                    className="w-full p-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                                    value={formData.address}
+                                    onChange={e => setFormData({ ...formData, address: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">Phone</label>
+                                <input
+                                    required
+                                    className="w-full p-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                                    value={formData.phone}
+                                    onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                                />
+                            </div>
+                            <div className="flex justify-end space-x-2 mt-6">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsModalOpen(false)}
+                                    className="px-4 py-2 text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800"
+                                >
+                                    {formData.id ? 'Update Branch' : 'Create Branch'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
             {/* Page Header */}
             <div className="flex items-center justify-between">
                 <div>
@@ -76,7 +187,7 @@ export default function BranchesPage() {
                             <span>View Map</span>
                         </span>
                     </button>
-                    <button className="px-4 py-2 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-medium hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors shadow-sm">
+                    <button onClick={openCreateModal} className="px-4 py-2 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-medium hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors shadow-sm">
                         <span className="flex items-center space-x-2">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -223,7 +334,7 @@ export default function BranchesPage() {
                             <button className="flex-1 px-4 py-2 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-medium hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors shadow-sm">
                                 View Details
                             </button>
-                            <button className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                            <button onClick={() => openEditModal(branch)} className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                                 Edit
                             </button>
                         </div>
