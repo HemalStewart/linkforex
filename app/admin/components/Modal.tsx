@@ -52,8 +52,8 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
                 <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
                 <div className={`
-                    inline-block align-bottom bg-white dark:bg-slate-800 rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle w-full ${sizeClasses[size]} 
-                    border border-slate-200 dark:border-slate-700 relative
+                    inline-block align-bottom bg-white dark:bg-slate-800 rounded-2xl text-left overflow-hidden shadow-xl sm:my-8 sm:align-middle w-full ${sizeClasses[size]} 
+                    border border-slate-200 dark:border-slate-700 relative animate-scale-in
                 `}>
                     <div className="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                         {title && (
