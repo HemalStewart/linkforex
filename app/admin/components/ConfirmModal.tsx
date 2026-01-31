@@ -13,6 +13,7 @@ interface ConfirmModalProps {
     cancelText?: string;
     type?: 'danger' | 'warning' | 'info';
     loading?: boolean;
+    isAlert?: boolean;
 }
 
 export default function ConfirmModal({
@@ -24,7 +25,8 @@ export default function ConfirmModal({
     confirmText = 'Confirm',
     cancelText = 'Cancel',
     type = 'info',
-    loading = false
+    loading = false,
+    isAlert = false
 }: ConfirmModalProps) {
     const buttonStyles = {
         danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500',
@@ -39,14 +41,16 @@ export default function ConfirmModal({
                     {message}
                 </p>
                 <div className="flex justify-end gap-3 mt-6">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        disabled={loading}
-                        className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition-colors"
-                    >
-                        {cancelText}
-                    </button>
+                    {!isAlert && (
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            disabled={loading}
+                            className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition-colors"
+                        >
+                            {cancelText}
+                        </button>
+                    )}
                     <button
                         type="button"
                         onClick={onConfirm}

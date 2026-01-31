@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { ENDPOINTS } from '@/app/lib/api';
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
@@ -18,8 +19,41 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         'Management': true
     });
 
+    const [counts, setCounts] = useState({ transfers: 0, kyc: 0, remitters: 0 });
+
     const pathname = usePathname();
     const router = useRouter();
+
+    React.useEffect(() => {
+        const fetchCounts = async () => {
+            // ... logic same as before but safe order
+            try {
+                // Fetch Transfers Count
+                const tRes = await fetch(`${ENDPOINTS.TRANSFERS.LIST}?_t=${Date.now()}`);
+                if (tRes.ok) {
+                    const tData = await tRes.json();
+                    setCounts(prev => ({ ...prev, transfers: tData.length }));
+                }
+
+                // Fetch Remitters Count
+                const rRes = await fetch(`${ENDPOINTS.REMITTERS.LIST}?_t=${Date.now()}`);
+                if (rRes.ok) {
+                    const rData = await rRes.json();
+                    setCounts(prev => ({ ...prev, remitters: rData.length }));
+                }
+            } catch (e) {
+                // Silent fail for sidebar badges
+            }
+        };
+        // Only fetch if NOT login page
+        if (!pathname.startsWith('/admin/login')) {
+            fetchCounts();
+        }
+    }, [pathname]); // Depend on pathname so it updates on navigation if needed, or stick to empty array and rely on layout remount? 
+    // Actually, DashboardLayout might not unmount on nav. 
+    // Better to depend on pathname to refresh counts on navigation? Or just run once.
+    // The previous implementation ran once. I'll stick to once or maybe pathname if I want live updates.
+    // I'll add [pathname] to be safe so it refreshes when user navigates around.
 
     React.useEffect(() => {
         const stored = localStorage.getItem('user');
@@ -56,6 +90,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         }));
     };
 
+
+
     const navigation = [
         {
             name: 'Dashboard',
@@ -74,10 +110,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </svg>
             ),
             children: [
-                { name: 'Transfers', href: '/admin/transfers', badge: '24' },
-                { name: 'Remitters', href: '/admin/remitters' },
+                { name: 'Transfers', href: '/admin/transfers', badge: counts.transfers > 0 ? counts.transfers.toString() : undefined },
+                { name: 'Remitters', href: '/admin/remitters', badge: counts.remitters > 0 ? counts.remitters.toString() : undefined },
                 { name: 'Receivers', href: '/admin/receivers' },
-                { name: 'KYC Reviews', href: '/admin/kyc', badge: '8' },
+                { name: 'KYC Reviews', href: '/admin/kyc' },
             ]
         },
         {
@@ -167,7 +203,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                     {/* Submenu Items */}
                                     {sidebarOpen && isExpanded && (
                                         <div className="mt-1 ml-4 pl-4 border-l-2 border-slate-100 dark:border-slate-800 space-y-1">
-                                            {item.children.map((child) => {
+                                            {item.children.map((child: any) => {
                                                 const isChildItemActive = pathname === child.href;
                                                 return (
                                                     <Link

@@ -21,7 +21,8 @@ export default function TransferDetailsPage() {
         title: '',
         message: '',
         status: '',
-        type: 'info' as 'info' | 'danger' | 'warning'
+        type: 'info' as 'info' | 'danger' | 'warning',
+        isAlert: false
     });
 
     useEffect(() => {
@@ -68,11 +69,15 @@ export default function TransferDetailsPage() {
             title,
             message,
             status: newStatus,
-            type
+            type,
+            isAlert: false
         });
     };
 
     const handleConfirmUpdate = async () => {
+        // If it's just an alert, closing is handled by the buttons logic in JSX but handleConfirmUpdate shouldn't fire API if it was an alert.
+        // Actually, I'll switch the handler in JSX.
+
         setProcessing(true);
         const newStatus = confirmModal.status;
 
@@ -86,17 +91,37 @@ export default function TransferDetailsPage() {
             });
 
             if (res.ok) {
-                // Ideally replace with toast, for now reusing confirm logic or silent success + refresh
-                setConfirmModal({ ...confirmModal, isOpen: false });
+                // Success - Show Alert
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Success',
+                    message: 'Transfer status updated successfully.',
+                    status: '',
+                    type: 'info',
+                    isAlert: true
+                });
                 fetchTransfer();
             } else {
-                alert('Failed to update status'); // We can improve this too later
-                setConfirmModal({ ...confirmModal, isOpen: false });
+                // Error - Show Alert
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: 'Failed to update status. Please try again.',
+                    status: '',
+                    type: 'danger',
+                    isAlert: true
+                });
             }
         } catch (error) {
             console.error('Failed to update status:', error);
-            alert('Error updating status');
-            setConfirmModal({ ...confirmModal, isOpen: false });
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'An unexpected error occurred.',
+                status: '',
+                type: 'danger',
+                isAlert: true
+            });
         } finally {
             setProcessing(false);
         }
@@ -121,11 +146,13 @@ export default function TransferDetailsPage() {
             <ConfirmModal
                 isOpen={confirmModal.isOpen}
                 onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
-                onConfirm={handleConfirmUpdate}
+                onConfirm={confirmModal.isAlert ? () => setConfirmModal({ ...confirmModal, isOpen: false }) : handleConfirmUpdate}
                 title={confirmModal.title}
                 message={confirmModal.message}
                 type={confirmModal.type}
                 loading={processing}
+                confirmText={confirmModal.isAlert ? "OK" : "Confirm"}
+                isAlert={confirmModal.isAlert}
             />
 
             {/* Header */}

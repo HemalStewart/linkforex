@@ -107,7 +107,7 @@ export default function EditRemitterPage() {
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Email</label>
                         <input
                             type="email"
-                            value={formData.email}
+                            value={formData.email || ''}
                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                             className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-slate-500 dark:focus:ring-slate-400 focus:border-slate-500 dark:focus:border-slate-400 text-slate-900 dark:text-white"
                         />
@@ -128,7 +128,7 @@ export default function EditRemitterPage() {
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Date of Birth</label>
                         <input
                             type="date"
-                            value={formData.dob}
+                            value={formData.dob || ''}
                             onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
                             className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-slate-500 dark:focus:ring-slate-400 focus:border-slate-500 dark:focus:border-slate-400 text-slate-900 dark:text-white"
                         />
@@ -164,7 +164,7 @@ export default function EditRemitterPage() {
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Country</label>
                         <input
                             type="text"
-                            value={formData.country}
+                            value={formData.country || ''}
                             onChange={(e) => setFormData({ ...formData, country: e.target.value })}
                             className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-slate-500 dark:focus:ring-slate-400 focus:border-slate-500 dark:focus:border-slate-400 text-slate-900 dark:text-white"
                         />
@@ -174,7 +174,7 @@ export default function EditRemitterPage() {
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Address</label>
                         <input
                             type="text"
-                            value={formData.address_1}
+                            value={formData.address_1 || ''}
                             onChange={(e) => setFormData({ ...formData, address_1: e.target.value })}
                             className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-slate-500 dark:focus:ring-slate-400 focus:border-slate-500 dark:focus:border-slate-400 text-slate-900 dark:text-white"
                         />
@@ -184,7 +184,7 @@ export default function EditRemitterPage() {
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">City</label>
                         <input
                             type="text"
-                            value={formData.city}
+                            value={formData.city || ''}
                             onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                             className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-slate-500 dark:focus:ring-slate-400 focus:border-slate-500 dark:focus:border-slate-400 text-slate-900 dark:text-white"
                         />
@@ -194,7 +194,7 @@ export default function EditRemitterPage() {
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Postcode</label>
                         <input
                             type="text"
-                            value={formData.postcode}
+                            value={formData.postcode || ''}
                             onChange={(e) => setFormData({ ...formData, postcode: e.target.value })}
                             className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-slate-500 dark:focus:ring-slate-400 focus:border-slate-500 dark:focus:border-slate-400 text-slate-900 dark:text-white"
                         />

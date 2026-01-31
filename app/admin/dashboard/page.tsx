@@ -59,11 +59,12 @@ export default function DashboardPage() {
     const fetchDashboardData = async () => {
         try {
             // Fetch transfers
-            const transfersRes = await fetch(ENDPOINTS.TRANSFERS.LIST);
+            // Fetch transfers
+            const transfersRes = await fetch(`${ENDPOINTS.TRANSFERS.LIST}?_t=${new Date().getTime()}`);
             const transfers = transfersRes.ok ? await transfersRes.json() : [];
 
             // Fetch customers
-            const customersRes = await fetch(ENDPOINTS.REMITTERS.LIST);
+            const customersRes = await fetch(`${ENDPOINTS.REMITTERS.LIST}?_t=${new Date().getTime()}`);
             const customers = customersRes.ok ? await customersRes.json() : [];
 
 

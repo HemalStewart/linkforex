@@ -35,7 +35,9 @@ export default function CreateTransferPage() {
         paymentMode: 'D', // D=Direct, C=Cash, etc.
         sourceOfFunds: 'Salary',
         purpose: 'Family Support',
-        branchId: ''
+        branchId: '',
+        type: 'branch', // Default for Admin Panel
+        collectionMethod: 'cash'
     });
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -56,7 +58,12 @@ export default function CreateTransferPage() {
         };
         fetchBranches();
     }, []);
-    // const [isSenderModalOpen, setIsSenderModalOpen] = useState(false);
+    const [userRole, setUserRole] = useState('admin'); // 'admin' or 'branch_user'
+    const [userBranch, setUserBranch] = useState('LON001');
+
+    // ... useEffect ...
+
+    // ... 
 
     const handleSearchRemitter = async () => {
         if (!searchTerm) {
@@ -64,7 +71,11 @@ export default function CreateTransferPage() {
             return;
         }
         try {
-            const res = await fetch(`${ENDPOINTS.REMITTERS.LIST}?search=${searchTerm}`);
+            let url = `${ENDPOINTS.REMITTERS.LIST}?search=${searchTerm}`;
+            if (userRole === 'branch_user') {
+                url += `&branch=${userBranch}`;
+            }
+            const res = await fetch(url);
             if (res.ok) {
                 const data = await res.json();
                 setSearchResults(data);
@@ -136,6 +147,8 @@ export default function CreateTransferPage() {
                 payment_mode: formData.paymentMode,
                 source_of_funds: formData.sourceOfFunds,
                 purpose: formData.purpose,
+                type: formData.type,
+                collection_method: formData.collectionMethod,
                 status: 'pending'
             };
 
@@ -168,7 +181,23 @@ export default function CreateTransferPage() {
                     <span className="mx-2">/</span>
                     <span className="text-slate-900 dark:text-white font-medium">New Transfer</span>
                 </nav>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Create New Transfer</h1>
+                <div className="flex items-center justify-between">
+                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Create New Transfer</h1>
+                    <select
+                        value={userRole}
+                        onChange={(e) => {
+                            setUserRole(e.target.value);
+                            // If switching to branch user, auto-select that branch in form data if possible
+                            if (e.target.value === 'branch_user') {
+                                setFormData(prev => ({ ...prev, branchId: userBranch }));
+                            }
+                        }}
+                        className="px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
+                    >
+                        <option value="admin">Simulate: Super Admin</option>
+                        <option value="branch_user">Simulate: Branch Manager (LON)</option>
+                    </select>
+                </div>
             </div>
 
             {/* Stepper */}
@@ -458,31 +487,63 @@ export default function CreateTransferPage() {
 
                             {/* Additional Details */}
                             <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Transaction Location (Branch)</label>
-                                    <select
-                                        className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
-                                        value={formData.branchId || ''}
-                                        onChange={(e) => setFormData({ ...formData, branchId: e.target.value })}
-                                    >
-                                        <option value="">Select Branch...</option>
-                                        {branches.map(b => (
-                                            <option key={b.id} value={b.code || b.name}>{b.name}</option>
-                                        ))}
-                                    </select>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Channel (Type)</label>
+                                        <select
+                                            className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
+                                            value={formData.type}
+                                            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                                        >
+                                            <option value="branch">Branch (In-Person)</option>
+                                            <option value="online">Online Web</option>
+                                            <option value="mobile">Mobile App</option>
+                                            <option value="agent">Agent</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Transaction Location (Branch)</label>
+                                        <select
+                                            className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
+                                            value={formData.branchId || ''}
+                                            onChange={(e) => setFormData({ ...formData, branchId: e.target.value })}
+                                            disabled={formData.type !== 'branch' && formData.type !== 'agent'} // Optional: disable branch selection for online? No, maybe online is attributed to a branch too. I'll leave enabled.
+                                        >
+                                            <option value="">Select Branch...</option>
+                                            {branches.map(b => (
+                                                <option key={b.id} value={b.code || b.name}>{b.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Payment Mode</label>
-                                    <select
-                                        className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
-                                        value={formData.paymentMode}
-                                        onChange={(e) => setFormData({ ...formData, paymentMode: e.target.value })}
-                                    >
-                                        <option value="D">Direct Transfer (Bank Deposit)</option>
-                                        <option value="P">Cash Pickup</option>
-                                        <option value="C">Other Bank Transfer</option>
-                                    </select>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Collection Method</label>
+                                        <select
+                                            className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
+                                            value={formData.collectionMethod}
+                                            onChange={(e) => setFormData({ ...formData, collectionMethod: e.target.value })}
+                                        >
+                                            <option value="cash">Cash (Counter)</option>
+                                            <option value="card">Card Payment</option>
+                                            <option value="bank_transfer">Bank Transfer</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Payment Mode (Payout)</label>
+                                        <select
+                                            className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
+                                            value={formData.paymentMode}
+                                            onChange={(e) => setFormData({ ...formData, paymentMode: e.target.value })}
+                                        >
+                                            <option value="D">Direct Transfer (Bank Deposit)</option>
+                                            <option value="P">Cash Pickup</option>
+                                            <option value="C">Other Bank Transfer</option>
+                                        </select>
+                                    </div>
                                 </div>
+
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Source of Funds</label>
                                     <select
@@ -603,6 +664,6 @@ export default function CreateTransferPage() {
                 </div>
             </div>
 
-        </div>
+        </div >
     );
 }
