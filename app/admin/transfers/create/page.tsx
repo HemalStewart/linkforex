@@ -4,12 +4,22 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
+import ConfirmModal from '../../components/ConfirmModal';
 
 // Helpers and Modal code moved to /admin/users/create
 
 export default function CreateTransferPage() {
     const router = useRouter();
     const [step, setStep] = useState(1);
+
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info' as 'info' | 'danger' | 'warning',
+        isAlert: true,
+        shouldRedirect: false
+    });
 
     // Screening State
     const [screeningStatus, setScreeningStatus] = useState<'idle' | 'scanning' | 'passed' | 'failed'>('idle');
@@ -159,19 +169,56 @@ export default function CreateTransferPage() {
             });
 
             if (res.ok) {
-                alert('Transfer Created Successfully');
-                router.push('/admin/transfers');
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Success',
+                    message: 'Transfer Created Successfully',
+                    type: 'info',
+                    isAlert: true,
+                    shouldRedirect: true
+                });
             } else {
-                alert('Failed to create transfer');
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: 'Failed to create transfer',
+                    type: 'danger',
+                    isAlert: true,
+                    shouldRedirect: false
+                });
             }
         } catch (e) {
             console.error(e);
-            alert('Error submitting transfer');
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'Error submitting transfer',
+                type: 'danger',
+                isAlert: true,
+                shouldRedirect: false
+            });
+        }
+    };
+
+    const handleModalClose = () => {
+        setConfirmModal({ ...confirmModal, isOpen: false });
+        if (confirmModal.shouldRedirect) {
+            router.push('/admin/transfers');
         }
     };
 
     return (
         <div className="max-w-4xl mx-auto animate-fade-in pb-20">
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                onClose={handleModalClose}
+                onConfirm={handleModalClose}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                type={confirmModal.type as any}
+                isAlert={confirmModal.isAlert}
+                confirmText="OK"
+            />
             {/* Header / Breadcrumbs */}
             <div className="mb-8">
                 <nav className="flex items-center text-sm text-slate-500 mb-2">

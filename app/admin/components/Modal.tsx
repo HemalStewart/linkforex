@@ -53,7 +53,7 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
 
                 <div className={`
                     inline-block align-bottom bg-white dark:bg-slate-800 rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle w-full ${sizeClasses[size]} 
-                    border border-slate-200 dark:border-slate-700
+                    border border-slate-200 dark:border-slate-700 relative
                 `}>
                     <div className="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                         {title && (

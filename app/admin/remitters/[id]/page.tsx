@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
+import ConfirmModal from '../../components/ConfirmModal';
 
 export default function EditRemitterPage() {
     const router = useRouter();
@@ -24,6 +25,15 @@ export default function EditRemitterPage() {
         city: '',
         postcode: '',
         country: 'United Kingdom',
+    });
+
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info' as 'info' | 'danger' | 'warning',
+        isAlert: true,
+        shouldRedirect: false
     });
 
     useEffect(() => {
@@ -60,14 +70,34 @@ export default function EditRemitterPage() {
             });
 
             if (res.ok) {
-                alert('Remitter updated successfully');
-                router.push('/admin/remitters');
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Success',
+                    message: 'Remitter updated successfully',
+                    type: 'info',
+                    isAlert: true,
+                    shouldRedirect: true
+                });
             } else {
-                alert('Failed to update remitter');
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: 'Failed to update remitter',
+                    type: 'danger',
+                    isAlert: true,
+                    shouldRedirect: false
+                });
             }
         } catch (error) {
             console.error('Failed to submit:', error);
-            alert('Error updating remitter');
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'Error updating remitter',
+                type: 'danger',
+                isAlert: true,
+                shouldRedirect: false
+            });
         } finally {
             setSubmitting(false);
         }
@@ -77,8 +107,25 @@ export default function EditRemitterPage() {
         return <div className="max-w-4xl mx-auto p-8 text-center text-slate-500">Loading remitter details...</div>;
     }
 
+    const handleModalClose = () => {
+        setConfirmModal({ ...confirmModal, isOpen: false });
+        if (confirmModal.shouldRedirect) {
+            router.push('/admin/remitters');
+        }
+    };
+
     return (
         <div className="max-w-4xl mx-auto space-y-6 pb-20 animate-fade-in">
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                onClose={handleModalClose}
+                onConfirm={handleModalClose}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                type={confirmModal.type as any}
+                isAlert={confirmModal.isAlert}
+                confirmText="OK"
+            />
             <div>
                 <nav className="flex items-center text-sm text-slate-500 mb-2">
                     <Link href="/admin/dashboard" className="hover:text-slate-900 dark:hover:text-white transition-colors">Dashboard</Link>

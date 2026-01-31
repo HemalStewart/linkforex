@@ -55,7 +55,7 @@ export default function ConfirmModal({
                         type="button"
                         onClick={onConfirm}
                         disabled={loading}
-                        className={`inline-flex justify-center px-4 py-2 text-sm font-medium border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 shadow-sm transition-colors ${buttonStyles[type]} ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                        className={`inline-flex justify-center px-4 py-2 text-sm font-medium border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 shadow-sm transition-colors ${buttonStyles[type] || buttonStyles.info} ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
                     >
                         {loading ? (
                             <>
