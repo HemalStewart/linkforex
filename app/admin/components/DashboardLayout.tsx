@@ -19,30 +19,53 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         'Management': true
     });
 
-    const [counts, setCounts] = useState({ transfers: 0, kyc: 0, remitters: 0 });
+    const [counts, setCounts] = useState({
+        transfers: 0,
+        remitters: 0,
+        receivers: 0,
+        users: 0,
+        branches: 0,
+        kyc: 0
+    });
 
     const pathname = usePathname();
     const router = useRouter();
 
     React.useEffect(() => {
         const fetchCounts = async () => {
-            // ... logic same as before but safe order
+            const timestamp = Date.now();
             try {
-                // Fetch Transfers Count
-                const tRes = await fetch(`${ENDPOINTS.TRANSFERS.LIST}?_t=${Date.now()}`);
-                if (tRes.ok) {
-                    const tData = await tRes.json();
-                    setCounts(prev => ({ ...prev, transfers: tData.length }));
+                // Parallel fetch for dashboard counts
+                const [tRes, rRes, bRes, uRes, brRes] = await Promise.allSettled([
+                    fetch(`${ENDPOINTS.TRANSFERS.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
+                    fetch(`${ENDPOINTS.REMITTERS.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
+                    fetch(`${ENDPOINTS.BENEFICIARIES.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
+                    fetch(`${ENDPOINTS.USERS.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
+                    fetch(`${ENDPOINTS.BRANCHES.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : [])
+                ]);
+
+                const getCount = (res: PromiseSettledResult<any>) =>
+                    res.status === 'fulfilled' && Array.isArray(res.value) ? res.value.length : 0;
+
+                // For KYC, we need to filter remitters (since kyc is usually on remitter/customer)
+                // Or users? Usually remitters have KYC.
+                // Let's assume remitters endpoint returns objects with kyc_status.
+                let kycCount = 0;
+                if (rRes.status === 'fulfilled' && Array.isArray(rRes.value)) {
+                    kycCount = rRes.value.filter((r: any) => r.kyc_status === 'pending').length;
                 }
 
-                // Fetch Remitters Count
-                const rRes = await fetch(`${ENDPOINTS.REMITTERS.LIST}?_t=${Date.now()}`);
-                if (rRes.ok) {
-                    const rData = await rRes.json();
-                    setCounts(prev => ({ ...prev, remitters: rData.length }));
-                }
+                setCounts({
+                    transfers: getCount(tRes),
+                    remitters: getCount(rRes),
+                    receivers: getCount(bRes),
+                    users: getCount(uRes),
+                    branches: getCount(brRes),
+                    kyc: kycCount
+                });
+
             } catch (e) {
-                // Silent fail for sidebar badges
+                // Silent fail
             }
         };
         // Only fetch if NOT login page
@@ -112,8 +135,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             children: [
                 { name: 'Transfers', href: '/admin/transfers', badge: counts.transfers > 0 ? counts.transfers.toString() : undefined },
                 { name: 'Remitters', href: '/admin/remitters', badge: counts.remitters > 0 ? counts.remitters.toString() : undefined },
-                { name: 'Receivers', href: '/admin/receivers' },
-                { name: 'KYC Reviews', href: '/admin/kyc' },
+                { name: 'Receivers', href: '/admin/receivers', badge: counts.receivers > 0 ? counts.receivers.toString() : undefined },
+                { name: 'KYC Reviews', href: '/admin/kyc', badge: counts.kyc > 0 ? counts.kyc.toString() : undefined },
             ]
         },
         {
@@ -124,8 +147,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </svg>
             ),
             children: [
-                { name: 'System Users', href: '/admin/users' },
-                { name: 'Branches', href: '/admin/branches' },
+                { name: 'System Users', href: '/admin/users', badge: counts.users > 0 ? counts.users.toString() : undefined },
+                { name: 'Branches', href: '/admin/branches', badge: counts.branches > 0 ? counts.branches.toString() : undefined },
                 { name: 'Exchange Rates', href: '/admin/rates' },
             ]
         },
