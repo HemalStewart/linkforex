@@ -2,12 +2,32 @@
 
 import React, { useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
+import Modal from '../components/Modal';
+import ConfirmModal from '../components/ConfirmModal';
 
 export default function ExchangeRatesPage() {
     const [currencies, setCurrencies] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [editingId, setEditingId] = useState<string | number | null>(null);
     const [editForm, setEditForm] = useState({ rate: '' });
+
+    // Add New Currency State
+    const [addModalOpen, setAddModalOpen] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [newCurrency, setNewCurrency] = useState({
+        name: '',
+        code: '',
+        symbol: '',
+        rate: ''
+    });
+
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info' as 'info' | 'danger' | 'warning',
+        isAlert: true
+    });
 
     React.useEffect(() => {
         fetchRates();
@@ -46,6 +66,50 @@ export default function ExchangeRatesPage() {
         }
     };
 
+    const handleAddSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        try {
+            const res = await fetch(ENDPOINTS.CURRENCIES.LIST, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newCurrency)
+            });
+
+            if (res.ok) {
+                setAddModalOpen(false);
+                setNewCurrency({ name: '', code: '', symbol: '', rate: '' });
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Success',
+                    message: 'Currency added successfully',
+                    type: 'info',
+                    isAlert: true
+                });
+                fetchRates();
+            } else {
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: 'Failed to add currency',
+                    type: 'danger',
+                    isAlert: true
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'An error occurred',
+                type: 'danger',
+                isAlert: true
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     return (
         <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
             {/* Page Header */}
@@ -55,6 +119,12 @@ export default function ExchangeRatesPage() {
                     <p className="text-slate-500 dark:text-slate-400 mt-1">Manage currency exchange rates</p>
                 </div>
                 <div className="flex items-center space-x-3">
+                    <button
+                        onClick={() => setAddModalOpen(true)}
+                        className="px-4 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 font-medium rounded-lg transition-colors shadow-sm"
+                    >
+                        Add New Currency
+                    </button>
                     <button onClick={fetchRates} className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                         <span className="flex items-center space-x-2">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -138,6 +208,90 @@ export default function ExchangeRatesPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Add Currency Modal */}
+            <Modal
+                isOpen={addModalOpen}
+                onClose={() => setAddModalOpen(false)}
+                title="Add New Currency"
+            >
+                <form onSubmit={handleAddSubmit} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Currency Name</label>
+                        <input
+                            type="text"
+                            required
+                            placeholder="e.g. Euro"
+                            className="w-full px-4 py-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                            value={newCurrency.name}
+                            onChange={e => setNewCurrency({ ...newCurrency, name: e.target.value })}
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Code</label>
+                            <input
+                                type="text"
+                                required
+                                placeholder="e.g. EUR"
+                                className="w-full px-4 py-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white uppercase"
+                                value={newCurrency.code}
+                                onChange={e => setNewCurrency({ ...newCurrency, code: e.target.value.toUpperCase() })}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Symbol</label>
+                            <input
+                                type="text"
+                                required
+                                placeholder="e.g. €"
+                                className="w-full px-4 py-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                                value={newCurrency.symbol}
+                                onChange={e => setNewCurrency({ ...newCurrency, symbol: e.target.value })}
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Exchange Rate (Base: GBP)</label>
+                        <input
+                            type="number"
+                            step="0.0001"
+                            required
+                            placeholder="e.g. 1.15"
+                            className="w-full px-4 py-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                            value={newCurrency.rate}
+                            onChange={e => setNewCurrency({ ...newCurrency, rate: e.target.value })}
+                        />
+                    </div>
+                    <div className="flex justify-end pt-4 space-x-3">
+                        <button
+                            type="button"
+                            onClick={() => setAddModalOpen(false)}
+                            className="px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                        >
+                            {isSubmitting ? 'Adding...' : 'Add Currency'}
+                        </button>
+                    </div>
+                </form>
+            </Modal>
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+                onConfirm={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                type={confirmModal.type}
+                isAlert={confirmModal.isAlert}
+                confirmText="OK"
+            />
         </div>
     );
 }
