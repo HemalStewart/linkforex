@@ -99,13 +99,28 @@ export default function CreateRemitterPage() {
     const returnUrl = searchParams.get('returnUrl');
 
     const [activeTab, setActiveTab] = useState('general');
+    const [branches, setBranches] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
 
     const tabs = [
         { id: 'general', label: 'General' },
         { id: 'kyc', label: 'KYC & ID' },
     ];
 
-    const [loading, setLoading] = useState(false);
+    React.useEffect(() => {
+        const fetchBranches = async () => {
+            try {
+                const res = await fetch(ENDPOINTS.BRANCHES.LIST);
+                if (res.ok) {
+                    const data = await res.json();
+                    setBranches(data);
+                }
+            } catch (e) {
+                console.error("Failed to fetch branches", e);
+            }
+        };
+        fetchBranches();
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -213,12 +228,20 @@ export default function CreateRemitterPage() {
                         <div className="space-y-6 animate-fade-in">
                             {/* Branch Selection Highlight */}
                             <div className="p-5 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 grid gap-4">
-                                <FormSelect
-                                    label="Branch *"
-                                    name="branch_id"
-                                    options={['London - Link Forex Ltd', 'Manchester', 'Birmingham']}
-                                    defaultValue={'London - Link Forex Ltd'}
-                                />
+                                <div className="w-full">
+                                    <label htmlFor="branch_id" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                                        Branch *
+                                    </label>
+                                    <select
+                                        id="branch_id"
+                                        name="branch_id"
+                                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow transition-colors"
+                                    >
+                                        {branches.length > 0 ? branches.map((b: any) => (
+                                            <option key={b.id} value={b.code || b.name}>{b.name} ({b.code})</option>
+                                        )) : <option value="LON001">London - Link Forex Ltd</option>}
+                                    </select>
+                                </div>
                                 <div className="flex items-center">
                                     <input
                                         type="checkbox"

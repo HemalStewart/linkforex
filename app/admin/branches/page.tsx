@@ -27,11 +27,12 @@ export default function BranchesPage() {
                 const data = await res.json();
                 const augmented = data.map((b: any) => ({
                     ...b,
-                    manager: 'John Smith',
-                    email: b.code.toLowerCase() + '@linkforex.com',
-                    staff: Math.floor(Math.random() * 10) + 2,
-                    transfers: Math.floor(Math.random() * 1000) + 100,
-                    revenue: '£' + (Math.random() * 500).toFixed(0) + 'K'
+                    // Use API data if available, otherwise fallback to generated display data
+                    manager: b.manager || 'John Smith',
+                    email: b.email || `${b.code?.toLowerCase() || 'branch'}@linkforex.com`,
+                    staff: b.staff_count !== undefined ? b.staff_count : 0, // Real staff count from API
+                    transfers: b.transfers || Math.floor(Math.random() * 500) + 100, // Placeholder stats
+                    revenue: b.revenue || `£${(Math.random() * 50).toFixed(0)}K` // Placeholder revenue
                 }));
                 setBranches(augmented);
             } else {
@@ -95,8 +96,8 @@ export default function BranchesPage() {
     const totalStats = {
         totalBranches: branches.length,
         activeBranches: branches.filter(b => b.status === 'active').length,
-        totalStaff: branches.reduce((sum, b) => sum + b.staff, 0),
-        totalRevenue: branches.reduce((sum, b) => sum + parseFloat(b.revenue.replace(/[£K]/g, '')), 0),
+        totalStaff: branches.reduce((sum, b) => sum + (b.staff || 0), 0),
+        totalRevenue: branches.reduce((sum, b) => sum + (typeof b.revenue === 'string' ? parseFloat(b.revenue.replace(/[£K]/g, '')) : 0), 0),
     };
 
     return (
@@ -289,11 +290,11 @@ export default function BranchesPage() {
                         <div className="mb-6 p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700/50">
                             <div className="flex items-center space-x-3">
                                 <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-400 font-bold text-sm">
-                                    {branch.manager.charAt(0)}
+                                    {(branch.manager || '?').charAt(0)}
                                 </div>
                                 <div>
                                     <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Manager</p>
-                                    <p className="font-semibold text-slate-900 dark:text-white">{branch.manager}</p>
+                                    <p className="font-semibold text-slate-900 dark:text-white">{branch.manager || '-'}</p>
                                 </div>
                             </div>
                         </div>
@@ -310,22 +311,22 @@ export default function BranchesPage() {
                                 <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                 </svg>
-                                <span className="text-slate-600 dark:text-slate-300">{branch.email}</span>
+                                <span className="text-slate-600 dark:text-slate-300">{branch.email || '-'}</span>
                             </div>
                         </div>
 
                         {/* Stats Grid */}
                         <div className="grid grid-cols-3 gap-4 mb-6">
                             <div className="text-center p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700">
-                                <p className="text-lg font-bold text-slate-900 dark:text-white">{branch.staff}</p>
+                                <p className="text-lg font-bold text-slate-900 dark:text-white">{branch.staff || 0}</p>
                                 <p className="text-xs text-slate-500">Staff</p>
                             </div>
                             <div className="text-center p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700">
-                                <p className="text-lg font-bold text-slate-900 dark:text-white">{branch.transfers}</p>
+                                <p className="text-lg font-bold text-slate-900 dark:text-white">{branch.transfers || 0}</p>
                                 <p className="text-xs text-slate-500">Transfers</p>
                             </div>
                             <div className="text-center p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700">
-                                <p className="text-lg font-bold text-slate-900 dark:text-white">{branch.revenue}</p>
+                                <p className="text-lg font-bold text-slate-900 dark:text-white">{branch.revenue || '-'}</p>
                                 <p className="text-xs text-slate-500">Revenue</p>
                             </div>
                         </div>

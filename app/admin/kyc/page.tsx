@@ -43,8 +43,8 @@ export default function KYCPage() {
         phone: r.phone,
         submittedDate: new Date(r.created_at).toLocaleString(),
         status: mapStatus(r.kyc_status),
-        documents: ['Passport'], // Placeholder as we don't have separate docs table yet
-        riskLevel: 'low', // Placeholder
+        documents: r.documents ? JSON.parse(r.documents) : ['Identity Proof'],
+        riskLevel: r.risk_level || 'low',
         country: r.country || 'UK'
     }));
 

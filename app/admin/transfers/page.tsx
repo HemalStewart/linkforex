@@ -11,14 +11,21 @@ export default function TransfersPage() {
     const [transfers, setTransfers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const [userRole, setUserRole] = useState('admin'); // 'admin' or 'branch_user'
+    const [userBranch, setUserBranch] = useState('LON001'); // Default branch for simulation
+
     useEffect(() => {
         fetchTransfers();
-    }, []);
+    }, [userRole, userBranch]);
 
     const fetchTransfers = async () => {
         setLoading(true);
         try {
-            const res = await fetch(ENDPOINTS.TRANSFERS.LIST);
+            let url = ENDPOINTS.TRANSFERS.LIST;
+            if (userRole === 'branch_user') {
+                url += `?branch_id=${userBranch}`;
+            }
+            const res = await fetch(url);
             if (res.ok) {
                 const data = await res.json();
                 setTransfers(data);

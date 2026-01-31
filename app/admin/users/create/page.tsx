@@ -8,6 +8,23 @@ import { ENDPOINTS } from '@/app/lib/api';
 export default function CreateUserPage() {
     const router = useRouter();
 
+    const [branches, setBranches] = useState<any[]>([]);
+
+    React.useEffect(() => {
+        const fetchBranches = async () => {
+            try {
+                const res = await fetch(ENDPOINTS.BRANCHES.LIST);
+                if (res.ok) {
+                    const data = await res.json();
+                    setBranches(data);
+                }
+            } catch (e) {
+                console.error("Failed to fetch branches", e);
+            }
+        };
+        fetchBranches();
+    }, []);
+
     const [formData, setFormData] = useState({
         name: '',
         username: '',
@@ -129,9 +146,11 @@ export default function CreateUserPage() {
                                 onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
                             >
                                 <option value="">Select Branch...</option>
-                                <option value="london">London Head Office</option>
-                                <option value="manchester">Manchester</option>
-                                <option value="birmingham">Birmingham</option>
+                                {branches.map((b: any) => (
+                                    <option key={b.id} value={b.code || b.name}>
+                                        {b.name} ({b.code})
+                                    </option>
+                                ))}
                             </select>
                         </div>
                     </div>

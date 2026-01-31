@@ -5,18 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 
-// Mock Data for Search
-const MOCK_REMITTERS = [
-    { id: '1', name: 'John Smith', phone: '+447700900123', email: 'john@example.com' },
-    { id: '2', name: 'Sarah Johnson', phone: '+447700900456', email: 'sarah@example.com' },
-];
-
-const MOCK_BENEFICIARIES = [
-    { id: 'b1', name: 'Ahmad Khan', bank: 'ABL', account: '0010020030040050' },
-    { id: 'b2', name: 'Fatima Noor', bank: 'HBL', account: '1122334455667788' },
-];
-
-// Helpers and Modal code removed - functionality moved to /admin/users/create
+// Helpers and Modal code moved to /admin/users/create
 
 export default function CreateTransferPage() {
     const router = useRouter();
@@ -45,13 +34,28 @@ export default function CreateTransferPage() {
         rate: '360.00',
         paymentMode: 'D', // D=Direct, C=Cash, etc.
         sourceOfFunds: 'Salary',
-        purpose: 'Family Support'
+        purpose: 'Family Support',
+        branchId: ''
     });
 
     const [searchTerm, setSearchTerm] = useState('');
-    const [searchResults, setSearchResults] = useState<typeof MOCK_REMITTERS>([]);
+    const [searchResults, setSearchResults] = useState<any[]>([]);
     const [selectedRemitter, setSelectedRemitter] = useState<any>(null);
     const [beneficiaries, setBeneficiaries] = useState<any[]>([]);
+    const [branches, setBranches] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchBranches = async () => {
+            try {
+                const res = await fetch(ENDPOINTS.BRANCHES.LIST);
+                if (res.ok) {
+                    const data = await res.json();
+                    setBranches(data);
+                }
+            } catch (e) { console.error(e); }
+        };
+        fetchBranches();
+    }, []);
     // const [isSenderModalOpen, setIsSenderModalOpen] = useState(false);
 
     const handleSearchRemitter = async () => {
@@ -124,6 +128,7 @@ export default function CreateTransferPage() {
         try {
             const apiData = {
                 remitter_id: formData.remitterId,
+                branch_id: formData.branchId,
                 beneficiary_id: formData.receiverId, // Should make sure we have this from receiver selection
                 source_amount: formData.sourceAmount,
                 dest_amount: formData.destAmount,
@@ -453,6 +458,19 @@ export default function CreateTransferPage() {
 
                             {/* Additional Details */}
                             <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Transaction Location (Branch)</label>
+                                    <select
+                                        className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
+                                        value={formData.branchId || ''}
+                                        onChange={(e) => setFormData({ ...formData, branchId: e.target.value })}
+                                    >
+                                        <option value="">Select Branch...</option>
+                                        {branches.map(b => (
+                                            <option key={b.id} value={b.code || b.name}>{b.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Payment Mode</label>
                                     <select

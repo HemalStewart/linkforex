@@ -1,7 +1,7 @@
 'use client';
 
-
 import React, { useState, useEffect } from 'react';
+import { ENDPOINTS } from '@/app/lib/api';
 
 // Icons
 const Icons = {
@@ -40,6 +40,7 @@ const Icons = {
 
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState('branding');
+    const [isGenerating, setIsGenerating] = useState(false);
     const [settings, setSettings] = useState({
         companyName: 'LinkForex',
         tagline: 'Connecting UK to Afghanistan with trust',
@@ -70,6 +71,119 @@ export default function SettingsPage() {
         alert('Settings saved successfully!');
     };
 
+    const handleGenerateDemoData = async () => {
+        setIsGenerating(true);
+        let countRemitters = 0;
+        let countBeneficiaries = 0;
+        let countTransfers = 0;
+
+        try {
+            // 1. Create Remitters
+            const remitters = [
+                { name: 'Alice Johnson', email: 'alice.j@example.com', phone: '+447700123456', country: 'UK', status: 'active', role: 'customer' },
+                { name: 'Bob Smith', email: 'bob.s@example.com', phone: '+447700234567', country: 'UK', status: 'active', role: 'customer' },
+                { name: 'Charlie Brown', email: 'charlie.b@example.com', phone: '+447700345678', country: 'UK', status: 'active', role: 'customer' },
+                { name: 'Diana Prince', email: 'diana.p@example.com', phone: '+447700456789', country: 'UK', status: 'active', role: 'customer' },
+                { name: 'Evan Wright', email: 'evan.w@example.com', phone: '+447700567890', country: 'UK', status: 'active', role: 'customer' },
+            ];
+
+            const createdRemitters = [];
+            for (const r of remitters) {
+                const res = await fetch(ENDPOINTS.REMITTERS.LIST, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(r)
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    createdRemitters.push(data);
+                    countRemitters++;
+                } else {
+                    console.warn('Skipped existing or failed remitter', r.name);
+                    // Just in case they already exist, try to search for them to link
+                    const searchRes = await fetch(`${ENDPOINTS.REMITTERS.LIST}?search=${r.name}`);
+                    if (searchRes.ok) {
+                        const found = await searchRes.json();
+                        if (found && found.length > 0) createdRemitters.push(found[0]);
+                    }
+                }
+            }
+
+            // 2. Create Beneficiaries & Transfers
+            for (const remitter of createdRemitters) {
+                // Determine Branch (random for demo)
+                const branchCode = ['LON001', 'BIR001', 'MAN001'][Math.floor(Math.random() * 3)];
+
+                // Create Beneficiary
+                const benData = {
+                    customer_id: remitter.id,
+                    name: `Beneficiary for ${remitter.name}`,
+                    bank_name: ['Kabul Bank', 'Azizi Bank', 'AIB'][Math.floor(Math.random() * 3)],
+                    account_number: 'AF' + Math.floor(Math.random() * 1000000000),
+                };
+
+                let benId = null;
+                const benRes = await fetch(ENDPOINTS.BENEFICIARIES.LIST, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(benData)
+                });
+                if (benRes.ok) {
+                    const ben = await benRes.json();
+                    benId = ben.id;
+                    countBeneficiaries++;
+                } else {
+                    // Try to find if exists
+                    const listRes = await fetch(`${ENDPOINTS.BENEFICIARIES.LIST}?customer_id=${remitter.id}`);
+                    if (listRes.ok) {
+                        const list = await listRes.json();
+                        if (list.length > 0) benId = list[0].id;
+                    }
+                }
+
+                // Create Transfer
+                if (benId) {
+                    const amount = (Math.random() * 500 + 50).toFixed(2);
+                    const rate = 98.5;
+                    const transferData = {
+                        remitter_id: remitter.id,
+                        beneficiary_id: benId,
+                        source_amount: amount,
+                        dest_amount: (parseFloat(amount) * rate).toFixed(2),
+                        rate: rate,
+                        status: ['pending', 'completed', 'in_transit'][Math.floor(Math.random() * 3)],
+                        payment_mode: 'bank_transfer',
+                        source_of_funds: 'Salary',
+                        purpose: 'Family Support'
+                    };
+
+                    const transRes = await fetch(ENDPOINTS.TRANSFERS.LIST, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(transferData)
+                    });
+
+                    if (transRes.ok) {
+                        countTransfers++;
+                    }
+                }
+            }
+
+            alert(`Success! processed:
+- ${countRemitters} New Remitters
+- ${countBeneficiaries} New Beneficiaries
+- ${countTransfers} New Transfers
+
+Please refresh the Dashboard/Transfers page to see data.`);
+
+        } catch (e) {
+            console.error(e);
+            alert('Error generating data. See console for details.');
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
     const tabs = [
         { id: 'branding', name: 'Branding', icon: Icons.branding },
         { id: 'general', name: 'General', icon: Icons.general },
@@ -77,6 +191,13 @@ export default function SettingsPage() {
         { id: 'notifications', name: 'Notifications', icon: Icons.notifications },
         { id: 'integrations', name: 'Integrations', icon: Icons.integrations },
         { id: 'backup', name: 'Backup', icon: Icons.backup },
+        {
+            id: 'demo_data', name: 'Demo Data', icon: (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+            )
+        },
     ];
 
     return (
@@ -306,6 +427,54 @@ export default function SettingsPage() {
                                     <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-slate-900"></div>
                                 </label>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Demo Data Tab */}
+            {activeTab === 'demo_data' && (
+                <div className="space-y-6">
+                    <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                        <div className="flex items-center space-x-4 mb-6">
+                            <div className="w-12 h-12 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Demo Data Generator</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">Populate your database with sample data for testing and demonstrations.</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                                <p className="text-sm text-yellow-800 dark:text-yellow-200 font-medium">
+                                    Warning: This will add data to your live database. Use only for development or testing purposes.
+                                </p>
+                            </div>
+
+                            <button
+                                onClick={handleGenerateDemoData}
+                                disabled={isGenerating}
+                                className={`w-full py-3 rounded-lg font-bold text-white transition-all ${isGenerating
+                                    ? 'bg-slate-400 cursor-not-allowed'
+                                    : 'bg-indigo-600 hover:bg-indigo-700 shadow-md hover:shadow-lg'
+                                    }`}
+                            >
+                                {isGenerating ? (
+                                    <span className="flex items-center justify-center space-x-2">
+                                        <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        <span>Generating Data...</span>
+                                    </span>
+                                ) : (
+                                    <span>Generate Sample Data (Remitters, Beneficiaries, Transfers)</span>
+                                )}
+                            </button>
                         </div>
                     </div>
                 </div>
