@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
+import ConfirmModal from '../../components/ConfirmModal';
 
 export default function EditUserPage() {
     const router = useRouter();
@@ -21,6 +22,15 @@ export default function EditUserPage() {
         branch: '',
         password: '',
         permissions: [] as string[],
+    });
+
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info' as 'info' | 'danger' | 'warning',
+        isAlert: true,
+        shouldRedirect: false
     });
 
     useEffect(() => {
@@ -76,16 +86,43 @@ export default function EditUserPage() {
             });
 
             if (res.ok) {
-                alert('User updated successfully');
-                router.push('/admin/users');
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Success',
+                    message: 'User updated successfully',
+                    type: 'info',
+                    isAlert: true,
+                    shouldRedirect: true
+                });
             } else {
-                alert('Failed to update user');
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: 'Failed to update user',
+                    type: 'danger',
+                    isAlert: true,
+                    shouldRedirect: false
+                });
             }
         } catch (error) {
             console.error('Failed to submit:', error);
-            alert('Error updating user');
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'Error updating user',
+                type: 'danger',
+                isAlert: true,
+                shouldRedirect: false
+            });
         } finally {
             setSubmitting(false);
+        }
+    };
+
+    const handleModalClose = () => {
+        setConfirmModal({ ...confirmModal, isOpen: false });
+        if (confirmModal.shouldRedirect) {
+            router.push('/admin/users');
         }
     };
 
@@ -95,6 +132,16 @@ export default function EditUserPage() {
 
     return (
         <div className="max-w-4xl mx-auto space-y-6 pb-20 animate-fade-in">
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                onClose={handleModalClose}
+                onConfirm={handleModalClose}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                type={confirmModal.type}
+                isAlert={confirmModal.isAlert}
+                confirmText="OK"
+            />
             <div>
                 <nav className="flex items-center text-sm text-slate-500 mb-2">
                     <Link href="/admin/dashboard" className="hover:text-slate-900 dark:hover:text-white transition-colors">Dashboard</Link>

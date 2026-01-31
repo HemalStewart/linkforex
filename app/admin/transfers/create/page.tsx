@@ -75,11 +75,29 @@ export default function CreateTransferPage() {
 
     // ... 
 
+    const [hasSearched, setHasSearched] = useState(false);
+    const [isSearching, setIsSearching] = useState(false);
+
+    // Debounced Search Effect
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            if (searchTerm) {
+                handleSearchRemitter();
+            } else {
+                setSearchResults([]);
+                setHasSearched(false);
+            }
+        }, 500);
+        return () => clearTimeout(timeoutId);
+    }, [searchTerm, userRole, userBranch]);
+
     const handleSearchRemitter = async () => {
         if (!searchTerm) {
             setSearchResults([]);
+            setHasSearched(false);
             return;
         }
+        setIsSearching(true);
         try {
             let url = `${ENDPOINTS.REMITTERS.LIST}?search=${searchTerm}`;
             if (userRole === 'branch_user') {
@@ -89,9 +107,12 @@ export default function CreateTransferPage() {
             if (res.ok) {
                 const data = await res.json();
                 setSearchResults(data);
+                setHasSearched(true);
             }
         } catch (e) {
             console.error(e);
+        } finally {
+            setIsSearching(false);
         }
     };
 
@@ -296,22 +317,31 @@ export default function CreateTransferPage() {
                                             onKeyUp={(e) => e.key === 'Enter' && handleSearchRemitter()}
                                             className="w-full pl-4 pr-12 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-slate-900 dark:focus:ring-white outline-none transition-all"
                                         />
-                                        <button
-                                            onClick={handleSearchRemitter}
-                                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-slate-200 dark:bg-slate-700 rounded-md hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
-                                        >
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                                        </button>
+                                        {isSearching ? (
+                                            <div className="absolute right-2 top-1/2 -translate-y-1/2 p-2">
+                                                <svg className="w-5 h-5 text-slate-400 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                            </div>
+                                        ) : (
+                                            <button
+                                                onClick={handleSearchRemitter}
+                                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-slate-200 dark:bg-slate-700 rounded-md hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                                            >
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                                            </button>
+                                        )}
                                     </div>
 
                                     {/* Search Results */}
-                                    {searchResults.length > 0 && (
-                                        <div className="border border-slate-200 dark:border-slate-700 rounded-lg divide-y divide-slate-100 dark:divide-slate-700">
+                                    {searchResults.length > 0 ? (
+                                        <div className="border border-slate-200 dark:border-slate-700 rounded-lg divide-y divide-slate-100 dark:divide-slate-700 max-h-60 overflow-y-auto">
                                             {searchResults.map(r => (
                                                 <div
                                                     key={r.id}
                                                     onClick={() => selectRemitter(r)}
-                                                    className="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer flex items-center justify-between transition-colors"
+                                                    className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer flex items-center justify-between transition-colors"
                                                 >
                                                     <div>
                                                         <p className="font-bold text-slate-900 dark:text-white">{r.name}</p>
@@ -321,6 +351,12 @@ export default function CreateTransferPage() {
                                                 </div>
                                             ))}
                                         </div>
+                                    ) : (
+                                        hasSearched && !isSearching && (
+                                            <div className="text-center p-4 border border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
+                                                <p className="text-slate-500 dark:text-slate-400">No remitters found matching "{searchTerm}"</p>
+                                            </div>
+                                        )
                                     )}
 
                                     <div className="text-center pt-4">

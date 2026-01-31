@@ -27,12 +27,12 @@ export default function BranchesPage() {
                 const data = await res.json();
                 const augmented = data.map((b: any) => ({
                     ...b,
-                    // Use API data if available, otherwise fallback to generated display data
-                    manager: b.manager || 'John Smith',
+                    manager: b.manager || 'Pending',
                     email: b.email || `${b.code?.toLowerCase() || 'branch'}@linkforex.com`,
-                    staff: b.staff_count !== undefined ? b.staff_count : 0, // Real staff count from API
-                    transfers: b.transfers || Math.floor(Math.random() * 500) + 100, // Placeholder stats
-                    revenue: b.revenue || `£${(Math.random() * 50).toFixed(0)}K` // Placeholder revenue
+                    staff: b.staff_count ?? 0,
+                    transfers: b.transfers ?? 0,
+                    revenue: b.revenue ?? '£0.00',
+                    revenue_raw: b.revenue_raw ?? 0
                 }));
                 setBranches(augmented);
             } else {
@@ -97,7 +97,7 @@ export default function BranchesPage() {
         totalBranches: branches.length,
         activeBranches: branches.filter(b => b.status === 'active').length,
         totalStaff: branches.reduce((sum, b) => sum + (b.staff || 0), 0),
-        totalRevenue: branches.reduce((sum, b) => sum + (typeof b.revenue === 'string' ? parseFloat(b.revenue.replace(/[£K]/g, '')) : 0), 0),
+        totalRevenue: branches.reduce((sum, b) => sum + (b.revenue_raw || 0), 0),
     };
 
     return (
@@ -249,7 +249,7 @@ export default function BranchesPage() {
                         <div>
                             <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Total Revenue</p>
                             <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
-                                {loading ? '-' : `£${(totalStats.totalRevenue).toFixed(0)}K`}
+                                {loading ? '-' : `£${totalStats.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                             </p>
                         </div>
                         <div className="w-12 h-12 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
