@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
+import ConfirmModal from '../components/ConfirmModal';
 
 export default function UsersPage() {
     const [searchQuery, setSearchQuery] = useState('');
@@ -11,6 +12,15 @@ export default function UsersPage() {
 
     const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info' as 'info' | 'danger' | 'warning',
+        isAlert: false
+    });
+    const [userToDelete, setUserToDelete] = useState<number | null>(null);
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -39,23 +49,62 @@ export default function UsersPage() {
         return () => clearTimeout(debounce);
     }, [searchQuery, filterRole]);
 
-    const handleDelete = async (id: number) => {
-        if (!confirm('Are you sure you want to delete this user?')) return;
+    const promptDelete = (id: number) => {
+        setUserToDelete(id);
+        setConfirmModal({
+            isOpen: true,
+            title: 'Delete User',
+            message: 'Are you sure you want to delete this user? This action cannot be undone.',
+            type: 'danger',
+            isAlert: false
+        });
+    };
+
+    const executeDelete = async () => {
+        if (!userToDelete) return;
 
         try {
-            const res = await fetch(ENDPOINTS.USERS.DETAIL(id), {
+            const res = await fetch(ENDPOINTS.USERS.DETAIL(userToDelete), {
                 method: 'DELETE'
             });
 
             if (res.ok) {
-                setUsers(users.filter(u => u.id !== id));
-                alert('User deleted successfully');
+                setUsers(users.filter(u => u.id !== userToDelete));
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Success',
+                    message: 'User deleted successfully',
+                    type: 'info',
+                    isAlert: true
+                });
             } else {
-                alert('Failed to delete user');
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: 'Failed to delete user',
+                    type: 'danger',
+                    isAlert: true
+                });
             }
         } catch (error) {
             console.error('Error deleting user:', error);
-            alert('Error deleting user');
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'Error deleting user',
+                type: 'danger',
+                isAlert: true
+            });
+        } finally {
+            setUserToDelete(null);
+        }
+    };
+
+    const handleConfirm = () => {
+        if (confirmModal.isAlert) {
+            setConfirmModal({ ...confirmModal, isOpen: false });
+        } else {
+            executeDelete();
         }
     };
 
@@ -110,6 +159,17 @@ export default function UsersPage() {
 
     return (
         <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+                onConfirm={handleConfirm}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                type={confirmModal.type}
+                isAlert={confirmModal.isAlert}
+                confirmText={confirmModal.isAlert ? "OK" : "Delete"}
+                cancelText="Cancel"
+            />
             {/* Page Header */}
             <div className="flex items-center justify-between">
                 <div>
@@ -125,7 +185,7 @@ export default function UsersPage() {
                             <span>Export</span>
                         </span>
                     </button>
-                    <Link href="/admin/users/create" className="px-4 py-2 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-medium hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors shadow-sm inline-flex items-center space-x-2">
+                    <Link href="/admin/users/create" className="px-4 py-2 rounded-lg bg-emerald-600 text-white dark:bg-emerald-500 font-medium hover:bg-emerald-700 dark:hover:bg-emerald-600 transition-colors shadow-sm inline-flex items-center space-x-2">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                         </svg>
@@ -297,7 +357,7 @@ export default function UsersPage() {
                                                 </svg>
                                             </Link>
                                             <button
-                                                onClick={() => handleDelete(user.id)}
+                                                onClick={() => promptDelete(user.id)}
                                                 className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 transition-colors"
                                             >
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

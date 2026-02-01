@@ -28,4 +28,12 @@ export const ENDPOINTS = {
         LIST: `${API_BASE_URL}/branches`,
         DETAIL: (id: string | number) => `${API_BASE_URL}/branches/${id}`,
     },
+    ROLES: {
+        LIST: `${API_BASE_URL}/roles`,
+        DETAIL: (id: string | number) => `${API_BASE_URL}/roles/${id}`,
+    },
+    DIRECTORS: {
+        LIST: `${API_BASE_URL}/directors`,
+        DETAIL: (id: string | number) => `${API_BASE_URL}/directors/${id}`,
+    },
 };

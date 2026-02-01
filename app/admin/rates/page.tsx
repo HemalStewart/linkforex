@@ -115,13 +115,13 @@ export default function ExchangeRatesPage() {
             {/* Page Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Exchange Rates</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">Manage currency exchange rates</p>
+                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Countries & Exchange Rates</h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-1">Manage supported countries and their currency exchange rates</p>
                 </div>
                 <div className="flex items-center space-x-3">
                     <button
                         onClick={() => setAddModalOpen(true)}
-                        className="px-4 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 font-medium rounded-lg transition-colors shadow-sm"
+                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors shadow-sm"
                     >
                         Add New Currency
                     </button>

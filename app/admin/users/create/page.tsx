@@ -4,32 +4,50 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
+import ConfirmModal from '../../components/ConfirmModal';
 
 export default function CreateUserPage() {
     const router = useRouter();
 
     const [branches, setBranches] = useState<any[]>([]);
+    const [roles, setRoles] = useState<any[]>([]);
 
     React.useEffect(() => {
-        const fetchBranches = async () => {
+        const fetchData = async () => {
             try {
-                const res = await fetch(ENDPOINTS.BRANCHES.LIST);
-                if (res.ok) {
-                    const data = await res.json();
-                    setBranches(data);
+                // Parallel fetch roles and branches
+                const [branchesRes, rolesRes] = await Promise.all([
+                    fetch(ENDPOINTS.BRANCHES.LIST),
+                    fetch(ENDPOINTS.ROLES.LIST)
+                ]);
+
+                if (branchesRes.ok) {
+                    setBranches(await branchesRes.json());
+                }
+                if (rolesRes.ok) {
+                    setRoles(await rolesRes.json());
                 }
             } catch (e) {
-                console.error("Failed to fetch branches", e);
+                console.error("Failed to fetch data", e);
             }
         };
-        fetchBranches();
+        fetchData();
     }, []);
+
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info' as 'info' | 'danger' | 'warning',
+        isAlert: true,
+        shouldRedirect: false
+    });
 
     const [formData, setFormData] = useState({
         name: '',
         username: '',
         email: '',
-        role: 'agent',
+        roleId: '', // We use roleId now
         branch: '',
         password: '',
         confirmPassword: ''
@@ -39,7 +57,14 @@ export default function CreateUserPage() {
         e.preventDefault();
 
         if (formData.password !== formData.confirmPassword) {
-            alert('Passwords do not match!');
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'Passwords do not match!',
+                type: 'danger',
+                isAlert: true,
+                shouldRedirect: false
+            });
             return;
         }
 
@@ -53,29 +78,67 @@ export default function CreateUserPage() {
                     name: formData.name,
                     username: formData.username,
                     email: formData.email,
-                    role: formData.role,
+                    role_id: formData.roleId,
+                    role: roles.find(r => r.id.toString() === formData.roleId)?.name || 'staff', // Fallback for legacy
                     branch: formData.branch,
-                    password: formData.password, // In real app, hash this backend side! (CI4 Model events or Controller)
+                    password: formData.password,
                     status: 'active'
                 }),
             });
 
             if (!res.ok) {
                 const err = await res.json();
-                alert('Failed to create user: ' + (err.messages ? JSON.stringify(err.messages) : 'Unknown error'));
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: 'Failed to create user: ' + (err.messages ? JSON.stringify(err.messages) : 'Unknown error'),
+                    type: 'danger',
+                    isAlert: true,
+                    shouldRedirect: false
+                });
                 return;
             }
 
-            alert('System User Created Successfully!');
-            router.push('/admin/users');
+            setConfirmModal({
+                isOpen: true,
+                title: 'Success',
+                message: 'System User Created Successfully!',
+                type: 'info',
+                isAlert: true,
+                shouldRedirect: true
+            });
         } catch (e) {
             console.error(e);
-            alert('An error occurred.');
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'An error occurred.',
+                type: 'danger',
+                isAlert: true,
+                shouldRedirect: false
+            });
+        }
+    };
+
+    const handleModalClose = () => {
+        setConfirmModal({ ...confirmModal, isOpen: false });
+        if (confirmModal.shouldRedirect) {
+            router.push('/admin/users');
         }
     };
 
     return (
         <div className="max-w-2xl mx-auto pb-20 animate-fade-in">
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                onClose={handleModalClose}
+                onConfirm={handleModalClose}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                type={confirmModal.type}
+                isAlert={confirmModal.isAlert}
+                confirmText="OK"
+            />
             <div className="mb-8">
                 <nav className="flex items-center text-sm text-slate-500 mb-2">
                     <Link href="/admin/dashboard" className="hover:text-slate-900 dark:hover:text-white transition-colors">Dashboard</Link>
@@ -129,13 +192,13 @@ export default function CreateUserPage() {
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Role</label>
                             <select
                                 className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
-                                value={formData.role}
-                                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                                value={formData.roleId}
+                                onChange={(e) => setFormData({ ...formData, roleId: e.target.value })}
                             >
-                                <option value="admin">Admin</option>
-                                <option value="branch_manager">Branch Manager</option>
-                                <option value="agent">Agent (Cashier)</option>
-                                <option value="compliance">Compliance Officer</option>
+                                <option value="">Select Role...</option>
+                                {roles.map((r: any) => (
+                                    <option key={r.id} value={r.id}>{r.name}</option>
+                                ))}
                             </select>
                         </div>
                         <div>
@@ -188,7 +251,7 @@ export default function CreateUserPage() {
                         </button>
                         <button
                             type="submit"
-                            className="px-8 py-2.5 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors shadow-lg"
+                            className="px-8 py-2.5 rounded-lg bg-emerald-600 text-white dark:bg-emerald-500 font-bold hover:bg-emerald-700 dark:hover:bg-emerald-600 transition-colors shadow-lg"
                         >
                             Create User
                         </button>
