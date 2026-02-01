@@ -170,57 +170,59 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     ];
 
     return (
-        <div className="flex h-screen bg-slate-50 dark:bg-slate-900 overflow-hidden font-sans antialiased text-slate-900 dark:text-white">
+        <div className="flex h-screen overflow-hidden font-sans antialiased text-slate-900 dark:text-white relative">
+            {/* Animated Background */}
+            <div className="fixed inset-0 bg-gradient-to-br from-blue-50 via-slate-50 to-gray-100 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950 -z-10"></div>
+
             {/* Sidebar */}
-            <aside className={`flex flex-col bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl border-r border-slate-200/60 dark:border-slate-700/60 transition-all duration-300 ${sidebarOpen ? 'w-72' : 'w-20'}`}>
+            <aside className={`flex flex-col glass-effect-strong border-r border-white/20 dark:border-slate-700/50 transition-all duration-500 ease-in-out ${sidebarOpen ? 'w-72' : 'w-20'} animate-slide-in-left z-20`}>
                 {/* Logo */}
-                <div className="h-20 flex items-center justify-between px-6 border-b border-slate-200/60 dark:border-slate-700/60">
+                <div className="h-20 flex items-center justify-between px-6 border-b border-white/30 dark:border-slate-700/50">
                     {sidebarOpen && (
-                        <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-slate-900 dark:bg-white rounded-xl shadow-lg shadow-slate-900/10 flex items-center justify-center">
-                                <span className="text-white dark:text-slate-900 font-bold text-xl font-display">L</span>
-                            </div>
-                            <span className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
-                                LinkForex
-                            </span>
+                        <div className="flex items-center space-x-3 animate-fade-in">
+                            <img src="/logo-removebg-preview.png" alt="LinkForex" className="h-10 object-contain" />
+                        </div>
+                    )}
+                    {!sidebarOpen && (
+                        <div className="flex items-center justify-center w-full">
+                            <img src="/logo-removebg-preview.png" alt="LinkForex" className="h-10 object-contain" />
                         </div>
                     )}
                     <button
                         onClick={() => setSidebarOpen(!sidebarOpen)}
-                        className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-slate-500"
+                        className="p-2 rounded-xl glass-effect hover:scale-110 transition-all duration-300 text-sky-500 dark:text-sky-400 hover-glow"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
                     </button>
                 </div>
 
                 {/* Navigation */}
                 <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-                    {navigation.map((item) => {
-                        // Check if any child is active
+                    {navigation.map((item, idx) => {
                         const isChildActive = item.children?.some(child => pathname === child.href || pathname.startsWith(child.href!));
                         const isActive = pathname === item.href || isChildActive;
                         const isExpanded = expandedMenus[item.name];
 
                         if (item.children) {
                             return (
-                                <div key={item.name} className="mb-2">
+                                <div key={item.name} className="mb-2 stagger-item" style={{ animationDelay: `${idx * 0.05}s` }}>
                                     <button
                                         onClick={() => sidebarOpen ? toggleMenu(item.name) : setSidebarOpen(true)}
-                                        className={`w-full flex items-center ${sidebarOpen ? 'justify-between px-4' : 'justify-center px-2'} py-3 rounded-xl transition-all duration-200 group ${isActive
-                                            ? 'text-slate-900 dark:text-white font-semibold bg-slate-50 dark:bg-white/5'
-                                            : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
+                                        className={`w-full flex items-center ${sidebarOpen ? 'justify-between px-4' : 'justify-center px-2'} py-3 rounded-xl transition-all duration-300 group ${isActive
+                                            ? 'glass-effect text-sky-600 dark:text-sky-400 font-semibold shadow-lg'
+                                            : 'text-slate-600 dark:text-slate-400 hover:glass-effect hover:text-sky-600 dark:hover:text-sky-400 hover:shadow-md'
                                             }`}
                                     >
                                         <div className="flex items-center space-x-3">
-                                            <span className={`${isActive ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`}>
+                                            <span className={`transition-all duration-300 ${isActive ? 'text-sky-500 scale-110' : 'group-hover:text-sky-500 group-hover:scale-110'}`}>
                                                 {item.icon}
                                             </span>
                                             {sidebarOpen && <span className="tracking-tight">{item.name}</span>}
                                         </div>
                                         {sidebarOpen && (
-                                            <svg className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                             </svg>
                                         )}
@@ -228,23 +230,23 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
                                     {/* Submenu Items */}
                                     {sidebarOpen && isExpanded && (
-                                        <div className="mt-1 ml-4 pl-4 border-l-2 border-slate-100 dark:border-slate-800 space-y-1">
+                                        <div className="mt-1 ml-4 pl-4 border-l-2 border-sky-200/50 dark:border-sky-800/50 space-y-1 animate-slide-down">
                                             {item.children.map((child: any) => {
                                                 const isChildItemActive = pathname === child.href;
                                                 return (
                                                     <Link
                                                         key={child.name}
                                                         href={child.href!}
-                                                        className={`flex items-center justify-between px-4 py-2.5 rounded-lg transition-all text-sm font-medium ${isChildItemActive
-                                                            ? 'text-slate-900 dark:text-white bg-slate-100 dark:bg-white/10'
-                                                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/5'
+                                                        className={`flex items-center justify-between px-4 py-2.5 rounded-lg transition-all duration-300 text-sm font-medium hover-lift ${isChildItemActive
+                                                            ? 'bg-blue-gradient text-white shadow-lg'
+                                                            : 'text-slate-600 dark:text-slate-400 hover:glass-effect hover:text-sky-600 dark:hover:text-sky-400'
                                                             }`}
                                                     >
                                                         <span>{child.name}</span>
                                                         {child.badge && (
-                                                            <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${isChildItemActive
-                                                                ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
-                                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                                                            <span className={`badge-glass animate-pulse-glow ${isChildItemActive
+                                                                ? 'bg-white/30 text-white'
+                                                                : 'bg-sky-100 dark:bg-sky-900/50 text-sky-600 dark:text-sky-400'
                                                                 }`}>
                                                                 {child.badge}
                                                             </span>
@@ -262,13 +264,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                             <Link
                                 key={item.name}
                                 href={item.href!}
-                                className={`flex items-center ${sidebarOpen ? 'justify-between px-4' : 'justify-center px-2'} py-3 rounded-xl transition-all duration-200 mb-2 group ${isActive
-                                    ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xl shadow-slate-900/10'
-                                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
+                                className={`flex items-center ${sidebarOpen ? 'justify-between px-4' : 'justify-center px-2'} py-3 rounded-xl transition-all duration-300 mb-2 group hover-lift stagger-item ${isActive
+                                    ? 'bg-blue-gradient text-white shadow-xl'
+                                    : 'text-slate-600 dark:text-slate-400 hover:glass-effect hover:text-sky-600 dark:hover:text-sky-400'
                                     }`}
+                                style={{ animationDelay: `${idx * 0.05}s` }}
                             >
                                 <div className="flex items-center space-x-3">
-                                    <span className={`${isActive ? 'text-white dark:text-slate-900' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`}>
+                                    <span className={`transition-all duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`}>
                                         {item.icon}
                                     </span>
                                     {sidebarOpen && <span className="font-semibold tracking-tight">{item.name}</span>}
@@ -279,28 +282,28 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </nav>
 
                 {/* User Profile */}
-                <div className="p-4 border-t border-slate-200 dark:border-slate-700 relative">
+                <div className="p-4 border-t border-white/30 dark:border-slate-700/50 relative">
                     {userMenuOpen && (
-                        <div className="absolute bottom-full left-4 right-4 mb-2 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                        <div className="absolute bottom-full left-4 right-4 mb-2 glass-effect-strong rounded-xl shadow-2xl overflow-hidden animate-scale-in">
                             <button
                                 onClick={() => {
                                     localStorage.removeItem('user');
                                     router.replace('/admin/login');
                                 }}
-                                className="flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors w-full text-left"
+                                className="flex items-center space-x-3 px-4 py-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-300 w-full text-left group"
                             >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                 </svg>
-                                <span className="font-medium text-sm">Sign Out</span>
+                                <span className="font-semibold text-sm">Sign Out</span>
                             </button>
                         </div>
                     )}
                     <button
                         onClick={() => setUserMenuOpen(!userMenuOpen)}
-                        className={`w-full flex items-center ${sidebarOpen ? 'space-x-3' : 'justify-center'} p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700`}
+                        className={`w-full flex items-center ${sidebarOpen ? 'space-x-3' : 'justify-center'} p-3 rounded-xl glass-effect hover:shadow-lg transition-all duration-300 hover-lift`}
                     >
-                        <div className="w-8 h-8 rounded-full bg-slate-900 dark:bg-white flex items-center justify-center text-white dark:text-slate-900 text-xs font-bold shrink-0">
+                        <div className="w-9 h-9 rounded-full bg-blue-gradient flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-lg">
                             {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
                         </div>
                         {sidebarOpen && (
@@ -314,7 +317,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                             </div>
                         )}
                         {sidebarOpen && (
-                            <svg className={`w-4 h-4 text-slate-500 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${userMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                             </svg>
                         )}
@@ -325,37 +328,42 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col h-full overflow-hidden relative">
                 {/* Top Header */}
-                <header className="h-16 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 z-10">
+                <header className="h-16 glass-effect-strong border-b border-white/30 dark:border-slate-700/50 flex items-center justify-between px-6 z-10 animate-slide-down backdrop-blur-2xl">
                     <div className="flex-1 max-w-xl">
-                        <div className="relative">
-                            <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        <div className="relative group">
+                            <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-sky-400 transition-all duration-300 group-focus-within:text-sky-500">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
                             </span>
                             <input
                                 type="text"
                                 placeholder="Search..."
-                                className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:focus:ring-slate-700 focus:border-slate-400 transition-all"
+                                className="input-glass w-full pl-11 pr-4 py-2.5 text-sm focus:scale-[1.02] transition-all duration-300"
                             />
                         </div>
                     </div>
 
                     <div className="flex items-center space-x-4">
-                        <button className="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors relative">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        <button className="p-2.5 glass-effect rounded-xl text-slate-600 dark:text-slate-400 hover:text-sky-500 dark:hover:text-sky-400 transition-all duration-300 relative hover-lift group">
+                            <svg className="w-6 h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                             </svg>
-                            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-slate-800"></span>
+                            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-800 animate-pulse"></span>
                         </button>
-                        <Link href="/admin/transfers/create" className="px-4 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-sm font-medium rounded-lg transition-colors shadow-sm">
-                            New Transfer
+                        <Link href="/admin/transfers/create" className="btn-primary">
+                            <span className="flex items-center space-x-2">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                                <span>New Transfer</span>
+                            </span>
                         </Link>
                     </div>
                 </header>
 
                 {/* Main Page Scrollable Area */}
-                <main className="flex-1 overflow-y-auto p-6 bg-slate-50 dark:bg-slate-900">
+                <main className="flex-1 overflow-y-auto p-6 relative">
                     {children}
                 </main>
             </div>

@@ -29,9 +29,9 @@ export default function ConfirmModal({
     isAlert = false
 }: ConfirmModalProps) {
     const buttonStyles = {
-        danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500',
-        warning: 'bg-amber-600 hover:bg-amber-700 text-white focus:ring-amber-500',
-        info: 'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500',
+        danger: 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg hover:shadow-red-500/50 transition-all duration-300',
+        warning: 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-lg hover:shadow-amber-500/50 transition-all duration-300',
+        info: 'bg-blue-gradient text-white shadow-lg hover:shadow-sky-500/50 transition-all duration-300 hover-lift',
     };
 
     return (
@@ -46,7 +46,7 @@ export default function ConfirmModal({
                             type="button"
                             onClick={onClose}
                             disabled={loading}
-                            className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition-colors"
+                            className="px-5 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 glass-effect hover:shadow-md transition-all duration-300 rounded-xl"
                         >
                             {cancelText}
                         </button>
@@ -55,7 +55,7 @@ export default function ConfirmModal({
                         type="button"
                         onClick={onConfirm}
                         disabled={loading}
-                        className={`inline-flex justify-center px-4 py-2 text-sm font-medium border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 shadow-sm transition-colors ${buttonStyles[type] || buttonStyles.info} ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                        className={`inline-flex justify-center px-5 py-2.5 text-sm font-semibold border-0 rounded-xl focus:outline-none shadow-lg transition-all duration-300 ${buttonStyles[type] || buttonStyles.info} ${loading ? 'opacity-70 cursor-not-allowed' : 'hover-lift'}`}
                     >
                         {loading ? (
                             <>

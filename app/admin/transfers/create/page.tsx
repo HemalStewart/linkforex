@@ -625,7 +625,7 @@ export default function CreateTransferPage() {
                                             <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">PKR</span>
                                             <input
                                                 type="number"
-                                                className="w-full pl-12 pr-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-lg font-bold"
+                                                className="w-full pl-14 pr-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-lg font-bold"
                                                 placeholder="0.00"
                                                 value={formData.destAmount}
                                                 readOnly

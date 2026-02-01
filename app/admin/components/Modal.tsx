@@ -39,11 +39,11 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
     };
 
     return createPortal(
-        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div className="fixed inset-0 z-50 overflow-y-auto animate-fade-in" aria-labelledby="modal-title" role="dialog" aria-modal="true">
             <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-                {/* Backdrop */}
+                {/* Backdrop with Blur */}
                 <div
-                    className="fixed inset-0 bg-slate-900 bg-opacity-75 transition-opacity backdrop-blur-sm"
+                    className="fixed inset-0 bg-slate-900/60 dark:bg-black/70 transition-all duration-300 backdrop-blur-md animate-fade-in"
                     aria-hidden="true"
                     onClick={onClose}
                 ></div>
@@ -52,26 +52,26 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
                 <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
                 <div className={`
-                    inline-block align-bottom bg-white dark:bg-slate-800 rounded-2xl text-left overflow-hidden shadow-xl sm:my-8 sm:align-middle w-full ${sizeClasses[size]} 
-                    border border-slate-200 dark:border-slate-700 relative animate-scale-in
+                    inline-block align-bottom glass-effect-strong rounded-2xl text-left overflow-hidden shadow-2xl sm:my-8 sm:align-middle w-full ${sizeClasses[size]} 
+                    border border-white/40 dark:border-slate-600/40 relative animate-scale-in
                 `}>
                     <div className="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                         {title && (
-                            <div className="mb-4 pb-4 border-b border-slate-100 dark:border-slate-700">
-                                <h3 className="text-lg font-bold leading-6 text-slate-900 dark:text-white" id="modal-title">
+                            <div className="mb-4 pb-4 border-b border-sky-200/50 dark:border-sky-800/50">
+                                <h3 className="text-lg font-bold leading-6 bg-blue-gradient bg-clip-text text-transparent" id="modal-title">
                                     {title}
                                 </h3>
                                 <button
                                     onClick={onClose}
-                                    className="absolute top-4 right-4 text-slate-400 hover:text-slate-500 transition-colors"
+                                    className="absolute top-5 right-5 glass-effect p-2 rounded-xl text-slate-500 hover:text-sky-500 dark:hover:text-sky-400 transition-all duration-300 hover:scale-110 hover-glow group"
                                 >
-                                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg className="h-5 w-5 group-hover:rotate-90 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                                     </svg>
                                 </button>
                             </div>
                         )}
-                        <div className="mt-2 text-slate-600 dark:text-slate-300">
+                        <div className="mt-2 text-slate-700 dark:text-slate-300">
                             {children}
                         </div>
                     </div>

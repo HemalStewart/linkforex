@@ -178,13 +178,13 @@ export default function DashboardPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+                    <h1 className="text-3xl font-bold text-gradient-blue">
                         Dashboard
                     </h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">Overview of your transaction activities.</p>
+                    <p className="text-slate-600 dark:text-slate-400 mt-2 font-medium">Overview of your transaction activities.</p>
                 </div>
                 <div className="flex items-center space-x-3">
-                    <select className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm px-3 py-2 outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-500 shadow-sm">
+                    <select className="glass-effect px-4 py-2.5 text-sm rounded-xl outline-none cursor-pointer font-semibold text-slate-700 dark:text-slate-300 hover:shadow-lg transition-all duration-300">
                         <option>Last 7 Days</option>
                         <option>Last 30 Days</option>
                         <option>This Month</option>
@@ -195,22 +195,65 @@ export default function DashboardPage() {
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                    { label: 'Total Transfers', value: stats.totalTransfers.toLocaleString(), change: '+12.5%', trend: 'up' },
-                    { label: 'Active Users', value: stats.activeUsers.toLocaleString(), change: '+5.2%', trend: 'up' },
-                    { label: 'Pending KYC', value: stats.pendingKYC.toLocaleString(), change: '-2.4%', trend: 'down' },
-                    { label: 'Total Revenue', value: `£${stats.totalRevenue.toLocaleString()}`, change: '+18.3%', trend: 'up' },
+                    {
+                        label: 'Total Transfers',
+                        value: stats.totalTransfers.toLocaleString(),
+                        change: '+12.5%',
+                        trend: 'up',
+                        icon: (
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                            </svg>
+                        )
+                    },
+                    {
+                        label: 'Active Users',
+                        value: stats.activeUsers.toLocaleString(),
+                        change: '+5.2%',
+                        trend: 'up',
+                        icon: (
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                        )
+                    },
+                    {
+                        label: 'Pending KYC',
+                        value: stats.pendingKYC.toLocaleString(),
+                        change: '-2.4%',
+                        trend: 'down',
+                        icon: (
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        )
+                    },
+                    {
+                        label: 'Total Revenue',
+                        value: `£${stats.totalRevenue.toLocaleString()}`,
+                        change: '+18.3%',
+                        trend: 'up',
+                        icon: (
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        )
+                    },
                 ].map((stat, index) => (
-                    <div key={index} className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 transition-all hover:shadow-md">
+                    <div key={index} className="card-glass p-6 stagger-item" style={{ animationDelay: `${index * 0.1}s` }}>
                         <div className="flex justify-between items-start mb-4">
-                            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{stat.label}</p>
-                            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${stat.trend === 'up'
-                                ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400'
-                                : 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
+                            <div className="w-12 h-12 rounded-xl bg-blue-gradient flex items-center justify-center text-white shadow-lg">
+                                {stat.icon}
+                            </div>
+                            <span className={`badge-glass font-bold ${stat.trend === 'up'
+                                ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/50 dark:text-emerald-400'
+                                : 'bg-amber-100 text-amber-600 dark:bg-amber-900/50 dark:text-amber-400'
                                 }`}>
                                 {stat.change}
                             </span>
                         </div>
-                        <h3 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+                        <p className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">{stat.label}</p>
+                        <h3 className="text-3xl font-extrabold text-gradient-blue tracking-tight">
                             {stat.value}
                         </h3>
                     </div>
@@ -220,8 +263,8 @@ export default function DashboardPage() {
             {/* Main Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Transfer Volume Area Chart */}
-                <div className="lg:col-span-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60">
-                    <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-6 tracking-tight">Transfer Volume (Last 7 Days)</h2>
+                <div className="lg:col-span-2 card-glass p-6">
+                    <h2 className="text-xl font-extrabold text-gradient-blue mb-6 tracking-tight">Transfer Volume (Last 7 Days)</h2>
                     <div className="h-80 w-full">
                         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                             <AreaChart data={volumeData}>
@@ -260,8 +303,8 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Transfer Status Pie Chart */}
-                <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60">
-                    <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-6 tracking-tight">Status Breakdown</h2>
+                <div className="card-glass p-6">
+                    <h2 className="text-xl font-extrabold text-gradient-blue mb-6 tracking-tight">Status Breakdown</h2>
                     <div className="h-64 w-full relative">
                         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                             <PieChart>
@@ -303,9 +346,9 @@ export default function DashboardPage() {
 
             {/* Revenue Bar Chart Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60">
+                <div className="card-glass p-6">
                     <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Revenue by Branch</h2>
+                        <h2 className="text-xl font-extrabold text-gradient-blue tracking-tight">Revenue by Branch</h2>
                     </div>
                     <div className="h-72 w-full">
                         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
@@ -340,10 +383,10 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Recent Activity List (Simplified) */}
-                <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 overflow-hidden">
-                    <div className="p-6 border-b border-slate-200/60 dark:border-slate-700/60 flex justify-between items-center">
-                        <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Recent Activity</h2>
-                        <button className="text-sm text-blue-600 dark:text-blue-400 font-medium hover:text-blue-700 dark:hover:text-blue-300 transition-colors">View All</button>
+                <div className="card-glass overflow-hidden">
+                    <div className="p-6 border-b border-sky-200/50 dark:border-sky-800/50 flex justify-between items-center">
+                        <h2 className="text-xl font-extrabold text-gradient-blue tracking-tight">Recent Activity</h2>
+                        <button className="text-sm text-sky-600 dark:text-sky-400 font-bold hover:text-sky-700 dark:hover:text-sky-300 transition-colors">View All →</button>
                     </div>
                     <div className="p-0">
                         {recentActivity.length > 0 ? recentActivity.map((activity) => (
