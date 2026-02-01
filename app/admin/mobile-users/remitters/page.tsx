@@ -17,7 +17,6 @@ export default function RemittersPage() {
             setLoading(true);
             try {
                 const params = new URLSearchParams();
-                params.append('registration_source', 'branch');
                 if (statusFilter !== 'all') params.append('status', statusFilter);
                 if (searchQuery) params.append('search', searchQuery);
 

@@ -135,6 +135,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             children: [
                 { name: 'Transfers', href: '/admin/transfers', badge: counts.transfers > 0 ? counts.transfers.toString() : undefined },
                 { name: 'Remitters', href: '/admin/remitters', badge: counts.remitters > 0 ? counts.remitters.toString() : undefined },
+                { name: 'Mobile App Users', href: '/admin/mobile-users' },
                 { name: 'Receivers', href: '/admin/receivers', badge: counts.receivers > 0 ? counts.receivers.toString() : undefined },
                 { name: 'KYC Reviews', href: '/admin/kyc', badge: counts.kyc > 0 ? counts.kyc.toString() : undefined },
             ]

@@ -637,6 +637,7 @@ export default function CreateTransferPage() {
 
                             {/* Additional Details */}
                             <div className="space-y-4">
+                                {/* Hidden Fields for now as per request
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Channel (Type)</label>
@@ -657,7 +658,6 @@ export default function CreateTransferPage() {
                                             className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
                                             value={formData.branchId || ''}
                                             onChange={(e) => setFormData({ ...formData, branchId: e.target.value })}
-                                            disabled={formData.type !== 'branch' && formData.type !== 'agent'} // Optional: disable branch selection for online? No, maybe online is attributed to a branch too. I'll leave enabled.
                                         >
                                             <option value="">Select Branch...</option>
                                             {branches.map(b => (
@@ -693,6 +693,7 @@ export default function CreateTransferPage() {
                                         </select>
                                     </div>
                                 </div>
+                            */}
 
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Source of Funds</label>
