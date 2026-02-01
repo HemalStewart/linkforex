@@ -36,4 +36,8 @@ export const ENDPOINTS = {
         LIST: `${API_BASE_URL}/directors`,
         DETAIL: (id: string | number) => `${API_BASE_URL}/directors/${id}`,
     },
+    COUNTRIES: {
+        LIST: `${API_BASE_URL}/countries`,
+        DETAIL: (id: string | number) => `${API_BASE_URL}/countries/${id}`,
+    },
 };

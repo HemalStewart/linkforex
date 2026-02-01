@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../components/ConfirmModal';
@@ -10,6 +10,7 @@ import ConfirmModal from '../../components/ConfirmModal';
 
 export default function CreateTransferPage() {
     const router = useRouter();
+    const searchParams = useSearchParams(); // Need to import this
     const [step, setStep] = useState(1);
 
     const [confirmModal, setConfirmModal] = useState({
@@ -49,6 +50,45 @@ export default function CreateTransferPage() {
         type: 'branch', // Default for Admin Panel
         collectionMethod: 'cash'
     });
+
+    // Persist Form Data
+    useEffect(() => {
+        const savedData = sessionStorage.getItem('transferFormData');
+        if (savedData) {
+            setFormData(JSON.parse(savedData));
+        }
+        const savedStep = sessionStorage.getItem('transferFormStep');
+        if (savedStep) {
+            setStep(parseInt(savedStep));
+        }
+    }, []);
+
+    useEffect(() => {
+        sessionStorage.setItem('transferFormData', JSON.stringify(formData));
+    }, [formData]);
+
+    useEffect(() => {
+        sessionStorage.setItem('transferFormStep', step.toString());
+    }, [step]);
+
+    // Handle Return from Create Remitter
+    useEffect(() => {
+        const newRemitterId = searchParams.get('newRemitterId');
+        if (newRemitterId) {
+            const fetchNewRemitter = async () => {
+                try {
+                    const res = await fetch(`${ENDPOINTS.REMITTERS.DETAIL(newRemitterId)}`);
+                    if (res.ok) {
+                        const remitter = await res.json();
+                        selectRemitter(remitter);
+                        // Optional: Clear the param from URL to avoid re-selecting on refresh? 
+                        // For now, it's fine.
+                    }
+                } catch (e) { console.error(e); }
+            };
+            fetchNewRemitter();
+        }
+    }, [searchParams]);
 
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -132,6 +172,7 @@ export default function CreateTransferPage() {
 
     const selectRemitter = async (remitter: any) => {
         setSelectedRemitter(remitter);
+        setScreeningStatus('idle'); // Reset status on new selection
         setFormData(prev => ({
             ...prev,
             remitterId: remitter.id,
@@ -149,8 +190,7 @@ export default function CreateTransferPage() {
             }
         } catch (e) { console.error(e); }
 
-        // Trigger screening
-        simulateScreening('remitter');
+        // Sanction check is now manual, removed auto-call
     };
 
     const selectReceiver = (receiver: any) => {
@@ -160,7 +200,8 @@ export default function CreateTransferPage() {
             receiverName: receiver.name,
             receiverBank: receiver.bank_name || receiver.bank // Handle API field name
         }));
-        simulateScreening('receiver');
+        setReceiverScreeningStatus('idle'); // Reset status
+        // Sanction check is now manual, removed auto-call
     };
 
     const nextStep = () => setStep(prev => prev + 1);
@@ -198,6 +239,9 @@ export default function CreateTransferPage() {
                     isAlert: true,
                     shouldRedirect: true
                 });
+                // Clear Storage
+                sessionStorage.removeItem('transferFormData');
+                sessionStorage.removeItem('transferFormStep');
             } else {
                 setConfirmModal({
                     isOpen: true,
@@ -387,7 +431,19 @@ export default function CreateTransferPage() {
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white">{formData.remitterName}</h3>
 
                                     {/* Sanction Screening Widget */}
+                                    {/* Sanction Screening Widget */}
                                     <div className="my-4 flex items-center justify-center">
+                                        {screeningStatus === 'idle' && (
+                                            <button
+                                                onClick={() => simulateScreening('remitter')}
+                                                className="flex items-center space-x-2 text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-4 py-2 rounded-full text-xs font-bold transition-colors border border-slate-200 dark:border-slate-600"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                <span>Check Sanctions</span>
+                                            </button>
+                                        )}
                                         {screeningStatus === 'scanning' && (
                                             <div className="flex items-center space-x-2 text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-3 py-1.5 rounded-full text-xs font-bold animate-pulse">
                                                 <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -475,6 +531,17 @@ export default function CreateTransferPage() {
                         {/* Sanction Screening for Receiver */}
                         {formData.receiverName && (
                             <div className="flex justify-center pt-4 border-t border-slate-100 dark:border-slate-700 animate-fade-in">
+                                {receiverScreeningStatus === 'idle' && (
+                                    <button
+                                        onClick={() => simulateScreening('receiver')}
+                                        className="flex items-center space-x-2 text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-4 py-2 rounded-full text-xs font-bold transition-colors border border-slate-200 dark:border-slate-600"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span>Check Beneficiary against Sanctions</span>
+                                    </button>
+                                )}
                                 {receiverScreeningStatus === 'scanning' && (
                                     <div className="flex items-center space-x-2 text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-3 py-1.5 rounded-full text-xs font-bold animate-pulse">
                                         <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -725,8 +792,8 @@ export default function CreateTransferPage() {
                         <button
                             onClick={nextStep}
                             disabled={
-                                (step === 1 && (!formData.remitterName || screeningStatus !== 'passed')) ||
-                                (step === 2 && (!formData.receiverName || receiverScreeningStatus !== 'passed')) ||
+                                (step === 1 && !formData.remitterName) ||
+                                (step === 2 && !formData.receiverName) ||
                                 (step === 3 && !formData.sourceAmount)
                             }
                             className="px-8 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-lg hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-slate-900/20 dark:shadow-none flex items-center space-x-2"

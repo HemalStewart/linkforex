@@ -5,7 +5,7 @@ import { ENDPOINTS } from '@/app/lib/api';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
 
-export default function ExchangeRatesPage() {
+export default function CurrenciesPage() {
     const [currencies, setCurrencies] = useState<any[]>([]);
     const [countries, setCountries] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -129,8 +129,8 @@ export default function ExchangeRatesPage() {
             {/* Page Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Countries & Exchange Rates</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">Manage supported countries and their currency exchange rates</p>
+                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Currencies</h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-1">Manage supported currencies and exchange rates</p>
                 </div>
                 <div className="flex items-center space-x-3">
                     <button
@@ -153,7 +153,7 @@ export default function ExchangeRatesPage() {
             {/* Rates Table */}
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
                 <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700">
-                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">Current Exchange Rates</h2>
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">Active Currencies</h2>
                 </div>
                 <div className="overflow-x-auto">
                     {loading ? <div className="p-8 text-center">Loading...</div> : (

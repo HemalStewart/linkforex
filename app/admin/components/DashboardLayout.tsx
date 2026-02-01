@@ -150,7 +150,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 { name: 'System Users', href: '/admin/users', badge: counts.users > 0 ? counts.users.toString() : undefined },
                 { name: 'Roles & Permissions', href: '/admin/roles' },
                 { name: 'Branches', href: '/admin/branches', badge: counts.branches > 0 ? counts.branches.toString() : undefined },
-                { name: 'Countries', href: '/admin/rates' },
+                { name: 'Countries', href: '/admin/countries' },
+                { name: 'Currencies', href: '/admin/currencies' },
             ]
         },
         {

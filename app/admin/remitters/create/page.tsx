@@ -380,7 +380,7 @@ export default function CreateRemitterPage() {
                 type: 'info',
                 isAlert: true,
                 shouldRedirect: true,
-                redirectUrl: returnUrl || '/admin/remitters'
+                redirectUrl: returnUrl ? `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newRemitterId=${remitterId}` : '/admin/remitters'
             });
 
         } catch (error) {
@@ -437,7 +437,7 @@ export default function CreateRemitterPage() {
                                     }`}
                             >
                                 <span className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${activeTab === tab.id ? 'bg-indigo-100 text-indigo-600' :
-                                        index < currentTabIndex ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500'
+                                    index < currentTabIndex ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500'
                                     }`}>
                                     {index + 1}
                                 </span>
