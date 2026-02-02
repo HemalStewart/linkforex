@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
+import { Globe, PlusCircle, Edit2, Trash2, Save, X, Phone, DollarSign } from 'lucide-react';
 
 export default function CountriesPage() {
     const [countries, setCountries] = useState<any[]>([]);
@@ -122,79 +123,106 @@ export default function CountriesPage() {
     };
 
     return (
-        <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
+        <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-up">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Countries</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">Manage supported countries for remitters and beneficiaries</p>
+                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Countries</h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Manage supported countries for remitters and beneficiaries</p>
                 </div>
                 <button
                     onClick={() => setAddModalOpen(true)}
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors shadow-sm"
+                    className="btn-primary flex items-center space-x-2 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 bg-gradient-to-r from-indigo-500 to-purple-600 border-0"
                 >
-                    Add New Country
+                    <PlusCircle className="w-5 h-5" />
+                    <span>Add New Country</span>
                 </button>
             </div>
 
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div className="card-glass overflow-hidden rounded-[2rem] shadow-xl">
+                <div className="px-8 py-6 border-b border-gray-100 dark:border-slate-700/50 flex items-center space-x-3">
+                    <Globe className="w-6 h-6 text-slate-400" />
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">Supported Countries</h2>
+                </div>
                 <div className="overflow-x-auto">
-                    {loading ? <div className="p-8 text-center">Loading...</div> : (
+                    {loading ? (
+                        <div className="p-12 text-center text-slate-500 animate-pulse">Loading countries...</div>
+                    ) : (
                         <table className="w-full">
-                            <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
+                            <thead className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-gray-100 dark:border-slate-700">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Country Name</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">ISO Code</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Phone Code</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Currency</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Country Name</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">ISO Code</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Phone Code</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Currency</th>
+                                    <th className="px-8 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                            <tbody className="divide-y divide-gray-100 dark:divide-slate-700/50">
                                 {countries.map((country) => (
-                                    <tr key={country.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                        <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">
+                                    <tr key={country.id} className="hover:bg-indigo-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
+                                        <td className="px-8 py-5 font-bold text-slate-900 dark:text-white">
                                             {editingId === country.id ? (
-                                                <input className="border rounded px-2 py-1 w-full dark:bg-slate-700" value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} />
-                                            ) : country.name}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-slate-500">
-                                            {editingId === country.id ? (
-                                                <input className="border rounded px-2 py-1 w-20 dark:bg-slate-700" value={editForm.iso_code} onChange={e => setEditForm({ ...editForm, iso_code: e.target.value })} />
-                                            ) : country.iso_code}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-slate-500">
-                                            {editingId === country.id ? (
-                                                <input className="border rounded px-2 py-1 w-20 dark:bg-slate-700" value={editForm.phone_code} onChange={e => setEditForm({ ...editForm, phone_code: e.target.value })} />
-                                            ) : country.phone_code}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-slate-500">
-                                            {editingId === country.id ? (
-                                                <div className="flex space-x-2">
-                                                    <input placeholder="Code" className="border rounded px-2 py-1 w-16 dark:bg-slate-700" value={editForm.currency_code} onChange={e => setEditForm({ ...editForm, currency_code: e.target.value })} />
-                                                    <input placeholder="Sym" className="border rounded px-2 py-1 w-10 dark:bg-slate-700" value={editForm.currency_symbol} onChange={e => setEditForm({ ...editForm, currency_symbol: e.target.value })} />
-                                                </div>
+                                                <input className="input-glass py-1 px-3 w-full" value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} autoFocus />
                                             ) : (
-                                                <span title={country.currency_name}>{country.currency_code} ({country.currency_symbol})</span>
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 text-xs font-bold ring-2 ring-white dark:ring-slate-800">
+                                                        {country.iso_code.substring(0, 2)}
+                                                    </div>
+                                                    <span>{country.name}</span>
+                                                </div>
                                             )}
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-8 py-5 text-sm font-mono font-semibold text-slate-500">
+                                            {editingId === country.id ? (
+                                                <input className="input-glass py-1 px-3 w-20 uppercase" value={editForm.iso_code} onChange={e => setEditForm({ ...editForm, iso_code: e.target.value })} />
+                                            ) : country.iso_code}
+                                        </td>
+                                        <td className="px-8 py-5 text-sm font-mono text-slate-500">
+                                            {editingId === country.id ? (
+                                                <input className="input-glass py-1 px-3 w-20" value={editForm.phone_code} onChange={e => setEditForm({ ...editForm, phone_code: e.target.value })} />
+                                            ) : country.phone_code}
+                                        </td>
+                                        <td className="px-8 py-5 text-sm text-slate-500">
                                             {editingId === country.id ? (
                                                 <div className="flex space-x-2">
-                                                    <button onClick={() => handleSave(country.id)} className="text-emerald-600 hover:text-emerald-700 font-medium text-sm">Save</button>
-                                                    <button onClick={() => setEditingId(null)} className="text-slate-500 hover:text-slate-600 font-medium text-sm">Cancel</button>
+                                                    <input placeholder="Code" className="input-glass py-1 px-3 w-20 uppercase" value={editForm.currency_code} onChange={e => setEditForm({ ...editForm, currency_code: e.target.value })} />
+                                                    <input placeholder="Sym" className="input-glass py-1 px-3 w-16 text-center" value={editForm.currency_symbol} onChange={e => setEditForm({ ...editForm, currency_symbol: e.target.value })} />
                                                 </div>
                                             ) : (
-                                                <div className="flex space-x-3">
-                                                    <button onClick={() => handleEdit(country)} className="text-blue-600 hover:text-blue-700 font-medium text-sm">Edit</button>
-                                                    <button onClick={() => handleDelete(country.id)} className="text-red-600 hover:text-red-700 font-medium text-sm">Delete</button>
+                                                <div className="flex items-center space-x-2">
+                                                    <span className="badge-glass bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 font-mono">
+                                                        {country.currency_code}
+                                                    </span>
+                                                    <span className="text-slate-400">({country.currency_symbol})</span>
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td className="px-8 py-5 text-center">
+                                            {editingId === country.id ? (
+                                                <div className="flex items-center justify-center space-x-2">
+                                                    <button onClick={() => handleSave(country.id)} className="p-2 rounded-xl bg-emerald-100 text-emerald-600 hover:bg-emerald-200 transition-colors">
+                                                        <Save className="w-4 h-4" />
+                                                    </button>
+                                                    <button onClick={() => setEditingId(null)} className="p-2 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors">
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center justify-center space-x-2">
+                                                    <button onClick={() => handleEdit(country)} className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-blue-600 transition-all">
+                                                        <Edit2 className="w-5 h-5" />
+                                                    </button>
+                                                    <button onClick={() => handleDelete(country.id)} className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all">
+                                                        <Trash2 className="w-5 h-5" />
+                                                    </button>
                                                 </div>
                                             )}
                                         </td>
                                     </tr>
                                 ))}
-                                {countries.length === 0 && (
+                                {!loading && countries.length === 0 && (
                                     <tr>
-                                        <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
+                                        <td colSpan={5} className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
                                             No countries found. Add one to get started.
                                         </td>
                                     </tr>
@@ -206,36 +234,45 @@ export default function CountriesPage() {
             </div>
 
             <Modal isOpen={addModalOpen} onClose={() => setAddModalOpen(false)} title="Add New Country">
-                <form onSubmit={handleAddSubmit} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                <form onSubmit={handleAddSubmit} className="space-y-6">
+                    <div className="grid grid-cols-2 gap-6">
                         <div className="col-span-2">
-                            <label className="block text-sm font-medium mb-1">Country Name *</label>
-                            <input required className="w-full px-3 py-2 border rounded-lg dark:bg-slate-700" value={newCountry.name} onChange={e => setNewCountry({ ...newCountry, name: e.target.value })} placeholder="e.g. United Kingdom" />
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Country Name *</label>
+                            <input required className="input-glass w-full" value={newCountry.name} onChange={e => setNewCountry({ ...newCountry, name: e.target.value })} placeholder="e.g. United Kingdom" />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">ISO Code *</label>
-                            <input required className="w-full px-3 py-2 border rounded-lg dark:bg-slate-700" value={newCountry.iso_code} onChange={e => setNewCountry({ ...newCountry, iso_code: e.target.value })} placeholder="e.g. GBR" />
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">ISO Code *</label>
+                            <div className="relative">
+                                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                <input required className="input-glass w-full pl-10 uppercase" value={newCountry.iso_code} onChange={e => setNewCountry({ ...newCountry, iso_code: e.target.value })} placeholder="e.g. GBR" />
+                            </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Phone Code</label>
-                            <input className="w-full px-3 py-2 border rounded-lg dark:bg-slate-700" value={newCountry.phone_code} onChange={e => setNewCountry({ ...newCountry, phone_code: e.target.value })} placeholder="e.g. +44" />
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Phone Code</label>
+                            <div className="relative">
+                                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                <input className="input-glass w-full pl-10" value={newCountry.phone_code} onChange={e => setNewCountry({ ...newCountry, phone_code: e.target.value })} placeholder="e.g. +44" />
+                            </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Currency Code</label>
-                            <input className="w-full px-3 py-2 border rounded-lg dark:bg-slate-700" value={newCountry.currency_code} onChange={e => setNewCountry({ ...newCountry, currency_code: e.target.value })} placeholder="e.g. GBP" />
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Currency Code</label>
+                            <div className="relative">
+                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                <input className="input-glass w-full pl-10 uppercase" value={newCountry.currency_code} onChange={e => setNewCountry({ ...newCountry, currency_code: e.target.value })} placeholder="e.g. GBP" />
+                            </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Currency Symbol</label>
-                            <input className="w-full px-3 py-2 border rounded-lg dark:bg-slate-700" value={newCountry.currency_symbol} onChange={e => setNewCountry({ ...newCountry, currency_symbol: e.target.value })} placeholder="e.g. £" />
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Currency Symbol</label>
+                            <input className="input-glass w-full text-center font-mono text-lg" value={newCountry.currency_symbol} onChange={e => setNewCountry({ ...newCountry, currency_symbol: e.target.value })} placeholder="e.g. £" />
                         </div>
                         <div className="col-span-2">
-                            <label className="block text-sm font-medium mb-1">Currency Name</label>
-                            <input className="w-full px-3 py-2 border rounded-lg dark:bg-slate-700" value={newCountry.currency_name} onChange={e => setNewCountry({ ...newCountry, currency_name: e.target.value })} placeholder="e.g. British Pound" />
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Currency Name</label>
+                            <input className="input-glass w-full" value={newCountry.currency_name} onChange={e => setNewCountry({ ...newCountry, currency_name: e.target.value })} placeholder="e.g. British Pound" />
                         </div>
                     </div>
-                    <div className="flex justify-end pt-4 space-x-3">
-                        <button type="button" onClick={() => setAddModalOpen(false)} className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg">Cancel</button>
-                        <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Add Country</button>
+                    <div className="flex justify-end pt-6 space-x-3">
+                        <button type="button" onClick={() => setAddModalOpen(false)} className="px-6 py-3 rounded-xl font-bold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors">Cancel</button>
+                        <button type="submit" disabled={isSubmitting} className="btn-primary">Add Country</button>
                     </div>
                 </form>
             </Modal>

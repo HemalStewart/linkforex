@@ -359,7 +359,7 @@ export default function CreateTransferPage() {
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
                                             onKeyUp={(e) => e.key === 'Enter' && handleSearchRemitter()}
-                                            className="w-full pl-4 pr-12 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-slate-900 dark:focus:ring-white outline-none transition-all"
+                                            className="input-glass w-full pl-6 pr-12 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-full focus:ring-2 focus:ring-slate-900 dark:focus:ring-white outline-none transition-all"
                                         />
                                         {isSearching ? (
                                             <div className="absolute right-2 top-1/2 -translate-y-1/2 p-2">
@@ -371,7 +371,7 @@ export default function CreateTransferPage() {
                                         ) : (
                                             <button
                                                 onClick={handleSearchRemitter}
-                                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-slate-200 dark:bg-slate-700 rounded-md hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-slate-200 dark:bg-slate-700 rounded-full hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
                                             >
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                                             </button>
@@ -409,7 +409,7 @@ export default function CreateTransferPage() {
 
                                     <Link
                                         href="/admin/remitters/create?returnUrl=/admin/transfers/create"
-                                        className="w-full py-3 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg text-slate-500 font-medium hover:border-slate-400 dark:hover:border-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors flex items-center justify-center"
+                                        className="w-full py-4 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-[2rem] text-slate-500 font-medium hover:border-slate-400 dark:hover:border-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors flex items-center justify-center"
                                     >
                                         + Add New Remitter
                                     </Link>
@@ -522,7 +522,7 @@ export default function CreateTransferPage() {
                             ))}
 
                             {/* Add New Beneficiary Button */}
-                            <button className="p-4 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl flex flex-col items-center justify-center text-slate-500 hover:border-slate-400 hover:text-slate-600 transition-colors min-h-[120px]">
+                            <button className="p-4 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-[2rem] flex flex-col items-center justify-center text-slate-500 hover:border-slate-400 hover:text-slate-600 transition-colors min-h-[120px]">
                                 <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                                 <span className="font-medium">Add New Receiver</span>
                             </button>
@@ -582,7 +582,7 @@ export default function CreateTransferPage() {
                                             <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">£</span>
                                             <input
                                                 type="number"
-                                                className="w-full pl-8 pr-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-lg font-bold"
+                                                className="w-full pl-12 pr-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-lg font-bold"
                                                 placeholder="0.00"
                                                 value={formData.sourceAmount}
                                                 onChange={(e) => {
@@ -625,7 +625,7 @@ export default function CreateTransferPage() {
                                             <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">PKR</span>
                                             <input
                                                 type="number"
-                                                className="w-full pl-14 pr-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-lg font-bold"
+                                                className="w-full pl-16 pr-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-lg font-bold"
                                                 placeholder="0.00"
                                                 value={formData.destAmount}
                                                 readOnly
@@ -781,7 +781,7 @@ export default function CreateTransferPage() {
                     <button
                         onClick={prevStep}
                         disabled={step === 1}
-                        className={`px-6 py-2.5 font-bold rounded-lg transition-colors ${step === 1
+                        className={`px-6 py-2.5 font-bold rounded-full transition-colors ${step === 1
                             ? 'text-slate-300 dark:text-slate-700 cursor-not-allowed'
                             : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                             }`}
@@ -797,7 +797,7 @@ export default function CreateTransferPage() {
                                 (step === 2 && !formData.receiverName) ||
                                 (step === 3 && !formData.sourceAmount)
                             }
-                            className="px-8 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-lg hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-slate-900/20 dark:shadow-none flex items-center space-x-2"
+                            className="px-8 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-full hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-slate-900/20 dark:shadow-none flex items-center space-x-2"
                         >
                             <span>Next Step</span>
                             {(step === 1 && screeningStatus === 'scanning') || (step === 2 && receiverScreeningStatus === 'scanning') ? (

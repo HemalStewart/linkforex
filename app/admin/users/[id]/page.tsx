@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../components/ConfirmModal';
+import { ArrowLeft, User, Mail, Shield, Building, Lock, Check, Save, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
 
 export default function EditUserPage() {
     const router = useRouter();
@@ -28,7 +29,7 @@ export default function EditUserPage() {
         isOpen: false,
         title: '',
         message: '',
-        type: 'info' as 'info' | 'danger' | 'warning',
+        type: 'info' as 'info' | 'danger' | 'warning' | 'success',
         isAlert: true,
         shouldRedirect: false
     });
@@ -90,7 +91,7 @@ export default function EditUserPage() {
                     isOpen: true,
                     title: 'Success',
                     message: 'User updated successfully',
-                    type: 'info',
+                    type: 'success',
                     isAlert: true,
                     shouldRedirect: true
                 });
@@ -127,134 +128,204 @@ export default function EditUserPage() {
     };
 
     if (loading) {
-        return <div className="max-w-4xl mx-auto p-8 text-center text-slate-500">Loading user details...</div>;
+        return <div className="max-w-4xl mx-auto p-12 text-center text-slate-500 font-medium animate-pulse">Loading user details...</div>;
     }
 
+    const permissionOptions = [
+        { id: 'view_dashboard', label: 'View Dashboard' },
+        { id: 'manage_remitters', label: 'Manage Remitters' },
+        { id: 'manage_transfers', label: 'Manage Transfers' },
+        { id: 'manage_users', label: 'Manage Users' },
+        { id: 'manage_beneficiaries', label: 'Manage Beneficiaries' },
+        { id: 'view_reports', label: 'View Reports' },
+        { id: 'manage_rates', label: 'Manage Rates' },
+        { id: 'manage_branches', label: 'Manage Branches' },
+        { id: 'kyc_approval', label: 'KYC Approval' },
+    ];
+
     return (
-        <div className="max-w-4xl mx-auto space-y-6 pb-20 animate-fade-in">
+        <div className="max-w-5xl mx-auto space-y-8 pb-20 animate-fade-in-up">
             <ConfirmModal
                 isOpen={confirmModal.isOpen}
                 onClose={handleModalClose}
                 onConfirm={handleModalClose}
                 title={confirmModal.title}
                 message={confirmModal.message}
-                type={confirmModal.type}
+                type={confirmModal.type as any}
                 isAlert={confirmModal.isAlert}
                 confirmText="OK"
             />
-            <div>
-                <nav className="flex items-center text-sm text-slate-500 mb-2">
-                    <Link href="/admin/dashboard" className="hover:text-slate-900 dark:hover:text-white transition-colors">Dashboard</Link>
-                    <span className="mx-2">/</span>
-                    <Link href="/admin/users" className="hover:text-slate-900 dark:hover:text-white transition-colors">Users</Link>
-                    <span className="mx-2">/</span>
-                    <span className="text-slate-900 dark:text-white font-medium">Edit</span>
-                </nav>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Edit User</h1>
+
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <Link href="/admin/users" className="inline-flex items-center text-sm font-bold text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors mb-2 group">
+                        <ArrowLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
+                        Back to Users
+                    </Link>
+                    <div className="flex items-center space-x-4">
+                        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                            Edit User
+                        </h1>
+                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-3 py-1 rounded-full text-xs font-bold uppercase">
+                            ID: {id}
+                        </span>
+                    </div>
+                </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Full Name *</label>
-                        <input
-                            type="text"
-                            required
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-slate-500 dark:focus:ring-slate-400 focus:border-slate-500 dark:focus:border-slate-400 text-slate-900 dark:text-white"
-                        />
+            <form onSubmit={handleSubmit} className="card-glass p-8 rounded-[2.5rem] relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Personal Info */}
+                    <div className="md:col-span-2">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center border-b border-slate-100 dark:border-slate-700/50 pb-2">
+                            <User className="w-5 h-5 mr-2 text-indigo-500" />
+                            Personal Information
+                        </h3>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Username *</label>
-                        <input
-                            type="text"
-                            required
-                            value={formData.username}
-                            onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                            className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-slate-500 dark:focus:ring-slate-400 focus:border-slate-500 dark:focus:border-slate-400 text-slate-900 dark:text-white"
-                        />
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Full Name <span className="text-red-500">*</span></label>
+                        <div className="relative">
+                            <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                            <input
+                                type="text"
+                                required
+                                value={formData.name}
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                className="input-glass w-full pl-12"
+                            />
+                        </div>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Email *</label>
-                        <input
-                            type="email"
-                            required
-                            value={formData.email}
-                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                            className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-slate-500 dark:focus:ring-slate-400 focus:border-slate-500 dark:focus:border-slate-400 text-slate-900 dark:text-white"
-                        />
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Username <span className="text-red-500">*</span></label>
+                        <div className="relative">
+                            <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                            <input
+                                type="text"
+                                required
+                                value={formData.username}
+                                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                                className="input-glass w-full pl-12"
+                            />
+                        </div>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Role</label>
-                        <select
-                            value={formData.role}
-                            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                            className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-slate-500 dark:focus:ring-slate-400 focus:border-slate-500 dark:focus:border-slate-400 text-slate-900 dark:text-white"
-                        >
-                            <option value="admin">Admin</option>
-                            <option value="manager">Manager</option>
-                            <option value="agent">Agent</option>
-                            <option value="support">Support</option>
-                        </select>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Email <span className="text-red-500">*</span></label>
+                        <div className="relative">
+                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                            <input
+                                type="email"
+                                required
+                                value={formData.email}
+                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                className="input-glass w-full pl-12"
+                            />
+                        </div>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Status</label>
-                        <select
-                            value={formData.status}
-                            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                            className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-slate-500 dark:focus:ring-slate-400 focus:border-slate-500 dark:focus:border-slate-400 text-slate-900 dark:text-white"
-                        >
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                            <option value="suspended">Suspended</option>
-                        </select>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Branch</label>
+                        <div className="relative">
+                            <Building className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                            <input
+                                type="text"
+                                value={formData.branch}
+                                onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
+                                className="input-glass w-full pl-12"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Role & Status */}
+                    <div className="md:col-span-2 mt-4">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center border-b border-slate-100 dark:border-slate-700/50 pb-2">
+                            <Shield className="w-5 h-5 mr-2 text-indigo-500" />
+                            Access Control
+                        </h3>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Branch</label>
-                        <input
-                            type="text"
-                            value={formData.branch}
-                            onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
-                            className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-slate-500 dark:focus:ring-slate-400 focus:border-slate-500 dark:focus:border-slate-400 text-slate-900 dark:text-white"
-                        />
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Role</label>
+                        <div className="relative">
+                            <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                            <select
+                                value={formData.role}
+                                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                                className="input-glass w-full pl-12 appearance-none cursor-pointer"
+                            >
+                                <option value="admin">Admin</option>
+                                <option value="manager">Manager</option>
+                                <option value="agent">Agent</option>
+                                <option value="support">Support</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                            New Password
-                            <span className="text-xs text-slate-500 dark:text-slate-400 ml-2">(leave empty to keep current)</span>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Status</label>
+                        <div className="relative">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center pointer-events-none">
+                                <div className={`w-2.5 h-2.5 rounded-full ${formData.status === 'active' ? 'bg-emerald-500 ring-4 ring-emerald-500/20' : 'bg-red-500'}`}></div>
+                            </div>
+                            <select
+                                value={formData.status}
+                                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                                className="input-glass w-full pl-12 appearance-none cursor-pointer"
+                            >
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="suspended">Suspended</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="md:col-span-2">
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
+                            Reset Password
+                            <span className="text-xs text-slate-400 ml-2 font-normal">(leave empty to keep current)</span>
                         </label>
-                        <input
-                            type="password"
-                            value={formData.password}
-                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                            className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-slate-500 dark:focus:ring-slate-400 focus:border-slate-500 dark:focus:border-slate-400 text-slate-900 dark:text-white"
-                        />
+                        <div className="relative">
+                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                            <input
+                                type="password"
+                                value={formData.password}
+                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                className="input-glass w-full pl-12"
+                                placeholder="New password"
+                            />
+                        </div>
                     </div>
                 </div>
 
                 {/* Permissions Section */}
-                <div className="md:col-span-2 pt-6 border-t border-slate-200 dark:border-slate-700">
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-4">Permissions</label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {[
-                            { id: 'view_dashboard', label: 'View Dashboard' },
-                            { id: 'manage_remitters', label: 'Manage Remitters' },
-                            { id: 'manage_transfers', label: 'Manage Transfers' },
-                            { id: 'manage_users', label: 'Manage Users' },
-                            { id: 'manage_beneficiaries', label: 'Manage Beneficiaries' },
-                            { id: 'view_reports', label: 'View Reports' },
-                            { id: 'manage_rates', label: 'Manage Rates' },
-                            { id: 'manage_branches', label: 'Manage Branches' },
-                            { id: 'kyc_approval', label: 'KYC Approval' },
-                        ].map((permission) => (
-                            <label key={permission.id} className="flex items-center space-x-2 cursor-pointer group">
+                <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-700/50">
+                    <label className="block text-lg font-bold text-slate-900 dark:text-white mb-6">Permission Settings</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {permissionOptions.map((permission) => (
+                            <label
+                                key={permission.id}
+                                className={`
+                                    flex items-center space-x-3 p-4 rounded-xl cursor-pointer transition-all duration-300 border
+                                    ${formData.permissions.includes(permission.id)
+                                        ? 'bg-indigo-500/5 border-indigo-500/30'
+                                        : 'bg-white/50 dark:bg-slate-800/50 border-transparent hover:bg-white hover:border-slate-200'
+                                    }
+                                `}
+                            >
+                                <div className={`
+                                    w-5 h-5 rounded-full border flex items-center justify-center transition-colors
+                                    ${formData.permissions.includes(permission.id)
+                                        ? 'bg-indigo-500 border-indigo-500 text-white'
+                                        : 'border-slate-300 dark:border-slate-600'
+                                    }
+                                `}>
+                                    {formData.permissions.includes(permission.id) && <Check className="w-3 h-3" />}
+                                </div>
                                 <input
                                     type="checkbox"
                                     checked={formData.permissions.includes(permission.id)}
@@ -271,27 +342,39 @@ export default function EditUserPage() {
                                             });
                                         }
                                     }}
-                                    className="rounded border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 focus:ring-slate-500 dark:focus:ring-slate-400 bg-white dark:bg-slate-800"
+                                    className="hidden"
                                 />
-                                <span className="text-sm text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">{permission.label}</span>
+                                <span className={`text-sm font-medium ${formData.permissions.includes(permission.id) ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-400'}`}>
+                                    {permission.label}
+                                </span>
                             </label>
                         ))}
                     </div>
                 </div>
 
-                <div className="flex justify-end space-x-3 pt-6 border-t border-slate-200 dark:border-slate-700">
+                <div className="flex justify-end space-x-4 pt-8 mt-6 border-t border-slate-100 dark:border-slate-700/50">
                     <Link
                         href="/admin/users"
-                        className="px-6 py-2 border border-slate-300 dark:border-slate-600 rounded-lg font-medium hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
+                        className="px-6 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-sm transition-colors border border-slate-200 dark:border-slate-600"
                     >
                         Cancel
                     </Link>
                     <button
                         type="submit"
                         disabled={submitting}
-                        className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40"
                     >
-                        {submitting ? 'Updating...' : 'Update User'}
+                        {submitting ? (
+                            <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <span>Updating...</span>
+                            </>
+                        ) : (
+                            <>
+                                <Save className="w-4 h-4" />
+                                <span>Save Changes</span>
+                            </>
+                        )}
                     </button>
                 </div>
             </form >

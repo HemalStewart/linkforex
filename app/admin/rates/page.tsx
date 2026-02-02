@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
+import { RefreshCw, PlusCircle, Edit2, Save, X, Info, Globe, Coins, DollarSign } from 'lucide-react';
 
 export default function ExchangeRatesPage() {
     const [currencies, setCurrencies] = useState<any[]>([]);
@@ -125,77 +126,92 @@ export default function ExchangeRatesPage() {
     };
 
     return (
-        <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
-            {/* Page Header */}
+        <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-up">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Countries & Exchange Rates</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">Manage supported countries and their currency exchange rates</p>
+                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Countries & Exchange Rates</h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Manage supported countries and their currency exchange rates</p>
                 </div>
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-4">
                     <button
                         onClick={() => setAddModalOpen(true)}
-                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors shadow-sm"
+                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 bg-gradient-to-r from-emerald-500 to-teal-600 border-0"
                     >
-                        Add New Currency
+                        <PlusCircle className="w-5 h-5" />
+                        <span>Add New Currency</span>
                     </button>
-                    <button onClick={fetchRates} className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    <button onClick={fetchRates} className="px-5 py-3 rounded-2xl border-0 glass-effect text-slate-700 dark:text-slate-300 font-bold hover:shadow-lg transition-all group">
                         <span className="flex items-center space-x-2">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
+                            <RefreshCw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
                             <span>Refresh Rates</span>
                         </span>
                     </button>
                 </div>
             </div>
 
-            {/* Rates Table */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-                <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700">
-                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">Current Exchange Rates</h2>
+            <div className="card-glass overflow-hidden rounded-[2rem] shadow-xl">
+                <div className="px-8 py-6 border-b border-gray-100 dark:border-slate-700/50 flex items-center space-x-3">
+                    <Coins className="w-6 h-6 text-slate-400" />
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">Current Exchange Rates</h2>
                 </div>
                 <div className="overflow-x-auto">
-                    {loading ? <div className="p-8 text-center">Loading...</div> : (
+                    {loading ? (
+                        <div className="p-12 text-center text-slate-500 animate-pulse">Loading rates...</div>
+                    ) : (
                         <table className="w-full">
-                            <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
+                            <thead className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-gray-100 dark:border-slate-700">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Currency</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Code</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Rate (Base: GBP)</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Last Updated</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Currency</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Code</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Rate (Base: GBP)</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Last Updated</th>
+                                    <th className="px-8 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                            <tbody className="divide-y divide-gray-100 dark:divide-slate-700/50">
                                 {currencies.map((currency) => (
-                                    <tr key={currency.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                        <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">{currency.name}</td>
-                                        <td className="px-6 py-4 font-mono text-sm text-slate-500">{currency.code} ({currency.symbol})</td>
-                                        <td className="px-6 py-4">
+                                    <tr key={currency.id} className="hover:bg-indigo-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
+                                        <td className="px-8 py-5 font-bold text-slate-900 dark:text-white">
+                                            <div className="flex items-center space-x-3">
+                                                <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500">
+                                                    <Globe className="w-4 h-4" />
+                                                </div>
+                                                <span>{currency.name}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-5 font-mono text-sm font-semibold text-slate-500">{currency.code} ({currency.symbol})</td>
+                                        <td className="px-8 py-5">
                                             {editingId === currency.id ? (
                                                 <input
                                                     type="number"
                                                     value={editForm.rate}
                                                     onChange={(e) => setEditForm({ rate: e.target.value })}
-                                                    className="w-24 p-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
+                                                    className="input-glass py-1 px-3 w-32 font-mono font-bold text-emerald-600"
                                                     autoFocus
                                                 />
                                             ) : (
-                                                <span className="font-bold text-emerald-600 dark:text-emerald-400">{parseFloat(currency.rate).toFixed(2)}</span>
+                                                <span className="badge-glass bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800 font-mono font-bold text-lg">
+                                                    {parseFloat(currency.rate).toFixed(2)}
+                                                </span>
                                             )}
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-slate-500">
+                                        <td className="px-8 py-5 text-sm font-medium text-slate-400">
                                             {new Date(currency.updated_at).toLocaleString()}
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-8 py-5 text-center">
                                             {editingId === currency.id ? (
-                                                <div className="flex space-x-2">
-                                                    <button onClick={() => handleSave(currency.id)} className="text-emerald-600 hover:text-emerald-700 font-medium text-sm">Save</button>
-                                                    <button onClick={() => setEditingId(null)} className="text-slate-500 hover:text-slate-600 font-medium text-sm">Cancel</button>
+                                                <div className="flex items-center justify-center space-x-2">
+                                                    <button onClick={() => handleSave(currency.id)} className="p-2 rounded-xl bg-emerald-100 text-emerald-600 hover:bg-emerald-200 transition-colors">
+                                                        <Save className="w-4 h-4" />
+                                                    </button>
+                                                    <button onClick={() => setEditingId(null)} className="p-2 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors">
+                                                        <X className="w-4 h-4" />
+                                                    </button>
                                                 </div>
                                             ) : (
-                                                <button onClick={() => handleEdit(currency)} className="text-blue-600 hover:text-blue-700 font-medium text-sm">Edit</button>
+                                                <button onClick={() => handleEdit(currency)} className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-blue-600 transition-all">
+                                                    <Edit2 className="w-5 h-5" />
+                                                </button>
                                             )}
                                         </td>
                                     </tr>
@@ -206,34 +222,30 @@ export default function ExchangeRatesPage() {
                 </div>
             </div>
 
-            {/* Alert Banner */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
-                <div className="flex items-start space-x-4">
-                    <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-300 flex-shrink-0">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </div>
-                    <div className="flex-1">
-                        <h3 className="font-bold text-blue-900 dark:text-blue-100 mb-1">Auto-Update Enabled</h3>
-                        <p className="text-sm text-blue-700 dark:text-blue-300">
-                            Exchange rates are automatically updated every 30 minutes from our trusted financial data providers. Last sync: 11:30 AM
-                        </p>
-                    </div>
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 p-6 rounded-[2rem] border border-blue-100 dark:border-blue-800/30 flex items-start space-x-4">
+                <div className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-blue-500 flex-shrink-0">
+                    <Info className="w-6 h-6" />
+                </div>
+                <div>
+                    <h3 className="font-bold text-blue-900 dark:text-blue-100 mb-1 text-lg">Auto-Update Enabled</h3>
+                    <p className="text-blue-700 dark:text-blue-300 font-medium leading-relaxed">
+                        Exchange rates are automatically updated every 30 minutes from our trusted financial data providers.
+                        <br />
+                        Last sync was successful at 11:30 AM.
+                    </p>
                 </div>
             </div>
 
-            {/* Add Currency Modal */}
             <Modal
                 isOpen={addModalOpen}
                 onClose={() => setAddModalOpen(false)}
                 title="Add New Currency"
             >
-                <form onSubmit={handleAddSubmit} className="space-y-4">
+                <form onSubmit={handleAddSubmit} className="space-y-6">
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Select Country</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Select Country</label>
                         <select
-                            className="w-full px-4 py-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white mb-3"
+                            className="input-glass w-full"
                             onChange={(e) => {
                                 const country = countries.find(c => c.id === parseInt(e.target.value));
                                 if (country) {
@@ -251,81 +263,88 @@ export default function ExchangeRatesPage() {
                                 <option key={c.id} value={c.id}>{c.name} ({c.iso_code})</option>
                             ))}
                         </select>
-
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Currency Name</label>
-                        <input
-                            type="text"
-                            required
-                            placeholder="e.g. Euro"
-                            className="w-full px-4 py-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white"
-                            value={newCurrency.name}
-                            onChange={e => setNewCurrency({ ...newCurrency, name: e.target.value })}
-                        />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Code</label>
+
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Currency Name</label>
+                        <div className="relative">
+                            <Coins className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                             <input
                                 type="text"
                                 required
-                                placeholder="e.g. EUR"
-                                className="w-full px-4 py-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white uppercase"
-                                value={newCurrency.code}
-                                onChange={e => setNewCurrency({ ...newCurrency, code: e.target.value.toUpperCase() })}
+                                placeholder="e.g. Euro"
+                                className="input-glass w-full pl-10"
+                                value={newCurrency.name}
+                                onChange={e => setNewCurrency({ ...newCurrency, name: e.target.value })}
                             />
                         </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Symbol</label>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Code</label>
+                            <div className="relative">
+                                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                <input
+                                    type="text"
+                                    required
+                                    placeholder="e.g. EUR"
+                                    className="input-glass w-full pl-10 uppercase font-mono"
+                                    value={newCurrency.code}
+                                    onChange={e => setNewCurrency({ ...newCurrency, code: e.target.value.toUpperCase() })}
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Symbol</label>
                             <input
                                 type="text"
                                 required
                                 placeholder="e.g. €"
-                                className="w-full px-4 py-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                                className="input-glass w-full text-center font-mono text-lg"
                                 value={newCurrency.symbol}
                                 onChange={e => setNewCurrency({ ...newCurrency, symbol: e.target.value })}
                             />
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Exchange Rate (Base: GBP)</label>
-                        <input
-                            type="number"
-                            step="0.0001"
-                            required
-                            placeholder="e.g. 1.15"
-                            className="w-full px-4 py-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600 dark:text-white"
-                            value={newCurrency.rate}
-                            onChange={e => setNewCurrency({ ...newCurrency, rate: e.target.value })}
-                        />
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Exchange Rate (Base: GBP)</label>
+                        <div className="relative">
+                            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            <input
+                                type="number"
+                                step="0.0001"
+                                required
+                                placeholder="e.g. 1.15"
+                                className="input-glass w-full pl-10 font-mono"
+                                value={newCurrency.rate}
+                                onChange={e => setNewCurrency({ ...newCurrency, rate: e.target.value })}
+                            />
+                        </div>
                     </div>
-                    <div className="flex justify-end pt-4 space-x-3">
+                    <div className="flex justify-end pt-6 space-x-3">
                         <button
                             type="button"
                             onClick={() => setAddModalOpen(false)}
-                            className="px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                            className="px-6 py-3 rounded-xl font-bold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                            className="btn-primary flex items-center space-x-2"
                         >
                             {isSubmitting ? 'Adding...' : 'Add Currency'}
                         </button>
                     </div>
                 </form>
             </Modal>
-
             <ConfirmModal
                 isOpen={confirmModal.isOpen}
                 onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
                 onConfirm={() => setConfirmModal({ ...confirmModal, isOpen: false })}
-                title={confirmModal.title}
-                message={confirmModal.message}
-                type={confirmModal.type}
-                isAlert={confirmModal.isAlert}
-                confirmText="OK"
+                title={confirmModal.title} message={confirmModal.message} type={confirmModal.type} isAlert={confirmModal.isAlert} confirmText="OK"
             />
         </div>
     );

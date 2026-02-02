@@ -6,59 +6,63 @@
 }
 
 :root {
-  /* Light Mode - Light Blue Gradients & Gray */
-  --background: linear-gradient(135deg, #e0f2fe 0%, #f1f5f9 50%, #e2e8f0 100%);
+  /* Light Mode - Premium Apple-like Liquid Glass */
+  --background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #ccfbf1 100%);
   --background-solid: #f8fafc;
-  --foreground: #1e293b;
+  --foreground: #0f172a;
 
-  /* Glass Effect Colors */
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.8);
-  --glass-shadow: rgba(148, 163, 184, 0.1);
+  /* Glass Effect Colors - Ultra Premium */
+  --glass-bg: rgba(255, 255, 255, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-shadow: rgba(14, 165, 233, 0.15);
 
-  /* Blue Gradient Colors */
-  --blue-gradient-start: #26c6da;
-  --blue-gradient-middle: #00acc1;
-  --blue-gradient-end: #00897b;
+  /* Teal Liquid Gradient Colors - Pure Teal/Cyan Focus */
+  --blue-gradient-start: #2dd4bf;
+  /* Teal-400 */
+  --blue-gradient-middle: #06b6d4;
+  /* Cyan-500 */
+  --blue-gradient-end: #0891b2;
+  /* Cyan-600 - Removed Blue */
 
   /* Accent Colors */
-  --accent-primary: #00acc1;
+  --accent-primary: #06b6d4;
   --accent-secondary: #64748b;
   --accent-success: #10b981;
   --accent-warning: #f59e0b;
   --accent-danger: #ef4444;
 
   /* Chart Colors */
-  --chart-primary: #00acc1;
+  --chart-primary: #06b6d4;
   --chart-grid: #e2e8f0;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Dark Mode - Deep Blue-Gray with Light Blue Accents */
-    --background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+    /* Dark Mode - Deep Ocean Glass */
+    --background: linear-gradient(135deg, #0f172a 0%, #111827 50%, #134e4a 100%);
     --background-solid: #0f172a;
     --foreground: #f8fafc;
 
     /* Glass Effect Colors - Dark */
-    --glass-bg: rgba(30, 41, 59, 0.6);
-    --glass-border: rgba(51, 65, 85, 0.8);
-    --glass-shadow: rgba(0, 0, 0, 0.3);
+    --glass-bg: rgba(15, 23, 42, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-shadow: rgba(0, 0, 0, 0.4);
 
-    /* Blue Gradient Colors - Dark Mode */
-    --blue-gradient-start: #26c6da;
-    --blue-gradient-middle: #00acc1;
-    --blue-gradient-end: #00897b;
+    /* Teal Liquid Gradient Colors - Dark Mode */
+    --blue-gradient-start: #2dd4bf;
+    --blue-gradient-middle: #06b6d4;
+    --blue-gradient-end: #0891b2;
+    /* Cyan-600 */
 
     /* Accent Colors - Dark Mode */
-    --accent-primary: #00acc1;
+    --accent-primary: #22d3ee;
     --accent-secondary: #94a3b8;
     --accent-success: #34d399;
     --accent-warning: #fbbf24;
     --accent-danger: #f87171;
 
     /* Chart Colors - Dark */
-    --chart-primary: #00acc1;
+    --chart-primary: #22d3ee;
     --chart-grid: #334155;
   }
 }
@@ -75,33 +79,34 @@ body {
 }
 
 /* Liquid Glass Effect - Core Utility */
+/* Liquid Glass Effect - Core Utility */
 .glass-effect {
   background: var(--glass-bg);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid var(--glass-border);
   box-shadow:
-    0 4px 24px 0 rgba(148, 163, 184, 0.08),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+    0 8px 32px 0 var(--glass-shadow),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 .glass-effect-strong {
-  background: rgba(255, 255, 255, 0.85);
+  background: var(--glass-bg);
   backdrop-filter: blur(40px) saturate(180%);
   -webkit-backdrop-filter: blur(40px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--glass-border);
   box-shadow:
-    0 8px 32px 0 rgba(148, 163, 184, 0.12),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+    0 12px 40px 0 var(--glass-shadow),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 @media (prefers-color-scheme: dark) {
+
+  .glass-effect,
   .glass-effect-strong {
-    background: rgba(30, 41, 59, 0.75);
-    border: 1px solid rgba(51, 65, 85, 0.6);
     box-shadow:
-      0 8px 32px 0 rgba(0, 0, 0, 0.3),
-      inset 0 1px 0 0 rgba(255, 255, 255, 0.03);
+      0 8px 32px 0 rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
   }
 }
 
@@ -357,23 +362,25 @@ html {
 }
 
 /* Card Styles */
+/* Card Styles */
 .card-glass {
   background: var(--glass-bg);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid var(--glass-border);
   box-shadow:
-    0 4px 24px 0 rgba(148, 163, 184, 0.08),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
-  border-radius: 1rem;
+    0 4px 24px 0 var(--glass-shadow),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
+  border-radius: 2rem;
+  /* Reduced to match request for 'rounded' but 2rem is very iOS */
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card-glass:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
   box-shadow:
-    0 8px 32px 0 rgba(148, 163, 184, 0.12),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
+    0 12px 40px 0 var(--glass-shadow),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.25);
 }
 
 /* Button Styles */
@@ -381,18 +388,19 @@ html {
   background: linear-gradient(135deg, var(--blue-gradient-start) 0%, var(--blue-gradient-middle) 50%, var(--blue-gradient-end) 100%);
   color: white;
   font-weight: 600;
-  padding: 0.625rem 1.25rem;
-  border-radius: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  /* Pill shape */
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 8px 0 rgba(14, 165, 233, 0.3);
+  box-shadow: 0 4px 12px 0 rgba(6, 182, 212, 0.3);
   border: none;
   cursor: pointer;
   letter-spacing: -0.011em;
 }
 
 .btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px 0 rgba(14, 165, 233, 0.4);
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 8px 20px 0 rgba(6, 182, 212, 0.4);
 }
 
 .btn-primary:active {
@@ -401,15 +409,16 @@ html {
 
 /* Input Styles */
 .input-glass {
-  background: var(--glass-bg);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(148, 163, 184, 0.15);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--glass-border);
   box-shadow:
-    0 2px 8px 0 rgba(148, 163, 184, 0.04),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
-  border-radius: 0.75rem;
-  padding: 0.625rem 1rem;
+    0 2px 8px 0 rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+  /* Pill shape for inputs as requested 'no corners' */
+  padding: 0.75rem 1.5rem;
   color: #1e293b;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   letter-spacing: -0.011em;
@@ -420,15 +429,21 @@ html {
 }
 
 .input-glass:focus {
+  background: rgba(255, 255, 255, 0.8);
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.08);
+  box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.15);
   outline: none;
 }
 
 @media (prefers-color-scheme: dark) {
   .input-glass {
-    border: 1px solid rgba(71, 85, 105, 0.3);
+    background: rgba(30, 41, 59, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: #f8fafc;
+  }
+
+  .input-glass:focus {
+    background: rgba(30, 41, 59, 0.8);
   }
 
   .input-glass::placeholder {

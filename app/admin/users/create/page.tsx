@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../components/ConfirmModal';
+import { ArrowLeft, User, Mail, Lock, Shield, Building, Save, Loader2, CheckSquare, Square, Check } from 'lucide-react';
 
 export default function CreateUserPage() {
     const router = useRouter();
@@ -38,7 +39,7 @@ export default function CreateUserPage() {
         isOpen: false,
         title: '',
         message: '',
-        type: 'info' as 'info' | 'danger' | 'warning',
+        type: 'info' as 'info' | 'danger' | 'warning' | 'success',
         isAlert: true,
         shouldRedirect: false
     });
@@ -50,7 +51,8 @@ export default function CreateUserPage() {
         roleId: '', // We use roleId now
         branch: '',
         password: '',
-        confirmPassword: ''
+        confirmPassword: '',
+        permissions: [] as string[] // Added strictly for UI state if needed, though role usually dictates permissions
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -103,7 +105,7 @@ export default function CreateUserPage() {
                 isOpen: true,
                 title: 'Success',
                 message: 'System User Created Successfully!',
-                type: 'info',
+                type: 'success',
                 isAlert: true,
                 shouldRedirect: true
             });
@@ -128,70 +130,129 @@ export default function CreateUserPage() {
     };
 
     return (
-        <div className="max-w-2xl mx-auto pb-20 animate-fade-in">
+        <div className="max-w-4xl mx-auto pb-20 animate-fade-in-up">
             <ConfirmModal
                 isOpen={confirmModal.isOpen}
                 onClose={handleModalClose}
                 onConfirm={handleModalClose}
                 title={confirmModal.title}
                 message={confirmModal.message}
-                type={confirmModal.type}
+                type={confirmModal.type as any}
                 isAlert={confirmModal.isAlert}
                 confirmText="OK"
             />
+
+            {/* Header */}
             <div className="mb-8">
-                <nav className="flex items-center text-sm text-slate-500 mb-2">
-                    <Link href="/admin/dashboard" className="hover:text-slate-900 dark:hover:text-white transition-colors">Dashboard</Link>
-                    <span className="mx-2">/</span>
-                    <Link href="/admin/users" className="hover:text-slate-900 dark:hover:text-white transition-colors">Users</Link>
-                    <span className="mx-2">/</span>
-                    <span className="text-slate-900 dark:text-white font-medium">Add System User</span>
-                </nav>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Add System User</h1>
-                <p className="text-slate-500 dark:text-slate-400 mt-1">Create a new staff account for system access.</p>
+                <Link href="/admin/users" className="inline-flex items-center text-sm font-bold text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors mb-2 group">
+                    <ArrowLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
+                    Back to Users
+                </Link>
+                <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Add System User</h1>
+                <p className="text-slate-500 dark:text-slate-400 mt-2">Create a new staff account for system access.</p>
             </div>
 
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 overflow-hidden p-8">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Full Name</label>
-                        <input
-                            type="text"
-                            required
-                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        />
+            <form onSubmit={handleSubmit} className="card-glass p-8 rounded-[2.5rem] relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Access Credentials */}
+                    <div className="md:col-span-2">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center border-b border-slate-100 dark:border-slate-700/50 pb-2">
+                            <Shield className="w-5 h-5 mr-2 text-indigo-500" />
+                            Account Credentials
+                        </h3>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Username</label>
-                        <input
-                            type="text"
-                            required
-                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
-                            placeholder="e.g. jdoe"
-                            value={formData.username}
-                            onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                        />
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Username <span className="text-red-500">*</span></label>
+                        <div className="relative">
+                            <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                            <input
+                                type="text"
+                                required
+                                className="input-glass w-full pl-12"
+                                placeholder="e.g. jdoe"
+                                value={formData.username}
+                                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                            />
+                        </div>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Email Address</label>
-                        <input
-                            type="email"
-                            required
-                            className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
-                            value={formData.email}
-                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        />
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Email Address <span className="text-red-500">*</span></label>
+                        <div className="relative">
+                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                            <input
+                                type="email"
+                                required
+                                className="input-glass w-full pl-12"
+                                placeholder="john@example.com"
+                                value={formData.email}
+                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            />
+                        </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Role</label>
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Password <span className="text-red-500">*</span></label>
+                        <div className="relative">
+                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                            <input
+                                type="password"
+                                required
+                                className="input-glass w-full pl-12"
+                                placeholder="••••••••"
+                                value={formData.password}
+                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Confirm Password <span className="text-red-500">*</span></label>
+                        <div className="relative">
+                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                            <input
+                                type="password"
+                                required
+                                className="input-glass w-full pl-12"
+                                placeholder="••••••••"
+                                value={formData.confirmPassword}
+                                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Personal & Access Info */}
+                    <div className="md:col-span-2 mt-4">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center border-b border-slate-100 dark:border-slate-700/50 pb-2">
+                            <User className="w-5 h-5 mr-2 text-indigo-500" />
+                            Personal & Access Details
+                        </h3>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Full Name <span className="text-red-500">*</span></label>
+                        <div className="relative">
+                            <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                            <input
+                                type="text"
+                                required
+                                className="input-glass w-full pl-12"
+                                placeholder="John Doe"
+                                value={formData.name}
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Assigned Role</label>
+                        <div className="relative">
+                            <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                             <select
-                                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
+                                className="input-glass w-full pl-12 appearance-none cursor-pointer"
                                 value={formData.roleId}
                                 onChange={(e) => setFormData({ ...formData, roleId: e.target.value })}
                             >
@@ -201,10 +262,14 @@ export default function CreateUserPage() {
                                 ))}
                             </select>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Branch</label>
+                    </div>
+
+                    <div className="md:col-span-2">
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Assigned Branch</label>
+                        <div className="relative">
+                            <Building className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                             <select
-                                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
+                                className="input-glass w-full pl-12 appearance-none cursor-pointer"
                                 value={formData.branch}
                                 onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
                             >
@@ -217,47 +282,24 @@ export default function CreateUserPage() {
                             </select>
                         </div>
                     </div>
+                </div>
 
-                    <div className="grid grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Password</label>
-                            <input
-                                type="password"
-                                required
-                                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
-                                value={formData.password}
-                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Confirm Password</label>
-                            <input
-                                type="password"
-                                required
-                                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
-                                value={formData.confirmPassword}
-                                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="pt-4 flex justify-end space-x-4">
-                        <button
-                            type="button"
-                            onClick={() => router.back()}
-                            className="px-6 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            className="px-8 py-2.5 rounded-lg bg-emerald-600 text-white dark:bg-emerald-500 font-bold hover:bg-emerald-700 dark:hover:bg-emerald-600 transition-colors shadow-lg"
-                        >
-                            Create User
-                        </button>
-                    </div>
-                </form>
-            </div>
+                <div className="flex justify-end space-x-4 pt-8 mt-8 border-t border-slate-100 dark:border-slate-700/50">
+                    <Link
+                        href="/admin/users"
+                        className="px-6 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-sm transition-colors border border-slate-200 dark:border-slate-600"
+                    >
+                        Cancel
+                    </Link>
+                    <button
+                        type="submit"
+                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40"
+                    >
+                        <Save className="w-4 h-4" />
+                        <span>Create User</span>
+                    </button>
+                </div>
+            </form>
         </div>
     );
 }

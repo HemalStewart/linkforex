@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
+import { ArrowLeft, User, Building, CreditCard, Save, Loader2, ChevronRight, Search } from 'lucide-react';
+import ConfirmModal from '../../components/ConfirmModal';
 
 export default function EditReceiverPage() {
     const router = useRouter();
@@ -19,6 +21,15 @@ export default function EditReceiverPage() {
         name: '',
         bank_name: '',
         account_number: '',
+    });
+
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info' as 'info' | 'danger' | 'warning' | 'success',
+        isAlert: true,
+        shouldRedirect: false
     });
 
     useEffect(() => {
@@ -66,97 +77,176 @@ export default function EditReceiverPage() {
             });
 
             if (res.ok) {
-                router.push('/admin/receivers');
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Success',
+                    message: 'Receiver updated successfully',
+                    type: 'success',
+                    isAlert: true,
+                    shouldRedirect: true
+                });
             } else {
-                alert('Failed to update receiver');
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: 'Failed to update receiver',
+                    type: 'danger',
+                    isAlert: true,
+                    shouldRedirect: false
+                });
             }
         } catch (error) {
             console.error('Failed to submit:', error);
-            alert('Error updating receiver');
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'Error updating receiver',
+                type: 'danger',
+                isAlert: true,
+                shouldRedirect: false
+            });
         } finally {
             setSubmitting(false);
         }
     };
 
-    if (loading) return <div className="p-8 text-center text-slate-500">Loading...</div>;
+    if (loading) return <div className="p-12 text-center text-slate-500 font-medium animate-pulse">Loading receiver details...</div>;
+
+    const handleModalClose = () => {
+        setConfirmModal({ ...confirmModal, isOpen: false });
+        if (confirmModal.shouldRedirect) {
+            router.push('/admin/receivers');
+        }
+    };
 
     return (
-        <div className="max-w-2xl mx-auto space-y-6">
-            <div>
-                <nav className="flex items-center text-sm text-slate-500 mb-2">
-                    <Link href="/admin/dashboard" className="hover:text-slate-900 dark:hover:text-white transition-colors">Dashboard</Link>
-                    <span className="mx-2">/</span>
-                    <Link href="/admin/receivers" className="hover:text-slate-900 dark:hover:text-white transition-colors">Receivers</Link>
-                    <span className="mx-2">/</span>
-                    <span className="text-slate-900 dark:text-white font-medium">Edit</span>
-                </nav>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Edit Receiver</h1>
+        <div className="max-w-3xl mx-auto space-y-8 pb-20 animate-fade-in-up">
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                onClose={handleModalClose}
+                onConfirm={handleModalClose}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                type={confirmModal.type as any}
+                isAlert={confirmModal.isAlert}
+                confirmText="OK"
+            />
+
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <Link href="/admin/receivers" className="inline-flex items-center text-sm font-bold text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors mb-2 group">
+                        <ArrowLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
+                        Back to Receivers
+                    </Link>
+                    <div className="flex items-center space-x-4">
+                        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                            Edit Receiver
+                        </h1>
+                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-3 py-1 rounded-full text-xs font-bold uppercase">
+                            ID: {id}
+                        </span>
+                    </div>
+                </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 space-y-6">
-                <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Linked Remitter *</label>
-                    <select
-                        required
-                        value={formData.customer_id}
-                        onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
-                        className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-slate-500 dark:focus:ring-slate-400 focus:border-slate-500 dark:focus:border-slate-400 text-slate-900 dark:text-white"
-                    >
-                        <option value="">Select a Remitter</option>
-                        {remitters.map((remitter) => (
-                            <option key={remitter.id} value={remitter.id}>
-                                {remitter.name} ({remitter.phone})
-                            </option>
-                        ))}
-                    </select>
+            <form onSubmit={handleSubmit} className="card-glass p-8 rounded-[2.5rem] relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+
+                <div className="space-y-8">
+                    {/* Search/Select Remitter */}
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Linked Remitter <span className="text-red-500">*</span></label>
+                        <div className="relative">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                            <select
+                                required
+                                value={formData.customer_id}
+                                onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
+                                className="input-glass w-full pl-12 appearance-none cursor-pointer"
+                            >
+                                <option value="">Select a Remitter...</option>
+                                {remitters.map((remitter) => (
+                                    <option key={remitter.id} value={remitter.id}>
+                                        {remitter.name}{remitter.phone ? ` (${remitter.phone})` : ''}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none rotate-90" />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-6">
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Full Legal Name <span className="text-red-500">*</span></label>
+                            <div className="relative">
+                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                <input
+                                    type="text"
+                                    required
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    className="input-glass w-full pl-12"
+                                    placeholder="Receiver's full name"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Bank Name <span className="text-red-500">*</span></label>
+                            <div className="relative">
+                                <Building className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                <input
+                                    type="text"
+                                    required
+                                    value={formData.bank_name}
+                                    onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })}
+                                    className="input-glass w-full pl-12"
+                                    placeholder="e.g. Bank of London"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Account Number / IBAN <span className="text-red-500">*</span></label>
+                            <div className="relative">
+                                <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                <input
+                                    type="text"
+                                    required
+                                    value={formData.account_number}
+                                    onChange={(e) => setFormData({ ...formData, account_number: e.target.value })}
+                                    className="input-glass w-full pl-12"
+                                    placeholder="Account number or IBAN"
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Full Name *</label>
-                    <input
-                        type="text"
-                        required
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-slate-500 dark:focus:ring-slate-400 focus:border-slate-500 dark:focus:border-slate-400 text-slate-900 dark:text-white"
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Bank Name *</label>
-                    <input
-                        type="text"
-                        required
-                        value={formData.bank_name}
-                        onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })}
-                        className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-slate-500 dark:focus:ring-slate-400 focus:border-slate-500 dark:focus:border-slate-400 text-slate-900 dark:text-white"
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Account Number / IBAN *</label>
-                    <input
-                        type="text"
-                        required
-                        value={formData.account_number}
-                        onChange={(e) => setFormData({ ...formData, account_number: e.target.value })}
-                        className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-slate-500 dark:focus:ring-slate-400 focus:border-slate-500 dark:focus:border-slate-400 text-slate-900 dark:text-white"
-                    />
-                </div>
-
-                <div className="flex justify-end space-x-3 pt-6 border-t border-slate-100 dark:border-slate-700">
+                <div className="flex justify-end space-x-4 pt-8 mt-8 border-t border-slate-100 dark:border-slate-700/50">
                     <Link
                         href="/admin/receivers"
-                        className="px-6 py-2 border border-slate-300 dark:border-slate-600 rounded-lg font-medium hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
+                        className="px-6 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-sm transition-colors border border-slate-200 dark:border-slate-600"
                     >
                         Cancel
                     </Link>
                     <button
                         type="submit"
                         disabled={submitting}
-                        className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40"
                     >
-                        {submitting ? 'Updating...' : 'Update Receiver'}
+                        {submitting ? (
+                            <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <span>Updating...</span>
+                            </>
+                        ) : (
+                            <>
+                                <Save className="w-4 h-4" />
+                                <span>Save Changes</span>
+                            </>
+                        )}
                     </button>
                 </div>
             </form>

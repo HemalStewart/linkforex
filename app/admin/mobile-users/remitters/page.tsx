@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
+import { Search, UserPlus, FileText, Eye, Filter, Download } from 'lucide-react';
 
 export default function RemittersPage() {
     const router = useRouter();
@@ -17,6 +18,10 @@ export default function RemittersPage() {
             setLoading(true);
             try {
                 const params = new URLSearchParams();
+                // Ensure we list mobile users specifically if API supports it, 
+                // otherwise currently it lists all based on previous code.
+                // params.append('registration_source', 'mobile_app'); 
+
                 if (statusFilter !== 'all') params.append('status', statusFilter);
                 if (searchQuery) params.append('search', searchQuery);
 
@@ -24,8 +29,7 @@ export default function RemittersPage() {
                 if (!res.ok) throw new Error('Failed to fetch');
                 const data = await res.json();
 
-                // Map DB fields to UI fields if necessary, codeigniter returns matching fields usually
-                // But we need to ensure structure matches what UI expects
+                // Map DB fields to UI fields if necessary
                 const mappedData = data.map((c: any) => ({
                     ...c,
                     joinedDate: c.created_at ? new Date(c.created_at).toLocaleDateString() : '-',
@@ -47,113 +51,89 @@ export default function RemittersPage() {
 
     const getStatusBadge = (status: string) => {
         const styles = {
-            active: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800',
-            inactive: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800',
-            suspended: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800',
+            active: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
+            inactive: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
+            suspended: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
         };
         return styles[status as keyof typeof styles] || styles.inactive;
     };
 
     const getKycBadge = (status: string) => {
         const styles = {
-            verified: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800',
-            pending: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800',
-            rejected: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800',
+            verified: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
+            pending: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
+            rejected: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
         };
         return styles[status as keyof typeof styles] || styles.pending;
     };
 
-    // No client-side filtering needed as API handles it, but we use remitters directly
+    // No client-side filtering needed as API handles it
     const filteredRemitters = remitters;
 
     return (
-        <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
+        <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-up">
             {/* Page Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Remitters</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">Manage remitter profiles and activity</p>
+                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Mobile Remitters</h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Manage mobile app remitter profiles and activity</p>
                 </div>
-                <div className="flex items-center space-x-3">
-                    <button className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                <div className="flex items-center space-x-4">
+                    <button className="px-5 py-3 rounded-full border-0 glass-effect text-slate-700 dark:text-slate-300 font-bold hover:shadow-lg transition-all">
                         <span className="flex items-center space-x-2">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
+                            <Download className="w-5 h-5" />
                             <span>Export</span>
                         </span>
                     </button>
-                    <Link href="/admin/remitters/create" className="px-4 py-2 rounded-lg bg-emerald-600 text-white dark:bg-emerald-500 dark:text-white font-medium hover:bg-emerald-500 dark:hover:bg-emerald-400 transition-colors shadow-sm inline-flex items-center space-x-2">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
+                    <Link href="/admin/mobile-users/remitters/create" className="btn-primary flex items-center space-x-2 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 bg-gradient-to-r from-emerald-500 to-teal-600 border-0 rounded-full px-6">
+                        <UserPlus className="w-5 h-5" />
                         <span>Add Remitter</span>
                     </Link>
                 </div>
             </div>
 
-            {/* Stats Cards - Note: These should ideally come from an API stats endpoint */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Total Remitters</p>
-                            <p className="text-2xl font-bold text-slate-900 dark:text-white">{remitters.length}</p>
-                        </div>
-                        <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-                {/* Simplified stats for now */}
-            </div>
-
             {/* Filters and Search */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                 {/* Search */}
-                <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
+                <div className="relative group w-full">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                        <Search className="w-5 h-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
                     </div>
                     <input
                         type="search"
                         placeholder="Search remitters by name, email or phone..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 shadow-sm transition-all"
+                        className="input-glass w-full pl-12 py-3 text-base shadow-sm hover:shadow-md transition-shadow"
                     />
                 </div>
 
                 {/* Filter */}
                 <div className="flex justify-end">
-                    <div className="flex items-center bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-1">
+                    <div className="flex items-center card-glass p-1.5 rounded-full space-x-1">
                         <button
                             onClick={() => setStatusFilter('all')}
-                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${statusFilter === 'all'
-                                ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white'
-                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                            className={`px-4 py-2 text-sm font-bold rounded-full transition-all ${statusFilter === 'all'
+                                ? 'bg-white shadow text-slate-900 dark:bg-slate-700 dark:text-white'
+                                : 'text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-700/50'
                                 }`}
                         >
                             All
                         </button>
                         <button
                             onClick={() => setStatusFilter('active')}
-                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${statusFilter === 'active'
-                                ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
-                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                            className={`px-4 py-2 text-sm font-bold rounded-full transition-all ${statusFilter === 'active'
+                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 shadow-sm'
+                                : 'text-slate-500 dark:text-slate-400 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20'
                                 }`}
                         >
                             Active
                         </button>
                         <button
                             onClick={() => setStatusFilter('inactive')}
-                            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${statusFilter === 'inactive'
-                                ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
-                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                            className={`px-4 py-2 text-sm font-bold rounded-full transition-all ${statusFilter === 'inactive'
+                                ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 shadow-sm'
+                                : 'text-slate-500 dark:text-slate-400 hover:bg-amber-50/50 dark:hover:bg-amber-900/20'
                                 }`}
                         >
                             Inactive
@@ -163,67 +143,62 @@ export default function RemittersPage() {
             </div>
 
             {/* Remitters Table */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div className="card-glass overflow-hidden rounded-[2rem] shadow-xl">
                 <div className="overflow-x-auto">
                     {loading ? (
-                        <div className="p-8 text-center text-slate-500">Loading...</div>
+                        <div className="p-12 text-center text-slate-500 animate-pulse">Loading remitters...</div>
                     ) : (
                         <table className="w-full">
-                            <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
+                            <thead className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-gray-100 dark:border-slate-700">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Remitter</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Contact</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">KYC</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Remitter</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Contact</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">KYC</th>
+                                    <th className="px-8 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                            <tbody className="divide-y divide-gray-100 dark:divide-slate-700/50">
                                 {filteredRemitters.map((remitter) => (
                                     <tr
                                         key={remitter.id}
-                                        className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                                        className="hover:bg-blue-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200"
                                     >
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center space-x-3">
-                                                <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-sm">
+                                        <td className="px-8 py-5">
+                                            <div className="flex items-center space-x-4">
+                                                <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-100 to-purple-100 dark:from-indigo-900/50 dark:to-purple-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-base shadow-sm ring-2 ring-white dark:ring-slate-800">
                                                     {remitter.name?.charAt(0)}
                                                 </div>
                                                 <div>
-                                                    <p className="font-semibold text-slate-900 dark:text-white">{remitter.name}</p>
-                                                    <p className="text-xs text-slate-500">Joined: {remitter.joinedDate}</p>
+                                                    <p className="font-bold text-slate-900 dark:text-white text-[15px]">{remitter.name}</p>
+                                                    <p className="text-xs text-slate-500 font-medium mt-0.5">Joined: {remitter.joinedDate}</p>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-8 py-5">
                                             <div className="text-sm">
-                                                <p className="text-slate-700 dark:text-slate-300">{remitter.email}</p>
-                                                <p className="text-slate-500 dark:text-slate-400 text-xs">{remitter.phone}</p>
+                                                <p className="text-slate-700 dark:text-slate-300 font-medium">{remitter.email}</p>
+                                                <p className="text-slate-500 dark:text-slate-400 text-xs mt-0.5">{remitter.phone}</p>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadge(remitter.status)}`}>
-                                                {remitter.status ? remitter.status.charAt(0).toUpperCase() + remitter.status.slice(1) : 'Unknown'}
+                                        <td className="px-8 py-5">
+                                            <span className={`badge-glass px-3 py-1 rounded-full uppercase tracking-wider text-[10px] font-extrabold ${getStatusBadge(remitter.status)}`}>
+                                                {remitter.status || 'Unknown'}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${getKycBadge(remitter.kycStatus)}`}>
-                                                {remitter.kycStatus ? remitter.kycStatus.toUpperCase() : 'PENDING'}
+                                        <td className="px-8 py-5">
+                                            <span className={`badge-glass px-3 py-1 rounded-full uppercase tracking-wider text-[10px] font-extrabold ${getKycBadge(remitter.kycStatus)}`}>
+                                                {remitter.kycStatus || 'PENDING'}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex space-x-2">
-                                                <Link
-                                                    href={`/admin/remitters/${remitter.id}`}
-                                                    className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors"
-                                                    title="View/Edit Profile"
-                                                >
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                    </svg>
-                                                </Link>
-                                            </div>
+                                        <td className="px-8 py-5 text-center">
+                                            <Link
+                                                href={`/admin/mobile-users/remitters/${remitter.id}`}
+                                                className="p-2 rounded-full hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-emerald-600 transition-all inline-flex"
+                                                title="View/Edit Profile"
+                                            >
+                                                <Eye className="w-5 h-5" />
+                                            </Link>
                                         </td>
                                     </tr>
                                 ))}
@@ -232,7 +207,7 @@ export default function RemittersPage() {
                     )}
                 </div>
                 {!loading && filteredRemitters.length === 0 && (
-                    <div className="p-8 text-center text-slate-500 dark:text-slate-400">
+                    <div className="p-16 text-center text-slate-500 font-medium">
                         No remitters found.
                     </div>
                 )}

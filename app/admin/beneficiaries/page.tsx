@@ -1,9 +1,7 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
+import { Users, RefreshCw, Search, Building2, Calendar } from 'lucide-react';
 
 export default function BeneficiariesPage() {
     const [beneficiaries, setBeneficiaries] = useState<any[]>([]);
@@ -36,16 +34,19 @@ export default function BeneficiariesPage() {
     );
 
     return (
-        <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
+        <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-up">
             {/* Page Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Beneficiaries</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">Manage global beneficiary accounts</p>
+                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Beneficiaries</h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Manage global beneficiary accounts</p>
                 </div>
                 <div className="flex items-center space-x-3">
-                    <button onClick={fetchBeneficiaries} className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                        Refresh
+                    <button onClick={fetchBeneficiaries} className="px-5 py-3 rounded-2xl border-0 glass-effect text-slate-700 dark:text-slate-300 font-bold hover:shadow-lg transition-all group">
+                        <span className="flex items-center space-x-2">
+                            <RefreshCw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
+                            <span>Refresh</span>
+                        </span>
                     </button>
                     {/* Placeholder for Add Beneficiary - usually done via Remitter context */}
                 </div>
@@ -53,54 +54,69 @@ export default function BeneficiariesPage() {
 
             {/* Search */}
             <div className="max-w-md">
-                <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
+                <div className="relative group w-full">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                        <Search className="w-5 h-5 text-slate-400 group-focus-within:text-cyan-500 transition-colors" />
                     </div>
                     <input
                         type="search"
                         placeholder="Search beneficiaries..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 shadow-sm transition-all"
+                        className="input-glass w-full pl-11 py-3 text-base shadow-sm hover:shadow-md transition-shadow"
                     />
                 </div>
             </div>
 
             {/* List */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div className="card-glass overflow-hidden rounded-[2rem] shadow-xl">
+                <div className="px-8 py-6 border-b border-gray-100 dark:border-slate-700/50 flex items-center space-x-3">
+                    <Users className="w-6 h-6 text-slate-400" />
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">All Beneficiaries</h2>
+                </div>
                 <div className="overflow-x-auto">
                     {loading ? (
-                        <div className="p-8 text-center text-slate-500">Loading...</div>
+                        <div className="p-12 text-center text-slate-500 animate-pulse">Loading beneficiaries...</div>
                     ) : (
                         <table className="w-full">
-                            <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
+                            <thead className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-gray-100 dark:border-slate-700">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Name</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Bank Details</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Customer ID</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Date Added</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Name</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Bank Details</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Customer ID</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Date Added</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                            <tbody className="divide-y divide-gray-100 dark:divide-slate-700/50">
                                 {filteredBeneficiaries.map((b) => (
-                                    <tr key={b.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                        <td className="px-6 py-4">
-                                            <div className="font-semibold text-slate-900 dark:text-white">{b.name}</div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="text-sm">
-                                                <div className="font-medium text-slate-700 dark:text-slate-300">{b.bank_name}</div>
-                                                <div className="text-slate-500 dark:text-slate-400">{b.account_number}</div>
+                                    <tr key={b.id} className="hover:bg-blue-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
+                                        <td className="px-8 py-5">
+                                            <div className="flex items-center space-x-3">
+                                                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 font-bold">
+                                                    {(b.name || '?').charAt(0)}
+                                                </div>
+                                                <div className="font-bold text-slate-900 dark:text-white">{b.name}</div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-slate-500 dark:text-slate-400">
+                                        <td className="px-8 py-5">
+                                            <div className="flex flex-col space-y-1">
+                                                <div className="flex items-center space-x-2 text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                    <Building2 className="w-4 h-4 text-slate-400" />
+                                                    <span>{b.bank_name}</span>
+                                                </div>
+                                                <div className="pl-6 text-xs text-slate-500 dark:text-slate-400 font-mono">
+                                                    {b.account_number}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-400 font-mono">
                                             {b.customer_id}
                                         </td>
-                                        <td className="px-6 py-4 text-slate-500 dark:text-slate-400">
-                                            {new Date(b.created_at).toLocaleDateString()}
+                                        <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-400">
+                                            <div className="flex items-center space-x-2">
+                                                <Calendar className="w-4 h-4 text-slate-400" />
+                                                <span>{new Date(b.created_at).toLocaleDateString()}</span>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -109,8 +125,8 @@ export default function BeneficiariesPage() {
                     )}
                 </div>
                 {!loading && filteredBeneficiaries.length === 0 && (
-                    <div className="p-8 text-center text-slate-500 dark:text-slate-400">
-                        No beneficiaries found.
+                    <div className="p-12 text-center text-slate-500 dark:text-slate-400">
+                        No beneficiaries found matching your search.
                     </div>
                 )}
             </div>

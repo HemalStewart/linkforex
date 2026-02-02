@@ -15,6 +15,7 @@ import {
     BarChart,
     Bar
 } from 'recharts';
+import { ArrowRightLeft, Users, ShieldCheck, Coins } from 'lucide-react';
 import { ENDPOINTS } from '../../lib/api';
 
 // Demo Data Removed - using real data from API
@@ -178,13 +179,13 @@ export default function DashboardPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-gradient-blue">
+                    <h1 className="text-3xl font-bold text-gradient-blue tracking-tight">
                         Dashboard
                     </h1>
                     <p className="text-slate-600 dark:text-slate-400 mt-2 font-medium">Overview of your transaction activities.</p>
                 </div>
                 <div className="flex items-center space-x-3">
-                    <select className="glass-effect px-4 py-2.5 text-sm rounded-xl outline-none cursor-pointer font-semibold text-slate-700 dark:text-slate-300 hover:shadow-lg transition-all duration-300">
+                    <select className="glass-effect px-5 py-3 text-sm rounded-2xl outline-none cursor-pointer font-semibold text-slate-700 dark:text-slate-300 hover:shadow-lg transition-all duration-300 border-0">
                         <option>Last 7 Days</option>
                         <option>Last 30 Days</option>
                         <option>This Month</option>
@@ -200,60 +201,44 @@ export default function DashboardPage() {
                         value: stats.totalTransfers.toLocaleString(),
                         change: '+12.5%',
                         trend: 'up',
-                        icon: (
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                            </svg>
-                        )
+                        icon: <ArrowRightLeft className="w-6 h-6" />
                     },
                     {
                         label: 'Active Users',
                         value: stats.activeUsers.toLocaleString(),
                         change: '+5.2%',
                         trend: 'up',
-                        icon: (
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                            </svg>
-                        )
+                        icon: <Users className="w-6 h-6" />
                     },
                     {
                         label: 'Pending KYC',
                         value: stats.pendingKYC.toLocaleString(),
                         change: '-2.4%',
                         trend: 'down',
-                        icon: (
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                        )
+                        icon: <ShieldCheck className="w-6 h-6" />
                     },
                     {
                         label: 'Total Revenue',
                         value: `£${stats.totalRevenue.toLocaleString()}`,
                         change: '+18.3%',
                         trend: 'up',
-                        icon: (
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        )
+                        icon: <Coins className="w-6 h-6" />
                     },
                 ].map((stat, index) => (
-                    <div key={index} className="card-glass p-6 stagger-item" style={{ animationDelay: `${index * 0.1}s` }}>
+                    <div key={index} className="card-glass p-6 stagger-item hover:scale-[1.02]" style={{ animationDelay: `${index * 0.1}s` }}>
                         <div className="flex justify-between items-start mb-4">
-                            <div className="w-12 h-12 rounded-xl bg-blue-gradient flex items-center justify-center text-white shadow-lg">
+                            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-white shadow-lg shadow-cyan-500/20">
                                 {stat.icon}
                             </div>
-                            <span className={`badge-glass font-bold ${stat.trend === 'up'
-                                ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/50 dark:text-emerald-400'
-                                : 'bg-amber-100 text-amber-600 dark:bg-amber-900/50 dark:text-amber-400'
+                            <span className={`badge-glass font-bold px-3 py-1 ${stat.trend === 'up'
+                                ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400'
+                                : 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400'
                                 }`}>
                                 {stat.change}
                             </span>
                         </div>
-                        <p className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2">{stat.label}</p>
-                        <h3 className="text-3xl font-extrabold text-gradient-blue tracking-tight">
+                        <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-1">{stat.label}</p>
+                        <h3 className="text-3xl font-black text-slate-800 dark:text-white tracking-tight">
                             {stat.value}
                         </h3>
                     </div>
@@ -384,30 +369,30 @@ export default function DashboardPage() {
 
                 {/* Recent Activity List (Simplified) */}
                 <div className="card-glass overflow-hidden">
-                    <div className="p-6 border-b border-sky-200/50 dark:border-sky-800/50 flex justify-between items-center">
+                    <div className="p-6 border-b border-white/20 dark:border-slate-700/50 flex justify-between items-center">
                         <h2 className="text-xl font-extrabold text-gradient-blue tracking-tight">Recent Activity</h2>
-                        <button className="text-sm text-sky-600 dark:text-sky-400 font-bold hover:text-sky-700 dark:hover:text-sky-300 transition-colors">View All →</button>
+                        <button className="text-sm text-cyan-600 dark:text-cyan-400 font-bold hover:text-cyan-700 dark:hover:text-cyan-300 transition-colors">View All →</button>
                     </div>
                     <div className="p-0">
                         {recentActivity.length > 0 ? recentActivity.map((activity) => (
-                            <div key={activity.id} className="flex items-center justify-between p-4 border-b border-slate-100/60 dark:border-slate-700/60 last:border-0 hover:bg-slate-50/50 dark:hover:bg-slate-700/50 transition-colors">
+                            <div key={activity.id} className="flex items-center justify-between p-5 border-b border-gray-100/50 dark:border-slate-800/50 last:border-0 hover:bg-white/40 dark:hover:bg-slate-700/40 transition-colors">
                                 <div className="flex items-center space-x-4">
-                                    <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold text-xs ring-2 ring-white dark:ring-slate-800">
+                                    <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold text-sm ring-2 ring-white dark:ring-slate-800 shadow-sm">
                                         {activity.customerInitials}
                                     </div>
                                     <div>
-                                        <p className="text-sm font-semibold text-slate-900 dark:text-white">{activity.customerName}</p>
-                                        <p className="text-xs text-slate-500 font-medium">Sent £{parseFloat(activity.source_amount || 0).toLocaleString()}</p>
+                                        <p className="text-sm font-bold text-slate-900 dark:text-white">{activity.customerName}</p>
+                                        <p className="text-xs text-slate-500 font-medium mt-0.5">Sent £{parseFloat(activity.source_amount || 0).toLocaleString()}</p>
                                     </div>
                                 </div>
-                                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${activity.status === 'completed' ? 'text-emerald-700 bg-emerald-50 border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800/30' :
-                                    activity.status === 'in_transit' ? 'text-blue-700 bg-blue-50 border-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800/30' :
-                                        activity.status === 'pending' ? 'text-amber-700 bg-amber-50 border-amber-100 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800/30' :
-                                            'text-slate-600 bg-slate-50 border-slate-100 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
+                                <span className={`badge-glass px-3 py-1 rounded-full uppercase tracking-wider text-[10px] font-extrabold ${activity.status === 'completed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                                    activity.status === 'in_transit' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                                        activity.status === 'pending' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
+                                            'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
                                     }`}>
                                     {activity.status === 'in_transit' ? 'In Transit' :
                                         activity.status === 'in_review' ? 'In Review' :
-                                            activity.status.charAt(0).toUpperCase() + activity.status.slice(1)}
+                                            activity.status}
                                 </span>
                             </div>
                         )) : (

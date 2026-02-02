@@ -1,9 +1,10 @@
 'use client';
 
 import React from 'react';
-
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
+import { Mail, Lock, Loader2, Github, Chrome, Check } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -53,14 +54,14 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden bg-slate-50 dark:bg-slate-900">
       {/* Animated Gradient Background */}
-      <div className="fixed inset-0 bg-gradient-to-br from-blue-50 via-sky-100 to-slate-100 dark:from-slate-950 dark:via-blue-950 dark:to-slate-900 -z-10"></div>
+      <div className="fixed inset-0 bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-cyan-950 -z-10"></div>
 
       {/* Floating Orbs Animation */}
-      <div className="fixed inset-0 overflow-hidden -z-5 opacity-30">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-sky-400/20 dark:bg-sky-500/10 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-400/20 dark:bg-blue-500/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }}></div>
+      <div className="fixed inset-0 overflow-hidden -z-5 opacity-40 mix-blend-multiply dark:mix-blend-soft-light pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-300 dark:bg-cyan-500/20 rounded-full blur-[100px] animate-float"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-300 dark:bg-blue-500/20 rounded-full blur-[100px] animate-float" style={{ animationDelay: '2s' }}></div>
       </div>
 
       {/* Login Card */}
@@ -68,59 +69,75 @@ export default function AdminLoginPage() {
 
         {/* Logo & Branding */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center mb-6">
-            <img src="/logo-removebg-preview.png" alt="LinkForex" className="h-14 object-contain" />
+          <div className="inline-flex items-center justify-center mb-6 relative">
+            <div className="absolute inset-0 bg-cyan-500 blur-2xl opacity-20 dark:opacity-40 rounded-full"></div>
+            <img src="/logo-removebg-preview.png" alt="LinkForex" className="h-16 object-contain relative z-10 drop-shadow-sm" />
           </div>
-          <p className="text-slate-600 dark:text-slate-400 font-medium">Sign in to your account</p>
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-2">Welcome Back</h2>
+          <p className="text-slate-500 dark:text-slate-400 font-medium">Sign in to your dashboard to continue</p>
         </div>
 
         {/* Card Container */}
-        <div className="glass-effect-strong rounded-2xl shadow-2xl p-8 border border-white/40 dark:border-slate-600/40 hover-lift">
-          <form className="space-y-5" onSubmit={handleLogin}>
+        <div className="glass-effect-strong rounded-[2.5rem] shadow-2xl p-8 border border-white/60 dark:border-slate-700/60 hover-lift backdrop-blur-3xl">
+          <form className="space-y-6" onSubmit={handleLogin}>
             {/* Email Input */}
             <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-bold text-slate-800 dark:text-slate-200">
+              <label htmlFor="email" className="block text-sm font-bold text-slate-700 dark:text-slate-200 ml-1">
                 Email Address
               </label>
-              <input
-                id="email"
-                type="email"
-                name="email"
-                placeholder="admin@linkforex.com"
-                className="input-glass w-full px-4 py-3 text-sm font-medium"
-                autoComplete="email"
-                required
-              />
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Mail className="w-5 h-5 text-slate-400 group-focus-within:text-cyan-500 transition-colors" />
+                </div>
+                <input
+                  id="email"
+                  type="email"
+                  name="email"
+                  placeholder="admin@linkforex.com"
+                  className="input-glass w-full pl-11 py-3.5 text-base font-medium shadow-inner"
+                  autoComplete="email"
+                  required
+                />
+              </div>
             </div>
 
             {/* Password Input */}
             <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-bold text-slate-800 dark:text-slate-200">
+              <label htmlFor="password" className="block text-sm font-bold text-slate-700 dark:text-slate-200 ml-1">
                 Password
               </label>
-              <input
-                id="password"
-                type="password"
-                name="password"
-                placeholder="••••••••"
-                className="input-glass w-full px-4 py-3 text-sm font-medium"
-                autoComplete="current-password"
-                required
-              />
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Lock className="w-5 h-5 text-slate-400 group-focus-within:text-cyan-500 transition-colors" />
+                </div>
+                <input
+                  id="password"
+                  type="password"
+                  name="password"
+                  placeholder="••••••••"
+                  className="input-glass w-full pl-11 py-3.5 text-base font-medium shadow-inner"
+                  autoComplete="current-password"
+                  required
+                />
+              </div>
             </div>
 
             {/* Remember Me & Forgot Password */}
-            <div className="flex items-center justify-between pt-1">
-              <label className="flex items-center space-x-2 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 rounded border-sky-300 dark:border-sky-600 text-sky-500 focus:ring-sky-500 cursor-pointer transition-all"
-                />
-                <span className="text-sm font-medium text-slate-600 dark:text-slate-400 group-hover:text-sky-500 transition-colors">
+            <div className="flex items-center justify-between pt-1 px-1">
+              <label className="flex items-center space-x-2.5 cursor-pointer group">
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    className="peer sr-only"
+                  />
+                  <div className="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-white/50 dark:bg-slate-800/50 peer-checked:bg-cyan-500 peer-checked:border-cyan-500 transition-all"></div>
+                  <Check className="w-3.5 h-3.5 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" strokeWidth={3} />
+                </div>
+                <span className="text-sm font-bold text-slate-600 dark:text-slate-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
                   Remember me
                 </span>
               </label>
-              <a href="#" className="text-sm font-bold text-sky-500 hover:text-sky-600 dark:hover:text-sky-400 transition-colors">
+              <a href="#" className="text-sm font-bold text-cyan-600 hover:text-cyan-700 dark:text-cyan-400 dark:hover:text-cyan-300 transition-colors">
                 Forgot password?
               </a>
             </div>
@@ -129,14 +146,11 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full py-3 text-base font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-primary w-full py-3.5 text-base font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40"
             >
               {loading ? (
                 <span className="flex items-center justify-center space-x-2">
-                  <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
+                  <Loader2 className="animate-spin h-5 w-5 text-white" />
                   <span>Signing in...</span>
                 </span>
               ) : 'Sign In'}
@@ -144,12 +158,12 @@ export default function AdminLoginPage() {
           </form>
 
           {/* Divider */}
-          <div className="relative my-6">
+          <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-sky-200 dark:border-sky-800"></div>
+              <div className="w-full border-t border-slate-200 dark:border-slate-700/50"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 glass-effect rounded-full py-1 text-slate-600 dark:text-slate-400 font-medium">
+              <span className="px-4 glass-effect rounded-full py-1 text-slate-500 dark:text-slate-400 font-bold text-xs uppercase tracking-wide">
                 Or continue with
               </span>
             </div>
@@ -159,30 +173,23 @@ export default function AdminLoginPage() {
           <div className="grid grid-cols-2 gap-4">
             <button
               type="button"
-              className="glass-effect flex items-center justify-center space-x-2 py-3 rounded-xl font-semibold text-slate-700 dark:text-slate-300 hover:shadow-lg transition-all duration-300 hover-lift group"
+              className="glass-effect flex items-center justify-center space-x-2 py-3 rounded-2xl font-bold text-slate-700 dark:text-slate-300 hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] group bg-white/40 dark:bg-slate-800/40 border-0"
             >
-              <svg className="w-5 h-5 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-              </svg>
+              <Chrome className="w-5 h-5 group-hover:text-red-500 transition-colors" />
               <span>Google</span>
             </button>
             <button
               type="button"
-              className="glass-effect flex items-center justify-center space-x-2 py-3 rounded-xl font-semibold text-slate-700 dark:text-slate-300 hover:shadow-lg transition-all duration-300 hover-lift group"
+              className="glass-effect flex items-center justify-center space-x-2 py-3 rounded-2xl font-bold text-slate-700 dark:text-slate-300 hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] group bg-white/40 dark:bg-slate-800/40 border-0"
             >
-              <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-              </svg>
+              <Github className="w-5 h-5 group-hover:text-black dark:group-hover:text-white transition-colors" />
               <span>GitHub</span>
             </button>
           </div>
         </div>
 
         {/* Footer */}
-        <p className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400 animate-fade-in">
+        <p className="mt-8 text-center text-xs font-semibold text-slate-400 dark:text-slate-500 animate-fade-in">
           © 2026 LinkForex. Protected by 256-bit encryption.
         </p>
       </div>

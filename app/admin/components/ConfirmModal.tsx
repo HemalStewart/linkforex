@@ -11,7 +11,7 @@ interface ConfirmModalProps {
     message: string;
     confirmText?: string;
     cancelText?: string;
-    type?: 'danger' | 'warning' | 'info';
+    type?: 'danger' | 'warning' | 'info' | 'success';
     loading?: boolean;
     isAlert?: boolean;
 }
@@ -29,15 +29,16 @@ export default function ConfirmModal({
     isAlert = false
 }: ConfirmModalProps) {
     const buttonStyles = {
-        danger: 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg hover:shadow-red-500/50 transition-all duration-300',
-        warning: 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-lg hover:shadow-amber-500/50 transition-all duration-300',
-        info: 'bg-blue-gradient text-white shadow-lg hover:shadow-sky-500/50 transition-all duration-300 hover-lift',
+        danger: 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg hover:shadow-red-500/50 transition-all duration-300 hover-lift',
+        warning: 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-lg hover:shadow-amber-500/50 transition-all duration-300 hover-lift',
+        info: 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white shadow-lg hover:shadow-cyan-500/50 transition-all duration-300 hover-lift',
+        success: 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-emerald-500/50 transition-all duration-300 hover-lift',
     };
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm">
-            <div className="space-y-4">
-                <p className="text-sm text-slate-500 dark:text-slate-400">
+            <div className="space-y-6 p-2">
+                <p className="text-base font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
                     {message}
                 </p>
                 <div className="flex justify-end gap-3 mt-6">
@@ -46,7 +47,7 @@ export default function ConfirmModal({
                             type="button"
                             onClick={onClose}
                             disabled={loading}
-                            className="px-5 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 glass-effect hover:shadow-md transition-all duration-300 rounded-xl"
+                            className="px-6 py-3 text-sm font-bold text-slate-600 dark:text-slate-300 bg-white/50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600 rounded-2xl transition-all duration-300"
                         >
                             {cancelText}
                         </button>
@@ -55,7 +56,7 @@ export default function ConfirmModal({
                         type="button"
                         onClick={onConfirm}
                         disabled={loading}
-                        className={`inline-flex justify-center px-5 py-2.5 text-sm font-semibold border-0 rounded-xl focus:outline-none shadow-lg transition-all duration-300 ${buttonStyles[type] || buttonStyles.info} ${loading ? 'opacity-70 cursor-not-allowed' : 'hover-lift'}`}
+                        className={`inline-flex justify-center px-6 py-3 text-sm font-bold border-0 rounded-2xl focus:outline-none shadow-lg transition-all duration-300 ${buttonStyles[type as keyof typeof buttonStyles] || buttonStyles.info} ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
                     >
                         {loading ? (
                             <>

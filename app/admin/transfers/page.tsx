@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
+import { PlusCircle, Search, Eye, Filter } from 'lucide-react';
 
 export default function TransfersPage() {
     const [filterStatus, setFilterStatus] = useState('all');
@@ -39,8 +40,6 @@ export default function TransfersPage() {
         }
     };
 
-
-
     const statusConfig = {
         all: { label: 'All', count: transfers.length },
         pending: { label: 'Pending', count: transfers.filter(t => t.status === 'pending').length },
@@ -51,10 +50,10 @@ export default function TransfersPage() {
 
     const getStatusBadge = (status: string) => {
         const styles: Record<string, string> = {
-            completed: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800',
-            in_transit: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800',
-            pending: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800',
-            in_review: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800',
+            completed: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
+            in_transit: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',
+            pending: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
+            in_review: 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400',
         };
         return styles[status] || styles.pending;
     };
@@ -72,52 +71,53 @@ export default function TransfersPage() {
     });
 
     if (loading) {
-        return <div className="max-w-7xl mx-auto p-8 text-center">Loading transfers...</div>;
+        return <div className="max-w-7xl mx-auto p-8 text-center text-slate-500 animate-pulse">Loading transfers...</div>;
     }
 
     return (
-        <div className="max-w-7xl mx-auto space-y-6">
+        <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-up">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Transfers</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">Manage and track all money transfers</p>
+                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Transfers</h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Manage and track all money transfers</p>
                 </div>
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-4">
                     {/* Role Simulation for Demo */}
-                    <select
-                        value={userRole}
-                        onChange={(e) => setUserRole(e.target.value)}
-                        className="px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
-                    >
-                        <option value="admin">View as: Super Admin (All)</option>
-                        <option value="branch_user">View as: Branch Manager (London)</option>
-                    </select>
+                    <div className="relative">
+                        <select
+                            value={userRole}
+                            onChange={(e) => setUserRole(e.target.value)}
+                            className="glass-effect appearance-none pl-6 pr-10 py-3 border-0 rounded-full text-sm outline-none font-semibold text-slate-600 focus:ring-2 focus:ring-cyan-500/50 cursor-pointer hover:bg-white/40 transition-colors"
+                        >
+                            <option value="admin">View as: Super Admin (All)</option>
+                            <option value="branch_user">View as: Branch Manager (London)</option>
+                        </select>
+                        {/* Custom arrow could be added here if needed, but browser default is hidden with appearance-none usually requiring custom one. For now keeping simple but rounded-full. */}
+                    </div>
 
-                    <Link href="/admin/transfers/create" className="px-4 py-2 rounded-lg bg-slate-900 text-white font-medium hover:bg-slate-800 transition-colors inline-flex items-center space-x-2">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
+                    <Link href="/admin/transfers/create" className="btn-primary flex items-center space-x-2 shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40 rounded-full px-6">
+                        <PlusCircle className="w-5 h-5" />
                         <span>New Transfer</span>
                     </Link>
                 </div>
             </div>
 
             {/* Status Filters */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700  p-1">
-                <div className="flex items-center space-x-1 overflow-x-auto">
+            <div className="card-glass p-1.5 rounded-full inline-flex flex-wrap w-full md:w-auto overflow-hidden">
+                <div className="flex items-center space-x-1 overflow-x-auto no-scrollbar w-full">
                     {Object.entries(statusConfig).map(([key, config]) => (
                         <button
                             key={key}
                             onClick={() => setFilterStatus(key)}
-                            className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${filterStatus === key
-                                ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white'
-                                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                            className={`px-5 py-3 rounded-full font-bold text-sm whitespace-nowrap transition-all duration-300 ${filterStatus === key
+                                ? 'bg-white shadow-md text-cyan-600 dark:bg-slate-700 dark:text-white'
+                                : 'text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-800/50 hover:text-cyan-600'
                                 }`}
                         >
                             <span className="flex items-center space-x-2">
                                 <span>{config.label}</span>
-                                <span className="px-1.5 py-0.5 rounded-full text-xs font-semibold bg-slate-200 dark:bg-slate-600">
+                                <span className={`px-1.5 py-0.5 rounded-full text-xs font-bold ${filterStatus === key ? 'bg-cyan-100 text-cyan-700 dark:bg-slate-600 dark:text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}`}>
                                     {config.count}
                                 </span>
                             </span>
@@ -127,69 +127,65 @@ export default function TransfersPage() {
             </div>
 
             {/* Search */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4">
+            <div className="relative group">
+                <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-cyan-500 transition-colors">
+                    <Search className="w-5 h-5" />
+                </span>
                 <input
                     type="search"
-                    placeholder="Search transfers..."
+                    placeholder="Search transfers by ID or Remitter..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg"
+                    className="input-glass w-full pl-12 py-3 text-base shadow-sm hover:shadow-md transition-shadow"
                 />
             </div>
 
             {/* Table */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div className="card-glass overflow-hidden rounded-[2rem] shadow-xl">
                 <table className="w-full">
-                    <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
+                    <thead className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-gray-100 dark:border-slate-700">
                         <tr>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Details</th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Amount (GBP)</th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Payout (PKR)</th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Rate</th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Status</th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Date</th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Actions</th>
+                            <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Details</th>
+                            <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Amount (GBP)</th>
+                            <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Payout (PKR)</th>
+                            <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Rate</th>
+                            <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
+                            <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Date</th>
+                            <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                    <tbody className="divide-y divide-gray-100 dark:divide-slate-700/50">
                         {filteredTransfers.map((transfer) => (
-                            <tr key={transfer.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                <td className="px-6 py-4">
+                            <tr key={transfer.id} className="hover:bg-blue-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
+                                <td className="px-8 py-5">
                                     <div className="flex flex-col">
-                                        <span className="font-mono text-sm text-slate-500">{transfer.id}</span>
-                                        <div className="flex items-center space-x-2 mt-1">
+                                        <span className="font-mono text-sm font-bold text-slate-700 dark:text-slate-300">{transfer.id}</span>
+                                        <div className="flex items-center space-x-2 mt-1.5">
                                             {/* Channel Icon */}
-                                            <span title={`Channel: ${transfer.type}`} className="text-xs px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400">
-                                                {transfer.type === 'mobile' ? '📱 App' : transfer.type === 'online' ? '🌐 Web' : '🏦 Branch'}
+                                            <span title={`Channel: ${transfer.type}`} className="badge-glass text-[10px] px-2 py-0.5 text-slate-500">
+                                                {transfer.type === 'mobile' ? 'APP' : transfer.type === 'online' ? 'WEB' : 'BRANCH'}
                                             </span>
-                                            {/* Collection Icon */}
-                                            {transfer.collection_method === 'card' && <span title="Paid via Card">💳</span>}
-                                            {transfer.collection_method === 'cash' && <span title="Paid via Cash">💵</span>}
-                                            {transfer.collection_method === 'bank_transfer' && <span title="Paid via Bank">🏦</span>}
                                         </div>
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 font-bold text-slate-900 dark:text-white">£{parseFloat(transfer.source_amount).toFixed(2)}</td>
-                                <td className="px-6 py-4 text-emerald-600 dark:text-emerald-400">PKR {parseFloat(transfer.dest_amount).toFixed(2)}</td>
-                                <td className="px-6 py-4 text-slate-700 dark:text-slate-300">{transfer.rate}</td>
-                                <td className="px-6 py-4">
-                                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadge(transfer.status)}`}>
+                                <td className="px-8 py-5 font-bold text-slate-900 dark:text-white">£{parseFloat(transfer.source_amount).toFixed(2)}</td>
+                                <td className="px-8 py-5 text-emerald-600 dark:text-emerald-400 font-bold">PKR {parseFloat(transfer.dest_amount).toFixed(2)}</td>
+                                <td className="px-8 py-5 text-slate-600 dark:text-slate-400 font-medium">{transfer.rate}</td>
+                                <td className="px-8 py-5">
+                                    <span className={`badge-glass px-3 py-1 rounded-full uppercase tracking-wider text-[10px] font-extrabold ${getStatusBadge(transfer.status)}`}>
                                         {formatStatus(transfer.status)}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 text-sm text-slate-500">
+                                <td className="px-8 py-5 text-sm text-slate-500 font-medium">
                                     {new Date(transfer.created_at).toLocaleDateString()}
                                 </td>
-                                <td className="px-6 py-4">
+                                <td className="px-8 py-5">
                                     <Link
                                         href={`/admin/transfers/${transfer.id}`}
-                                        className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors inline-flex"
+                                        className="p-2 rounded-full hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-cyan-600 transition-all inline-flex"
                                         title="View & Process"
                                     >
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                        </svg>
+                                        <Eye className="w-5 h-5" />
                                     </Link>
                                 </td>
                             </tr>
@@ -197,8 +193,8 @@ export default function TransfersPage() {
                     </tbody>
                 </table>
                 {filteredTransfers.length === 0 && (
-                    <div className="p-8 text-center text-slate-500">
-                        No transfers found
+                    <div className="p-16 text-center text-slate-500 font-medium">
+                        No transfers found matching your filters.
                     </div>
                 )}
             </div>
