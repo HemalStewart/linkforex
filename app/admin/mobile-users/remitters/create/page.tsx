@@ -7,17 +7,17 @@ import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../../components/ConfirmModal';
 import {
     User, Calendar, MapPin, Briefcase, Phone, Building, CreditCard,
-    Globe, FileText, Upload, Trash2, Plus, ArrowLeft, ArrowRight,
-    CheckSquare, Shield, CheckCircle, AlertTriangle, Layers, Users
+    Globe, FileText, Upload, Trash2, Plus, ArrowLeft,
+    CheckCircle, Shield, Layers, Save, Users
 } from 'lucide-react';
 
 // --- HELPER COMPONENTS (Reused) ---
 
-function FormInput({ label, name, type = 'text', placeholder, disabled, step, defaultValue, required, Icon }: any) {
+function FormInput({ label, name, type = 'text', placeholder, disabled, step, defaultValue, required, Icon, value, onChange }: any) {
     return (
         <div className="w-full">
             <label htmlFor={name} className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
-                {label}
+                {label} {required && <span className="text-red-500">*</span>}
             </label>
             <div className="relative">
                 {Icon && (
@@ -32,6 +32,8 @@ function FormInput({ label, name, type = 'text', placeholder, disabled, step, de
                     disabled={disabled}
                     step={step}
                     defaultValue={defaultValue}
+                    value={value}
+                    onChange={onChange}
                     required={required}
                     className={`input-glass w-full py-3 ${Icon ? 'pl-12' : 'pl-4'} pr-4 text-sm focus:scale-[1.01] transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed`}
                     placeholder={placeholder}
@@ -41,11 +43,11 @@ function FormInput({ label, name, type = 'text', placeholder, disabled, step, de
     );
 }
 
-function FormSelect({ label, name, options, defaultValue, Icon }: any) {
+function FormSelect({ label, name, options, defaultValue, Icon, required }: any) {
     return (
         <div className="w-full">
             <label htmlFor={name} className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
-                {label}
+                {label} {required && <span className="text-red-500">*</span>}
             </label>
             <div className="relative">
                 {Icon && (
@@ -57,7 +59,8 @@ function FormSelect({ label, name, options, defaultValue, Icon }: any) {
                     id={name}
                     name={name}
                     defaultValue={defaultValue}
-                    className={`input-glass w-full py-3 ${Icon ? 'pl-12' : 'pl-4'} pr-10 text-sm appearance-none focus:scale-[1.01] transition-all duration-300 cursor-pointer`}
+                    required={required}
+                    className={`input-glass w-full py-3 ${Icon ? 'pl-12' : 'pl-4'} pr-10 appearance-none cursor-pointer text-sm`}
                 >
                     {options.map((opt: string) => (
                         <option key={opt} value={opt}>{opt}</option>
@@ -77,33 +80,20 @@ function FormFileUpload({ label, name, compact, defaultValue }: any) {
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
                 {label}
             </label>
-            <div className={`
-                relative overflow-hidden group
-                border-2 border-dashed border-slate-300 dark:border-slate-600 
-                rounded-2xl ${compact ? 'px-4 py-3' : 'px-6 py-8'}
-                bg-slate-50/50 dark:bg-slate-800/50 
-                hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 hover:border-indigo-400 dark:hover:border-indigo-500
-                transition-all duration-300 cursor-pointer text-center
-            `}>
-                <div className="flex flex-col items-center justify-center relative z-10">
+            <div className={`border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-2xl ${compact ? 'px-3 py-3' : 'px-4 py-8'} bg-slate-50/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800 transition-all duration-300 cursor-pointer text-center relative max-w-full overflow-hidden group hover:border-indigo-400 dark:hover:border-indigo-500`}>
+                <div className="flex flex-col items-center justify-center">
                     {!compact && (
-                        <div className="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
-                            <Upload className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                        <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+                            <Upload className="w-6 h-6 text-slate-400 group-hover:text-indigo-500 transition-colors" />
                         </div>
                     )}
-                    <span className="text-sm font-medium text-slate-600 dark:text-slate-400 truncate w-full px-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 truncate w-full px-2">
                         {defaultValue ? (
-                            <span className="text-indigo-600 dark:text-indigo-400 font-bold flex items-center justify-center">
-                                <FileText className="w-4 h-4 mr-1" />
-                                {defaultValue}
+                            <span className="text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-1">
+                                <CheckCircle className="w-3 h-3" /> {defaultValue}
                             </span>
                         ) : (
-                            compact ? (
-                                <span className="flex items-center justify-center">
-                                    <Upload className="w-4 h-4 mr-2" />
-                                    <span>Upload File</span>
-                                </span>
-                            ) : 'Click to upload or drag and drop'
+                            <span className="group-hover:text-indigo-500 transition-colors">{compact ? 'Upload' : 'Click to upload'}</span>
                         )}
                     </span>
                     <input type="file" name={name} className="absolute inset-0 opacity-0 cursor-pointer" />
@@ -113,33 +103,12 @@ function FormFileUpload({ label, name, compact, defaultValue }: any) {
     );
 }
 
-function DocumentRow({ label, name }: any) {
-    return (
-        <div className="flex items-center space-x-2 md:space-x-4 py-2 border-b border-slate-100 dark:border-slate-700/50 last:border-0">
-            <div className="w-1/3 min-w-[120px]">
-                <span className="text-sm font-bold text-slate-700 dark:text-slate-300 truncate block flex items-center">
-                    <FileText className="w-4 h-4 mr-2 text-slate-400" />
-                    {label}
-                </span>
-            </div>
-            <div className="flex-1 flex items-center space-x-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg p-1.5 pl-3">
-                <span className="text-xs text-slate-400 dark:text-slate-500 flex-1 truncate font-mono">No file selected</span>
-                <label className="px-3 py-1.5 text-xs font-bold bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-md hover:bg-indigo-50 dark:hover:bg-slate-600 transition-colors cursor-pointer border border-slate-200 dark:border-slate-600 shadow-sm flex items-center">
-                    Browse
-                    <input type="file" name={name} className="hidden" />
-                </label>
-            </div>
-        </div>
-    );
-}
-
-export default function CreateRemitterPage() {
+export default function CreateMobileUserRemitterPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const returnUrl = searchParams.get('returnUrl');
 
     const [clientType, setClientType] = useState<'individual' | 'business'>('individual');
-    const [activeTab, setActiveTab] = useState('general');
     const [branches, setBranches] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
 
@@ -203,59 +172,6 @@ export default function CreateRemitterPage() {
         setDirectors(updated);
     };
 
-    const tabs = [
-        { id: 'general', label: 'General Details' },
-        ...(clientType === 'business' ? [{ id: 'directors', label: 'Directors' }] : []),
-        { id: 'kyc', label: 'KYC Documents' },
-        { id: 'receivers', label: 'Beneficiaries' },
-    ];
-
-    const currentTabIndex = tabs.findIndex(t => t.id === activeTab);
-    const isLastTab = currentTabIndex === tabs.length - 1;
-    const isFirstTab = currentTabIndex === 0;
-
-    const handleNext = () => {
-        // Validation logic based on activeTab
-        if (activeTab === 'general') {
-            // Basic validation - check required fields via HTML5 validity or ref refs would be better
-            // For now, allow simple pass, real validation happens on submit or we can add specific checks here
-            const form = document.getElementById('createSenderForm') as HTMLFormElement;
-            if (!form.checkValidity()) {
-                form.reportValidity();
-                return;
-            }
-        }
-
-        if (activeTab === 'directors') {
-            if (directors.length === 0 || !directors[0].name) {
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Validation Error',
-                    message: 'Business clients must have at least one director.',
-                    type: 'warning',
-                    isAlert: true,
-                    shouldRedirect: false,
-                    redirectUrl: ''
-                });
-                return;
-            }
-        }
-
-        if (currentTabIndex < tabs.length - 1) {
-            setActiveTab(tabs[currentTabIndex + 1].id);
-            window.scrollTo(0, 0);
-        }
-    };
-
-    const handleBack = () => {
-        if (currentTabIndex > 0) {
-            setActiveTab(tabs[currentTabIndex - 1].id);
-            window.scrollTo(0, 0);
-        } else {
-            router.back();
-        }
-    };
-
     React.useEffect(() => {
         const fetchBranches = async () => {
             try {
@@ -285,7 +201,6 @@ export default function CreateRemitterPage() {
                 shouldRedirect: false,
                 redirectUrl: ''
             });
-            setActiveTab('receivers');
             return;
         }
 
@@ -300,7 +215,6 @@ export default function CreateRemitterPage() {
                 shouldRedirect: false,
                 redirectUrl: ''
             });
-            setActiveTab('directors');
             return;
         }
 
@@ -319,6 +233,10 @@ export default function CreateRemitterPage() {
             role: 'customer',
             name: clientType === 'business' ? data.company_name : data.sender_name,
             phone: data.telephone,
+
+            // Note: Registration source for mobile users might be implied or managed differently 
+            // but this is administrative creation of a mobile user essentially
+            registration_source: 'mobile_app',
 
             // Individual Fields
             dob: clientType === 'business' ? null : data.date_of_birth,
@@ -409,16 +327,14 @@ export default function CreateRemitterPage() {
 
             await Promise.all(receiverPromises);
 
-            await Promise.all(receiverPromises);
-
             setConfirmModal({
                 isOpen: true,
                 title: 'Success',
-                message: `New ${clientType === 'business' ? 'Business' : 'Individual'} Remitter Created Successfully!`,
+                message: `New Mobile ${clientType === 'business' ? 'Business' : 'Individual'} Remitter Created Successfully!`,
                 type: 'info',
                 isAlert: true,
                 shouldRedirect: true,
-                redirectUrl: returnUrl ? `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newRemitterId=${remitterId}` : '/admin/remitters'
+                redirectUrl: returnUrl ? `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newRemitterId=${remitterId}` : '/admin/mobile-users/remitters'
             });
 
         } catch (error) {
@@ -445,553 +361,246 @@ export default function CreateRemitterPage() {
     };
 
     return (
-        <div className="w-full px-6 md:px-12 pb-20 animate-fade-in relative z-10">
-            {/* Background Decorations */}
-            <div className="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
-                <div className="absolute top-[10%] left-[5%] w-[500px] h-[500px] bg-blue-400/10 rounded-full blur-[100px]"></div>
-                <div className="absolute bottom-[10%] right-[5%] w-[500px] h-[500px] bg-purple-400/10 rounded-full blur-[100px]"></div>
-            </div>
-
-            <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <nav className="flex items-center text-sm text-slate-500 mb-2">
-                        <Link href="/admin/dashboard" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center">
-                            <Layers className="w-3.5 h-3.5 mr-1" />
-                            Dashboard
-                        </Link>
-                        <span className="mx-2 text-slate-300">/</span>
-                        <Link href="/admin/mobile-users" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Mobile Users</Link>
-                        <span className="mx-2 text-slate-300">/</span>
-                        <Link href="/admin/mobile-users/remitters" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Remitters</Link>
-                        <span className="mx-2 text-slate-300">/</span>
-                        <span className="text-slate-900 dark:text-white font-bold bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full text-xs">Add New</span>
-                    </nav>
-                    <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Create Mobile App Remitter</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1 text-lg">Onboard a new mobile app customer manually.</p>
-                </div>
-                <div className="hidden md:block">
-                    {/* Optional header action area */}
-                </div>
-            </div>
-
-            <div className="card-glass rounded-[2rem] shadow-2xl border border-white/20 dark:border-slate-800/50 overflow-hidden relative">
-                {/* Decorative top border */}
-                <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
-
-                {/* Tabs / Steps */}
-                <div className="px-8 pt-8 pb-0 border-b border-slate-100 dark:border-slate-800/50 bg-slate-50/50 dark:bg-slate-900/50">
-                    <div className="flex space-x-2 md:space-x-8 overflow-x-auto pb-6 scrollbar-hide">
-                        {tabs.map((tab, index) => {
-                            const isActive = activeTab === tab.id;
-                            const isCompleted = index < currentTabIndex;
-
-                            return (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => isCompleted ? setActiveTab(tab.id) : null}
-                                    disabled={!isCompleted && !isActive}
-                                    className={`group flex items-center space-x-3 pb-2 border-b-2 transition-all duration-300 whitespace-nowrap min-w-fit px-2 ${isActive
-                                        ? 'border-indigo-600 text-indigo-700 dark:text-indigo-300'
-                                        : isCompleted
-                                            ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400 cursor-pointer hover:bg-emerald-50/50 dark:hover:bg-emerald-900/10 rounded-t-lg'
-                                            : 'border-transparent text-slate-400 dark:text-slate-600 cursor-not-allowed'
-                                        }`}
-                                >
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-500 ${isActive
-                                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30 scale-110'
-                                        : isCompleted
-                                            ? 'bg-emerald-500 text-white shadow-md'
-                                            : 'bg-slate-200 dark:bg-slate-800 text-slate-500'
-                                        }`}>
-                                        {isCompleted ? <CheckCircle className="w-5 h-5" /> : index + 1}
-                                    </div>
-                                    <span className={`text-sm font-bold ${isActive ? 'scale-105' : ''} transition-transform`}>{tab.label}</span>
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                {/* Form Content */}
-                <form id="createSenderForm" onSubmit={handleSubmit} className="p-8 space-y-8">
-                    {/* GENERAL TAB */}
-                    {activeTab === 'general' && (
-                        <div className="space-y-8 animate-fade-in">
-                            {/* Branch Selection Highlight */}
-                            <div className="p-6 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-2xl border border-indigo-100 dark:border-indigo-800/50 grid gap-6">
-                                <div className="w-full">
-                                    <label htmlFor="branch_id" className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
-                                        Branch *
-                                    </label>
-                                    <div className="relative">
-                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-500">
-                                            <Building className="w-5 h-5" />
-                                        </div>
-                                        <select
-                                            id="branch_id"
-                                            name="branch_id"
-                                            className="input-glass w-full pl-12 py-3 pr-10 text-sm appearance-none bg-white/80 dark:bg-slate-900/80 border-indigo-200 dark:border-indigo-800"
-                                        >
-                                            {branches.length > 0 ? branches.map((b: any) => (
-                                                <option key={b.id} value={b.code || b.name}>{b.name} ({b.code})</option>
-                                            )) : <option value="LON001">London - Link Forex Ltd</option>}
-                                        </select>
-                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="flex items-center p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                                    <div className="relative flex items-center justify-center">
-                                        <input
-                                            type="checkbox"
-                                            id="sanction_list_verified"
-                                            name="sanction_list_verified"
-                                            className="peer w-5 h-5 rounded border-2 border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-                                        />
-                                    </div>
-                                    <label htmlFor="sanction_list_verified" className="ml-3 text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer flex items-center">
-                                        <Shield className="w-4 h-4 mr-2 text-emerald-500" />
-                                        Sanction List Verified
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col md:flex-row gap-6 mb-6">
-                                <div className="flex-1">
-                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 ml-1">Client Type</label>
-                                    <div className="flex space-x-4">
-                                        <label className={`flex-1 border-2 rounded-2xl p-4 cursor-pointer transition-all duration-300 relative overflow-hidden group ${clientType === 'individual' ? 'bg-indigo-50/50 border-indigo-500 shadow-lg shadow-indigo-500/10' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'}`}>
-                                            <input type="radio" name="clientType" value="individual" className="sr-only" checked={clientType === 'individual'} onChange={() => setClientType('individual')} />
-                                            {clientType === 'individual' && <div className="absolute top-0 right-0 w-16 h-16 bg-indigo-500/10 rounded-full -mr-8 -mt-8"></div>}
-                                            <div className="flex items-center space-x-4 relative z-10">
-                                                <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-colors ${clientType === 'individual' ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300 text-slate-400'}`}>
-                                                    <User className="w-5 h-5" />
-                                                </div>
-                                                <div className="flex flex-col">
-                                                    <span className={`font-bold text-base ${clientType === 'individual' ? 'text-indigo-900 dark:text-indigo-300' : 'text-slate-700 dark:text-slate-300'}`}>Individual</span>
-                                                    <span className="text-xs text-slate-500">Personal Account</span>
-                                                </div>
-                                                {clientType === 'individual' && <CheckCircle className="w-6 h-6 text-indigo-600 ml-auto" />}
-                                            </div>
-                                        </label>
-                                        <label className={`flex-1 border-2 rounded-2xl p-4 cursor-pointer transition-all duration-300 relative overflow-hidden group ${clientType === 'business' ? 'bg-indigo-50/50 border-indigo-500 shadow-lg shadow-indigo-500/10' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'}`}>
-                                            <input type="radio" name="clientType" value="business" className="sr-only" checked={clientType === 'business'} onChange={() => setClientType('business')} />
-                                            {clientType === 'business' && <div className="absolute top-0 right-0 w-16 h-16 bg-indigo-500/10 rounded-full -mr-8 -mt-8"></div>}
-                                            <div className="flex items-center space-x-4 relative z-10">
-                                                <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-colors ${clientType === 'business' ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300 text-slate-400'}`}>
-                                                    <Building className="w-5 h-5" />
-                                                </div>
-                                                <div className="flex flex-col">
-                                                    <span className={`font-bold text-base ${clientType === 'business' ? 'text-indigo-900 dark:text-indigo-300' : 'text-slate-700 dark:text-slate-300'}`}>Business</span>
-                                                    <span className="text-xs text-slate-500">Corporate Account</span>
-                                                </div>
-                                                {clientType === 'business' && <CheckCircle className="w-6 h-6 text-indigo-600 ml-auto" />}
-                                            </div>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <FormInput label="Sender ID" name="sender_id" placeholder="Auto-generated" disabled defaultValue={'LF3992'} Icon={Shield} />
-
-                                {clientType === 'business' ? (
-                                    <>
-                                        <div className="md:col-span-2">
-                                            <FormInput label="Company Name *" name="company_name" placeholder="Registered Company Name" required Icon={Building} />
-                                        </div>
-                                        <FormSelect label="Company Type *" name="company_type" options={['LTD', 'PLC', 'Sole Trader', 'Partnership', 'LLP']} Icon={Briefcase} />
-                                        <FormInput label="Company Reg No *" name="company_reg_no" placeholder="Registration Number" required Icon={FileText} />
-                                    </>
-                                ) : (
-                                    <>
-                                        <FormInput label="Sender Name *" name="sender_name" placeholder="Full Name" required Icon={User} />
-                                        <FormInput label="Date of Birth *" name="date_of_birth" type="date" required Icon={Calendar} />
-                                        <FormInput label="Place of Birth" name="place_of_birth" placeholder="City, Country" Icon={MapPin} />
-                                        <FormInput label="Occupation" name="occupation" placeholder="e.g. Engineer" Icon={Briefcase} />
-                                    </>
-                                )}
-
-                                <FormInput label="Telephone *" name="telephone" placeholder="+44..." required Icon={Phone} />
-                            </div>
-
-                            <div className="card-glass p-6 rounded-2xl border border-slate-200 dark:border-slate-700/50">
-                                <h3 className="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider mb-6 flex items-center">
-                                    <MapPin className="w-4 h-4 mr-2 text-indigo-500" />
-                                    Address Details
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="md:col-span-2">
-                                        <FormInput label="Address Line 1 *" name="address_1" placeholder="House/Flat Number, Street" Icon={MapPin} />
-                                    </div>
-                                    <div className="md:col-span-2">
-                                        <FormInput label="Address Line 2" name="address_2" placeholder="Locality / Area" Icon={MapPin} />
-                                    </div>
-                                    <FormInput label="City *" name="city" placeholder="e.g. London" Icon={Building} />
-                                    <FormInput label="Postcode *" name="postcode" placeholder="e.g. SW1A 1AA" Icon={MapPin} />
-                                    <FormInput label="County" name="county" Icon={MapPin} />
-                                    <FormInput label="Country *" name="country" defaultValue="United Kingdom" Icon={Globe} />
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* KYC & ID TAB */}
-                    {activeTab === 'kyc' && (
-                        <div className="space-y-8 animate-fade-in">
-                            <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700">
-                                <h3 className="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider mb-6 flex items-center">
-                                    <CreditCard className="w-4 h-4 mr-2 text-indigo-500" />
-                                    Identity Verification
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <FormSelect label="ID Type *" name="id_type" options={['Passport', 'Driving License', 'National ID', 'Residence Permit']} Icon={CreditCard} />
-                                    <FormInput label="ID Number *" name="id_no" Icon={FileText} />
-                                    <FormInput label="ID Expiry Date *" name="id_expire_date" type="date" Icon={Calendar} />
-
-                                    <div className="md:col-span-2 pt-2">
-                                        <div className="flex flex-wrap gap-6 p-5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                                            <div className="flex items-center space-x-3 group cursor-pointer">
-                                                <div className="relative flex items-center justify-center">
-                                                    <input type="checkbox" id="id_verified" name="id_verified" className="peer w-5 h-5 rounded border-2 border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" />
-                                                </div>
-                                                <label htmlFor="id_verified" className="text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer peer-checked:text-indigo-600">ID Verified</label>
-                                            </div>
-                                            <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-2"></div>
-                                            <div className="flex items-center space-x-3 group cursor-pointer">
-                                                <input type="checkbox" id="proof_of_funds" name="proof_of_funds" className="w-5 h-5 rounded border-2 border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" />
-                                                <label htmlFor="proof_of_funds" className="text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer">Proof of Funds</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="space-y-5">
-                                <h3 className="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider flex items-center pl-1">
-                                    <Shield className="w-4 h-4 mr-2 text-indigo-500" />
-                                    Document Uploads
-                                </h3>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    <FormFileUpload label="ID Copy / Passport" name="passport_copy" />
-                                    <FormFileUpload label="Proof of Address" name="proof_of_address_doc" />
-                                    <FormFileUpload label="Source of Income/Funds" name="work_related_docs" compact />
-                                    <FormFileUpload label="Signature" name="signature_file_name" compact />
-                                    <FormFileUpload label="AML Screening Doc" name="sender_details_aml_screening_doc" compact />
-                                    <FormFileUpload label="Other Supporting Document" name="other_doc" compact />
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* DIRECTORS TAB */}
-                    {activeTab === 'directors' && (
-                        <div className="space-y-6 animate-fade-in">
-                            <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-xl border border-amber-200 dark:border-amber-800 text-sm font-medium text-amber-700 dark:text-amber-300 flex items-center">
-                                <AlertTriangle className="w-5 h-5 mr-3 flex-shrink-0" />
-                                Please add at least one director for this business.
-                            </div>
-
-                            {directors.map((director, index) => (
-                                <div key={index} className="p-8 bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-700 shadow-xl relative group overflow-hidden">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-slate-100 dark:bg-slate-800 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
-                                    <div className="absolute top-6 right-6 z-10">
-                                        {directors.length > 1 && (
-                                            <button
-                                                type="button"
-                                                onClick={() => removeDirector(index)}
-                                                className="text-red-500 hover:text-white hover:bg-red-500 transition-all duration-300 text-xs font-bold px-3 py-2 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center space-x-1"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                                <span>Remove</span>
-                                            </button>
-                                        )}
-                                    </div>
-                                    <h3 className="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider mb-8 flex items-center">
-                                        <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mr-3 text-slate-500">
-                                            {index + 1}
-                                        </div>
-                                        Director Details
-                                    </h3>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
-                                        <div className="md:col-span-1">
-                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Full Name *</label>
-                                            <div className="relative">
-                                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><User className="w-5 h-5" /></div>
-                                                <input
-                                                    type="text"
-                                                    required
-                                                    className="input-glass w-full pl-12 py-3 text-sm"
-                                                    value={director.name}
-                                                    onChange={(e) => updateDirector(index, 'name', e.target.value)}
-                                                />
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Date of Birth *</label>
-                                            <div className="relative">
-                                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><Calendar className="w-5 h-5" /></div>
-                                                <input
-                                                    type="date"
-                                                    required
-                                                    className="input-glass w-full pl-12 py-3 text-sm"
-                                                    value={director.dob}
-                                                    onChange={(e) => updateDirector(index, 'dob', e.target.value)}
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="md:col-span-3">
-                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Residential Address *</label>
-                                            <div className="relative">
-                                                <div className="absolute left-4 top-4 text-slate-400"><MapPin className="w-5 h-5" /></div>
-                                                <textarea
-                                                    required
-                                                    rows={2}
-                                                    className="input-glass w-full pl-12 py-3 text-sm"
-                                                    value={director.address}
-                                                    onChange={(e) => updateDirector(index, 'address', e.target.value)}
-                                                />
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">ID Type</label>
-                                            <div className="relative">
-                                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><CreditCard className="w-5 h-5" /></div>
-                                                <select
-                                                    className="input-glass w-full pl-12 py-3 text-sm appearance-none"
-                                                    value={director.idType}
-                                                    onChange={(e) => updateDirector(index, 'idType', e.target.value)}
-                                                >
-                                                    <option>Passport</option>
-                                                    <option>Driving License</option>
-                                                    <option>National ID</option>
-                                                </select>
-                                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">ID Number</label>
-                                            <div className="relative">
-                                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><FileText className="w-5 h-5" /></div>
-                                                <input
-                                                    type="text"
-                                                    className="input-glass w-full pl-12 py-3 text-sm"
-                                                    value={director.idNumber}
-                                                    onChange={(e) => updateDirector(index, 'idNumber', e.target.value)}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-
-                            <div className="flex justify-center pt-8">
-                                <button
-                                    type="button"
-                                    onClick={addDirector}
-                                    className="px-8 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 font-bold transition-colors flex items-center space-x-2 shadow-sm border border-slate-200 dark:border-slate-700"
-                                >
-                                    <Plus className="w-5 h-5" />
-                                    <span>Add Another Director</span>
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* RECEIVERS TAB */}
-                    {activeTab === 'receivers' && (
-                        <div className="space-y-6 animate-fade-in">
-                            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-800 text-sm font-medium text-blue-700 dark:text-blue-300 flex items-center">
-                                <AlertTriangle className="w-5 h-5 mr-3 flex-shrink-0" />
-                                Please add at least one receiver (Beneficiary) for this remitter.
-                            </div>
-
-                            {receivers.map((receiver, index) => (
-                                <div key={index} className="p-8 bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-700 shadow-xl relative group overflow-hidden">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 dark:bg-indigo-900/20 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
-                                    <div className="absolute top-6 right-6 z-10">
-                                        {receivers.length > 1 && (
-                                            <button
-                                                type="button"
-                                                onClick={() => removeReceiver(index)}
-                                                className="text-red-500 hover:text-white hover:bg-red-500 transition-all duration-300 text-xs font-bold px-3 py-2 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center space-x-1"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                                <span>Remove</span>
-                                            </button>
-                                        )}
-                                    </div>
-                                    <h3 className="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider mb-8 flex items-center">
-                                        <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mr-3 text-slate-500">
-                                            {index + 1}
-                                        </div>
-                                        Receiver Details
-                                    </h3>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
-                                        <div>
-                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">First Name *</label>
-                                            <div className="relative">
-                                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><User className="w-5 h-5" /></div>
-                                                <input
-                                                    type="text"
-                                                    required
-                                                    className="input-glass w-full pl-12 py-3 text-sm"
-                                                    value={receiver.firstName}
-                                                    onChange={(e) => updateReceiver(index, 'firstName', e.target.value)}
-                                                />
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Last Name *</label>
-                                            <div className="relative">
-                                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><User className="w-5 h-5" /></div>
-                                                <input
-                                                    type="text"
-                                                    required
-                                                    className="input-glass w-full pl-12 py-3 text-sm"
-                                                    value={receiver.lastName}
-                                                    onChange={(e) => updateReceiver(index, 'lastName', e.target.value)}
-                                                />
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Relationship *</label>
-                                            <div className="relative">
-                                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><Users className="w-5 h-5" /></div>
-                                                <input
-                                                    type="text"
-                                                    required
-                                                    className="input-glass w-full pl-12 py-3 text-sm"
-                                                    value={receiver.relation}
-                                                    onChange={(e) => updateReceiver(index, 'relation', e.target.value)}
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="md:col-span-3 h-px bg-slate-100 dark:bg-slate-800 my-4"></div>
-
-                                        <div>
-                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Bank Name *</label>
-                                            <div className="relative">
-                                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><Building className="w-5 h-5" /></div>
-                                                <input
-                                                    type="text"
-                                                    required
-                                                    className="input-glass w-full pl-12 py-3 text-sm"
-                                                    value={receiver.bankName}
-                                                    onChange={(e) => updateReceiver(index, 'bankName', e.target.value)}
-                                                />
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Branch Name</label>
-                                            <div className="relative">
-                                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><MapPin className="w-5 h-5" /></div>
-                                                <input
-                                                    type="text"
-                                                    className="input-glass w-full pl-12 py-3 text-sm"
-                                                    value={receiver.branchName}
-                                                    onChange={(e) => updateReceiver(index, 'branchName', e.target.value)}
-                                                />
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Account Number *</label>
-                                            <div className="relative">
-                                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><CreditCard className="w-5 h-5" /></div>
-                                                <input
-                                                    type="text"
-                                                    required
-                                                    className="input-glass w-full pl-12 py-3 text-sm font-mono tracking-wide"
-                                                    value={receiver.accountNumber}
-                                                    onChange={(e) => updateReceiver(index, 'accountNumber', e.target.value)}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-
-                            <div className="flex justify-center pt-8">
-                                <button
-                                    type="button"
-                                    onClick={addReceiver}
-                                    className="px-8 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 font-bold transition-colors flex items-center space-x-2 shadow-sm border border-slate-200 dark:border-slate-700"
-                                >
-                                    <Plus className="w-5 h-5" />
-                                    <span>Add Another Receiver</span>
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                </form>
-
-                {/* Footer */}
-                <div className="p-8 border-t border-slate-100 dark:border-slate-800/50 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-md flex justify-between items-center relative z-20">
-                    <button
-                        type="button"
-                        onClick={handleBack}
-                        className="px-6 py-3 rounded-full border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-bold hover:bg-white dark:hover:bg-slate-800 hover:shadow-lg transition-all duration-300 flex items-center space-x-2"
-                    >
-                        {isFirstTab ? <ArrowLeft className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
-                        <span>{isFirstTab ? 'Cancel' : 'Back'}</span>
-                    </button>
-
-                    <div className="flex space-x-4">
-                        {!isLastTab && (
-                            <button
-                                type="button"
-                                onClick={handleNext}
-                                className="pl-6 pr-4 py-3 rounded-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-bold hover:shadow-lg hover:shadow-indigo-500/30 hover:scale-105 transition-all duration-300 flex items-center space-x-2"
-                            >
-                                <span>Next Step</span>
-                                <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-                                    <ArrowRight className="w-4 h-4" />
-                                </div>
-                            </button>
-                        )}
-                        {isLastTab && (
-                            <button
-                                type="submit"
-                                form="createSenderForm"
-                                disabled={loading}
-                                className="pl-6 pr-4 py-3 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold hover:shadow-lg hover:shadow-emerald-500/30 hover:scale-105 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed flex items-center space-x-2"
-                            >
-                                {loading ? (
-                                    <>
-                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                        <span>Creating...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <span>Create Remitter</span>
-                                        <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-                                            <CheckCircle className="w-4 h-4" />
-                                        </div>
-                                    </>
-                                )}
-                            </button>
-                        )}
-                    </div>
-                </div>
-
-            </div>
-
+        <div className="max-w-4xl mx-auto pb-20 animate-fade-in-up">
             <ConfirmModal
                 isOpen={confirmModal.isOpen}
                 onClose={handleModalClose}
                 onConfirm={handleModalClose}
                 title={confirmModal.title}
                 message={confirmModal.message}
-                type={confirmModal.type}
+                type={confirmModal.type as any}
                 isAlert={confirmModal.isAlert}
-                confirmText="OK"
+                confirmText={confirmModal.shouldRedirect ? "Continue" : "OK"}
             />
+
+            {/* Header */}
+            <div className="mb-8">
+                <Link href="/admin/mobile-users/remitters" className="inline-flex items-center text-sm font-bold text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors mb-2 group">
+                    <ArrowLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
+                    Back to Mobile Users
+                </Link>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Create Mobile Remitter</h1>
+                        <p className="text-slate-500 dark:text-slate-400 mt-2">Onboard a new mobile app customer manually.</p>
+                    </div>
+                </div>
+            </div>
+
+            <form onSubmit={handleSubmit} className="card-glass p-8 rounded-[2.5rem] relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+
+                {/* Section 1: Client Type & Branch */}
+                <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
+                        <Users className="w-5 h-5 mr-2 text-indigo-500" />
+                        Account Setup
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 ml-1">Client Type</label>
+                            <div className="flex space-x-4">
+                                <label className={`flex-1 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-slate-800 ${clientType === 'individual' ? 'ring-2 ring-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/10' : ''}`}>
+                                    <input type="radio" name="clientType" value="individual" className="sr-only" checked={clientType === 'individual'} onChange={() => setClientType('individual')} />
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${clientType === 'individual' ? 'border-indigo-600' : 'border-slate-400'}`}>
+                                            {clientType === 'individual' && <div className="w-2 h-2 rounded-full bg-indigo-600"></div>}
+                                        </div>
+                                        <span className="font-bold text-sm text-slate-700 dark:text-slate-300">Individual</span>
+                                    </div>
+                                </label>
+                                <label className={`flex-1 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-slate-800 ${clientType === 'business' ? 'ring-2 ring-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/10' : ''}`}>
+                                    <input type="radio" name="clientType" value="business" className="sr-only" checked={clientType === 'business'} onChange={() => setClientType('business')} />
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${clientType === 'business' ? 'border-indigo-600' : 'border-slate-400'}`}>
+                                            {clientType === 'business' && <div className="w-2 h-2 rounded-full bg-indigo-600"></div>}
+                                        </div>
+                                        <span className="font-bold text-sm text-slate-700 dark:text-slate-300">Business</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <FormSelect label="Branch" name="branch_id" Icon={Building} options={branches.length > 0 ? branches.map(b => b.code || b.name) : ['London - Link Forex Ltd']} required />
+                            <div className="flex items-center mt-4 ml-1">
+                                <input type="checkbox" id="sanction_list_verified" name="sanction_list_verified" className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" />
+                                <label htmlFor="sanction_list_verified" className="ml-2 text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer">
+                                    Sanction List Verified
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Section 2: Personal / Company Details */}
+                <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
+                        <User className="w-5 h-5 mr-2 text-indigo-500" />
+                        {clientType === 'business' ? 'Company Details' : 'Personal Details'}
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormInput label="Sender ID" name="sender_id" placeholder="Auto-generated" disabled defaultValue={'LF3992'} Icon={CreditCard} />
+                        {clientType === 'business' ? (
+                            <>
+                                <div className="md:col-span-2">
+                                    <FormInput label="Company Name" name="company_name" placeholder="Registered Company Name" required Icon={Building} />
+                                </div>
+                                <FormSelect label="Company Type" name="company_type" options={['LTD', 'PLC', 'Sole Trader', 'Partnership', 'LLP']} Icon={Layers} required />
+                                <FormInput label="Company Reg No" name="company_reg_no" placeholder="Registration Number" required Icon={FileText} />
+                            </>
+                        ) : (
+                            <>
+                                <FormInput label="Full Name" name="sender_name" placeholder="Full Name" required Icon={User} />
+                                <FormInput label="Date of Birth" name="date_of_birth" type="date" required Icon={Calendar} />
+                                <FormInput label="Place of Birth" name="place_of_birth" placeholder="City, Country" Icon={MapPin} />
+                                <FormInput label="Occupation" name="occupation" placeholder="e.g. Engineer" Icon={Briefcase} />
+                            </>
+                        )}
+                        <FormInput label="Telephone" name="telephone" placeholder="+44..." required Icon={Phone} />
+                    </div>
+                </div>
+
+                {/* Section 3: Address */}
+                <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
+                        <MapPin className="w-5 h-5 mr-2 text-indigo-500" />
+                        Address Details
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="md:col-span-2">
+                            <FormInput label="Address Line 1" name="address_1" placeholder="House/Flat Number, Street" required Icon={MapPin} />
+                        </div>
+                        <div className="md:col-span-2">
+                            <FormInput label="Address Line 2" name="address_2" placeholder="Locality / Area" Icon={MapPin} />
+                        </div>
+                        <FormInput label="City" name="city" placeholder="e.g. London" required Icon={Building} />
+                        <FormInput label="Postcode" name="postcode" placeholder="e.g. SW1A 1AA" required Icon={MapPin} />
+                        <FormInput label="County" name="county" Icon={MapPin} />
+                        <FormInput label="Country" name="country" defaultValue="United Kingdom" required Icon={Globe} />
+                    </div>
+                </div>
+
+                {/* Section 4: Directors (Business Only) */}
+                {clientType === 'business' && (
+                    <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
+                                <Users className="w-5 h-5 mr-2 text-indigo-500" />
+                                Directors
+                            </h3>
+                            <button type="button" onClick={addDirector} className="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-full transition-colors flex items-center">
+                                <Plus className="w-3 h-3 mr-1" /> Add Director
+                            </button>
+                        </div>
+                        <div className="space-y-4">
+                            {directors.map((director, index) => (
+                                <div key={index} className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 relative group">
+                                    <div className="absolute top-4 right-4">
+                                        {directors.length > 1 && (
+                                            <button type="button" onClick={() => removeDirector(index)} className="text-red-400 hover:text-red-600 p-1">
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        )}
+                                    </div>
+                                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Director {index + 1}</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="md:col-span-2">
+                                            <FormInput label="Full Name" value={director.name} onChange={(e: any) => updateDirector(index, 'name', e.target.value)} required Icon={User} />
+                                        </div>
+                                        <FormInput label="Date of Birth" type="date" value={director.dob} onChange={(e: any) => updateDirector(index, 'dob', e.target.value)} required Icon={Calendar} />
+                                        <div className="md:col-span-2">
+                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Address</label>
+                                            <textarea rows={2} className="input-glass w-full text-sm p-3" value={director.address} onChange={(e) => updateDirector(index, 'address', e.target.value)} required />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">ID Type</label>
+                                            <select className="input-glass w-full py-3 px-4 text-sm" value={director.idType} onChange={(e) => updateDirector(index, 'idType', e.target.value)}>
+                                                <option>Passport</option>
+                                                <option>Driving License</option>
+                                                <option>National ID</option>
+                                            </select>
+                                        </div>
+                                        <FormInput label="ID Number" value={director.idNumber} onChange={(e: any) => updateDirector(index, 'idNumber', e.target.value)} Icon={FileText} />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Section 5: IDs & Documents */}
+                <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
+                        <Shield className="w-5 h-5 mr-2 text-indigo-500" />
+                        Identity Verification
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <FormSelect label="ID Type" name="id_type" options={['Passport', 'Driving License', 'National ID', 'Residence Permit']} required Icon={CreditCard} />
+                        <FormInput label="ID Number" name="id_no" required Icon={FileText} />
+                        <FormInput label="ID Expiry Date" name="id_expire_date" type="date" required Icon={Calendar} />
+                    </div>
+
+                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4 ml-1">Documents</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <FormFileUpload label="ID Copy" name="passport_copy" compact />
+                        <FormFileUpload label="Proof of Address" name="proof_of_address_doc" compact />
+                        <FormFileUpload label="Source of Income" name="work_related_docs" compact />
+                        <FormFileUpload label="AML Doc" name="sender_details_aml_screening_doc" compact />
+                    </div>
+                </div>
+
+                {/* Section 6: Receivers */}
+                <div className="mb-8">
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
+                            <Users className="w-5 h-5 mr-2 text-indigo-500" />
+                            Beneficiaries
+                        </h3>
+                        <button type="button" onClick={addReceiver} className="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-full transition-colors flex items-center">
+                            <Plus className="w-3 h-3 mr-1" /> Add Beneficiary
+                        </button>
+                    </div>
+                    <div className="space-y-4">
+                        {receivers.map((receiver, index) => (
+                            <div key={index} className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 relative group">
+                                <div className="absolute top-4 right-4">
+                                    {receivers.length > 1 && (
+                                        <button type="button" onClick={() => removeReceiver(index)} className="text-red-400 hover:text-red-600 p-1">
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    )}
+                                </div>
+                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Beneficiary {index + 1}</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <FormInput label="First Name" value={receiver.firstName} onChange={(e: any) => updateReceiver(index, 'firstName', e.target.value)} required Icon={User} />
+                                    <FormInput label="Last Name" value={receiver.lastName} onChange={(e: any) => updateReceiver(index, 'lastName', e.target.value)} required Icon={User} />
+                                    <FormInput label="Relation" value={receiver.relation} onChange={(e: any) => updateReceiver(index, 'relation', e.target.value)} placeholder="e.g. Family" Icon={Users} />
+                                    <FormInput label="Bank Name" value={receiver.bankName} onChange={(e: any) => updateReceiver(index, 'bankName', e.target.value)} Icon={Building} />
+                                    <FormInput label="Account No" value={receiver.accountNumber} onChange={(e: any) => updateReceiver(index, 'accountNumber', e.target.value)} required Icon={CreditCard} />
+                                    <FormInput label="Branch Name" value={receiver.branchName} onChange={(e: any) => updateReceiver(index, 'branchName', e.target.value)} Icon={MapPin} />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="flex justify-end space-x-4 pt-8 mt-8 border-t border-slate-100 dark:border-slate-700/50">
+                    <Link
+                        href="/admin/mobile-users/remitters"
+                        className="px-6 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-sm transition-colors border border-slate-200 dark:border-slate-600"
+                    >
+                        Cancel
+                    </Link>
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40"
+                    >
+                        <Save className="w-4 h-4" />
+                        <span>{loading ? 'Creating...' : 'Create Remitter'}</span>
+                    </button>
+                </div>
+            </form>
         </div>
     );
 }
