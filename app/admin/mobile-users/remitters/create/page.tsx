@@ -8,7 +8,7 @@ import ConfirmModal from '../../../components/ConfirmModal';
 import {
     User, Calendar, MapPin, Briefcase, Phone, Building, CreditCard,
     Globe, FileText, Upload, Trash2, Plus, ArrowLeft,
-    CheckCircle, Shield, Layers, Save, Users
+    CheckCircle, Shield, Layers, Save, Users, AlertCircle
 } from 'lucide-react';
 
 // --- HELPER COMPONENTS (Reused) ---
@@ -43,7 +43,7 @@ function FormInput({ label, name, type = 'text', placeholder, disabled, step, de
     );
 }
 
-function FormSelect({ label, name, options, defaultValue, Icon, required }: any) {
+function FormSelect({ label, name, options, defaultValue, Icon, required, value, onChange }: any) {
     return (
         <div className="w-full">
             <label htmlFor={name} className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
@@ -59,6 +59,8 @@ function FormSelect({ label, name, options, defaultValue, Icon, required }: any)
                     id={name}
                     name={name}
                     defaultValue={defaultValue}
+                    value={value}
+                    onChange={onChange}
                     required={required}
                     className={`input-glass w-full py-3 ${Icon ? 'pl-12' : 'pl-4'} pr-10 appearance-none cursor-pointer text-sm`}
                 >
@@ -122,37 +124,7 @@ export default function CreateMobileUserRemitterPage() {
         redirectUrl: ''
     });
 
-    // Receiver State
-    interface Receiver {
-        firstName: string;
-        lastName: string;
-        relation: string;
-        accountName: string;
-        accountNumber: string;
-        bankName: string;
-        branchName: string;
-    }
-    const [receivers, setReceivers] = useState<Receiver[]>([
-        { firstName: '', lastName: '', relation: '', accountName: '', accountNumber: '', bankName: '', branchName: '' }
-    ]);
-
-    const addReceiver = () => {
-        setReceivers([...receivers, { firstName: '', lastName: '', relation: '', accountName: '', accountNumber: '', bankName: '', branchName: '' }]);
-    };
-
-    const removeReceiver = (index: number) => {
-        if (receivers.length > 1) {
-            setReceivers(receivers.filter((_, i) => i !== index));
-        }
-    };
-
-    const updateReceiver = (index: number, field: keyof Receiver, value: string) => {
-        const updated = [...receivers];
-        updated[index][field] = value;
-        setReceivers(updated);
-    };
-
-    // Director State
+    // Director State - Limited to 3 to match Database Schema
     interface Director {
         name: string;
         dob: string;
@@ -164,7 +136,12 @@ export default function CreateMobileUserRemitterPage() {
         { name: '', dob: '', address: '', idType: 'Passport', idNumber: '' }
     ]);
 
-    const addDirector = () => setDirectors([...directors, { name: '', dob: '', address: '', idType: 'Passport', idNumber: '' }]);
+    const addDirector = () => {
+        if (directors.length < 3) {
+            setDirectors([...directors, { name: '', dob: '', address: '', idType: 'Passport', idNumber: '' }]);
+        }
+    };
+
     const removeDirector = (index: number) => setDirectors(directors.filter((_, i) => i !== index));
     const updateDirector = (index: number, field: keyof Director, value: string) => {
         const updated = [...directors];
@@ -189,20 +166,6 @@ export default function CreateMobileUserRemitterPage() {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-
-        // Validation: At least 1 receiver
-        if (receivers.length === 0 || !receivers[0].firstName || !receivers[0].accountNumber) {
-            setConfirmModal({
-                isOpen: true,
-                title: 'Validation Error',
-                message: 'Please add at least one complete receiver.',
-                type: 'warning',
-                isAlert: true,
-                shouldRedirect: false,
-                redirectUrl: ''
-            });
-            return;
-        }
 
         // Validation: Business requires at least 1 director
         if (clientType === 'business' && (directors.length === 0 || !directors[0].name)) {
@@ -231,22 +194,24 @@ export default function CreateMobileUserRemitterPage() {
             status: 'active',
             branch: data.branch_id,
             role: 'customer',
-            name: clientType === 'business' ? data.company_name : data.sender_name,
-            phone: data.telephone,
 
-            // Note: Registration source for mobile users might be implied or managed differently 
-            // but this is administrative creation of a mobile user essentially
-            registration_source: 'mobile_app',
+            // --- MAPPING TO DATABASE COLS ---
+            sys_entry_from: 'mobile_app', // registration source explicitly set for mobile users
+
+            // Name Fields
+            sender_name: clientType === 'business' ? data.company_name : data.sender_name,
+            phone: data.telephone,
+            telephone: data.telephone,
 
             // Individual Fields
-            dob: clientType === 'business' ? null : data.date_of_birth,
+            date_of_birth: clientType === 'business' ? null : data.date_of_birth,
             place_of_birth: clientType === 'business' ? null : data.place_of_birth,
             occupation: clientType === 'business' ? null : data.occupation,
 
-            // Business Fields
-            company_name: clientType === 'business' ? data.company_name : null,
-            company_type: clientType === 'business' ? data.company_type : null,
-            company_reg_no: clientType === 'business' ? data.company_reg_no : null,
+            // Business Fields (bc_ prefix)
+            bc_company_name: clientType === 'business' ? data.company_name : null,
+            bc_type_of_company: clientType === 'business' ? data.company_type : null,
+            bc_company_house_no: clientType === 'business' ? data.company_reg_no : null,
 
             address_1: data.address_1,
             address_2: data.address_2,
@@ -257,10 +222,22 @@ export default function CreateMobileUserRemitterPage() {
 
             // ID details (For business, this might be primary contact ID or null if directors handled separately)
             id_type: data.id_type,
-            id_number: data.id_no,
-            id_expiry: data.id_expire_date,
-            email: 'individual@example.com', // Placeholder
+            id_no: data.id_no,
+            id_expire_date: data.id_expire_date,
+            email: 'mobile-entry@linkforex.com',
         };
+
+        // --- FLATTEN DIRECTORS INTO API PAYLOAD (bc_d1, bc_d2, bc_d3) ---
+        if (clientType === 'business') {
+            directors.forEach((d, i) => {
+                const prefix = `bc_d${i + 1}`; // bc_d1, bc_d2, bc_d3
+                apiData[`${prefix}_name`] = d.name;
+                apiData[`${prefix}_dob`] = d.dob;
+                apiData[`${prefix}_address1`] = d.address;
+                apiData[`${prefix}_file_director_id`] = d.idType + ':' + d.idNumber; // composite or strictly mapped
+                // Add other mappings if detailed fields exist
+            });
+        }
 
         try {
             const res = await fetch(ENDPOINTS.REMITTERS.LIST, {
@@ -287,45 +264,9 @@ export default function CreateMobileUserRemitterPage() {
             }
 
             const result = await res.json();
-            const remitterId = result.id; // Assuming API returns the created ID
+            const remitterId = result.id;
 
-            // 2. Create Directors (if business)
-            if (clientType === 'business') {
-                const directorPromises = directors.map(d => {
-                    return fetch(ENDPOINTS.DIRECTORS.LIST, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            remitter_id: remitterId,
-                            name: d.name,
-                            dob: d.dob,
-                            address: d.address,
-                            id_type: d.idType,
-                            id_number: d.idNumber
-                        })
-                    });
-                });
-                await Promise.all(directorPromises);
-            }
-
-            // 3. Create Receivers
-            const receiverPromises = receivers.map(r => {
-                return fetch(ENDPOINTS.BENEFICIARIES.LIST, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        customer_id: remitterId,
-                        name: r.firstName + ' ' + r.lastName,
-                        account_number: r.accountNumber,
-                        bank_name: r.bankName,
-                        branch_name: r.branchName,
-                        relation: r.relation,
-                        status: 'active'
-                    })
-                });
-            });
-
-            await Promise.all(receiverPromises);
+            // Note: Beneficiaries skipped here.
 
             setConfirmModal({
                 isOpen: true,
@@ -447,6 +388,7 @@ export default function CreateMobileUserRemitterPage() {
                                 </div>
                                 <FormSelect label="Company Type" name="company_type" options={['LTD', 'PLC', 'Sole Trader', 'Partnership', 'LLP']} Icon={Layers} required />
                                 <FormInput label="Company Reg No" name="company_reg_no" placeholder="Registration Number" required Icon={FileText} />
+                                <FormInput label="Trading Address" name="bc_trading_address" placeholder="If different from reg address" Icon={MapPin} />
                             </>
                         ) : (
                             <>
@@ -480,18 +422,27 @@ export default function CreateMobileUserRemitterPage() {
                     </div>
                 </div>
 
-                {/* Section 4: Directors (Business Only) */}
+                {/* Section 4: Directors (Business Only) - Max 3 */}
                 {clientType === 'business' && (
                     <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
                                 <Users className="w-5 h-5 mr-2 text-indigo-500" />
-                                Directors
+                                Directors (Max 3)
                             </h3>
-                            <button type="button" onClick={addDirector} className="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-full transition-colors flex items-center">
-                                <Plus className="w-3 h-3 mr-1" /> Add Director
-                            </button>
+                            {directors.length < 3 && (
+                                <button type="button" onClick={addDirector} className="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-full transition-colors flex items-center">
+                                    <Plus className="w-3 h-3 mr-1" /> Add Director
+                                </button>
+                            )}
                         </div>
+
+                        {/* Info Note */}
+                        <div className="mb-6 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl text-xs text-blue-700 dark:text-blue-300 flex items-start">
+                            <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0 mt-0.5" />
+                            <p>System supports up to 3 directors. Please enter details for at least one director / owner.</p>
+                        </div>
+
                         <div className="space-y-4">
                             {directors.map((director, index) => (
                                 <div key={index} className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 relative group">
@@ -549,41 +500,6 @@ export default function CreateMobileUserRemitterPage() {
                     </div>
                 </div>
 
-                {/* Section 6: Receivers */}
-                <div className="mb-8">
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
-                            <Users className="w-5 h-5 mr-2 text-indigo-500" />
-                            Beneficiaries
-                        </h3>
-                        <button type="button" onClick={addReceiver} className="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-full transition-colors flex items-center">
-                            <Plus className="w-3 h-3 mr-1" /> Add Beneficiary
-                        </button>
-                    </div>
-                    <div className="space-y-4">
-                        {receivers.map((receiver, index) => (
-                            <div key={index} className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 relative group">
-                                <div className="absolute top-4 right-4">
-                                    {receivers.length > 1 && (
-                                        <button type="button" onClick={() => removeReceiver(index)} className="text-red-400 hover:text-red-600 p-1">
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    )}
-                                </div>
-                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Beneficiary {index + 1}</h4>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <FormInput label="First Name" value={receiver.firstName} onChange={(e: any) => updateReceiver(index, 'firstName', e.target.value)} required Icon={User} />
-                                    <FormInput label="Last Name" value={receiver.lastName} onChange={(e: any) => updateReceiver(index, 'lastName', e.target.value)} required Icon={User} />
-                                    <FormInput label="Relation" value={receiver.relation} onChange={(e: any) => updateReceiver(index, 'relation', e.target.value)} placeholder="e.g. Family" Icon={Users} />
-                                    <FormInput label="Bank Name" value={receiver.bankName} onChange={(e: any) => updateReceiver(index, 'bankName', e.target.value)} Icon={Building} />
-                                    <FormInput label="Account No" value={receiver.accountNumber} onChange={(e: any) => updateReceiver(index, 'accountNumber', e.target.value)} required Icon={CreditCard} />
-                                    <FormInput label="Branch Name" value={receiver.branchName} onChange={(e: any) => updateReceiver(index, 'branchName', e.target.value)} Icon={MapPin} />
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
                 <div className="flex justify-end space-x-4 pt-8 mt-8 border-t border-slate-100 dark:border-slate-700/50">
                     <Link
                         href="/admin/mobile-users/remitters"
@@ -597,7 +513,7 @@ export default function CreateMobileUserRemitterPage() {
                         className="btn-primary flex items-center space-x-2 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40"
                     >
                         <Save className="w-4 h-4" />
-                        <span>{loading ? 'Creating...' : 'Create Remitter'}</span>
+                        <span>{loading ? 'Onboarding...' : 'Onboard Remitter'}</span>
                     </button>
                 </div>
             </form>
