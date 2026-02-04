@@ -22,7 +22,7 @@ function FormInput({ label, name, type = 'text', placeholder, disabled, step, de
                 step={step}
                 defaultValue={defaultValue}
                 required={required}
-                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:bg-slate-100 dark:disabled:bg-slate-800 transition-shadow transition-colors"
+                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 disabled:opacity-50 disabled:bg-slate-100 dark:disabled:bg-slate-800 transition-shadow transition-colors"
                 placeholder={placeholder}
             />
         </div>
@@ -39,7 +39,7 @@ function FormSelect({ label, name, options, defaultValue }: any) {
                 id={name}
                 name={name}
                 defaultValue={defaultValue}
-                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow transition-colors"
+                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition-shadow transition-colors"
             >
                 {options.map((opt: string) => (
                     <option key={opt} value={opt}>{opt}</option>
@@ -64,7 +64,7 @@ function FormFileUpload({ label, name, compact, defaultValue }: any) {
                     )}
                     <span className="text-xs text-slate-500 dark:text-slate-400 truncate w-full px-2">
                         {defaultValue ? (
-                            <span className="text-indigo-600 dark:text-indigo-400 font-medium">{defaultValue}</span>
+                            <span className="text-teal-600 dark:text-teal-400 font-medium">{defaultValue}</span>
                         ) : (
                             compact ? 'Upload' : 'Click to upload'
                         )}
@@ -88,7 +88,7 @@ function DocumentRow({ label, name }: any) {
                     <input type="file" name={name} className="hidden" />
                 </label>
                 <span className="text-xs text-slate-400 dark:text-slate-500 flex-1 truncate">No file selected.</span>
-                <button type="button" className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 font-medium px-1">Upload</button>
+                <button type="button" className="text-xs text-teal-600 dark:text-teal-400 hover:text-teal-700 font-medium px-1">Upload</button>
                 <button type="button" className="text-xs text-red-500 dark:text-red-400 hover:text-red-600 font-medium px-1">Clear</button>
             </div>
         </div>
@@ -420,7 +420,7 @@ export default function CreateRemitterPage() {
                 <p className="text-slate-500 dark:text-slate-400 mt-1">Enter the details of the new remitter below.</p>
             </div>
 
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 overflow-hidden">
+            <div className="card-glass overflow-hidden">
 
                 {/* Tabs */}
                 {/* Tabs / Steps */}
@@ -430,14 +430,14 @@ export default function CreateRemitterPage() {
                             <div
                                 key={tab.id}
                                 className={`pb-4 text-sm font-medium border-b-2 flex items-center space-x-2 ${activeTab === tab.id
-                                    ? 'border-indigo-600 dark:border-indigo-400 text-indigo-600 dark:text-indigo-400'
+                                    ? 'border-teal-600 dark:border-teal-400 text-teal-600 dark:text-teal-400'
                                     : index < currentTabIndex
-                                        ? 'border-transparent text-emerald-600 dark:text-emerald-400'
+                                        ? 'border-transparent text-teal-600 dark:text-teal-400'
                                         : 'border-transparent text-slate-400 dark:text-slate-500'
                                     }`}
                             >
-                                <span className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${activeTab === tab.id ? 'bg-indigo-100 text-indigo-600' :
-                                    index < currentTabIndex ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500'
+                                <span className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${activeTab === tab.id ? 'bg-teal-100 text-teal-600' :
+                                    index < currentTabIndex ? 'bg-teal-100 text-teal-600' : 'bg-slate-100 text-slate-500'
                                     }`}>
                                     {index + 1}
                                 </span>
@@ -461,7 +461,7 @@ export default function CreateRemitterPage() {
                                     <select
                                         id="branch_id"
                                         name="branch_id"
-                                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow transition-colors"
+                                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition-shadow transition-colors"
                                     >
                                         {branches.length > 0 ? branches.map((b: any) => (
                                             <option key={b.id} value={b.code || b.name}>{b.name} ({b.code})</option>
@@ -473,7 +473,7 @@ export default function CreateRemitterPage() {
                                         type="checkbox"
                                         id="sanction_list_verified"
                                         name="sanction_list_verified"
-                                        className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                        className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
                                     />
                                     <label htmlFor="sanction_list_verified" className="ml-2 text-sm font-medium text-slate-700 dark:text-slate-300">
                                         Sanction List Verified
@@ -485,22 +485,22 @@ export default function CreateRemitterPage() {
                                 <div className="flex-1">
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Client Type</label>
                                     <div className="flex space-x-4">
-                                        <label className={`flex-1 border rounded-lg p-4 cursor-pointer transition-colors ${clientType === 'individual' ? 'bg-indigo-50 border-indigo-500 ring-1 ring-indigo-500' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
+                                        <label className={`flex-1 border rounded-lg p-4 cursor-pointer transition-colors ${clientType === 'individual' ? 'bg-teal-50 border-teal-500 ring-1 ring-teal-500' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
                                             <input type="radio" name="clientType" value="individual" className="sr-only" checked={clientType === 'individual'} onChange={() => setClientType('individual')} />
                                             <div className="flex items-center space-x-3">
-                                                <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${clientType === 'individual' ? 'border-indigo-600' : 'border-slate-400'}`}>
-                                                    {clientType === 'individual' && <div className="w-2 h-2 rounded-full bg-indigo-600"></div>}
+                                                <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${clientType === 'individual' ? 'border-teal-600' : 'border-slate-400'}`}>
+                                                    {clientType === 'individual' && <div className="w-2 h-2 rounded-full bg-teal-600"></div>}
                                                 </div>
-                                                <span className={`font-medium ${clientType === 'individual' ? 'text-indigo-900' : 'text-slate-700 dark:text-slate-300'}`}>Individual</span>
+                                                <span className={`font-medium ${clientType === 'individual' ? 'text-teal-900' : 'text-slate-700 dark:text-slate-300'}`}>Individual</span>
                                             </div>
                                         </label>
-                                        <label className={`flex-1 border rounded-lg p-4 cursor-pointer transition-colors ${clientType === 'business' ? 'bg-indigo-50 border-indigo-500 ring-1 ring-indigo-500' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
+                                        <label className={`flex-1 border rounded-lg p-4 cursor-pointer transition-colors ${clientType === 'business' ? 'bg-teal-50 border-teal-500 ring-1 ring-teal-500' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
                                             <input type="radio" name="clientType" value="business" className="sr-only" checked={clientType === 'business'} onChange={() => setClientType('business')} />
                                             <div className="flex items-center space-x-3">
-                                                <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${clientType === 'business' ? 'border-indigo-600' : 'border-slate-400'}`}>
-                                                    {clientType === 'business' && <div className="w-2 h-2 rounded-full bg-indigo-600"></div>}
+                                                <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${clientType === 'business' ? 'border-teal-600' : 'border-slate-400'}`}>
+                                                    {clientType === 'business' && <div className="w-2 h-2 rounded-full bg-teal-600"></div>}
                                                 </div>
-                                                <span className={`font-medium ${clientType === 'business' ? 'text-indigo-900' : 'text-slate-700 dark:text-slate-300'}`}>Business</span>
+                                                <span className={`font-medium ${clientType === 'business' ? 'text-teal-900' : 'text-slate-700 dark:text-slate-300'}`}>Business</span>
                                             </div>
                                         </label>
                                     </div>
@@ -559,11 +559,11 @@ export default function CreateRemitterPage() {
                                 <div className="pt-8 md:col-span-2">
                                     <div className="flex flex-wrap gap-6 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
                                         <div className="flex items-center space-x-2">
-                                            <input type="checkbox" id="id_verified" name="id_verified" className="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                                            <input type="checkbox" id="id_verified" name="id_verified" className="w-5 h-5 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
                                             <label htmlFor="id_verified" className="text-sm font-bold text-slate-700 dark:text-slate-300">ID Verified</label>
                                         </div>
                                         <div className="flex items-center space-x-2">
-                                            <input type="checkbox" id="proof_of_funds" name="proof_of_funds" className="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                                            <input type="checkbox" id="proof_of_funds" name="proof_of_funds" className="w-5 h-5 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
                                             <label htmlFor="proof_of_funds" className="text-sm font-bold text-slate-700 dark:text-slate-300">Proof of Funds</label>
                                         </div>
                                     </div>
@@ -678,7 +678,7 @@ export default function CreateRemitterPage() {
                     {/* RECEIVERS TAB */}
                     {activeTab === 'receivers' && (
                         <div className="space-y-6 animate-fade-in">
-                            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800 text-sm text-blue-700 dark:text-blue-300">
+                            <div className="bg-teal-50 dark:bg-teal-900/20 p-4 rounded-lg border border-teal-200 dark:border-teal-800 text-sm text-teal-700 dark:text-teal-300">
                                 Please add at least one receiver (Beneficiary) for this remitter.
                             </div>
 
@@ -793,7 +793,7 @@ export default function CreateRemitterPage() {
                             <button
                                 type="button"
                                 onClick={handleNext}
-                                className="px-8 py-2.5 rounded-lg bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20"
+                                className="px-8 py-2.5 rounded-lg bg-teal-600 text-white font-bold hover:bg-teal-700 transition-colors shadow-lg shadow-teal-500/20"
                             >
                                 Next Step
                             </button>
@@ -804,7 +804,7 @@ export default function CreateRemitterPage() {
                                 type="submit"
                                 form="createSenderForm"
                                 disabled={loading}
-                                className={`px-8 py-2.5 rounded-lg bg-emerald-600 text-white font-bold hover:bg-emerald-500 transition-colors shadow-lg shadow-emerald-500/20 flex items-center ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                className={`px-8 py-2.5 rounded-lg bg-teal-600 text-white font-bold hover:bg-teal-500 transition-colors shadow-lg shadow-teal-500/20 flex items-center ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
                                 <span>{loading ? 'Creating...' : 'Create Remitter'}</span>
                             </button>

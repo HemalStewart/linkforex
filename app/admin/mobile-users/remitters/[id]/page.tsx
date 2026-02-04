@@ -105,7 +105,7 @@ export default function EditRemitterPage() {
     };
 
     if (loading) {
-        return <div className="max-w-4xl mx-auto p-12 text-center text-slate-500 font-medium animate-pulse">Loading remitter details...</div>;
+    return <div className="max-w-4xl mx-auto p-12 text-center text-slate-500 font-medium animate-pulse">Loading remitter details...</div>;
     }
 
     const handleModalClose = () => {
@@ -116,7 +116,7 @@ export default function EditRemitterPage() {
     };
 
     return (
-        <div className="max-w-5xl mx-auto space-y-8 pb-20 animate-fade-in-up">
+    <div className="max-w-5xl mx-auto space-y-8 pb-20 animate-fade-in-up">
             <ConfirmModal
                 isOpen={confirmModal.isOpen}
                 onClose={handleModalClose}
@@ -129,110 +129,110 @@ export default function EditRemitterPage() {
             />
 
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <Link href="/admin/mobile-users/remitters" className="inline-flex items-center text-sm font-bold text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors mb-2 group">
-                        <ArrowLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
+          <Link href="/admin/mobile-users/remitters" className="inline-flex items-center text-sm font-bold text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 transition-colors mb-2 group">
+            <ArrowLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
                         Back to Remitters
                     </Link>
-                    <div className="flex items-center space-x-4">
-                        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+          <div className="flex items-center space-x-4">
+            <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                             Edit Remitter
                         </h1>
-                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-3 py-1 rounded-full text-xs font-bold uppercase">
+            <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-3 py-1 rounded-full text-xs font-bold uppercase">
                             ID: {id}
                         </span>
                     </div>
                 </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="card-glass p-8 rounded-[2.5rem] relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+      <form onSubmit={handleSubmit} className="card-glass p-8 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Personal Info */}
-                    <div className="md:col-span-2">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center border-b border-slate-100 dark:border-slate-700/50 pb-2">
-                            <User className="w-5 h-5 mr-2 text-indigo-500" />
+          <div className="md:col-span-2">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center border-b border-slate-100 dark:border-slate-700/50 pb-2">
+              <User className="w-5 h-5 mr-2 text-teal-500" />
                             Personal Information
                         </h3>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Full Name <span className="text-red-500">*</span></label>
-                        <div className="relative">
-                            <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Full Name <span className="text-red-500">*</span></label>
+            <div className="relative">
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                             <input
                                 type="text"
                                 required
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                className="input-glass w-full pl-12 py-3"
+                className="input-glass w-full pl-12 py-3"
                                 placeholder="E.g. John Doe"
                             />
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Email</label>
-                        <div className="relative">
-                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Email</label>
+            <div className="relative">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                             <input
                                 type="email"
                                 value={formData.email || ''}
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                className="input-glass w-full pl-12 py-3"
+                className="input-glass w-full pl-12 py-3"
                                 placeholder="john@example.com"
                             />
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Phone <span className="text-red-500">*</span></label>
-                        <div className="relative">
-                            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Phone <span className="text-red-500">*</span></label>
+            <div className="relative">
+              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                             <input
                                 type="tel"
                                 required
                                 value={formData.phone}
                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                className="input-glass w-full pl-12 py-3"
+                className="input-glass w-full pl-12 py-3"
                                 placeholder="+44 7700 900000"
                             />
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Date of Birth</label>
-                        <div className="relative">
-                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Date of Birth</label>
+            <div className="relative">
+              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                             <input
                                 type="date"
                                 value={formData.dob || ''}
                                 onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-                                className="input-glass w-full pl-12 py-3"
+                className="input-glass w-full pl-12 py-3"
                             />
                         </div>
                     </div>
 
                     {/* Status & KYC */}
-                    <div className="md:col-span-2 mt-2">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center border-b border-slate-100 dark:border-slate-700/50 pb-2">
-                            <CheckCircle className="w-5 h-5 mr-2 text-emerald-500" />
+          <div className="md:col-span-2 mt-2">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center border-b border-slate-100 dark:border-slate-700/50 pb-2">
+              <CheckCircle className="w-5 h-5 mr-2 text-teal-500" />
                             Account Status
                         </h3>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Status</label>
-                        <div className="relative">
-                            <div className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center pointer-events-none">
-                                <div className={`w-2.5 h-2.5 rounded-full ${formData.status === 'active' ? 'bg-emerald-500 ring-4 ring-emerald-500/20' : formData.status === 'suspended' ? 'bg-red-500' : 'bg-amber-500'}`}></div>
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Status</label>
+            <div className="relative">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center pointer-events-none">
+                                <div className={`w-2.5 h-2.5 rounded-full ${formData.status === 'active' ? 'bg-teal-500 ring-4 ring-teal-500/20' : formData.status === 'suspended' ? 'bg-red-500' : 'bg-amber-500'}`}></div>
                             </div>
                             <select
                                 value={formData.status}
                                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                                className="input-glass w-full pl-12 py-3 appearance-none cursor-pointer"
+                className="input-glass w-full pl-12 py-3 appearance-none cursor-pointer"
                             >
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
@@ -242,13 +242,13 @@ export default function EditRemitterPage() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">KYC Status</label>
-                        <div className="relative">
-                            <AlertTriangle className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${formData.kyc_status === 'verified' ? 'text-emerald-500' : formData.kyc_status === 'rejected' ? 'text-red-500' : 'text-amber-500'}`} />
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">KYC Status</label>
+            <div className="relative">
+                            <AlertTriangle className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${formData.kyc_status === 'verified' ? 'text-teal-500' : formData.kyc_status === 'rejected' ? 'text-red-500' : 'text-amber-500'}`} />
                             <select
                                 value={formData.kyc_status}
                                 onChange={(e) => setFormData({ ...formData, kyc_status: e.target.value })}
-                                className="input-glass w-full pl-12 py-3 appearance-none cursor-pointer"
+                className="input-glass w-full pl-12 py-3 appearance-none cursor-pointer"
                             >
                                 <option value="pending">Pending</option>
                                 <option value="verified">Verified</option>
@@ -258,91 +258,91 @@ export default function EditRemitterPage() {
                     </div>
 
                     {/* Address Info */}
-                    <div className="md:col-span-2 mt-2">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center border-b border-slate-100 dark:border-slate-700/50 pb-2">
-                            <MapPin className="w-5 h-5 mr-2 text-blue-500" />
+          <div className="md:col-span-2 mt-2">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center border-b border-slate-100 dark:border-slate-700/50 pb-2">
+              <MapPin className="w-5 h-5 mr-2 text-teal-500" />
                             Address Information
                         </h3>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Country</label>
-                        <div className="relative">
-                            <Flag className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Country</label>
+            <div className="relative">
+              <Flag className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                             <input
                                 type="text"
                                 value={formData.country || ''}
                                 onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                                className="input-glass w-full pl-12 py-3"
+                className="input-glass w-full pl-12 py-3"
                                 placeholder="United Kingdom"
                             />
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">City</label>
-                        <div className="relative">
-                            <Building className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">City</label>
+            <div className="relative">
+              <Building className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                             <input
                                 type="text"
                                 value={formData.city || ''}
                                 onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                                className="input-glass w-full pl-12 py-3"
+                className="input-glass w-full pl-12 py-3"
                                 placeholder="London"
                             />
                         </div>
                     </div>
 
-                    <div className="md:col-span-2">
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Address Line</label>
-                        <div className="relative">
-                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+          <div className="md:col-span-2">
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Address Line</label>
+            <div className="relative">
+              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                             <input
                                 type="text"
                                 value={formData.address_1 || ''}
                                 onChange={(e) => setFormData({ ...formData, address_1: e.target.value })}
-                                className="input-glass w-full pl-12 py-3"
+                className="input-glass w-full pl-12 py-3"
                                 placeholder="123 Example Street, Apt 4B"
                             />
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Postcode</label>
-                        <div className="relative">
-                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Postcode</label>
+            <div className="relative">
+              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                             <input
                                 type="text"
                                 value={formData.postcode || ''}
                                 onChange={(e) => setFormData({ ...formData, postcode: e.target.value })}
-                                className="input-glass w-full pl-12 py-3"
+                className="input-glass w-full pl-12 py-3"
                                 placeholder="SW1A 1AA"
                             />
                         </div>
                     </div>
                 </div>
 
-                <div className="flex justify-end space-x-4 pt-8 mt-6 border-t border-slate-100 dark:border-slate-700/50">
+        <div className="flex justify-end space-x-4 pt-8 mt-6 border-t border-slate-100 dark:border-slate-700/50">
                     <Link
                         href="/admin/mobile-users/remitters"
-                        className="px-6 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-sm transition-colors border border-slate-200 dark:border-slate-600"
+            className="px-6 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-sm transition-colors border border-slate-200 dark:border-slate-600"
                     >
                         Cancel
                     </Link>
                     <button
                         type="submit"
                         disabled={submitting}
-                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40"
+            className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40"
                     >
                         {submitting ? (
                             <>
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                                <span className="ml-2">Updating...</span>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="ml-2">Updating...</span>
                             </>
                         ) : (
                             <>
-                                <Save className="w-4 h-4" />
-                                <span className="ml-2">Save Changes</span>
+                <Save className="w-4 h-4" />
+                <span className="ml-2">Save Changes</span>
                             </>
                         )}
                     </button>

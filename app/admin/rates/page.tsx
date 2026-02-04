@@ -135,7 +135,7 @@ export default function ExchangeRatesPage() {
                 <div className="flex items-center space-x-4">
                     <button
                         onClick={() => setAddModalOpen(true)}
-                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 bg-gradient-to-r from-emerald-500 to-teal-600 border-0"
+                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0"
                     >
                         <PlusCircle className="w-5 h-5" />
                         <span>Add New Currency</span>
@@ -149,7 +149,7 @@ export default function ExchangeRatesPage() {
                 </div>
             </div>
 
-            <div className="card-glass overflow-hidden rounded-[2rem] shadow-xl">
+            <div className="card-glass overflow-hidden shadow-xl">
                 <div className="px-8 py-6 border-b border-gray-100 dark:border-slate-700/50 flex items-center space-x-3">
                     <Coins className="w-6 h-6 text-slate-400" />
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white">Current Exchange Rates</h2>
@@ -158,8 +158,8 @@ export default function ExchangeRatesPage() {
                     {loading ? (
                         <div className="p-12 text-center text-slate-500 animate-pulse">Loading rates...</div>
                     ) : (
-                        <table className="w-full">
-                            <thead className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-gray-100 dark:border-slate-700">
+                        <table className="table-shell">
+                            <thead className="table-head">
                                 <tr>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Currency</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Code</th>
@@ -168,9 +168,9 @@ export default function ExchangeRatesPage() {
                                     <th className="px-8 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-slate-700/50">
+                            <tbody className="table-body">
                                 {currencies.map((currency) => (
-                                    <tr key={currency.id} className="hover:bg-indigo-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
+                                    <tr key={currency.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
                                         <td className="px-8 py-5 font-bold text-slate-900 dark:text-white">
                                             <div className="flex items-center space-x-3">
                                                 <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500">
@@ -186,11 +186,11 @@ export default function ExchangeRatesPage() {
                                                     type="number"
                                                     value={editForm.rate}
                                                     onChange={(e) => setEditForm({ rate: e.target.value })}
-                                                    className="input-glass py-1 px-3 w-32 font-mono font-bold text-emerald-600"
+                                                    className="input-glass py-1 px-3 w-32 font-mono font-bold text-teal-600"
                                                     autoFocus
                                                 />
                                             ) : (
-                                                <span className="badge-glass bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800 font-mono font-bold text-lg">
+                                                <span className="badge-glass bg-teal-50 text-teal-600 border-teal-100 dark:bg-teal-900/20 dark:text-teal-400 dark:border-teal-800 font-mono font-bold text-lg">
                                                     {parseFloat(currency.rate).toFixed(2)}
                                                 </span>
                                             )}
@@ -201,7 +201,7 @@ export default function ExchangeRatesPage() {
                                         <td className="px-8 py-5 text-center">
                                             {editingId === currency.id ? (
                                                 <div className="flex items-center justify-center space-x-2">
-                                                    <button onClick={() => handleSave(currency.id)} className="p-2 rounded-xl bg-emerald-100 text-emerald-600 hover:bg-emerald-200 transition-colors">
+                                                    <button onClick={() => handleSave(currency.id)} className="p-2 rounded-xl bg-teal-100 text-teal-600 hover:bg-teal-200 transition-colors">
                                                         <Save className="w-4 h-4" />
                                                     </button>
                                                     <button onClick={() => setEditingId(null)} className="p-2 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors">
@@ -209,7 +209,7 @@ export default function ExchangeRatesPage() {
                                                     </button>
                                                 </div>
                                             ) : (
-                                                <button onClick={() => handleEdit(currency)} className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-blue-600 transition-all">
+                                                <button onClick={() => handleEdit(currency)} className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all">
                                                     <Edit2 className="w-5 h-5" />
                                                 </button>
                                             )}
@@ -222,13 +222,13 @@ export default function ExchangeRatesPage() {
                 </div>
             </div>
 
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 p-6 rounded-[2rem] border border-blue-100 dark:border-blue-800/30 flex items-start space-x-4">
-                <div className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-blue-500 flex-shrink-0">
+            <div className="bg-teal-50/70 dark:bg-teal-900/10 p-6 rounded-[2rem] border border-teal-100/80 dark:border-teal-800/30 flex items-start space-x-4">
+                <div className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-teal-500 flex-shrink-0">
                     <Info className="w-6 h-6" />
                 </div>
                 <div>
-                    <h3 className="font-bold text-blue-900 dark:text-blue-100 mb-1 text-lg">Auto-Update Enabled</h3>
-                    <p className="text-blue-700 dark:text-blue-300 font-medium leading-relaxed">
+                    <h3 className="font-bold text-teal-900 dark:text-teal-100 mb-1 text-lg">Auto-Update Enabled</h3>
+                    <p className="text-teal-700 dark:text-teal-300 font-medium leading-relaxed">
                         Exchange rates are automatically updated every 30 minutes from our trusted financial data providers.
                         <br />
                         Last sync was successful at 11:30 AM.

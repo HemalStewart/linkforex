@@ -43,24 +43,24 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
             <div className="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
                 {/* Backdrop with Blur */}
                 <div
-                    className="fixed inset-0 bg-slate-900/60 dark:bg-black/70 transition-all duration-300 backdrop-blur-md animate-fade-in"
+                    className="fixed inset-0 bg-slate-900/40 dark:bg-black/60 transition-all duration-300 backdrop-blur-sm animate-fade-in"
                     aria-hidden="true"
                     onClick={onClose}
                 ></div>
 
                 <div className={`
-                    relative transform overflow-hidden glass-effect-strong rounded-[2.5rem] text-left shadow-2xl transition-all sm:my-8 w-full ${sizeClasses[size]} 
-                    border border-white/40 dark:border-slate-600/40 animate-scale-in
+                    relative transform overflow-hidden glass-effect-strong rounded-[18px] text-left shadow-lg transition-all sm:my-8 w-full ${sizeClasses[size]}
+                    border border-white/20 dark:border-white/10 animate-scale-in
                 `}>
                     <div className="px-8 pt-8 pb-8">
                         {title && (
                             <div className="mb-6 flex items-center justify-between">
-                                <h3 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight" id="modal-title">
+                                <h3 className="text-xl font-semibold text-slate-900 dark:text-white tracking-tight" id="modal-title">
                                     {title}
                                 </h3>
                                 <button
                                     onClick={onClose}
-                                    className="glass-effect p-2.5 rounded-full text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-all duration-300 hover:scale-110 hover:rotate-90"
+                                    className="glass-effect p-2 rounded-full text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-all duration-300 hover:scale-105"
                                 >
                                     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />

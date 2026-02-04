@@ -137,7 +137,7 @@ export default function EditRemitterPage() {
                 <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Edit Remitter</h1>
             </div>
 
-            <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 space-y-6">
+            <form onSubmit={handleSubmit} className="card-glass p-6 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Full Name *</label>
@@ -258,7 +258,7 @@ export default function EditRemitterPage() {
                     <button
                         type="submit"
                         disabled={submitting}
-                        className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                        className="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
                     >
                         {submitting ? 'Updating...' : 'Update Remitter'}
                     </button>
@@ -267,4 +267,3 @@ export default function EditRemitterPage() {
         </div>
     );
 }
-

@@ -125,10 +125,10 @@ export default function TransferDetailsPage() {
 
     const getStatusBadge = (status: string) => {
         const styles: Record<string, string> = {
-            completed: 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800',
-            in_transit: 'bg-cyan-100 text-cyan-800 border-cyan-200 dark:bg-cyan-900/30 dark:text-cyan-400 dark:border-cyan-800',
+            completed: 'bg-teal-100 text-teal-800 border-teal-200 dark:bg-teal-900/30 dark:text-teal-400 dark:border-teal-800',
+            in_transit: 'bg-teal-100 text-teal-800 border-teal-200 dark:bg-teal-900/30 dark:text-teal-400 dark:border-teal-800',
             pending: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800',
-            in_review: 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800',
+            in_review: 'bg-teal-100 text-teal-800 border-teal-200 dark:bg-teal-900/30 dark:text-teal-300 dark:border-teal-800',
             rejected: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800',
         };
         return styles[status] || styles.pending;
@@ -147,7 +147,7 @@ export default function TransferDetailsPage() {
     if (!transfer) return (
         <div className="p-12 text-center">
             <h3 className="text-xl font-bold text-slate-900 dark:text-white">Transfer Not Found</h3>
-            <Link href="/admin/transfers" className="text-indigo-600 hover:text-indigo-500 font-bold mt-4 inline-block">Return to Transfers</Link>
+            <Link href="/admin/transfers" className="text-teal-600 hover:text-teal-500 font-bold mt-4 inline-block">Return to Transfers</Link>
         </div>
     );
 
@@ -170,7 +170,7 @@ export default function TransferDetailsPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <Link href="/admin/transfers" className="inline-flex items-center text-sm font-bold text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors mb-2 group">
+                    <Link href="/admin/transfers" className="inline-flex items-center text-sm font-bold text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 transition-colors mb-2 group">
                         <ArrowLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
                         Back to Transfers
                     </Link>
@@ -190,11 +190,11 @@ export default function TransferDetailsPage() {
                 {/* Main Content */}
                 <div className="lg:col-span-2 space-y-8">
                     {/* Transaction Info */}
-                    <div className="card-glass p-8 rounded-[2.5rem] relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+                    <div className="card-glass p-8 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
                         <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center">
-                            <Banknote className="w-6 h-6 mr-2 text-indigo-500" />
+                            <Banknote className="w-6 h-6 mr-2 text-teal-500" />
                             Transaction Details
                         </h3>
 
@@ -203,9 +203,9 @@ export default function TransferDetailsPage() {
                                 <p className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-1">Source Amount</p>
                                 <p className="text-3xl font-black text-slate-900 dark:text-white">£{parseFloat(transfer.source_amount).toFixed(2)}</p>
                             </div>
-                            <div className="p-5 rounded-2xl bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800">
-                                <p className="text-sm font-bold text-emerald-600/80 dark:text-emerald-400/80 mb-1">Payout Amount</p>
-                                <p className="text-3xl font-black text-emerald-600 dark:text-emerald-400">
+                            <div className="p-5 rounded-2xl bg-teal-50/50 dark:bg-teal-900/10 border border-teal-100 dark:border-teal-800">
+                                <p className="text-sm font-bold text-teal-600/80 dark:text-teal-400/80 mb-1">Payout Amount</p>
+                                <p className="text-3xl font-black text-teal-600 dark:text-teal-400">
                                     PKR {parseFloat(transfer.dest_amount).toFixed(2)}
                                 </p>
                             </div>
@@ -248,14 +248,14 @@ export default function TransferDetailsPage() {
 
                     {/* Parties involved */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="card-glass p-6 rounded-[2rem] hover:scale-[1.01] transition-transform duration-300">
+                        <div className="card-glass p-6 hover:scale-[1.01] transition-transform duration-300">
                             <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center">
                                 <User className="w-4 h-4 mr-2" />
                                 Remitter
                             </h3>
                             <div className="space-y-4">
                                 <div className="flex items-center space-x-4">
-                                    <div className="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-lg">
+                                    <div className="avatar-circle">
                                         {transfer.remitter_id.toString().charAt(0)}
                                     </div>
                                     <div>
@@ -269,21 +269,21 @@ export default function TransferDetailsPage() {
                                 </div>
                                 <Link
                                     href={`/admin/remitters/${transfer.remitter_id}`}
-                                    className="block w-full text-center py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-sm hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-900/20 dark:hover:text-indigo-400 transition-colors"
+                                    className="block w-full text-center py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-sm hover:bg-teal-50 hover:text-teal-600 dark:hover:bg-teal-900/20 dark:hover:text-teal-400 transition-colors"
                                 >
                                     View Profile
                                 </Link>
                             </div>
                         </div>
 
-                        <div className="card-glass p-6 rounded-[2rem] hover:scale-[1.01] transition-transform duration-300">
+                        <div className="card-glass p-6 hover:scale-[1.01] transition-transform duration-300">
                             <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center">
                                 <Shield className="w-4 h-4 mr-2" />
                                 Receiver
                             </h3>
                             <div className="space-y-4">
                                 <div className="flex items-center space-x-4">
-                                    <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold text-lg">
+                                    <div className="avatar-circle">
                                         {transfer.beneficiary_id.toString().charAt(0)}
                                     </div>
                                     <div>
@@ -306,49 +306,49 @@ export default function TransferDetailsPage() {
                 {/* Sidebar / Actions */}
                 <div className="space-y-8 h-fit">
                     {/* Action Card */}
-                    <div className="card-glass p-6 rounded-[2rem] border-t-4 border-t-indigo-500 shadow-xl">
+                    <div className="card-glass p-6 border-t-4 border-t-teal-500 shadow-lg">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Process Transfer</h3>
 
                         <div className="space-y-6">
                             {/* Step 1: Confirm Funds */}
-                            <div className={`relative pl-8 pb-6 border-l-2 ${transfer.status !== 'pending' ? 'border-indigo-500' : 'border-slate-200'}`}>
-                                <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 ${transfer.status !== 'pending' ? 'bg-indigo-500 border-indigo-500' : 'bg-white border-slate-300'}`}></div>
-                                <h4 className={`font-bold ${transfer.status !== 'pending' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-900 dark:text-white'}`}>Confirm Funds</h4 >
+                            <div className={`relative pl-8 pb-6 border-l-2 ${transfer.status !== 'pending' ? 'border-teal-500' : 'border-slate-200'}`}>
+                                <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 ${transfer.status !== 'pending' ? 'bg-teal-500 border-teal-500' : 'bg-white border-slate-300'}`}></div>
+                                <h4 className={`font-bold ${transfer.status !== 'pending' ? 'text-teal-600 dark:text-teal-400' : 'text-slate-900 dark:text-white'}`}>Confirm Funds</h4 >
                                 <p className="text-xs text-slate-500 mb-3 font-medium leading-relaxed">Check if funds have arrived in the Trust Wallet.</p>
 
                                 {transfer.status === 'pending' && (
                                     <button
                                         onClick={() => confirmStatusUpdate('in_transit')}
                                         disabled={processing}
-                                        className="w-full py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors text-sm font-bold shadow-lg shadow-indigo-500/20"
+                                        className="w-full py-2.5 bg-teal-600 text-white rounded-xl hover:bg-teal-700 transition-colors text-sm font-bold shadow-lg shadow-teal-500/20"
                                     >
                                         Confirm Funds Received
                                     </button>
                                 )}
                                 {['in_transit', 'completed'].includes(transfer.status) && (
-                                    <span className="input-glass px-3 py-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center w-fit">
+                                    <span className="input-glass px-3 py-1.5 text-xs font-bold text-teal-600 dark:text-teal-400 flex items-center w-fit">
                                         <CheckCircle className="w-3 h-3 mr-1" /> Funds Confirmed
                                     </span>
                                 )}
                             </div>
 
                             {/* Step 2: Payout */}
-                            <div className={`relative pl-8 border-l-2 ${transfer.status === 'completed' ? 'border-emerald-500' : 'border-slate-200'}`}>
-                                <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 ${transfer.status === 'completed' ? 'bg-emerald-500 border-emerald-500' : 'bg-white border-slate-300'}`}></div>
-                                <h4 className={`font-bold ${transfer.status === 'completed' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-white'}`}>Manual Payout</h4>
+                            <div className={`relative pl-8 border-l-2 ${transfer.status === 'completed' ? 'border-teal-500' : 'border-slate-200'}`}>
+                                <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 ${transfer.status === 'completed' ? 'bg-teal-500 border-teal-500' : 'bg-white border-slate-300'}`}></div>
+                                <h4 className={`font-bold ${transfer.status === 'completed' ? 'text-teal-600 dark:text-teal-400' : 'text-slate-900 dark:text-white'}`}>Manual Payout</h4>
                                 <p className="text-xs text-slate-500 mb-3 font-medium leading-relaxed">Manually send funds to the receiver and mark paid.</p>
 
                                 {['in_transit', 'funds_received'].includes(transfer.status) && (
                                     <button
                                         onClick={() => confirmStatusUpdate('completed')}
                                         disabled={processing}
-                                        className="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl hover:shadow-lg hover:shadow-emerald-500/30 transition-all text-sm font-bold"
+                                        className="w-full py-2.5 bg-gradient-to-r from-teal-500 to-teal-500 text-white rounded-xl hover:shadow-lg hover:shadow-teal-500/30 transition-all text-sm font-bold"
                                     >
                                         Mark as Paid
                                     </button>
                                 )}
                                 {transfer.status === 'completed' && (
-                                    <span className="input-glass px-3 py-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center w-fit">
+                                    <span className="input-glass px-3 py-1.5 text-xs font-bold text-teal-600 dark:text-teal-400 flex items-center w-fit">
                                         <CheckCircle className="w-3 h-3 mr-1" /> Payout Completed
                                     </span>
                                 )}

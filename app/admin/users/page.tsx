@@ -121,11 +121,11 @@ export default function UsersPage() {
 
     const getRoleBadge = (role: string) => {
         const styles = {
-            super_admin: 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400',
-            admin: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400',
-            branch: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',
-            agent: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-400',
-            support: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
+            super_admin: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300',
+            admin: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-400',
+            branch: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-400',
+            agent: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-400',
+            support: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-400',
             customer: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400',
         };
         return styles[role as keyof typeof styles] || styles.customer;
@@ -133,7 +133,7 @@ export default function UsersPage() {
 
     const getStatusBadge = (status: string) => {
         const styles = {
-            active: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
+            active: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-400',
             inactive: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
             suspended: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
         };
@@ -172,7 +172,7 @@ export default function UsersPage() {
                             <span>Export</span>
                         </span>
                     </button>
-                    <Link href="/admin/users/create" className="btn-primary flex items-center space-x-2 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 bg-gradient-to-r from-emerald-500 to-teal-600 border-0 rounded-full px-6">
+                    <Link href="/admin/users/create" className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 rounded-full px-6">
                         <UserPlus className="w-5 h-5" />
                         <span>Add User</span>
                     </Link>
@@ -182,10 +182,10 @@ export default function UsersPage() {
             {/* Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {[
-                    { label: 'Total Users', value: users.length, icon: <Users className="w-6 h-6" />, color: 'blue' },
-                    { label: 'Active Users', value: users.filter(u => u.status === 'active').length, icon: <UserCheck className="w-6 h-6" />, color: 'emerald' },
-                    { label: 'Customers', value: roleConfig.customer.count, icon: <User className="w-6 h-6" />, color: 'cyan' },
-                    { label: 'Staff Members', value: users.filter(u => u.role !== 'customer').length, icon: <Shield className="w-6 h-6" />, color: 'indigo' }
+                    { label: 'Total Users', value: users.length, icon: <Users className="w-6 h-6" /> },
+                    { label: 'Active Users', value: users.filter(u => u.status === 'active').length, icon: <UserCheck className="w-6 h-6" /> },
+                    { label: 'Customers', value: roleConfig.customer.count, icon: <User className="w-6 h-6" /> },
+                    { label: 'Staff Members', value: users.filter(u => u.role !== 'customer').length, icon: <Shield className="w-6 h-6" /> }
                 ].map((stat, i) => (
                     <div key={i} className="card-glass p-6 stagger-item hover:scale-[1.02]" style={{ animationDelay: `${i * 0.1}s` }}>
                         <div className="flex justify-between items-start mb-4">
@@ -193,7 +193,7 @@ export default function UsersPage() {
                                 <p className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-1">{stat.label}</p>
                                 <h3 className={`text-3xl font-black text-slate-900 dark:text-white`}>{stat.value}</h3>
                             </div>
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-${stat.color}-400 to-${stat.color}-600`}>
+                            <div className="w-12 h-12 rounded-full flex items-center justify-center text-white shadow-sm bg-gradient-to-br from-teal-500 to-teal-600">
                                 {stat.icon}
                             </div>
                         </div>
@@ -202,7 +202,7 @@ export default function UsersPage() {
             </div>
 
             {/* Role Filters */}
-            <div className="card-glass p-1.5 rounded-[2rem] inline-flex flex-wrap w-full md:w-auto overflow-hidden">
+            <div className="card-glass p-1.5 inline-flex flex-wrap w-full md:w-auto overflow-hidden">
                 <div className="flex items-center space-x-1 overflow-x-auto p-1 no-scrollbar w-full">
                     {Object.entries(roleConfig).map(([key, config]) => (
                         <button
@@ -228,24 +228,24 @@ export default function UsersPage() {
             </div>
 
             {/* Search */}
-            <div className="relative group">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                    <Search className="w-5 h-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
+            <div className="relative group input-icon">
+                <div className="input-icon-left">
+                    <Search className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
                 </div>
                 <input
                     type="search"
                     placeholder="Search users by name or email..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="input-glass w-full pl-12 py-3 text-base shadow-sm hover:shadow-md transition-shadow"
+                    className="input-glass w-full py-3 text-base shadow-sm hover:shadow-md transition-shadow"
                 />
             </div>
 
             {/* Users Table */}
-            <div className="card-glass overflow-hidden rounded-[2rem] shadow-xl">
+            <div className="card-glass overflow-hidden shadow-xl">
                 <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-gray-100 dark:border-slate-700">
+                    <table className="table-shell">
+                        <thead className="table-head">
                             <tr>
                                 <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">User</th>
                                 <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Role</th>
@@ -255,15 +255,15 @@ export default function UsersPage() {
                                 <th className="px-8 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-slate-700/50">
+                        <tbody className="table-body">
                             {filteredUsers.map((user) => (
                                 <tr
                                     key={user.id}
-                                    className="hover:bg-blue-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200"
+                                    className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200"
                                 >
                                     <td className="px-8 py-5">
                                         <div className="flex items-center space-x-4">
-                                            <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold text-sm ring-2 ring-white dark:ring-slate-800 shadow-sm">
+                                            <div className="avatar-circle">
                                                 {user.name.charAt(0)}
                                             </div>
                                             <div>
@@ -292,7 +292,7 @@ export default function UsersPage() {
 
                                     <td className="px-8 py-5 text-center">
                                         <div className="flex items-center justify-center space-x-2">
-                                            <Link href={`/admin/users/${user.id}`} className="p-2 rounded-full hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-indigo-600 transition-all">
+                                            <Link href={`/admin/users/${user.id}`} className="p-2 rounded-full hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all">
                                                 <Edit className="w-5 h-5" />
                                             </Link>
                                             <button

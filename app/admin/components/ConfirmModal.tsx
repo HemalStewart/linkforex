@@ -29,10 +29,10 @@ export default function ConfirmModal({
     isAlert = false
 }: ConfirmModalProps) {
     const buttonStyles = {
-        danger: 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg hover:shadow-red-500/50 transition-all duration-300 hover-lift',
-        warning: 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-lg hover:shadow-amber-500/50 transition-all duration-300 hover-lift',
-        info: 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white shadow-lg hover:shadow-cyan-500/50 transition-all duration-300 hover-lift',
-        success: 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-emerald-500/50 transition-all duration-300 hover-lift',
+        danger: 'bg-red-500/90 hover:bg-red-500 text-white shadow-sm shadow-red-500/20 transition-all duration-300',
+        warning: 'bg-amber-500/90 hover:bg-amber-500 text-white shadow-sm shadow-amber-500/20 transition-all duration-300',
+        info: 'bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-sm shadow-teal-500/30 transition-all duration-300',
+        success: 'bg-teal-600 hover:bg-teal-500 text-white shadow-sm shadow-teal-500/25 transition-all duration-300',
     };
 
     return (
@@ -47,7 +47,7 @@ export default function ConfirmModal({
                             type="button"
                             onClick={onClose}
                             disabled={loading}
-                            className="px-6 py-3 text-sm font-bold text-slate-600 dark:text-slate-300 bg-white/50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600 rounded-2xl transition-all duration-300"
+                            className="px-5 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300 glass-effect hover:bg-white/70 dark:hover:bg-white/5 border border-transparent rounded-[12px] transition-all duration-300"
                         >
                             {cancelText}
                         </button>
@@ -56,7 +56,7 @@ export default function ConfirmModal({
                         type="button"
                         onClick={onConfirm}
                         disabled={loading}
-                        className={`inline-flex justify-center px-6 py-3 text-sm font-bold border-0 rounded-2xl focus:outline-none shadow-lg transition-all duration-300 ${buttonStyles[type as keyof typeof buttonStyles] || buttonStyles.info} ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                        className={`inline-flex justify-center px-5 py-2.5 text-sm font-semibold border-0 rounded-[12px] focus:outline-none shadow-sm transition-all duration-300 ${buttonStyles[type as keyof typeof buttonStyles] || buttonStyles.info} ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
                     >
                         {loading ? (
                             <>

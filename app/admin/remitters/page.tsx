@@ -48,7 +48,7 @@ export default function RemittersPage() {
 
     const getStatusBadge = (status: string) => {
         const styles = {
-            active: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
+            active: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-400',
             inactive: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
             suspended: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
         };
@@ -57,7 +57,7 @@ export default function RemittersPage() {
 
     const getKycBadge = (status: string) => {
         const styles = {
-            verified: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
+            verified: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-400',
             pending: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
             rejected: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
         };
@@ -82,7 +82,7 @@ export default function RemittersPage() {
                             <span>Export</span>
                         </span>
                     </button>
-                    <Link href="/admin/remitters/create" className="btn-primary flex items-center space-x-2 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 bg-gradient-to-r from-emerald-500 to-teal-600 border-0 rounded-full px-6">
+                    <Link href="/admin/remitters/create" className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 rounded-full px-6">
                         <UserPlus className="w-5 h-5" />
                         <span>Add Remitter</span>
                     </Link>
@@ -95,16 +95,16 @@ export default function RemittersPage() {
             {/* Filters and Search */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                 {/* Search */}
-                <div className="relative group w-full">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                        <Search className="w-5 h-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
+                <div className="relative group w-full input-icon">
+                    <div className="input-icon-left">
+                        <Search className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
                     </div>
                     <input
                         type="search"
                         placeholder="Search remitters by name, email or phone..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="input-glass w-full pl-12 py-3 text-base shadow-sm hover:shadow-md transition-shadow"
+                        className="input-glass w-full py-3 text-base shadow-sm hover:shadow-md transition-shadow"
                     />
                 </div>
 
@@ -123,8 +123,8 @@ export default function RemittersPage() {
                         <button
                             onClick={() => setStatusFilter('active')}
                             className={`px-4 py-2 text-sm font-bold rounded-full transition-all ${statusFilter === 'active'
-                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 shadow-sm'
-                                : 'text-slate-500 dark:text-slate-400 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20'
+                                ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-400 shadow-sm'
+                                : 'text-slate-500 dark:text-slate-400 hover:bg-teal-50/50 dark:hover:bg-teal-900/20'
                                 }`}
                         >
                             Active
@@ -143,13 +143,13 @@ export default function RemittersPage() {
             </div>
 
             {/* Remitters Table */}
-            <div className="card-glass overflow-hidden rounded-[2rem] shadow-xl">
+            <div className="card-glass overflow-hidden shadow-xl">
                 <div className="overflow-x-auto">
                     {loading ? (
                         <div className="p-12 text-center text-slate-500 animate-pulse">Loading remitters...</div>
                     ) : (
-                        <table className="w-full">
-                            <thead className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-gray-100 dark:border-slate-700">
+                        <table className="table-shell">
+                            <thead className="table-head">
                                 <tr>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Remitter</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Contact</th>
@@ -158,15 +158,15 @@ export default function RemittersPage() {
                                     <th className="px-8 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-slate-700/50">
+                            <tbody className="table-body">
                                 {filteredRemitters.map((remitter) => (
                                     <tr
                                         key={remitter.id}
-                                        className="hover:bg-blue-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200"
+                                        className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200"
                                     >
                                         <td className="px-8 py-5">
                                             <div className="flex items-center space-x-4">
-                                                <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-100 to-purple-100 dark:from-indigo-900/50 dark:to-purple-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-base shadow-sm ring-2 ring-white dark:ring-slate-800">
+                                                <div className="avatar-circle">
                                                     {remitter.name?.charAt(0)}
                                                 </div>
                                                 <div>
@@ -194,7 +194,7 @@ export default function RemittersPage() {
                                         <td className="px-8 py-5 text-center">
                                             <Link
                                                 href={`/admin/remitters/${remitter.id}`}
-                                                className="p-2 rounded-full hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-emerald-600 transition-all inline-flex"
+                                                className="p-2 rounded-full hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
                                                 title="View/Edit Profile"
                                             >
                                                 <Eye className="w-5 h-5" />

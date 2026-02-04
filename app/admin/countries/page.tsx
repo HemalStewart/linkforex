@@ -131,14 +131,14 @@ export default function CountriesPage() {
                 </div>
                 <button
                     onClick={() => setAddModalOpen(true)}
-                    className="btn-primary flex items-center space-x-2 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 bg-gradient-to-r from-indigo-500 to-purple-600 border-0"
+                    className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0"
                 >
                     <PlusCircle className="w-5 h-5" />
                     <span>Add New Country</span>
                 </button>
             </div>
 
-            <div className="card-glass overflow-hidden rounded-[2rem] shadow-xl">
+            <div className="card-glass overflow-hidden shadow-xl">
                 <div className="px-8 py-6 border-b border-gray-100 dark:border-slate-700/50 flex items-center space-x-3">
                     <Globe className="w-6 h-6 text-slate-400" />
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white">Supported Countries</h2>
@@ -147,8 +147,8 @@ export default function CountriesPage() {
                     {loading ? (
                         <div className="p-12 text-center text-slate-500 animate-pulse">Loading countries...</div>
                     ) : (
-                        <table className="w-full">
-                            <thead className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-gray-100 dark:border-slate-700">
+                        <table className="table-shell">
+                            <thead className="table-head">
                                 <tr>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Country Name</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">ISO Code</th>
@@ -157,9 +157,9 @@ export default function CountriesPage() {
                                     <th className="px-8 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-slate-700/50">
+                            <tbody className="table-body">
                                 {countries.map((country) => (
-                                    <tr key={country.id} className="hover:bg-indigo-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
+                                    <tr key={country.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
                                         <td className="px-8 py-5 font-bold text-slate-900 dark:text-white">
                                             {editingId === country.id ? (
                                                 <input className="input-glass py-1 px-3 w-full" value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} autoFocus />
@@ -200,7 +200,7 @@ export default function CountriesPage() {
                                         <td className="px-8 py-5 text-center">
                                             {editingId === country.id ? (
                                                 <div className="flex items-center justify-center space-x-2">
-                                                    <button onClick={() => handleSave(country.id)} className="p-2 rounded-xl bg-emerald-100 text-emerald-600 hover:bg-emerald-200 transition-colors">
+                                                    <button onClick={() => handleSave(country.id)} className="p-2 rounded-xl bg-teal-100 text-teal-600 hover:bg-teal-200 transition-colors">
                                                         <Save className="w-4 h-4" />
                                                     </button>
                                                     <button onClick={() => setEditingId(null)} className="p-2 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors">
@@ -209,7 +209,7 @@ export default function CountriesPage() {
                                                 </div>
                                             ) : (
                                                 <div className="flex items-center justify-center space-x-2">
-                                                    <button onClick={() => handleEdit(country)} className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-blue-600 transition-all">
+                                                    <button onClick={() => handleEdit(country)} className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all">
                                                         <Edit2 className="w-5 h-5" />
                                                     </button>
                                                     <button onClick={() => handleDelete(country.id)} className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all">

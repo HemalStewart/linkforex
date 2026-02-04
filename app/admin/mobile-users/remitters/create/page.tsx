@@ -15,14 +15,14 @@ import {
 
 function FormInput({ label, name, type = 'text', placeholder, disabled, step, defaultValue, required, Icon, value, onChange }: any) {
     return (
-        <div className="w-full">
-            <label htmlFor={name} className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
-                {label} {required && <span className="text-red-500">*</span>}
+    <div className="w-full">
+      <label htmlFor={name} className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
+        {label} {required && <span className="text-red-500">*</span>}
             </label>
-            <div className="relative">
+            <div className={`relative ${Icon ? 'input-icon' : ''}`}>
                 {Icon && (
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                        <Icon className="w-5 h-5" />
+          <div className="input-icon-left">
+            <Icon className="w-5 h-5" />
                     </div>
                 )}
                 <input
@@ -35,7 +35,7 @@ function FormInput({ label, name, type = 'text', placeholder, disabled, step, de
                     value={value}
                     onChange={onChange}
                     required={required}
-                    className={`input-glass w-full py-3 ${Icon ? 'pl-12' : 'pl-4'} pr-4 text-sm focus:scale-[1.01] transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed`}
+                    className={`input-glass w-full py-3 ${Icon ? '' : 'pl-4'} pr-4 text-sm focus:scale-[1.01] transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed`}
                     placeholder={placeholder}
                 />
             </div>
@@ -45,14 +45,14 @@ function FormInput({ label, name, type = 'text', placeholder, disabled, step, de
 
 function FormSelect({ label, name, options, defaultValue, Icon, required, value, onChange }: any) {
     return (
-        <div className="w-full">
-            <label htmlFor={name} className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
-                {label} {required && <span className="text-red-500">*</span>}
+    <div className="w-full">
+      <label htmlFor={name} className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
+        {label} {required && <span className="text-red-500">*</span>}
             </label>
-            <div className="relative">
+            <div className={`relative ${Icon ? 'input-icon' : ''}`}>
                 {Icon && (
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                        <Icon className="w-5 h-5" />
+          <div className="input-icon-left">
+            <Icon className="w-5 h-5" />
                     </div>
                 )}
                 <select
@@ -62,14 +62,14 @@ function FormSelect({ label, name, options, defaultValue, Icon, required, value,
                     value={value}
                     onChange={onChange}
                     required={required}
-                    className={`input-glass w-full py-3 ${Icon ? 'pl-12' : 'pl-4'} pr-10 appearance-none cursor-pointer text-sm`}
+                    className={`input-glass w-full py-3 ${Icon ? '' : 'pl-4'} pr-10 appearance-none cursor-pointer text-sm`}
                 >
                     {options.map((opt: string) => (
                         <option key={opt} value={opt}>{opt}</option>
                     ))}
                 </select>
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                 </div>
             </div>
         </div>
@@ -79,26 +79,26 @@ function FormSelect({ label, name, options, defaultValue, Icon, required, value,
 function FormFileUpload({ label, name, compact, defaultValue }: any) {
     return (
         <div>
-            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
+      <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
                 {label}
             </label>
-            <div className={`border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-2xl ${compact ? 'px-3 py-3' : 'px-4 py-8'} bg-slate-50/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800 transition-all duration-300 cursor-pointer text-center relative max-w-full overflow-hidden group hover:border-indigo-400 dark:hover:border-indigo-500`}>
-                <div className="flex flex-col items-center justify-center">
+            <div className={`border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-2xl ${compact ? 'px-3 py-3' : 'px-4 py-8'} bg-slate-50/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800 transition-all duration-300 cursor-pointer text-center relative max-w-full overflow-hidden group hover:border-teal-400 dark:hover:border-teal-500`}>
+        <div className="flex flex-col items-center justify-center">
                     {!compact && (
-                        <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
-                            <Upload className="w-6 h-6 text-slate-400 group-hover:text-indigo-500 transition-colors" />
+            <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+              <Upload className="w-6 h-6 text-slate-400 group-hover:text-teal-500 transition-colors" />
                         </div>
                     )}
-                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 truncate w-full px-2">
+          <span className="text-xs font-bold text-slate-500 dark:text-slate-400 truncate w-full px-2">
                         {defaultValue ? (
-                            <span className="text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-1">
-                                <CheckCircle className="w-3 h-3" /> {defaultValue}
+              <span className="text-teal-600 dark:text-teal-400 flex items-center justify-center gap-1">
+                <CheckCircle className="w-3 h-3" /> {defaultValue}
                             </span>
                         ) : (
-                            <span className="group-hover:text-indigo-500 transition-colors">{compact ? 'Upload' : 'Click to upload'}</span>
+              <span className="group-hover:text-teal-500 transition-colors">{compact ? 'Upload' : 'Click to upload'}</span>
                         )}
                     </span>
-                    <input type="file" name={name} className="absolute inset-0 opacity-0 cursor-pointer" />
+          <input type="file" name={name} className="absolute inset-0 opacity-0 cursor-pointer" />
                 </div>
             </div>
         </div>
@@ -302,7 +302,7 @@ export default function CreateMobileUserRemitterPage() {
     };
 
     return (
-        <div className="max-w-4xl mx-auto pb-20 animate-fade-in-up">
+    <div className="max-w-7xl mx-auto pb-20 animate-fade-in-up">
             <ConfirmModal
                 isOpen={confirmModal.isOpen}
                 onClose={handleModalClose}
@@ -315,57 +315,57 @@ export default function CreateMobileUserRemitterPage() {
             />
 
             {/* Header */}
-            <div className="mb-8">
-                <Link href="/admin/mobile-users/remitters" className="inline-flex items-center text-sm font-bold text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors mb-2 group">
-                    <ArrowLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
+      <div className="mb-8">
+        <Link href="/admin/mobile-users/remitters" className="inline-flex items-center text-sm font-bold text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 transition-colors mb-2 group">
+          <ArrowLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
                     Back to Mobile Users
                 </Link>
-                <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Create Mobile Remitter</h1>
-                        <p className="text-slate-500 dark:text-slate-400 mt-2">Onboard a new mobile app customer manually.</p>
+            <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Create Mobile Remitter</h1>
+            <p className="text-slate-500 dark:text-slate-400 mt-2">Onboard a new mobile app customer manually.</p>
                     </div>
                 </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="card-glass p-8 rounded-[2.5rem] relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+      <form onSubmit={handleSubmit} className="card-glass p-8 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
                 {/* Section 1: Client Type & Branch */}
-                <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
-                        <Users className="w-5 h-5 mr-2 text-indigo-500" />
+        <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
+            <Users className="w-5 h-5 mr-2 text-teal-500" />
                         Account Setup
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 ml-1">Client Type</label>
-                            <div className="flex space-x-4">
-                                <label className={`flex-1 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-slate-800 ${clientType === 'individual' ? 'ring-2 ring-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/10' : ''}`}>
-                                    <input type="radio" name="clientType" value="individual" className="sr-only" checked={clientType === 'individual'} onChange={() => setClientType('individual')} />
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${clientType === 'individual' ? 'border-indigo-600' : 'border-slate-400'}`}>
-                                            {clientType === 'individual' && <div className="w-2 h-2 rounded-full bg-indigo-600"></div>}
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 ml-1">Client Type</label>
+              <div className="flex space-x-4">
+                                <label className={`flex-1 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-slate-800 ${clientType === 'individual' ? 'ring-2 ring-teal-500 bg-teal-50/50 dark:bg-teal-900/10' : ''}`}>
+                  <input type="radio" name="clientType" value="individual" className="sr-only" checked={clientType === 'individual'} onChange={() => setClientType('individual')} />
+                  <div className="flex items-center gap-3">
+                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${clientType === 'individual' ? 'border-teal-600' : 'border-slate-400'}`}>
+                      {clientType === 'individual' && <div className="w-2 h-2 rounded-full bg-teal-600"></div>}
                                         </div>
-                                        <span className="font-bold text-sm text-slate-700 dark:text-slate-300">Individual</span>
+                    <span className="font-bold text-sm text-slate-700 dark:text-slate-300">Individual</span>
                                     </div>
                                 </label>
-                                <label className={`flex-1 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-slate-800 ${clientType === 'business' ? 'ring-2 ring-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/10' : ''}`}>
-                                    <input type="radio" name="clientType" value="business" className="sr-only" checked={clientType === 'business'} onChange={() => setClientType('business')} />
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${clientType === 'business' ? 'border-indigo-600' : 'border-slate-400'}`}>
-                                            {clientType === 'business' && <div className="w-2 h-2 rounded-full bg-indigo-600"></div>}
+                                <label className={`flex-1 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-slate-800 ${clientType === 'business' ? 'ring-2 ring-teal-500 bg-teal-50/50 dark:bg-teal-900/10' : ''}`}>
+                  <input type="radio" name="clientType" value="business" className="sr-only" checked={clientType === 'business'} onChange={() => setClientType('business')} />
+                  <div className="flex items-center gap-3">
+                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${clientType === 'business' ? 'border-teal-600' : 'border-slate-400'}`}>
+                      {clientType === 'business' && <div className="w-2 h-2 rounded-full bg-teal-600"></div>}
                                         </div>
-                                        <span className="font-bold text-sm text-slate-700 dark:text-slate-300">Business</span>
+                    <span className="font-bold text-sm text-slate-700 dark:text-slate-300">Business</span>
                                     </div>
                                 </label>
                             </div>
                         </div>
                         <div>
                             <FormSelect label="Branch" name="branch_id" Icon={Building} options={branches.length > 0 ? branches.map(b => b.code || b.name) : ['London - Link Forex Ltd']} required />
-                            <div className="flex items-center mt-4 ml-1">
-                                <input type="checkbox" id="sanction_list_verified" name="sanction_list_verified" className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" />
-                                <label htmlFor="sanction_list_verified" className="ml-2 text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer">
+              <div className="flex items-center mt-4 ml-1">
+                <input type="checkbox" id="sanction_list_verified" name="sanction_list_verified" className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 cursor-pointer" />
+                <label htmlFor="sanction_list_verified" className="ml-2 text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer">
                                     Sanction List Verified
                                 </label>
                             </div>
@@ -374,16 +374,16 @@ export default function CreateMobileUserRemitterPage() {
                 </div>
 
                 {/* Section 2: Personal / Company Details */}
-                <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
-                        <User className="w-5 h-5 mr-2 text-indigo-500" />
+        <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
+            <User className="w-5 h-5 mr-2 text-teal-500" />
                         {clientType === 'business' ? 'Company Details' : 'Personal Details'}
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormInput label="Sender ID" name="sender_id" placeholder="Auto-generated" disabled defaultValue={'LF3992'} Icon={CreditCard} />
                         {clientType === 'business' ? (
                             <>
-                                <div className="md:col-span-2">
+                <div className="md:col-span-2">
                                     <FormInput label="Company Name" name="company_name" placeholder="Registered Company Name" required Icon={Building} />
                                 </div>
                                 <FormSelect label="Company Type" name="company_type" options={['LTD', 'PLC', 'Sole Trader', 'Partnership', 'LLP']} Icon={Layers} required />
@@ -403,16 +403,16 @@ export default function CreateMobileUserRemitterPage() {
                 </div>
 
                 {/* Section 3: Address */}
-                <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
-                        <MapPin className="w-5 h-5 mr-2 text-indigo-500" />
+        <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
+            <MapPin className="w-5 h-5 mr-2 text-teal-500" />
                         Address Details
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="md:col-span-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="md:col-span-2">
                             <FormInput label="Address Line 1" name="address_1" placeholder="House/Flat Number, Street" required Icon={MapPin} />
                         </div>
-                        <div className="md:col-span-2">
+            <div className="md:col-span-2">
                             <FormInput label="Address Line 2" name="address_2" placeholder="Locality / Area" Icon={MapPin} />
                         </div>
                         <FormInput label="City" name="city" placeholder="e.g. London" required Icon={Building} />
@@ -424,48 +424,48 @@ export default function CreateMobileUserRemitterPage() {
 
                 {/* Section 4: Directors (Business Only) - Max 3 */}
                 {clientType === 'business' && (
-                    <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
-                                <Users className="w-5 h-5 mr-2 text-indigo-500" />
+          <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
+                <Users className="w-5 h-5 mr-2 text-teal-500" />
                                 Directors (Max 3)
                             </h3>
                             {directors.length < 3 && (
-                                <button type="button" onClick={addDirector} className="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-full transition-colors flex items-center">
-                                    <Plus className="w-3 h-3 mr-1" /> Add Director
+                <button type="button" onClick={addDirector} className="text-xs font-bold text-teal-600 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-full transition-colors flex items-center">
+                  <Plus className="w-3 h-3 mr-1" /> Add Director
                                 </button>
                             )}
                         </div>
 
                         {/* Info Note */}
-                        <div className="mb-6 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl text-xs text-blue-700 dark:text-blue-300 flex items-start">
-                            <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0 mt-0.5" />
+            <div className="mb-6 bg-teal-50 dark:bg-teal-900/20 p-4 rounded-xl text-xs text-teal-700 dark:text-teal-300 flex items-start">
+              <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0 mt-0.5" />
                             <p>System supports up to 3 directors. Please enter details for at least one director / owner.</p>
                         </div>
 
-                        <div className="space-y-4">
+            <div className="space-y-4">
                             {directors.map((director, index) => (
-                                <div key={index} className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 relative group">
-                                    <div className="absolute top-4 right-4">
+                <div key={index} className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 relative group">
+                  <div className="absolute top-4 right-4">
                                         {directors.length > 1 && (
-                                            <button type="button" onClick={() => removeDirector(index)} className="text-red-400 hover:text-red-600 p-1">
-                                                <Trash2 className="w-4 h-4" />
+                      <button type="button" onClick={() => removeDirector(index)} className="text-red-400 hover:text-red-600 p-1">
+                        <Trash2 className="w-4 h-4" />
                                             </button>
                                         )}
                                     </div>
-                                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Director {index + 1}</h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="md:col-span-2">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Director {index + 1}</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
                                             <FormInput label="Full Name" value={director.name} onChange={(e: any) => updateDirector(index, 'name', e.target.value)} required Icon={User} />
                                         </div>
                                         <FormInput label="Date of Birth" type="date" value={director.dob} onChange={(e: any) => updateDirector(index, 'dob', e.target.value)} required Icon={Calendar} />
-                                        <div className="md:col-span-2">
-                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Address</label>
-                                            <textarea rows={2} className="input-glass w-full text-sm p-3" value={director.address} onChange={(e) => updateDirector(index, 'address', e.target.value)} required />
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Address</label>
+                      <textarea rows={2} className="input-glass w-full text-sm p-3" value={director.address} onChange={(e) => updateDirector(index, 'address', e.target.value)} required />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">ID Type</label>
-                                            <select className="input-glass w-full py-3 px-4 text-sm" value={director.idType} onChange={(e) => updateDirector(index, 'idType', e.target.value)}>
+                      <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">ID Type</label>
+                      <select className="input-glass w-full py-3 px-4 text-sm" value={director.idType} onChange={(e) => updateDirector(index, 'idType', e.target.value)}>
                                                 <option>Passport</option>
                                                 <option>Driving License</option>
                                                 <option>National ID</option>
@@ -480,19 +480,19 @@ export default function CreateMobileUserRemitterPage() {
                 )}
 
                 {/* Section 5: IDs & Documents */}
-                <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
-                        <Shield className="w-5 h-5 mr-2 text-indigo-500" />
+        <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
+            <Shield className="w-5 h-5 mr-2 text-teal-500" />
                         Identity Verification
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <FormSelect label="ID Type" name="id_type" options={['Passport', 'Driving License', 'National ID', 'Residence Permit']} required Icon={CreditCard} />
                         <FormInput label="ID Number" name="id_no" required Icon={FileText} />
                         <FormInput label="ID Expiry Date" name="id_expire_date" type="date" required Icon={Calendar} />
                     </div>
 
-                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4 ml-1">Documents</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4 ml-1">Documents</h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <FormFileUpload label="ID Copy" name="passport_copy" compact />
                         <FormFileUpload label="Proof of Address" name="proof_of_address_doc" compact />
                         <FormFileUpload label="Source of Income" name="work_related_docs" compact />
@@ -500,19 +500,19 @@ export default function CreateMobileUserRemitterPage() {
                     </div>
                 </div>
 
-                <div className="flex justify-end space-x-4 pt-8 mt-8 border-t border-slate-100 dark:border-slate-700/50">
+        <div className="flex justify-end space-x-4 pt-8 mt-8 border-t border-slate-100 dark:border-slate-700/50">
                     <Link
                         href="/admin/mobile-users/remitters"
-                        className="px-6 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-sm transition-colors border border-slate-200 dark:border-slate-600"
+            className="px-6 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-sm transition-colors border border-slate-200 dark:border-slate-600"
                     >
                         Cancel
                     </Link>
                     <button
                         type="submit"
                         disabled={loading}
-                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40"
+            className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40"
                     >
-                        <Save className="w-4 h-4" />
+            <Save className="w-4 h-4" />
                         <span>{loading ? 'Onboarding...' : 'Onboard Remitter'}</span>
                     </button>
                 </div>

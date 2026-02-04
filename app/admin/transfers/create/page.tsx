@@ -273,7 +273,7 @@ export default function CreateTransferPage() {
     };
 
     return (
-        <div className="max-w-4xl mx-auto animate-fade-in pb-20">
+        <div className="max-w-7xl mx-auto animate-fade-in pb-20">
             <ConfirmModal
                 isOpen={confirmModal.isOpen}
                 onClose={handleModalClose}
@@ -304,7 +304,7 @@ export default function CreateTransferPage() {
                                 setFormData(prev => ({ ...prev, branchId: userBranch }));
                             }
                         }}
-                        className="px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
+                        className="input-glass px-4 py-2 text-sm"
                     >
                         <option value="admin">Simulate: Super Admin</option>
                         <option value="branch_user">Simulate: Branch Manager (LON)</option>
@@ -314,14 +314,14 @@ export default function CreateTransferPage() {
 
             {/* Stepper */}
             <div className="mb-8">
-                <div className="flex items-center justify-between relative">
-                    <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-full h-1 bg-slate-200 dark:bg-slate-700 -z-10"></div>
+                <div className="flex items-center justify-between relative pt-1">
+                    <div className="absolute left-0 top-4 w-full h-[2px] bg-slate-200/70 dark:bg-slate-700/70 -z-10"></div>
 
                     {[1, 2, 3, 4].map((s) => (
-                        <div key={s} className={`flex flex-col items-center bg-slate-50 dark:bg-slate-900 px-2`}>
+                        <div key={s} className="flex flex-col items-center px-2">
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-colors duration-300 ${step >= s
-                                ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
-                                : 'bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
+                                ? 'bg-teal-600 text-white shadow-sm'
+                                : 'bg-white/70 text-slate-500 border border-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400'
                                 }`}>
                                 {s}
                             </div>
@@ -338,7 +338,7 @@ export default function CreateTransferPage() {
             </div>
 
             {/* Content Card */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div className="card-glass overflow-hidden">
 
                 {/* Step 1: Remitter Selection */}
                 {step === 1 && (
@@ -349,17 +349,22 @@ export default function CreateTransferPage() {
                         </div>
 
                         {/* Search & Select */}
-                        <div className="max-w-lg mx-auto space-y-4">
+                        <div className="max-w-4xl mx-auto space-y-4">
                             {!selectedRemitter ? (
                                 <div className="space-y-4">
-                                    <div className="relative">
+                                    <div className="relative input-icon">
+                                        <span className="input-icon-left">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                            </svg>
+                                        </span>
                                         <input
                                             type="text"
                                             placeholder="Search by Name or Phone (Try 'John' or '077')..."
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
                                             onKeyUp={(e) => e.key === 'Enter' && handleSearchRemitter()}
-                                            className="input-glass w-full pl-6 pr-12 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-full focus:ring-2 focus:ring-slate-900 dark:focus:ring-white outline-none transition-all"
+                                            className="input-glass w-full pr-12 py-3"
                                         />
                                         {isSearching ? (
                                             <div className="absolute right-2 top-1/2 -translate-y-1/2 p-2">
@@ -371,7 +376,7 @@ export default function CreateTransferPage() {
                                         ) : (
                                             <button
                                                 onClick={handleSearchRemitter}
-                                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-slate-200 dark:bg-slate-700 rounded-full hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 glass-effect rounded-full hover:bg-white/70 dark:hover:bg-white/5 transition-colors"
                                             >
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                                             </button>
@@ -380,24 +385,24 @@ export default function CreateTransferPage() {
 
                                     {/* Search Results */}
                                     {searchResults.length > 0 ? (
-                                        <div className="border border-slate-200 dark:border-slate-700 rounded-lg divide-y divide-slate-100 dark:divide-slate-700 max-h-60 overflow-y-auto">
+                                        <div className="card-glass divide-y divide-slate-100/60 dark:divide-slate-700/60 max-h-60 overflow-y-auto">
                                             {searchResults.map(r => (
                                                 <div
                                                     key={r.id}
                                                     onClick={() => selectRemitter(r)}
-                                                    className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer flex items-center justify-between transition-colors"
+                                                    className="p-4 hover:bg-white/60 dark:hover:bg-white/5 cursor-pointer flex items-center justify-between transition-colors"
                                                 >
                                                     <div>
                                                         <p className="font-bold text-slate-900 dark:text-white">{r.name}</p>
                                                         <p className="text-sm text-slate-500">{r.phone}</p>
                                                     </div>
-                                                    <span className="text-xs bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded">Select</span>
+                                                    <span className="badge-glass text-xs px-2 py-1">Select</span>
                                                 </div>
                                             ))}
                                         </div>
                                     ) : (
                                         hasSearched && !isSearching && (
-                                            <div className="text-center p-4 border border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
+                                            <div className="text-center p-4 border border-dashed border-slate-200 dark:border-slate-700 rounded-[24px] bg-white/40 dark:bg-slate-900/20">
                                                 <p className="text-slate-500 dark:text-slate-400">No remitters found matching "{searchTerm}"</p>
                                             </div>
                                         )
@@ -409,13 +414,13 @@ export default function CreateTransferPage() {
 
                                     <Link
                                         href="/admin/remitters/create?returnUrl=/admin/transfers/create"
-                                        className="w-full py-4 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-[2rem] text-slate-500 font-medium hover:border-slate-400 dark:hover:border-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors flex items-center justify-center"
+                                        className="w-full py-3 glass-effect rounded-full text-slate-600 dark:text-slate-300 font-semibold hover:bg-white/70 dark:hover:bg-white/5 transition-colors flex items-center justify-center"
                                     >
                                         + Add New Remitter
                                     </Link>
                                 </div>
                             ) : (
-                                <div className="bg-slate-50 dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-700 text-center relative animate-fade-in">
+                                <div className="card-glass p-6 text-center relative animate-fade-in">
                                     <button
                                         onClick={() => {
                                             setSelectedRemitter(null);
@@ -425,7 +430,7 @@ export default function CreateTransferPage() {
                                     >
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                                     </button>
-                                    <div className="w-16 h-16 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold text-slate-500">
+                                    <div className="avatar-circle avatar-circle-lg mx-auto mb-4">
                                         {formData.remitterName.charAt(0)}
                                     </div>
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white">{formData.remitterName}</h3>
@@ -436,7 +441,7 @@ export default function CreateTransferPage() {
                                         {screeningStatus === 'idle' && (
                                             <button
                                                 onClick={() => simulateScreening('remitter')}
-                                                className="flex items-center space-x-2 text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-4 py-2 rounded-full text-xs font-bold transition-colors border border-slate-200 dark:border-slate-600"
+                                                className="flex items-center space-x-2 text-slate-600 dark:text-slate-300 glass-effect hover:bg-white/70 dark:hover:bg-white/5 px-4 py-2 rounded-full text-xs font-bold transition-colors"
                                             >
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -454,7 +459,7 @@ export default function CreateTransferPage() {
                                             </div>
                                         )}
                                         {screeningStatus === 'passed' && (
-                                            <div className="flex items-center space-x-2 text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5 rounded-full text-xs font-bold animate-fade-in">
+                                            <div className="flex items-center space-x-2 text-teal-600 bg-teal-50 dark:bg-teal-900/20 px-3 py-1.5 rounded-full text-xs font-bold animate-fade-in">
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                                 </svg>
@@ -465,18 +470,32 @@ export default function CreateTransferPage() {
 
                                     {formData.isNewRemitter ? (
                                         <div className="mt-4 space-y-3 text-left">
-                                            <input
-                                                className="w-full p-2 border rounded bg-white dark:bg-slate-800 dark:border-slate-600"
-                                                placeholder="Full Name"
-                                                value={formData.remitterName === 'New Remitter' ? '' : formData.remitterName}
-                                                onChange={e => setFormData({ ...formData, remitterName: e.target.value })}
-                                            />
-                                            <input
-                                                className="w-full p-2 border rounded bg-white dark:bg-slate-800 dark:border-slate-600"
-                                                placeholder="Phone Number"
-                                                value={formData.remitterPhone}
-                                                onChange={e => setFormData({ ...formData, remitterPhone: e.target.value })}
-                                            />
+                                            <div className="relative input-icon">
+                                                <span className="input-icon-left">
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A7 7 0 1118.88 6.196 7 7 0 015.12 17.804z" />
+                                                    </svg>
+                                                </span>
+                                                <input
+                                                    className="input-glass w-full"
+                                                    placeholder="Full Name"
+                                                    value={formData.remitterName === 'New Remitter' ? '' : formData.remitterName}
+                                                    onChange={e => setFormData({ ...formData, remitterName: e.target.value })}
+                                                />
+                                            </div>
+                                            <div className="relative input-icon">
+                                                <span className="input-icon-left">
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h2l2 5-2 1a16 16 0 006 6l1-2 5 2v2a2 2 0 01-2 2h-1C9.716 19 5 14.284 5 8V7a2 2 0 00-2-2z" />
+                                                    </svg>
+                                                </span>
+                                                <input
+                                                    className="input-glass w-full"
+                                                    placeholder="Phone Number"
+                                                    value={formData.remitterPhone}
+                                                    onChange={e => setFormData({ ...formData, remitterPhone: e.target.value })}
+                                                />
+                                            </div>
                                         </div>
                                     ) : (
                                         <p className="text-slate-500">{formData.remitterPhone}</p>
@@ -501,9 +520,9 @@ export default function CreateTransferPage() {
                                 <div
                                     key={b.id}
                                     onClick={() => selectReceiver(b)}
-                                    className={`p-4 border rounded-xl cursor-pointer transition-all ${formData.receiverName === b.name
-                                        ? 'border-slate-900 dark:border-white bg-slate-50 dark:bg-slate-700 ring-1 ring-slate-900 dark:ring-white'
-                                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-400'
+                                    className={`p-4 border rounded-[24px] cursor-pointer transition-all ${formData.receiverName === b.name
+                                        ? 'border-teal-500 bg-teal-50/60 dark:bg-teal-900/20 ring-1 ring-teal-500/30'
+                                        : 'border-slate-200 dark:border-slate-700 hover:border-teal-300'
                                         }`}
                                 >
                                     <div className="flex items-start justify-between">
@@ -513,7 +532,7 @@ export default function CreateTransferPage() {
                                             <p className="text-xs text-slate-400 mt-1 font-mono">{b.account}</p>
                                         </div>
                                         {formData.receiverName === b.name && (
-                                            <div className="w-5 h-5 bg-slate-900 dark:bg-white rounded-full flex items-center justify-center text-white dark:text-slate-900">
+                                            <div className="w-5 h-5 bg-teal-600 rounded-full flex items-center justify-center text-white">
                                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
                                             </div>
                                         )}
@@ -522,10 +541,13 @@ export default function CreateTransferPage() {
                             ))}
 
                             {/* Add New Beneficiary Button */}
-                            <button className="p-4 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-[2rem] flex flex-col items-center justify-center text-slate-500 hover:border-slate-400 hover:text-slate-600 transition-colors min-h-[120px]">
+                            <Link
+                                href="/admin/receivers/create?returnUrl=/admin/transfers/create"
+                                className="p-4 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-[24px] flex flex-col items-center justify-center text-slate-500 hover:border-teal-300 hover:text-teal-600 transition-colors min-h-[120px]"
+                            >
                                 <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                                 <span className="font-medium">Add New Receiver</span>
-                            </button>
+                            </Link>
                         </div>
 
                         {/* Sanction Screening for Receiver */}
@@ -534,7 +556,7 @@ export default function CreateTransferPage() {
                                 {receiverScreeningStatus === 'idle' && (
                                     <button
                                         onClick={() => simulateScreening('receiver')}
-                                        className="flex items-center space-x-2 text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-4 py-2 rounded-full text-xs font-bold transition-colors border border-slate-200 dark:border-slate-600"
+                                        className="flex items-center space-x-2 text-slate-600 dark:text-slate-300 glass-effect hover:bg-white/70 dark:hover:bg-white/5 px-4 py-2 rounded-full text-xs font-bold transition-colors"
                                     >
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -552,7 +574,7 @@ export default function CreateTransferPage() {
                                     </div>
                                 )}
                                 {receiverScreeningStatus === 'passed' && (
-                                    <div className="flex items-center space-x-2 text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5 rounded-full text-xs font-bold animate-fade-in">
+                                    <div className="flex items-center space-x-2 text-teal-600 bg-teal-50 dark:bg-teal-900/20 px-3 py-1.5 rounded-full text-xs font-bold animate-fade-in">
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                         </svg>
@@ -575,14 +597,14 @@ export default function CreateTransferPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             {/* Calculator */}
                             <div className="space-y-6">
-                                <div className="p-6 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 space-y-4">
+                                <div className="card-glass p-6 space-y-4">
                                     <div>
                                         <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">You Send (GBP)</label>
-                                        <div className="relative">
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">£</span>
+                                        <div className="relative input-icon">
+                                            <span className="input-icon-left font-bold text-slate-400">£</span>
                                             <input
                                                 type="number"
-                                                className="w-full pl-12 pr-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-lg font-bold"
+                                                className="input-glass w-full text-lg font-bold pr-4"
                                                 placeholder="0.00"
                                                 value={formData.sourceAmount}
                                                 onChange={(e) => {
@@ -599,11 +621,11 @@ export default function CreateTransferPage() {
 
                                     <div className="flex items-center justify-center py-2 relative">
                                         <div className="h-px bg-slate-300 dark:bg-slate-600 w-full absolute"></div>
-                                        <div className="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 px-4 py-1.5 rounded-full text-sm font-mono font-medium z-10 text-slate-500 flex items-center shadow-sm">
+                                        <div className="glass-effect px-4 py-1.5 rounded-full text-sm font-mono font-medium z-10 text-slate-500 flex items-center shadow-sm">
                                             <span>1 GBP = </span>
                                             <input
                                                 type="number"
-                                                className="w-20 mx-2 px-1 py-0.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded text-center text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-slate-400"
+                                                className="w-20 mx-2 px-1 py-0.5 input-glass text-center text-slate-900 dark:text-white focus:outline-none"
                                                 value={formData.rate}
                                                 onChange={(e) => {
                                                     const newRate = e.target.value;
@@ -621,11 +643,11 @@ export default function CreateTransferPage() {
 
                                     <div>
                                         <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">They Get (PKR)</label>
-                                        <div className="relative">
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">PKR</span>
+                                        <div className="relative input-icon">
+                                            <span className="input-icon-left font-bold text-slate-400 text-sm">PKR</span>
                                             <input
                                                 type="number"
-                                                className="w-full pl-16 pr-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-lg font-bold"
+                                                className="input-glass w-full text-lg font-bold pr-4"
                                                 placeholder="0.00"
                                                 value={formData.destAmount}
                                                 readOnly
@@ -698,7 +720,7 @@ export default function CreateTransferPage() {
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Source of Funds</label>
                                     <select
-                                        className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
+                                        className="input-glass w-full"
                                         value={formData.sourceOfFunds}
                                         onChange={(e) => setFormData({ ...formData, sourceOfFunds: e.target.value })}
                                     >
@@ -712,7 +734,7 @@ export default function CreateTransferPage() {
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Purpose of Transfer</label>
                                     <input
                                         type="text"
-                                        className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
+                                        className="input-glass w-full"
                                         value={formData.purpose}
                                         onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
                                     />
@@ -730,18 +752,18 @@ export default function CreateTransferPage() {
                             <p className="text-slate-500 text-sm">Please confirm the details below.</p>
                         </div>
 
-                        <div className="bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden divide-y divide-slate-200 dark:divide-slate-700">
+                        <div className="card-glass overflow-hidden divide-y divide-slate-200/50 dark:divide-slate-700/50">
                             {/* Amount Summary */}
-                            <div className="p-6 text-center bg-slate-900 dark:bg-slate-800 text-white">
-                                <p className="text-slate-400 text-sm uppercase tracking-wide font-semibold mb-1">Total Payout Amount</p>
+                            <div className="p-6 text-center bg-gradient-to-br from-teal-600 via-teal-600 to-teal-500 text-white">
+                                <p className="text-teal-100 text-sm uppercase tracking-wide font-semibold mb-1">Total Payout Amount</p>
                                 <div className="text-3xl font-bold">PKR {Number(formData.destAmount).toLocaleString()}</div>
-                                <div className="text-sm text-slate-400 mt-2">Rate: 1 GBP = {formData.rate} PKR</div>
+                                <div className="text-sm text-teal-100/80 mt-2">Rate: 1 GBP = {formData.rate} PKR</div>
                                 <div className="mt-4 flex justify-center space-x-4">
-                                    <span className="flex items-center space-x-1 text-emerald-400 text-xs font-medium bg-emerald-400/10 px-2 py-1 rounded">
+                                    <span className="flex items-center space-x-1 text-teal-100 text-xs font-medium bg-white/15 px-2 py-1 rounded-full">
                                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                         <span>Remitter Screened</span>
                                     </span>
-                                    <span className="flex items-center space-x-1 text-emerald-400 text-xs font-medium bg-emerald-400/10 px-2 py-1 rounded">
+                                    <span className="flex items-center space-x-1 text-teal-100 text-xs font-medium bg-white/15 px-2 py-1 rounded-full">
                                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                         <span>Receiver Screened</span>
                                     </span>
@@ -751,7 +773,7 @@ export default function CreateTransferPage() {
                             <div className="p-6 grid grid-cols-2 gap-8 text-sm">
                                 <div>
                                     <h4 className="font-bold text-slate-900 dark:text-white mb-4 flex items-center">
-                                        <span className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 text-xs flex items-center justify-center mr-2">1</span>
+                                        <span className="w-6 h-6 rounded-full bg-teal-50/80 dark:bg-teal-900/20 text-xs flex items-center justify-center mr-2 text-teal-700 dark:text-teal-300">1</span>
                                         Remitter
                                     </h4>
                                     <div className="space-y-1 text-slate-600 dark:text-slate-300">
@@ -762,7 +784,7 @@ export default function CreateTransferPage() {
                                 </div>
                                 <div>
                                     <h4 className="font-bold text-slate-900 dark:text-white mb-4 flex items-center">
-                                        <span className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 text-xs flex items-center justify-center mr-2">2</span>
+                                        <span className="w-6 h-6 rounded-full bg-teal-50/80 dark:bg-teal-900/20 text-xs flex items-center justify-center mr-2 text-teal-700 dark:text-teal-300">2</span>
                                         Receiver
                                     </h4>
                                     <div className="space-y-1 text-slate-600 dark:text-slate-300">
@@ -777,13 +799,13 @@ export default function CreateTransferPage() {
                 )}
 
                 {/* Footer / Actions */}
-                <div className="bg-slate-50 dark:bg-slate-900/50 p-6 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                <div className="glass-effect p-6 border-t border-slate-200/60 dark:border-slate-700/50 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
                     <button
                         onClick={prevStep}
                         disabled={step === 1}
-                        className={`px-6 py-2.5 font-bold rounded-full transition-colors ${step === 1
-                            ? 'text-slate-300 dark:text-slate-700 cursor-not-allowed'
-                            : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                        className={`w-full sm:w-auto px-6 py-2.5 font-bold rounded-full transition-colors glass-effect ${step === 1
+                            ? 'text-slate-300 dark:text-slate-700 cursor-not-allowed opacity-70'
+                            : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-white/70 dark:hover:bg-white/5'
                             }`}
                     >
                         Back
@@ -797,7 +819,7 @@ export default function CreateTransferPage() {
                                 (step === 2 && !formData.receiverName) ||
                                 (step === 3 && !formData.sourceAmount)
                             }
-                            className="px-8 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-full hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-slate-900/20 dark:shadow-none flex items-center space-x-2"
+                            className="btn-primary w-full sm:flex-1 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                         >
                             <span>Next Step</span>
                             {(step === 1 && screeningStatus === 'scanning') || (step === 2 && receiverScreeningStatus === 'scanning') ? (
@@ -807,7 +829,7 @@ export default function CreateTransferPage() {
                     ) : (
                         <button
                             onClick={handleSubmit}
-                            className="px-8 py-2.5 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-600/20"
+                            className="btn-primary w-full sm:flex-1 rounded-full"
                         >
                             Confirm Transfer
                         </button>

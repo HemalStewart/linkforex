@@ -169,28 +169,30 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     ];
 
     return (
-        <div className="flex h-screen overflow-hidden font-sans antialiased text-slate-900 dark:text-white relative">
-            {/* Animated Background with Teal Gradient */}
-            <div className="fixed inset-0 bg-gradient-to-br from-teal-50 via-slate-50 to-blue-100 dark:from-slate-950 dark:via-slate-900 dark:to-cyan-950 -z-10"></div>
+        <div className="flex h-screen overflow-hidden antialiased text-slate-900 dark:text-white relative">
+            {/* Soft Teal Background */}
+            <div className="fixed inset-0 bg-gradient-to-b from-teal-50 via-teal-50 to-teal-100 dark:from-teal-950 dark:via-teal-950 dark:to-teal-900 -z-10"></div>
 
-            {/* Sidebar with Glass Effect and Round Corners */}
-            <aside className={`flex flex-col glass-effect-strong border-r border-white/20 dark:border-slate-700/50 transition-all duration-500 ease-in-out my-4 ml-4 rounded-[2rem] shadow-2xl z-20 ${sidebarOpen ? 'w-72' : 'w-24'} animate-slide-in-left`}>
-                {/* Logo */}
-                <div className="h-24 flex items-center justify-between px-6 border-b border-white/10 dark:border-slate-700/50">
-                    {sidebarOpen && (
-                        <div className="flex items-center space-x-3 animate-fade-in">
+            {/* Sidebar - Thin, iOS-style */}
+            <aside className={`flex flex-col glass-effect-strong border border-white/20 dark:border-white/10 transition-all duration-500 ease-in-out my-4 ml-4 rounded-[20px] shadow-lg z-20 ${sidebarOpen ? 'w-72' : 'w-24'} animate-slide-in-left`}>
+                {/* Logo + Toggle */}
+                <div className="h-20 flex items-center px-5 border-b border-white/10 dark:border-white/10">
+                    <button
+                        onClick={() => setSidebarOpen(!sidebarOpen)}
+                        className={`w-full flex items-center ${sidebarOpen ? 'justify-between' : 'justify-center'} rounded-full px-3 py-2 glass-effect hover:bg-white/70 dark:hover:bg-white/5 transition-all duration-300`}
+                        aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+                    >
+                        <div className={`flex items-center space-x-3 transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2 w-0 overflow-hidden'}`}>
                             <img src="/logo-removebg-preview.png" alt="LinkForex" className="h-10 object-contain drop-shadow-md" />
                         </div>
-                    )}
-                    {!sidebarOpen && (
-                        <div className="flex items-center justify-center w-full">
-                            <img src="/logo-removebg-preview.png" alt="LinkForex" className="h-10 object-contain drop-shadow-md" />
+                        <div className={`flex items-center justify-center transition-all duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-100'}`}>
+                            {sidebarOpen ? <ChevronLeft className="w-5 h-5 text-slate-500" /> : <ChevronRight className="w-5 h-5 text-slate-500" />}
                         </div>
-                    )}
+                    </button>
                 </div>
 
                 {/* Navigation */}
-                <nav className="flex-1 px-4 py-6 space-y-3 overflow-y-auto no-scrollbar">
+                <nav className="flex-1 px-4 py-5 space-y-2.5 overflow-y-auto no-scrollbar">
                     {navigation.map((item, idx) => {
                         const isChildActive = item.children?.some(child => pathname === child.href || pathname.startsWith(child.href!));
                         const isActive = pathname === item.href || isChildActive;
@@ -201,13 +203,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                 <div key={item.name} className="mb-2 stagger-item" style={{ animationDelay: `${idx * 0.05}s` }}>
                                     <button
                                         onClick={() => sidebarOpen ? toggleMenu(item.name) : setSidebarOpen(true)}
-                                        className={`w-full flex items-center ${sidebarOpen ? 'justify-between px-5' : 'justify-center px-2'} py-3.5 rounded-2xl transition-all duration-300 group ${isActive
-                                            ? 'glass-effect text-cyan-600 dark:text-cyan-400 font-bold shadow-lg ring-1 ring-cyan-500/20'
-                                            : 'text-slate-600 dark:text-slate-400 hover:bg-white/40 dark:hover:bg-slate-800/40 hover:text-cyan-600 dark:hover:text-cyan-400'
+                                        className={`w-full flex items-center ${sidebarOpen ? 'justify-between px-5' : 'justify-center px-2'} py-3 rounded-full transition-all duration-300 group ${isActive
+                                            ? 'glass-effect text-teal-700 dark:text-teal-300 font-semibold shadow-sm ring-1 ring-teal-500/20'
+                                            : 'text-slate-600 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-white/5 hover:text-teal-600 dark:hover:text-teal-300'
                                             }`}
                                     >
                                         <div className="flex items-center space-x-3.5">
-                                            <span className={`transition-all duration-300 ${isActive ? 'text-cyan-500 scale-110 drop-shadow-md' : 'group-hover:text-cyan-500 group-hover:scale-110'}`}>
+                                            <span className={`transition-all duration-300 ${isActive ? 'text-teal-500 scale-110' : 'group-hover:text-teal-500 group-hover:scale-110'}`}>
                                                 {item.icon}
                                             </span>
                                             {sidebarOpen && <span className="tracking-wide text-[15px]">{item.name}</span>}
@@ -219,16 +221,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
                                     {/* Submenu Items */}
                                     {sidebarOpen && isExpanded && (
-                                        <div className="mt-2 ml-5 pl-5 border-l-2 border-cyan-200/50 dark:border-cyan-800/50 space-y-1.5 animate-slide-down">
+                                        <div className="mt-2 ml-5 pl-5 border-l border-teal-200/60 dark:border-teal-800/50 space-y-1.5 animate-slide-down">
                                             {item.children.map((child: any) => {
                                                 const isChildItemActive = pathname === child.href;
                                                 return (
                                                     <Link
                                                         key={child.name}
                                                         href={child.href!}
-                                                        className={`flex items-center justify-between px-4 py-2.5 rounded-xl transition-all duration-300 text-[14px] font-medium hover-lift ${isChildItemActive
-                                                            ? 'bg-gradient-to-r from-cyan-400 to-blue-500 text-white shadow-lg shadow-cyan-500/25'
-                                                            : 'text-slate-500 dark:text-slate-400 hover:bg-white/40 dark:hover:bg-slate-800/40 hover:text-cyan-600 dark:hover:text-cyan-400'
+                                                        className={`flex items-center justify-between px-4 py-2.5 rounded-full transition-all duration-300 text-[14px] font-medium ${isChildItemActive
+                                                            ? 'bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-sm shadow-teal-500/30'
+                                                            : 'text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-white/5 hover:text-teal-600 dark:hover:text-teal-300'
                                                             }`}
                                                     >
                                                         <div className="flex items-center space-x-2">
@@ -239,7 +241,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                                         {child.badge && (
                                                             <span className={`px-2 py-0.5 rounded-full text-xs font-bold shadow-sm ${isChildItemActive
                                                                 ? 'bg-white/20 text-white backdrop-blur-md'
-                                                                : 'bg-cyan-100 dark:bg-cyan-900/50 text-cyan-600 dark:text-cyan-400'
+                                                                : 'bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300'
                                                                 }`}>
                                                                 {child.badge}
                                                             </span>
@@ -257,9 +259,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                             <Link
                                 key={item.name}
                                 href={item.href!}
-                                className={`flex items-center ${sidebarOpen ? 'justify-between px-5' : 'justify-center px-2'} py-3.5 rounded-2xl transition-all duration-300 mb-2 group hover-lift stagger-item ${isActive
-                                    ? 'bg-gradient-to-r from-cyan-400 to-blue-500 text-white shadow-lg shadow-cyan-500/25'
-                                    : 'text-slate-600 dark:text-slate-400 hover:bg-white/40 dark:hover:bg-slate-800/40 hover:text-cyan-600 dark:hover:text-cyan-400'
+                                className={`flex items-center ${sidebarOpen ? 'justify-between px-5' : 'justify-center px-2'} py-3 rounded-full transition-all duration-300 mb-2 group hover-lift stagger-item ${isActive
+                                    ? 'bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-sm shadow-teal-500/30'
+                                    : 'text-slate-600 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-white/5 hover:text-teal-600 dark:hover:text-teal-300'
                                     }`}
                                 style={{ animationDelay: `${idx * 0.05}s` }}
                             >
@@ -274,27 +276,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     })}
                 </nav>
 
-                {/* Sidebar Footer / Toggle */}
-                <div className="p-4 border-t border-white/10 dark:border-slate-700/50">
-                    <button
-                        onClick={() => setSidebarOpen(!sidebarOpen)}
-                        className={`w-full flex items-center ${sidebarOpen ? 'justify-end' : 'justify-center'} p-2 text-slate-400 hover:text-cyan-500 transition-colors`}
-                    >
-                        {sidebarOpen ? <ChevronLeft className="w-6 h-6" /> : <ChevronRight className="w-6 h-6" />}
-                    </button>
-                </div>
-
-
                 {/* User Profile */}
-                <div className="p-4 border-t border-white/10 dark:border-slate-700/50 relative mb-2">
+                <div className="p-4 border-t border-white/10 dark:border-white/10 relative mb-2">
                     {userMenuOpen && (
-                        <div className="absolute bottom-[110%] left-4 right-4 mb-2 glass-effect-strong rounded-2xl shadow-2xl overflow-hidden animate-scale-in border border-white/20">
+                        <div className="absolute bottom-[110%] left-4 right-4 mb-2 glass-effect-strong rounded-[16px] shadow-lg overflow-hidden animate-scale-in border border-white/20 dark:border-white/10">
                             <button
                                 onClick={() => {
                                     localStorage.removeItem('user');
                                     router.replace('/admin/login');
                                 }}
-                                className="flex items-center space-x-3 px-5 py-3.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-300 w-full text-left group"
+                                className="flex items-center space-x-3 px-5 py-3 text-red-500 hover:bg-red-50/70 dark:hover:bg-red-900/20 transition-all duration-300 w-full text-left group"
                             >
                                 <LogOut className="w-5 h-5 group-hover:scale-110 transition-transform" />
                                 <span className="font-semibold text-sm">Sign Out</span>
@@ -303,9 +294,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     )}
                     <button
                         onClick={() => setUserMenuOpen(!userMenuOpen)}
-                        className={`w-full flex items-center ${sidebarOpen ? 'space-x-3' : 'justify-center'} p-3 rounded-2xl glass-effect hover:shadow-lg transition-all duration-300 hover-lift`}
+                        className={`w-full flex items-center ${sidebarOpen ? 'space-x-3' : 'justify-center'} p-3 rounded-full glass-effect hover:shadow-md transition-all duration-300`}
                     >
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-400 to-blue-500 flex items-center justify-center text-white text-sm font-bold shrink-0 shadow-lg ring-2 ring-white/30">
+                        <div className="avatar-circle avatar-circle-sm shrink-0">
                             {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
                         </div>
                         {sidebarOpen && (
@@ -321,7 +312,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         {sidebarOpen && (
                             <div className="text-slate-400">
                                 {/* Using a simplified indicator or small icon */}
-                                <div className={`w-1.5 h-1.5 rounded-full bg-slate-400/50 ${userMenuOpen ? 'bg-cyan-500' : ''}`}></div>
+                                <div className={`w-1.5 h-1.5 rounded-full bg-slate-400/50 ${userMenuOpen ? 'bg-teal-500' : ''}`}></div>
                             </div>
                         )}
                     </button>
@@ -331,28 +322,31 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col h-full overflow-hidden relative">
                 {/* Top Header */}
-                <header className="h-20 glass-effect-strong border-b border-white/20 dark:border-slate-700/50 flex items-center justify-between px-8 z-10 animate-slide-down backdrop-blur-3xl m-4 rounded-[2rem] shadow-sm">
+                <header className="h-16 glass-effect-strong border border-white/20 dark:border-white/10 flex items-center justify-between px-6 z-10 animate-slide-down backdrop-blur-3xl m-4 rounded-[20px] shadow-sm">
                     <div className="flex-1 max-w-xl">
-                        <div className="relative group">
-                            <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 transition-all duration-300 group-focus-within:text-cyan-500">
+                        <div className="relative group input-icon">
+                            <span className="input-icon-left transition-all duration-300 group-focus-within:text-teal-500">
                                 <Search className="w-5 h-5" />
                             </span>
                             <input
                                 type="text"
                                 placeholder="Search everything..."
-                                className="input-glass w-full pl-12 pr-4 py-3 text-sm focus:scale-[1.01] transition-all duration-300 bg-white/40 dark:bg-slate-800/40 border-0 shadow-inner"
+                                className="input-glass w-full pr-4 py-3 text-sm transition-all duration-300"
                             />
                         </div>
                     </div>
 
                     <div className="flex items-center space-x-5">
-                        <button className="p-3 glass-effect rounded-2xl text-slate-500 dark:text-slate-400 hover:text-cyan-500 dark:hover:text-cyan-400 transition-all duration-300 relative hover-lift group">
+                        <button className="p-3 glass-effect rounded-full text-slate-500 dark:text-slate-400 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 relative group">
                             <Bell className="w-6 h-6 group-hover:scale-110 transition-transform" />
                             <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-800 animate-pulse"></span>
                         </button>
-                        <Link href="/admin/transfers/create" className="btn-primary flex items-center space-x-2 shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40">
+                        <Link
+                            href="/admin/transfers/create"
+                            className="glass-effect rounded-full px-4 py-2.5 text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 flex items-center space-x-2 hover:shadow-lg"
+                        >
                             <PlusCircle className="w-5 h-5" />
-                            <span>New Transfer</span>
+                            <span className="font-semibold">New Transfer</span>
                         </Link>
                     </div>
                 </header>

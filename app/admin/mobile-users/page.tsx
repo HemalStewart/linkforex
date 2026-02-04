@@ -44,7 +44,7 @@ export default function MobileUsersPage() {
 
     const getStatusBadge = (status: string) => {
         const styles = {
-            active: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+            active: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',
             pending: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
             blocked: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
         };
@@ -58,27 +58,27 @@ export default function MobileUsersPage() {
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Mobile App Users</h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Manage users registered via the mobile application</p>
                 </div>
-                <div className="relative group w-72">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                        <Search className="w-5 h-5 text-slate-400 group-focus-within:text-cyan-500 transition-colors" />
+                <div className="relative group w-72 input-icon">
+                    <div className="input-icon-left">
+                        <Search className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
                     </div>
                     <input
                         type="text"
                         placeholder="Search users..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="input-glass w-full pl-11 py-3"
+                        className="input-glass w-full py-3"
                     />
                 </div>
             </div>
 
-            <div className="card-glass overflow-hidden rounded-[2rem] shadow-xl">
+            <div className="card-glass overflow-hidden shadow-xl">
                 <div className="overflow-x-auto">
                     {loading ? (
                         <div className="p-12 text-center text-slate-500 animate-pulse">Loading mobile users...</div>
                     ) : (
-                        <table className="w-full">
-                            <thead className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-gray-100 dark:border-slate-700">
+                        <table className="table-shell">
+                            <thead className="table-head">
                                 <tr>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">User</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Contact Info</th>
@@ -87,13 +87,13 @@ export default function MobileUsersPage() {
                                     <th className="px-8 py-5 text-right text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"></th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-slate-700/50">
+                            <tbody className="table-body">
                                 {filteredUsers.length > 0 ? (
                                     filteredUsers.map((user) => (
-                                        <tr key={user.id} className="hover:bg-indigo-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
+                                        <tr key={user.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
                                             <td className="px-8 py-5">
                                                 <div className="flex items-center space-x-4">
-                                                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-lg font-bold shadow-lg shadow-indigo-500/20">
+                                                    <div className="avatar-circle">
                                                         {user.name?.charAt(0) || 'U'}
                                                     </div>
                                                     <div>
@@ -134,7 +134,7 @@ export default function MobileUsersPage() {
                                                 </span>
                                             </td>
                                             <td className="px-8 py-5 text-right">
-                                                <button className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-indigo-600 transition-all">
+                                                <button className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all">
                                                     <MoreVertical className="w-5 h-5" />
                                                 </button>
                                             </td>

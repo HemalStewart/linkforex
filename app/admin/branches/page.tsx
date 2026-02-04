@@ -91,7 +91,7 @@ export default function BranchesPage() {
 
     const getStatusStyle = (status: string) => {
         return status === 'active'
-            ? 'badge-glass bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
+            ? 'badge-glass bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-400'
             : 'badge-glass bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400';
     };
 
@@ -103,7 +103,7 @@ export default function BranchesPage() {
     };
 
     return (
-        <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-up">
+    <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-up">
             {/* Modal */}
             <Modal
                 isOpen={isModalOpen}
@@ -113,11 +113,13 @@ export default function BranchesPage() {
                 <form onSubmit={handleSave} className="space-y-6">
                     <div>
                         <label className="block text-sm font-bold mb-2 text-slate-700 dark:text-slate-300 ml-1">Name</label>
-                        <div className="relative">
-                            <Store className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                        <div className="relative input-icon">
+                            <span className="input-icon-left">
+                                <Store className="w-5 h-5" />
+                            </span>
                             <input
                                 required
-                                className="input-glass w-full pl-12"
+                                className="input-glass w-full"
                                 value={formData.name}
                                 onChange={e => setFormData({ ...formData, name: e.target.value })}
                                 placeholder="e.g. London Central"
@@ -126,11 +128,13 @@ export default function BranchesPage() {
                     </div>
                     <div>
                         <label className="block text-sm font-bold mb-2 text-slate-700 dark:text-slate-300 ml-1">Code</label>
-                        <div className="relative">
-                            <Coins className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                        <div className="relative input-icon">
+                            <span className="input-icon-left">
+                                <Coins className="w-5 h-5" />
+                            </span>
                             <input
                                 required
-                                className="input-glass w-full pl-12 uppercase"
+                                className="input-glass w-full uppercase"
                                 value={formData.code}
                                 onChange={e => setFormData({ ...formData, code: e.target.value })}
                                 placeholder="e.g. LON01"
@@ -139,41 +143,45 @@ export default function BranchesPage() {
                     </div>
                     <div>
                         <label className="block text-sm font-bold mb-2 text-slate-700 dark:text-slate-300 ml-1">Address</label>
-                        <div className="relative">
-                            <Map className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                        <div className="relative input-icon">
+                            <span className="input-icon-left">
+                                <Map className="w-5 h-5" />
+                            </span>
                             <input
                                 required
-                                className="input-glass w-full pl-12"
+                                className="input-glass w-full"
                                 value={formData.address}
                                 onChange={e => setFormData({ ...formData, address: e.target.value })}
                                 placeholder="Full address"
                             />
                         </div>
                     </div>
-                    <div>
-                        <label className="block text-sm font-bold mb-2 text-slate-700 dark:text-slate-300 ml-1">Phone</label>
-                        <div className="relative">
-                            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                            <input
-                                required
-                                className="input-glass w-full pl-12"
-                                value={formData.phone}
-                                onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                                placeholder="+44 ..."
-                            />
+                        <div>
+                            <label className="block text-sm font-bold mb-2 text-slate-700 dark:text-slate-300 ml-1">Phone</label>
+                            <div className="relative input-icon">
+                                <span className="input-icon-left">
+                                    <Phone className="w-5 h-5" />
+                                </span>
+                                <input
+                                    required
+                                    className="input-glass w-full"
+                                    value={formData.phone}
+                                    onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                                    placeholder="+44 ..."
+                                />
+                            </div>
                         </div>
-                    </div>
-                    <div className="flex justify-end space-x-3 mt-8 pt-4 border-t border-slate-100 dark:border-slate-700/50">
+          <div className="flex justify-end space-x-3 mt-8 pt-4 border-t border-slate-100 dark:border-slate-700/50">
                         <button
                             type="button"
                             onClick={() => setIsModalOpen(false)}
-                            className="px-6 py-3 rounded-full font-bold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors"
+              className="px-6 py-3 rounded-full font-bold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="btn-primary rounded-full px-8"
+              className="btn-primary rounded-full px-8"
                         >
                             {formData.id ? 'Update Branch' : 'Create Branch'}
                         </button>
@@ -182,50 +190,50 @@ export default function BranchesPage() {
             </Modal>
 
             {/* Page Header */}
-            <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Branches</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Manage branch locations and staff</p>
+          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Branches</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Manage branch locations and staff</p>
                 </div>
-                <div className="flex items-center space-x-4">
-                    <button onClick={fetchBranches} className="px-5 py-3 rounded-full border-0 glass-effect text-slate-700 dark:text-slate-300 font-bold hover:shadow-lg transition-all group">
-                        <span className="flex items-center space-x-2">
+        <div className="flex items-center space-x-4">
+          <button onClick={fetchBranches} className="px-5 py-3 rounded-full border-0 glass-effect bg-teal-50/60 dark:bg-teal-900/10 text-slate-700 dark:text-slate-300 font-bold hover:bg-teal-100/70 dark:hover:bg-teal-900/20 hover:shadow-lg transition-all group">
+            <span className="flex items-center space-x-2">
                             <RefreshCw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
                             <span>Refresh</span>
                         </span>
                     </button>
-                    <button className="px-5 py-3 rounded-full border-0 glass-effect text-slate-700 dark:text-slate-300 font-bold hover:shadow-lg transition-all group">
-                        <span className="flex items-center space-x-2">
-                            <Map className="w-5 h-5 group-hover:scale-110 transition-transform" />
+          <button className="px-5 py-3 rounded-full border-0 glass-effect bg-teal-50/60 dark:bg-teal-900/10 text-slate-700 dark:text-slate-300 font-bold hover:bg-teal-100/70 dark:hover:bg-teal-900/20 hover:shadow-lg transition-all group">
+            <span className="flex items-center space-x-2">
+              <Map className="w-5 h-5 group-hover:scale-110 transition-transform" />
                             <span>View Map</span>
                         </span>
                     </button>
                     <button
                         onClick={openCreateModal}
-                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40 bg-gradient-to-r from-cyan-500 to-blue-600 border-0 rounded-full px-6"
+            className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 rounded-full px-6"
                     >
-                        <PlusCircle className="w-5 h-5" />
+            <PlusCircle className="w-5 h-5" />
                         <span>Add Branch</span>
                     </button>
                 </div>
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {[
-                    { label: 'Total Branches', value: totalStats.totalBranches, icon: Store, color: 'bg-blue-500' },
-                    { label: 'Active Branches', value: totalStats.activeBranches, icon: Store, color: 'bg-emerald-500' },
-                    { label: 'Total Staff', value: totalStats.totalStaff, icon: Users, color: 'bg-violet-500' },
-                    { label: 'Total Revenue', value: `£${totalStats.totalRevenue.toLocaleString()}`, icon: Coins, color: 'bg-amber-500' },
+                    { label: 'Total Branches', value: totalStats.totalBranches, icon: Store },
+                    { label: 'Active Branches', value: totalStats.activeBranches, icon: Store },
+                    { label: 'Total Staff', value: totalStats.totalStaff, icon: Users },
+                    { label: 'Total Revenue', value: `£${totalStats.totalRevenue.toLocaleString()}`, icon: Coins },
                 ].map((stat, i) => (
-                    <div key={i} className="card-glass p-6 rounded-[2rem] hover:scale-[1.02] transition-transform duration-300">
-                        <div className="flex items-center justify-between">
+        <div key={i} className="card-glass p-6 hover:scale-[1.02] transition-transform duration-300">
+            <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-1">{stat.label}</p>
-                                <p className="text-2xl font-black text-slate-900 dark:text-white">{loading ? '-' : stat.value}</p>
+                <p className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-1">{stat.label}</p>
+                <p className="text-2xl font-black text-slate-900 dark:text-white">{loading ? '-' : stat.value}</p>
                             </div>
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg ${stat.color} bg-opacity-90`}>
-                                <stat.icon className="w-6 h-6" />
+                            <div className="w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg bg-teal-500/90">
+                <stat.icon className="w-6 h-6" />
                             </div>
                         </div>
                     </div>
@@ -233,22 +241,22 @@ export default function BranchesPage() {
             </div>
 
             {/* Branches Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {branches.map((branch, index) => (
                     <div
                         key={branch.id}
-                        className="card-glass rounded-[2.5rem] p-8 hover:shadow-2xl transition-all duration-300 group border border-white/50 dark:border-slate-700/50"
+className="card-glass p-8 hover:shadow-lg transition-all duration-300 group border border-white/40 dark:border-white/10"
                     >
                         {/* Header */}
-                        <div className="flex items-start justify-between mb-8">
-                            <div className="flex items-center space-x-5">
-                                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-slate-100 to-white dark:from-slate-800 dark:to-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 shadow-inner">
-                                    <Store className="w-8 h-8" />
+            <div className="flex items-start justify-between mb-8">
+              <div className="flex items-center space-x-5">
+                <div className="w-16 h-16 rounded-full bg-teal-50/80 dark:bg-teal-900/20 flex items-center justify-center text-slate-600 dark:text-slate-300 shadow-inner">
+                  <Store className="w-8 h-8" />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">{branch.name}</h3>
-                                    <div className="flex items-center text-slate-500 dark:text-slate-400 space-x-2 text-sm font-medium">
-                                        <Map className="w-4 h-4" />
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">{branch.name}</h3>
+                  <div className="flex items-center text-slate-500 dark:text-slate-400 space-x-2 text-sm font-medium">
+                    <Map className="w-4 h-4" />
                                         <span>{branch.address}</span>
                                     </div>
                                 </div>
@@ -259,58 +267,58 @@ export default function BranchesPage() {
                         </div>
 
                         {/* Manager */}
-                        <div className="mb-8 p-5 rounded-2xl bg-slate-50/50 dark:bg-slate-900/30 border border-slate-100/50 dark:border-slate-700/30 backdrop-blur-sm">
-                            <div className="flex items-center space-x-4">
-                                <div className="w-12 h-12 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold shadow-sm">
+                        <div className="mb-8 p-5 rounded-[24px] bg-slate-50/50 dark:bg-slate-900/30 border border-slate-100/50 dark:border-slate-700/30 backdrop-blur-sm">
+              <div className="flex items-center space-x-4">
+                <div className="avatar-circle">
                                     {(branch.manager || '?').charAt(0)}
                                 </div>
                                 <div>
-                                    <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-0.5">Manager</p>
-                                    <p className="font-bold text-slate-900 dark:text-white">{branch.manager || '-'}</p>
+                  <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-0.5">Manager</p>
+                  <p className="font-bold text-slate-900 dark:text-white">{branch.manager || '-'}</p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Contact Info */}
-                        <div className="space-y-4 mb-8">
-                            <div className="flex items-center space-x-3 text-sm group/item">
-                                <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-500 group-hover/item:text-blue-600 transition-colors">
-                                    <Phone className="w-4 h-4" />
+            <div className="space-y-4 mb-8">
+              <div className="flex items-center space-x-3 text-sm group/item">
+                <div className="p-2 rounded-lg bg-teal-50 dark:bg-teal-900/20 text-teal-500 group-hover/item:text-teal-600 transition-colors">
+                  <Phone className="w-4 h-4" />
                                 </div>
-                                <span className="font-semibold text-slate-600 dark:text-slate-300">{branch.phone}</span>
+                <span className="font-semibold text-slate-600 dark:text-slate-300">{branch.phone}</span>
                             </div>
-                            <div className="flex items-center space-x-3 text-sm group/item">
-                                <div className="p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-500 group-hover/item:text-purple-600 transition-colors">
-                                    <Mail className="w-4 h-4" />
+              <div className="flex items-center space-x-3 text-sm group/item">
+                <div className="p-2 rounded-lg bg-teal-50 dark:bg-teal-900/20 text-teal-600 group-hover/item:text-teal-600 transition-colors">
+                  <Mail className="w-4 h-4" />
                                 </div>
-                                <span className="font-semibold text-slate-600 dark:text-slate-300">{branch.email || '-'}</span>
+                <span className="font-semibold text-slate-600 dark:text-slate-300">{branch.email || '-'}</span>
                             </div>
                         </div>
 
                         {/* Stats Grid */}
-                        <div className="grid grid-cols-3 gap-4 mb-8">
-                            <div className="text-center p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50">
-                                <p className="text-lg font-black text-slate-900 dark:text-white">{branch.staff || 0}</p>
-                                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1">Staff</p>
+            <div className="grid grid-cols-3 gap-4 mb-8">
+              <div className="text-center p-4 rounded-[24px] bg-slate-50/80 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50">
+                <p className="text-lg font-black text-slate-900 dark:text-white">{branch.staff || 0}</p>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1">Staff</p>
                             </div>
-                            <div className="text-center p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50">
-                                <p className="text-lg font-black text-slate-900 dark:text-white">{branch.transfers || 0}</p>
-                                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1">Transfers</p>
+              <div className="text-center p-4 rounded-[24px] bg-slate-50/80 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50">
+                <p className="text-lg font-black text-slate-900 dark:text-white">{branch.transfers || 0}</p>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1">Transfers</p>
                             </div>
-                            <div className="text-center p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50">
-                                <p className="text-lg font-black text-slate-900 dark:text-white">{branch.revenue || '-'}</p>
-                                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1">Revenue</p>
+              <div className="text-center p-4 rounded-[24px] bg-slate-50/80 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50">
+                <p className="text-lg font-black text-slate-900 dark:text-white">{branch.revenue || '-'}</p>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1">Revenue</p>
                             </div>
                         </div>
 
                         {/* Actions */}
-                        <div className="flex space-x-4 pt-6 border-t border-slate-100 dark:border-slate-700/50">
-                            <button className="flex-1 py-3 rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold hover:bg-slate-800 dark:hover:bg-slate-200 transition-all shadow-md hover:shadow-lg active:scale-95">
+            <div className="flex space-x-4 pt-6 border-t border-slate-100 dark:border-slate-700/50">
+              <button className="btn-primary flex-1 rounded-full font-bold shadow-md hover:shadow-lg active:scale-95">
                                 View Details
                             </button>
                             <button
                                 onClick={() => openEditModal(branch)}
-                                className="px-6 py-3 rounded-full glass-effect text-slate-700 dark:text-slate-300 font-bold hover:bg-white hover:text-blue-600 transition-all border-0 shadow-sm hover:shadow-md active:scale-95"
+                className="px-6 py-3 rounded-full glass-effect bg-teal-50/60 dark:bg-teal-900/10 text-slate-700 dark:text-slate-300 font-bold hover:bg-teal-100/70 dark:hover:bg-teal-900/20 hover:text-teal-700 transition-all border-0 shadow-sm hover:shadow-md active:scale-95"
                             >
                                 Edit
                             </button>

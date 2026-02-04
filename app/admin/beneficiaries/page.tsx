@@ -54,22 +54,22 @@ export default function BeneficiariesPage() {
 
             {/* Search */}
             <div className="max-w-md">
-                <div className="relative group w-full">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                        <Search className="w-5 h-5 text-slate-400 group-focus-within:text-cyan-500 transition-colors" />
+                <div className="relative group w-full input-icon">
+                    <div className="input-icon-left">
+                        <Search className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
                     </div>
                     <input
                         type="search"
                         placeholder="Search beneficiaries..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="input-glass w-full pl-11 py-3 text-base shadow-sm hover:shadow-md transition-shadow"
+                        className="input-glass w-full py-3 text-base shadow-sm hover:shadow-md transition-shadow"
                     />
                 </div>
             </div>
 
             {/* List */}
-            <div className="card-glass overflow-hidden rounded-[2rem] shadow-xl">
+            <div className="card-glass overflow-hidden shadow-xl">
                 <div className="px-8 py-6 border-b border-gray-100 dark:border-slate-700/50 flex items-center space-x-3">
                     <Users className="w-6 h-6 text-slate-400" />
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white">All Beneficiaries</h2>
@@ -78,8 +78,8 @@ export default function BeneficiariesPage() {
                     {loading ? (
                         <div className="p-12 text-center text-slate-500 animate-pulse">Loading beneficiaries...</div>
                     ) : (
-                        <table className="w-full">
-                            <thead className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-gray-100 dark:border-slate-700">
+                        <table className="table-shell">
+                            <thead className="table-head">
                                 <tr>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Name</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Bank Details</th>
@@ -87,12 +87,12 @@ export default function BeneficiariesPage() {
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Date Added</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-slate-700/50">
+                            <tbody className="table-body">
                                 {filteredBeneficiaries.map((b) => (
-                                    <tr key={b.id} className="hover:bg-blue-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
+                                    <tr key={b.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
                                         <td className="px-8 py-5">
                                             <div className="flex items-center space-x-3">
-                                                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 font-bold">
+                                                <div className="avatar-circle avatar-circle-sm">
                                                     {(b.name || '?').charAt(0)}
                                                 </div>
                                                 <div className="font-bold text-slate-900 dark:text-white">{b.name}</div>

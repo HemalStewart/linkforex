@@ -50,10 +50,10 @@ export default function TransfersPage() {
 
     const getStatusBadge = (status: string) => {
         const styles: Record<string, string> = {
-            completed: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
-            in_transit: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',
+            completed: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-400',
+            in_transit: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-400',
             pending: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
-            in_review: 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400',
+            in_review: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300',
         };
         return styles[status] || styles.pending;
     };
@@ -77,18 +77,18 @@ export default function TransfersPage() {
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-up">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Transfers</h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Manage and track all money transfers</p>
                 </div>
-                <div className="flex items-center space-x-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                     {/* Role Simulation for Demo */}
                     <div className="relative">
                         <select
                             value={userRole}
                             onChange={(e) => setUserRole(e.target.value)}
-                            className="glass-effect appearance-none pl-6 pr-10 py-3 border-0 rounded-full text-sm outline-none font-semibold text-slate-600 focus:ring-2 focus:ring-cyan-500/50 cursor-pointer hover:bg-white/40 transition-colors"
+                            className="glass-effect appearance-none pl-6 pr-10 py-3 border-0 rounded-full text-sm outline-none font-semibold text-slate-600 focus:ring-2 focus:ring-teal-500/50 cursor-pointer hover:bg-white/40 transition-colors"
                         >
                             <option value="admin">View as: Super Admin (All)</option>
                             <option value="branch_user">View as: Branch Manager (London)</option>
@@ -96,7 +96,7 @@ export default function TransfersPage() {
                         {/* Custom arrow could be added here if needed, but browser default is hidden with appearance-none usually requiring custom one. For now keeping simple but rounded-full. */}
                     </div>
 
-                    <Link href="/admin/transfers/create" className="btn-primary flex items-center space-x-2 shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40 rounded-full px-6">
+                    <Link href="/admin/transfers/create" className="btn-primary w-full sm:w-auto flex items-center justify-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 rounded-full px-6">
                         <PlusCircle className="w-5 h-5" />
                         <span>New Transfer</span>
                     </Link>
@@ -111,13 +111,13 @@ export default function TransfersPage() {
                             key={key}
                             onClick={() => setFilterStatus(key)}
                             className={`px-5 py-3 rounded-full font-bold text-sm whitespace-nowrap transition-all duration-300 ${filterStatus === key
-                                ? 'bg-white shadow-md text-cyan-600 dark:bg-slate-700 dark:text-white'
-                                : 'text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-800/50 hover:text-cyan-600'
+                                ? 'bg-white shadow-md text-teal-600 dark:bg-slate-700 dark:text-white'
+                                : 'text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-800/50 hover:text-teal-600'
                                 }`}
                         >
                             <span className="flex items-center space-x-2">
                                 <span>{config.label}</span>
-                                <span className={`px-1.5 py-0.5 rounded-full text-xs font-bold ${filterStatus === key ? 'bg-cyan-100 text-cyan-700 dark:bg-slate-600 dark:text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}`}>
+                                <span className={`px-1.5 py-0.5 rounded-full text-xs font-bold ${filterStatus === key ? 'bg-teal-100 text-teal-700 dark:bg-slate-600 dark:text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}`}>
                                     {config.count}
                                 </span>
                             </span>
@@ -127,8 +127,8 @@ export default function TransfersPage() {
             </div>
 
             {/* Search */}
-            <div className="relative group">
-                <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-cyan-500 transition-colors">
+            <div className="relative group input-icon">
+                <span className="input-icon-left group-focus-within:text-teal-500 transition-colors">
                     <Search className="w-5 h-5" />
                 </span>
                 <input
@@ -136,14 +136,14 @@ export default function TransfersPage() {
                     placeholder="Search transfers by ID or Remitter..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="input-glass w-full pl-12 py-3 text-base shadow-sm hover:shadow-md transition-shadow"
+                    className="input-glass w-full py-3 text-base shadow-sm hover:shadow-md transition-shadow"
                 />
             </div>
 
             {/* Table */}
-            <div className="card-glass overflow-hidden rounded-[2rem] shadow-xl">
-                <table className="w-full">
-                    <thead className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-gray-100 dark:border-slate-700">
+            <div className="card-glass overflow-hidden shadow-xl">
+                <table className="table-shell">
+                    <thead className="table-head">
                         <tr>
                             <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Details</th>
                             <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Amount (GBP)</th>
@@ -154,9 +154,9 @@ export default function TransfersPage() {
                             <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 dark:divide-slate-700/50">
+                    <tbody className="table-body">
                         {filteredTransfers.map((transfer) => (
-                            <tr key={transfer.id} className="hover:bg-blue-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
+                            <tr key={transfer.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
                                 <td className="px-8 py-5">
                                     <div className="flex flex-col">
                                         <span className="font-mono text-sm font-bold text-slate-700 dark:text-slate-300">{transfer.id}</span>
@@ -169,7 +169,7 @@ export default function TransfersPage() {
                                     </div>
                                 </td>
                                 <td className="px-8 py-5 font-bold text-slate-900 dark:text-white">£{parseFloat(transfer.source_amount).toFixed(2)}</td>
-                                <td className="px-8 py-5 text-emerald-600 dark:text-emerald-400 font-bold">PKR {parseFloat(transfer.dest_amount).toFixed(2)}</td>
+                                <td className="px-8 py-5 text-teal-600 dark:text-teal-400 font-bold">PKR {parseFloat(transfer.dest_amount).toFixed(2)}</td>
                                 <td className="px-8 py-5 text-slate-600 dark:text-slate-400 font-medium">{transfer.rate}</td>
                                 <td className="px-8 py-5">
                                     <span className={`badge-glass px-3 py-1 rounded-full uppercase tracking-wider text-[10px] font-extrabold ${getStatusBadge(transfer.status)}`}>
@@ -182,7 +182,7 @@ export default function TransfersPage() {
                                 <td className="px-8 py-5">
                                     <Link
                                         href={`/admin/transfers/${transfer.id}`}
-                                        className="p-2 rounded-full hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-cyan-600 transition-all inline-flex"
+                                        className="p-2 rounded-full hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
                                         title="View & Process"
                                     >
                                         <Eye className="w-5 h-5" />

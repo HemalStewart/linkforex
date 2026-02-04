@@ -24,7 +24,7 @@ import { ENDPOINTS } from '../../lib/api';
 const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
         return (
-            <div className="bg-white dark:bg-slate-800 p-3 rounded-lg shadow-xl border border-slate-100 dark:border-slate-700 text-sm">
+            <div className="glass-effect p-3 rounded-[12px] shadow-sm text-sm border border-white/30 dark:border-white/10">
                 <p className="font-semibold text-slate-800 dark:text-slate-100 mb-1">{label}</p>
                 {payload.map((entry: any, index: number) => (
                     <p key={index} style={{ color: entry.color || entry.fill }}>
@@ -91,12 +91,12 @@ export default function DashboardPage() {
             });
 
             const statusColors: Record<string, string> = {
-                completed: '#10b981',
-                in_transit: '#3b82f6',
-                pending: '#f59e0b',
-                in_review: '#64748b',
-                rejected: '#ef4444',
-                cancelled: '#94a3b8'
+                completed: '#0ea5a4',
+                in_transit: '#14b8a6',
+                pending: '#5eead4',
+                in_review: '#94a3b8',
+                rejected: '#64748b',
+                cancelled: '#cbd5e1'
             };
 
             const newStatusData = Object.keys(statusCounts).map(status => ({
@@ -185,7 +185,7 @@ export default function DashboardPage() {
                     <p className="text-slate-600 dark:text-slate-400 mt-2 font-medium">Overview of your transaction activities.</p>
                 </div>
                 <div className="flex items-center space-x-3">
-                    <select className="glass-effect px-5 py-3 text-sm rounded-2xl outline-none cursor-pointer font-semibold text-slate-700 dark:text-slate-300 hover:shadow-lg transition-all duration-300 border-0">
+                    <select className="glass-effect px-4 py-2.5 text-sm rounded-[12px] outline-none cursor-pointer font-semibold text-slate-700 dark:text-slate-300 hover:shadow-sm transition-all duration-300 border border-white/20 dark:border-white/10">
                         <option>Last 7 Days</option>
                         <option>Last 30 Days</option>
                         <option>This Month</option>
@@ -225,14 +225,14 @@ export default function DashboardPage() {
                         icon: <Coins className="w-6 h-6" />
                     },
                 ].map((stat, index) => (
-                    <div key={index} className="card-glass p-6 stagger-item hover:scale-[1.02]" style={{ animationDelay: `${index * 0.1}s` }}>
+                    <div key={index} className="card-glass p-6 stagger-item" style={{ animationDelay: `${index * 0.1}s` }}>
                         <div className="flex justify-between items-start mb-4">
-                            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-white shadow-lg shadow-cyan-500/20">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center text-white shadow-sm shadow-teal-500/20">
                                 {stat.icon}
                             </div>
                             <span className={`badge-glass font-bold px-3 py-1 ${stat.trend === 'up'
-                                ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400'
-                                : 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400'
+                                ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300'
+                                : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
                                 }`}>
                                 {stat.change}
                             </span>
@@ -255,11 +255,11 @@ export default function DashboardPage() {
                             <AreaChart data={volumeData}>
                                 <defs>
                                     <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
-                                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                                        <stop offset="5%" stopColor="#0ea5a4" stopOpacity={0.22} />
+                                        <stop offset="95%" stopColor="#0ea5a4" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" strokeOpacity={0.8} />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--chart-grid)" strokeOpacity={0.8} />
                                 <XAxis
                                     dataKey="name"
                                     tickLine={false}
@@ -277,8 +277,8 @@ export default function DashboardPage() {
                                     type="monotone"
                                     dataKey="value"
                                     name="Transfers"
-                                    stroke="#3b82f6"
-                                    strokeWidth={3}
+                                    stroke="#0ea5a4"
+                                    strokeWidth={2.5}
                                     fillOpacity={1}
                                     fill="url(#colorVolume)"
                                 />
@@ -299,7 +299,7 @@ export default function DashboardPage() {
                                     cy="50%"
                                     innerRadius={70}
                                     outerRadius={90}
-                                    paddingAngle={4}
+                                    paddingAngle={3}
                                     dataKey="value"
                                     cornerRadius={4}
                                 >
@@ -338,7 +338,7 @@ export default function DashboardPage() {
                     <div className="h-72 w-full">
                         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                             <BarChart data={revenueData} barSize={32}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" strokeOpacity={0.8} />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--chart-grid)" strokeOpacity={0.8} />
                                 <XAxis
                                     dataKey="name"
                                     tickLine={false}
@@ -358,7 +358,7 @@ export default function DashboardPage() {
                                 />
                                 <Bar
                                     dataKey="value"
-                                    fill="#10b981"
+                                    fill="#0ea5a4"
                                     radius={[6, 6, 0, 0]}
                                     fillOpacity={0.9}
                                 />
@@ -371,13 +371,13 @@ export default function DashboardPage() {
                 <div className="card-glass overflow-hidden">
                     <div className="p-6 border-b border-white/20 dark:border-slate-700/50 flex justify-between items-center">
                         <h2 className="text-xl font-extrabold text-gradient-blue tracking-tight">Recent Activity</h2>
-                        <button className="text-sm text-cyan-600 dark:text-cyan-400 font-bold hover:text-cyan-700 dark:hover:text-cyan-300 transition-colors">View All →</button>
+                        <button className="text-sm text-teal-600 dark:text-teal-300 font-semibold hover:text-teal-700 dark:hover:text-teal-200 transition-colors">View All →</button>
                     </div>
                     <div className="p-0">
                         {recentActivity.length > 0 ? recentActivity.map((activity) => (
                             <div key={activity.id} className="flex items-center justify-between p-5 border-b border-gray-100/50 dark:border-slate-800/50 last:border-0 hover:bg-white/40 dark:hover:bg-slate-700/40 transition-colors">
                                 <div className="flex items-center space-x-4">
-                                    <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold text-sm ring-2 ring-white dark:ring-slate-800 shadow-sm">
+                                    <div className="avatar-circle">
                                         {activity.customerInitials}
                                     </div>
                                     <div>
@@ -385,9 +385,9 @@ export default function DashboardPage() {
                                         <p className="text-xs text-slate-500 font-medium mt-0.5">Sent £{parseFloat(activity.source_amount || 0).toLocaleString()}</p>
                                     </div>
                                 </div>
-                                <span className={`badge-glass px-3 py-1 rounded-full uppercase tracking-wider text-[10px] font-extrabold ${activity.status === 'completed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                                    activity.status === 'in_transit' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                                        activity.status === 'pending' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
+                                <span className={`badge-glass px-3 py-1 rounded-full uppercase tracking-wider text-[10px] font-extrabold ${activity.status === 'completed' ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300' :
+                                    activity.status === 'in_transit' ? 'bg-teal-100/80 text-teal-700 dark:bg-teal-900/25 dark:text-teal-300' :
+                                        activity.status === 'pending' ? 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300' :
                                             'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
                                     }`}>
                                     {activity.status === 'in_transit' ? 'In Transit' :

@@ -56,12 +56,12 @@ export default function AdminLoginPage() {
   return (
     <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden bg-slate-50 dark:bg-slate-900">
       {/* Animated Gradient Background */}
-      <div className="fixed inset-0 bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-cyan-950 -z-10"></div>
+      <div className="fixed inset-0 bg-gradient-to-br from-teal-50 via-teal-50 to-teal-50 dark:from-teal-950 dark:via-teal-950 dark:to-teal-900 -z-10"></div>
 
       {/* Floating Orbs Animation */}
-      <div className="fixed inset-0 overflow-hidden -z-5 opacity-40 mix-blend-multiply dark:mix-blend-soft-light pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-300 dark:bg-cyan-500/20 rounded-full blur-[100px] animate-float"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-300 dark:bg-blue-500/20 rounded-full blur-[100px] animate-float" style={{ animationDelay: '2s' }}></div>
+      <div className="fixed inset-0 overflow-hidden -z-5 opacity-20 mix-blend-multiply dark:mix-blend-soft-light pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-teal-300 dark:bg-teal-500/20 rounded-full blur-[80px] animate-float"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-teal-300 dark:bg-teal-500/20 rounded-full blur-[80px] animate-float" style={{ animationDelay: '2s' }}></div>
       </div>
 
       {/* Login Card */}
@@ -70,7 +70,7 @@ export default function AdminLoginPage() {
         {/* Logo & Branding */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center mb-6 relative">
-            <div className="absolute inset-0 bg-cyan-500 blur-2xl opacity-20 dark:opacity-40 rounded-full"></div>
+            <div className="absolute inset-0 bg-teal-500 blur-2xl opacity-20 dark:opacity-40 rounded-full"></div>
             <img src="/logo-removebg-preview.png" alt="LinkForex" className="h-16 object-contain relative z-10 drop-shadow-sm" />
           </div>
           <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-2">Welcome Back</h2>
@@ -87,7 +87,7 @@ export default function AdminLoginPage() {
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Mail className="w-5 h-5 text-slate-400 group-focus-within:text-cyan-500 transition-colors" />
+                  <Mail className="w-5 h-5 text-slate-400 group-focus-within:text-teal-500 transition-colors" />
                 </div>
                 <input
                   id="email"
@@ -108,7 +108,7 @@ export default function AdminLoginPage() {
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className="w-5 h-5 text-slate-400 group-focus-within:text-cyan-500 transition-colors" />
+                  <Lock className="w-5 h-5 text-slate-400 group-focus-within:text-teal-500 transition-colors" />
                 </div>
                 <input
                   id="password"
@@ -130,14 +130,14 @@ export default function AdminLoginPage() {
                     type="checkbox"
                     className="peer sr-only"
                   />
-                  <div className="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-white/50 dark:bg-slate-800/50 peer-checked:bg-cyan-500 peer-checked:border-cyan-500 transition-all"></div>
+                  <div className="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-white/50 dark:bg-slate-800/50 peer-checked:bg-teal-500 peer-checked:border-teal-500 transition-all"></div>
                   <Check className="w-3.5 h-3.5 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" strokeWidth={3} />
                 </div>
-                <span className="text-sm font-bold text-slate-600 dark:text-slate-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+                <span className="text-sm font-bold text-slate-600 dark:text-slate-400 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
                   Remember me
                 </span>
               </label>
-              <a href="#" className="text-sm font-bold text-cyan-600 hover:text-cyan-700 dark:text-cyan-400 dark:hover:text-cyan-300 transition-colors">
+              <a href="#" className="text-sm font-bold text-teal-600 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300 transition-colors">
                 Forgot password?
               </a>
             </div>
@@ -146,7 +146,7 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full py-3.5 text-base font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40"
+              className="btn-primary w-full py-3.5 text-base font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-teal-500/25 hover:shadow-teal-500/40"
             >
               {loading ? (
                 <span className="flex items-center justify-center space-x-2">

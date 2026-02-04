@@ -143,7 +143,7 @@ export default function CurrenciesPage() {
                     </button>
                     <button
                         onClick={() => setAddModalOpen(true)}
-                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40 bg-gradient-to-r from-cyan-500 to-blue-600 border-0 rounded-full px-6"
+                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 rounded-full px-6"
                     >
                         <PlusCircle className="w-5 h-5" />
                         <span>Add Currency</span>
@@ -152,10 +152,10 @@ export default function CurrenciesPage() {
             </div>
 
             {/* Alert Banner */}
-            <div className="glass-effect-strong rounded-[2rem] p-6 border border-sky-100 dark:border-sky-800/30 shadow-lg relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-sky-400/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none group-hover:bg-sky-400/20 transition-colors duration-500"></div>
+            <div className="glass-effect-strong rounded-[2rem] p-6 border border-teal-100 dark:border-teal-800/30 shadow-lg relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-teal-400/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none group-hover:bg-teal-400/20 transition-colors duration-500"></div>
                 <div className="flex items-start space-x-5 relative z-10">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center text-white shadow-lg shadow-sky-500/20">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-400 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-teal-500/20">
                         <Info className="w-6 h-6" />
                     </div>
                     <div className="flex-1">
@@ -168,7 +168,7 @@ export default function CurrenciesPage() {
             </div>
 
             {/* Rates Table */}
-            <div className="card-glass overflow-hidden rounded-[2rem] shadow-xl">
+            <div className="card-glass overflow-hidden shadow-xl">
                 <div className="px-8 py-6 border-b border-gray-100 dark:border-slate-700/50 flex items-center space-x-3">
                     <Coins className="w-6 h-6 text-slate-400" />
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white">Active Currencies</h2>
@@ -177,8 +177,8 @@ export default function CurrenciesPage() {
                     {loading ? (
                         <div className="p-12 text-center text-slate-500 animate-pulse">Loading rates...</div>
                     ) : (
-                        <table className="w-full">
-                            <thead className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-gray-100 dark:border-slate-700">
+                        <table className="table-shell">
+                            <thead className="table-head">
                                 <tr>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Currency</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Code</th>
@@ -187,9 +187,9 @@ export default function CurrenciesPage() {
                                     <th className="px-8 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-slate-700/50">
+                            <tbody className="table-body">
                                 {currencies.map((currency) => (
-                                    <tr key={currency.id} className="hover:bg-blue-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
+                                    <tr key={currency.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
                                         <td className="px-8 py-5 font-bold text-slate-900 dark:text-white flex items-center space-x-3">
                                             <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 text-xs font-bold">
                                                 {currency.symbol || '$'}
@@ -209,7 +209,7 @@ export default function CurrenciesPage() {
                                                     />
                                                 </div>
                                             ) : (
-                                                <span className="badge-glass bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 font-bold border-0">
+                                                <span className="badge-glass bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-400 font-bold border-0">
                                                     {parseFloat(currency.rate).toFixed(4)}
                                                 </span>
                                             )}
@@ -220,7 +220,7 @@ export default function CurrenciesPage() {
                                         <td className="px-8 py-5 text-center">
                                             {editingId === currency.id ? (
                                                 <div className="flex items-center justify-center space-x-2">
-                                                    <button onClick={() => handleSave(currency.id)} className="p-2 rounded-full bg-emerald-100 text-emerald-600 hover:bg-emerald-200 transition-colors">
+                                                    <button onClick={() => handleSave(currency.id)} className="p-2 rounded-full bg-teal-100 text-teal-600 hover:bg-teal-200 transition-colors">
                                                         <Save className="w-4 h-4" />
                                                     </button>
                                                     <button onClick={() => setEditingId(null)} className="p-2 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors">
@@ -228,7 +228,7 @@ export default function CurrenciesPage() {
                                                     </button>
                                                 </div>
                                             ) : (
-                                                <button onClick={() => handleEdit(currency)} className="p-2 rounded-full hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-blue-600 transition-all">
+                                                <button onClick={() => handleEdit(currency)} className="p-2 rounded-full hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all">
                                                     <Edit2 className="w-5 h-5" />
                                                 </button>
                                             )}

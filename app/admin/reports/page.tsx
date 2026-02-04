@@ -69,10 +69,10 @@ export default function ReportsPage() {
     ];
 
     const quickStats = [
-        { label: 'Total Volume (MTD)', value: `£${stats.totalTransfersMTD.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, icon: TrendingUp, color: 'text-emerald-500' },
-        { label: 'Est. Revenue (MTD)', value: `£${stats.revenueMTD.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, icon: DollarSign, color: 'text-blue-500' },
-        { label: 'Active Customers', value: stats.activeCustomers.toLocaleString(), icon: Users, color: 'text-purple-500' },
-        { label: 'Avg. Transfer Size', value: `£${stats.avgTransfer.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, icon: RefreshCw, color: 'text-amber-500' },
+        { label: 'Total Volume (MTD)', value: `£${stats.totalTransfersMTD.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, icon: TrendingUp, color: 'text-teal-500' },
+        { label: 'Est. Revenue (MTD)', value: `£${stats.revenueMTD.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, icon: DollarSign, color: 'text-teal-500' },
+        { label: 'Active Customers', value: stats.activeCustomers.toLocaleString(), icon: Users, color: 'text-teal-500' },
+        { label: 'Avg. Transfer Size', value: `£${stats.avgTransfer.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, icon: RefreshCw, color: 'text-teal-500' },
     ];
 
     const recentReports = [
@@ -90,7 +90,7 @@ export default function ReportsPage() {
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Reports & Analytics</h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Generate and download business reports</p>
                 </div>
-                <button className="btn-primary flex items-center space-x-2 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 bg-gradient-to-r from-indigo-500 to-purple-600 border-0">
+                <button className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0">
                     <Plus className="w-5 h-5" />
                     <span>Generate New Report</span>
                 </button>
@@ -101,7 +101,7 @@ export default function ReportsPage() {
                 {quickStats.map((stat, index) => {
                     const Icon = stat.icon;
                     return (
-                        <div key={index} className="card-glass p-6 rounded-[2rem] hover:scale-[1.02] transition-transform duration-300">
+                        <div key={index} className="card-glass p-6 hover:scale-[1.02] transition-transform duration-300">
                             <div className="flex justify-between items-start">
                                 <div>
                                     <p className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-1">{stat.label}</p>
@@ -122,9 +122,9 @@ export default function ReportsPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Report Generator */}
-                <div className="lg:col-span-2 card-glass p-8 rounded-[2.5rem]">
+                <div className="lg:col-span-2 card-glass p-8">
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center">
-                        <FileText className="w-5 h-5 mr-2 text-indigo-500" />
+                        <FileText className="w-5 h-5 mr-2 text-teal-500" />
                         Generate Custom Report
                     </h2>
 
@@ -134,17 +134,17 @@ export default function ReportsPage() {
                                 key={report.id}
                                 onClick={() => setSelectedReport(report.id)}
                                 className={`p-4 rounded-2xl text-left transition-all duration-300 border ${selectedReport === report.id
-                                    ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800 ring-1 ring-indigo-500/20'
+                                    ? 'bg-teal-50 dark:bg-teal-900/20 border-teal-200 dark:border-teal-800 ring-1 ring-teal-500/20'
                                     : 'bg-white/50 dark:bg-slate-800/50 border-transparent hover:bg-white hover:shadow-md dark:hover:bg-slate-800'
                                     }`}
                             >
                                 <div className={`w-10 h-10 rounded-xl mb-3 flex items-center justify-center ${selectedReport === report.id
-                                    ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30'
+                                    ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/30'
                                     : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
                                     }`}>
                                     <report.icon className="w-5 h-5" />
                                 </div>
-                                <h3 className={`font-bold text-sm mb-1 ${selectedReport === report.id ? 'text-indigo-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'}`}>
+                                <h3 className={`font-bold text-sm mb-1 ${selectedReport === report.id ? 'text-teal-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'}`}>
                                     {report.name}
                                 </h3>
                                 <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-tight">
@@ -198,7 +198,7 @@ export default function ReportsPage() {
                     </div>
 
                     <div className="flex justify-end pt-6 border-t border-slate-100 dark:border-slate-700/50">
-                        <button className="btn-primary w-full md:w-auto flex items-center justify-center space-x-2 shadow-lg shadow-indigo-500/25">
+                        <button className="btn-primary w-full md:w-auto flex items-center justify-center space-x-2 shadow-lg shadow-teal-500/25">
                             <Download className="w-5 h-5" />
                             <span>Generate & Download</span>
                         </button>
@@ -208,20 +208,20 @@ export default function ReportsPage() {
                 {/* Sidebar */}
                 <div className="flex flex-col gap-6">
                     {/* Recent Reports */}
-                    <div className="card-glass p-6 rounded-[2rem] flex flex-col flex-1">
+                    <div className="card-glass p-6 flex flex-col flex-1">
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="font-bold text-slate-900 dark:text-white flex items-center">
                                 <Clock className="w-5 h-5 mr-2 text-slate-400" />
                                 Recent Reports
                             </h3>
-                            <button className="text-xs font-bold text-indigo-600 hover:text-indigo-700 transition-colors">View All</button>
+                            <button className="text-xs font-bold text-teal-600 hover:text-teal-700 transition-colors">View All</button>
                         </div>
                         <div className="space-y-3 flex-1 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
                             {recentReports.map((report) => (
                                 <div key={report.id} className="group p-4 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 hover:bg-white hover:shadow-md transition-all duration-300 cursor-pointer">
                                     <div className="flex justify-between items-start">
                                         <div className="flex items-start space-x-3">
-                                            <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-500">
+                                            <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center text-teal-500">
                                                 <FileText className="w-4 h-4" />
                                             </div>
                                             <div>
@@ -229,7 +229,7 @@ export default function ReportsPage() {
                                                 <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-wide">{report.type} • {report.size}</p>
                                             </div>
                                         </div>
-                                        <Download className="w-4 h-4 text-slate-300 group-hover:text-indigo-500 transition-colors mt-1" />
+                                        <Download className="w-4 h-4 text-slate-300 group-hover:text-teal-500 transition-colors mt-1" />
                                     </div>
                                 </div>
                             ))}
@@ -237,14 +237,14 @@ export default function ReportsPage() {
                     </div>
 
                     {/* Scheduled */}
-                    <div className="card-glass p-6 rounded-[2rem]">
+                    <div className="card-glass p-6">
                         <h3 className="font-bold text-slate-900 dark:text-white mb-4 flex items-center">
                             <Calendar className="w-5 h-5 mr-2 text-slate-400" />
                             Scheduled
                         </h3>
                         <div className="space-y-3">
-                            <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-800 border border-blue-100 dark:border-slate-700 flex items-center space-x-3">
-                                <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-700 flex items-center justify-center text-blue-500 shadow-sm">
+                            <div className="p-3 rounded-2xl bg-teal-50/70 dark:bg-teal-900/10 border border-teal-100/80 dark:border-teal-800/40 flex items-center space-x-3">
+                                <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-700 flex items-center justify-center text-teal-500 shadow-sm">
                                     <TrendingUp className="w-5 h-5" />
                                 </div>
                                 <div>
@@ -252,8 +252,8 @@ export default function ReportsPage() {
                                     <p className="text-[10px] font-medium text-slate-500">Mon 9:00 AM</p>
                                 </div>
                             </div>
-                            <div className="p-3 rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 dark:from-slate-800 dark:to-slate-800 border border-purple-100 dark:border-slate-700 flex items-center space-x-3">
-                                <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-700 flex items-center justify-center text-purple-500 shadow-sm">
+                            <div className="p-3 rounded-2xl bg-teal-50/70 dark:bg-teal-900/10 border border-teal-100/80 dark:border-teal-800/40 flex items-center space-x-3">
+                                <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-700 flex items-center justify-center text-teal-500 shadow-sm">
                                     <FileCheck className="w-5 h-5" />
                                 </div>
                                 <div>
