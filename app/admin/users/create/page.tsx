@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../components/ConfirmModal';
-import { ArrowLeft, User, Mail, Lock, Shield, Building, Save, Loader2, CheckSquare, Square, Check } from 'lucide-react';
+import { ArrowLeft, User, Mail, Lock, Shield, Building, Save, MapPin, Phone, FileSignature, ChevronRight } from 'lucide-react';
 
 export default function CreateUserPage() {
     const router = useRouter();
@@ -35,6 +35,18 @@ export default function CreateUserPage() {
         fetchData();
     }, []);
 
+    React.useEffect(() => {
+        const stored = localStorage.getItem('user');
+        if (stored) {
+            try {
+                const parsed = JSON.parse(stored);
+                setEnteredBy(parsed.username || parsed.name || '');
+            } catch (e) {
+                setEnteredBy('');
+            }
+        }
+    }, []);
+
     const [confirmModal, setConfirmModal] = useState({
         isOpen: false,
         title: '',
@@ -44,16 +56,26 @@ export default function CreateUserPage() {
         shouldRedirect: false
     });
 
+    const [enteredBy, setEnteredBy] = useState('');
+
     const [formData, setFormData] = useState({
         name: '',
         username: '',
+        address: '',
+        phone: '',
         email: '',
         roleId: '', // We use roleId now
         branch: '',
         password: '',
         confirmPassword: '',
+        status: 'active',
+        twofaStatus: 'active',
         permissions: [] as string[] // Added strictly for UI state if needed, though role usually dictates permissions
     });
+
+    const signatureInputRef = useRef<HTMLInputElement | null>(null);
+    const [signatureFile, setSignatureFile] = useState<File | null>(null);
+    const [signatureClear, setSignatureClear] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -71,29 +93,53 @@ export default function CreateUserPage() {
         }
 
         try {
+            const roleName = roles.find(r => r.id.toString() === formData.roleId)?.name || 'staff';
+            const payload = new FormData();
+            payload.append('name', formData.name);
+            payload.append('username', formData.username);
+            payload.append('address', formData.address);
+            payload.append('phone', formData.phone);
+            payload.append('email', formData.email);
+            if (formData.roleId) payload.append('role_id', formData.roleId);
+            payload.append('role', roleName);
+            if (formData.branch) payload.append('branch', formData.branch);
+            payload.append('password', formData.password);
+            payload.append('status', formData.status);
+            payload.append('twofa_status', formData.twofaStatus);
+            if (enteredBy) {
+                payload.append('created_by', enteredBy);
+                payload.append('updated_by', enteredBy);
+            }
+            if (signatureFile) payload.append('signature', signatureFile);
+            if (signatureClear) payload.append('signature_clear', '1');
+
             const res = await fetch(ENDPOINTS.USERS.LIST, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    name: formData.name,
-                    username: formData.username,
-                    email: formData.email,
-                    role_id: formData.roleId,
-                    role: roles.find(r => r.id.toString() === formData.roleId)?.name || 'staff', // Fallback for legacy
-                    branch: formData.branch,
-                    password: formData.password,
-                    status: 'active'
-                }),
+                body: payload,
             });
 
             if (!res.ok) {
-                const err = await res.json();
+                let errMsg = `Unknown error (HTTP ${res.status} ${res.statusText})`;
+                try {
+                    const err = await res.json();
+                    if (err?.messages) {
+                        errMsg = JSON.stringify(err.messages);
+                    } else if (err?.message) {
+                        errMsg = err.message;
+                    }
+                } catch (e) {
+                    try {
+                        const text = await res.text();
+                        if (text) errMsg = text;
+                    } catch (e2) {
+                        // ignore
+                    }
+                }
+
                 setConfirmModal({
                     isOpen: true,
                     title: 'Error',
-                    message: 'Failed to create user: ' + (err.messages ? JSON.stringify(err.messages) : 'Unknown error'),
+                    message: 'Failed to create user: ' + errMsg,
                     type: 'danger',
                     isAlert: true,
                     shouldRedirect: false
@@ -130,7 +176,7 @@ export default function CreateUserPage() {
     };
 
     return (
-    <div className="max-w-4xl mx-auto pb-20 animate-fade-in-up">
+    <div className="max-w-7xl mx-auto pb-20 animate-fade-in-up">
             <ConfirmModal
                 isOpen={confirmModal.isOpen}
                 onClose={handleModalClose}
@@ -166,12 +212,14 @@ export default function CreateUserPage() {
 
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Username <span className="text-red-500">*</span></label>
-            <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative input-icon">
+              <span className="input-icon-left">
+                <User className="w-5 h-5" />
+              </span>
                             <input
                                 type="text"
                                 required
-                className="input-glass w-full pl-12"
+                className="input-glass w-full"
                                 placeholder="e.g. jdoe"
                                 value={formData.username}
                                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
@@ -181,12 +229,14 @@ export default function CreateUserPage() {
 
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Email Address <span className="text-red-500">*</span></label>
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative input-icon">
+              <span className="input-icon-left">
+                <Mail className="w-5 h-5" />
+              </span>
                             <input
                                 type="email"
                                 required
-                className="input-glass w-full pl-12"
+                className="input-glass w-full"
                                 placeholder="john@example.com"
                                 value={formData.email}
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -196,12 +246,14 @@ export default function CreateUserPage() {
 
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Password <span className="text-red-500">*</span></label>
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative input-icon">
+              <span className="input-icon-left">
+                <Lock className="w-5 h-5" />
+              </span>
                             <input
                                 type="password"
                                 required
-                className="input-glass w-full pl-12"
+                className="input-glass w-full"
                                 placeholder="••••••••"
                                 value={formData.password}
                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -211,12 +263,14 @@ export default function CreateUserPage() {
 
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Confirm Password <span className="text-red-500">*</span></label>
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative input-icon">
+              <span className="input-icon-left">
+                <Lock className="w-5 h-5" />
+              </span>
                             <input
                                 type="password"
                                 required
-                className="input-glass w-full pl-12"
+                className="input-glass w-full"
                                 placeholder="••••••••"
                                 value={formData.confirmPassword}
                                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
@@ -233,13 +287,15 @@ export default function CreateUserPage() {
                     </div>
 
                     <div>
-            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Full Name <span className="text-red-500">*</span></label>
-            <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Person Name <span className="text-red-500">*</span></label>
+            <div className="relative input-icon">
+              <span className="input-icon-left">
+                <User className="w-5 h-5" />
+              </span>
                             <input
                                 type="text"
                                 required
-                className="input-glass w-full pl-12"
+                className="input-glass w-full"
                                 placeholder="John Doe"
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -248,11 +304,45 @@ export default function CreateUserPage() {
                     </div>
 
                     <div>
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Mobile No</label>
+            <div className="relative input-icon">
+              <span className="input-icon-left">
+                <Phone className="w-5 h-5" />
+              </span>
+                            <input
+                                type="tel"
+                                className="input-glass w-full"
+                                placeholder="+44 7700 900000"
+                                value={formData.phone}
+                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                            />
+                        </div>
+                    </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Person Address</label>
+            <div className="relative input-icon">
+              <span className="input-icon-left">
+                <MapPin className="w-5 h-5" />
+              </span>
+                            <input
+                                type="text"
+                                className="input-glass w-full"
+                                placeholder="Street, City, Postcode"
+                                value={formData.address}
+                                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                            />
+                        </div>
+                    </div>
+
+                    <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Assigned Role</label>
-            <div className="relative">
-              <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative input-icon">
+              <span className="input-icon-left">
+                <Shield className="w-5 h-5" />
+              </span>
                             <select
-                className="input-glass w-full pl-12 appearance-none cursor-pointer"
+                className="input-glass w-full pr-10 appearance-none cursor-pointer"
                                 value={formData.roleId}
                                 onChange={(e) => setFormData({ ...formData, roleId: e.target.value })}
                             >
@@ -261,15 +351,18 @@ export default function CreateUserPage() {
                                     <option key={r.id} value={r.id}>{r.name}</option>
                                 ))}
                             </select>
+              <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none rotate-90" />
                         </div>
                     </div>
 
           <div className="md:col-span-2">
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Assigned Branch</label>
-            <div className="relative">
-              <Building className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative input-icon">
+              <span className="input-icon-left">
+                <Building className="w-5 h-5" />
+              </span>
                             <select
-                className="input-glass w-full pl-12 appearance-none cursor-pointer"
+                className="input-glass w-full pr-10 appearance-none cursor-pointer"
                                 value={formData.branch}
                                 onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
                             >
@@ -280,7 +373,95 @@ export default function CreateUserPage() {
                                     </option>
                                 ))}
                             </select>
+              <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none rotate-90" />
                         </div>
+                    </div>
+
+                    <div>
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Status <span className="text-red-500">*</span></label>
+            <div className="relative input-icon">
+              <span className="input-icon-left">
+                <Shield className="w-5 h-5" />
+              </span>
+                            <select
+                className="input-glass w-full pr-10 appearance-none cursor-pointer"
+                                value={formData.status}
+                                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                                required
+                            >
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="suspended">Suspended</option>
+                            </select>
+              <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none rotate-90" />
+                        </div>
+                    </div>
+
+                    <div>
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">2FA Status <span className="text-red-500">*</span></label>
+            <div className="relative input-icon">
+              <span className="input-icon-left">
+                <Lock className="w-5 h-5" />
+              </span>
+                            <select
+                className="input-glass w-full pr-10 appearance-none cursor-pointer"
+                                value={formData.twofaStatus}
+                                onChange={(e) => setFormData({ ...formData, twofaStatus: e.target.value })}
+                                required
+                            >
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+              <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none rotate-90" />
+                        </div>
+                    </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Signature</label>
+            <div className="flex items-center justify-between gap-4 p-4 rounded-[20px] border border-dashed border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/40">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-full bg-teal-50/80 dark:bg-teal-900/20 flex items-center justify-center">
+                  <FileSignature className="w-5 h-5 text-teal-600 dark:text-teal-300" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate">
+                    {signatureFile ? signatureFile.name : 'No file chosen'}
+                  </p>
+                  <p className="text-xs text-slate-400">PNG, JPG, or PDF</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => signatureInputRef.current?.click()}
+                  className="px-4 py-2 rounded-full glass-effect text-slate-600 dark:text-slate-300 font-semibold text-xs hover:shadow-md transition-all"
+                >
+                  Upload
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                      setSignatureFile(null);
+                      setSignatureClear(true);
+                      if (signatureInputRef.current) signatureInputRef.current.value = '';
+                  }}
+                  className="px-4 py-2 rounded-full glass-effect text-slate-500 dark:text-slate-400 font-semibold text-xs hover:text-red-500 transition-all"
+                >
+                  Clear
+                </button>
+              </div>
+              <input
+                ref={signatureInputRef}
+                type="file"
+                accept=".png,.jpg,.jpeg,.pdf"
+                className="hidden"
+                onChange={(e) => {
+                    const file = e.target.files?.[0] || null;
+                    setSignatureFile(file);
+                    setSignatureClear(false);
+                }}
+              />
+            </div>
                     </div>
                 </div>
 
