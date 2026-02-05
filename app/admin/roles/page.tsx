@@ -108,8 +108,8 @@ export default function RolesPage() {
         setConfirmAction('delete');
         setConfirmModal({
             isOpen: true,
-            title: 'Delete Security Group',
-            message: 'Are you sure you want to delete this group? This action cannot be undone.',
+            title: 'Delete Role Permission Group',
+            message: 'Are you sure you want to delete this role permission group? This action cannot be undone.',
             type: 'danger',
             isAlert: false
         });
@@ -121,7 +121,7 @@ export default function RolesPage() {
         setConfirmModal({
             isOpen: true,
             title: 'Delete Selected Groups',
-            message: 'Are you sure you want to delete selected groups? System defined groups will be skipped.',
+            message: 'Are you sure you want to delete selected role permission groups? System defined groups will be skipped.',
             type: 'danger',
             isAlert: false
         });
@@ -156,7 +156,7 @@ export default function RolesPage() {
                 setConfirmModal({
                     isOpen: true,
                     title: 'Error',
-                    message: 'Failed to delete group',
+                    message: 'Failed to delete role permission group',
                     type: 'danger',
                     isAlert: true
                 });
@@ -166,7 +166,7 @@ export default function RolesPage() {
             setConfirmModal({
                 isOpen: true,
                 title: 'Error',
-                message: 'Error deleting group',
+                message: 'Error deleting role permission group',
                 type: 'danger',
                 isAlert: true
             });
@@ -186,7 +186,7 @@ export default function RolesPage() {
             setConfirmModal({
                 isOpen: true,
                 title: 'Info',
-                message: 'No deletable groups selected.',
+                message: 'No deletable role permission groups selected.',
                 type: 'info',
                 isAlert: true
             });
@@ -202,7 +202,7 @@ export default function RolesPage() {
             setConfirmModal({
                 isOpen: true,
                 title: 'Success',
-                message: 'Selected groups deleted successfully',
+                message: 'Selected role permission groups deleted successfully',
                 type: 'info',
                 isAlert: true
             });
@@ -211,7 +211,7 @@ export default function RolesPage() {
             setConfirmModal({
                 isOpen: true,
                 title: 'Error',
-                message: 'Failed to delete selected groups',
+                message: 'Failed to delete selected role permission groups',
                 type: 'danger',
                 isAlert: true
             });
@@ -265,12 +265,12 @@ export default function RolesPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Security Groups</h1>
-                    <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">Manage security groups and permissions</p>
+                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Role Permission Groups</h1>
+                    <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">Manage role permission groups and permissions</p>
                 </div>
                 <Link href="/admin/roles/create" className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 rounded-full px-6">
                     <PlusCircle className="w-5 h-5" />
-                    <span>Add Group</span>
+                    <span>Add Role Permission Group</span>
                 </Link>
             </div>
 
@@ -285,7 +285,7 @@ export default function RolesPage() {
                             </span>
                             <input
                                 type="text"
-                                placeholder="Security group like"
+                                placeholder="Role permission group like"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="input-glass w-full text-sm"
@@ -368,14 +368,14 @@ export default function RolesPage() {
                             <tr>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider"></th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">No.</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Security Group</th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Role Permission Group</th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">System Defined</th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Entered User</th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Entered Date</th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Modified User</th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Modified Date</th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Permission</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Simulate Group Permission</th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Simulate Role Permission</th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">View</th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Delete</th>
                             </tr>

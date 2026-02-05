@@ -110,7 +110,7 @@ export default function EditRolePage() {
                 setConfirmModal({
                     isOpen: true,
                     title: 'Success',
-                    message: 'Security group updated successfully',
+                    message: 'Role permission group updated successfully',
                     type: 'success',
                     isAlert: true,
                     shouldRedirect: true
@@ -120,7 +120,7 @@ export default function EditRolePage() {
                 setConfirmModal({
                     isOpen: true,
                     title: 'Error',
-                    message: err || 'Failed to update group',
+                    message: err || 'Failed to update role permission group',
                     type: 'danger',
                     isAlert: true,
                     shouldRedirect: false
@@ -131,7 +131,7 @@ export default function EditRolePage() {
             setConfirmModal({
                 isOpen: true,
                 title: 'Error',
-                message: 'Failed to update group',
+                message: 'Failed to update role permission group',
                 type: 'danger',
                 isAlert: true,
                 shouldRedirect: false
@@ -150,7 +150,7 @@ export default function EditRolePage() {
             setConfirmModal({
                 isOpen: true,
                 title: 'Error',
-                message: 'Failed to delete group',
+                message: 'Failed to delete role permission group',
                 type: 'danger',
                 isAlert: true,
                 shouldRedirect: false
@@ -188,8 +188,8 @@ export default function EditRolePage() {
                         <ArrowLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
                         Back to Roles
                     </Link>
-                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Edit Security Group</h1>
-                    <p className="text-slate-500 dark:text-slate-300 mt-2">Update group details and permissions.</p>
+                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Edit Role Permission Group</h1>
+                    <p className="text-slate-500 dark:text-slate-300 mt-2">Update role permission group details and permissions.</p>
                 </div>
                 <button
                     onClick={handleDelete}
@@ -209,7 +209,7 @@ export default function EditRolePage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Security Group Name <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Role Permission Group Name <span className="text-red-500">*</span></label>
                         <div className="relative input-icon">
                             <span className="input-icon-left">
                                 <Shield className="w-5 h-5" />
@@ -306,7 +306,7 @@ export default function EditRolePage() {
                         className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40"
                     >
                         <Save className="w-4 h-4" />
-                        <span>{saving ? 'Saving...' : 'Update Group'}</span>
+                        <span>{saving ? 'Saving...' : 'Update Role Permission Group'}</span>
                     </button>
                 </div>
             </form>

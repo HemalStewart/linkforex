@@ -79,7 +79,7 @@ export default function CreateRolePage() {
                 setConfirmModal({
                     isOpen: true,
                     title: 'Success',
-                    message: 'Security group created successfully',
+                    message: 'Role permission group created successfully',
                     type: 'success',
                     isAlert: true,
                     shouldRedirect: true
@@ -89,7 +89,7 @@ export default function CreateRolePage() {
                 setConfirmModal({
                     isOpen: true,
                     title: 'Error',
-                    message: err || 'Failed to create group',
+                    message: err || 'Failed to create role permission group',
                     type: 'danger',
                     isAlert: true,
                     shouldRedirect: false
@@ -100,7 +100,7 @@ export default function CreateRolePage() {
             setConfirmModal({
                 isOpen: true,
                 title: 'Error',
-                message: 'Failed to create group',
+                message: 'Failed to create role permission group',
                 type: 'danger',
                 isAlert: true,
                 shouldRedirect: false
@@ -135,8 +135,8 @@ export default function CreateRolePage() {
                     <ArrowLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
                     Back to Roles
                 </Link>
-                <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Add Security Group</h1>
-                <p className="text-slate-500 dark:text-slate-300 mt-2">Create a new role and permissions set.</p>
+                <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Add Role Permission Group</h1>
+                <p className="text-slate-500 dark:text-slate-300 mt-2">Create a new role permission group and permissions set.</p>
             </div>
 
             <form onSubmit={handleSubmit} className="card-glass p-8 relative overflow-hidden">
@@ -144,7 +144,7 @@ export default function CreateRolePage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Security Group Name <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Role Permission Group Name <span className="text-red-500">*</span></label>
                         <div className="relative input-icon">
                             <span className="input-icon-left">
                                 <Shield className="w-5 h-5" />
@@ -241,7 +241,7 @@ export default function CreateRolePage() {
                         className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40"
                     >
                         <Save className="w-4 h-4" />
-                        <span>{loading ? 'Saving...' : 'Create Group'}</span>
+                        <span>{loading ? 'Saving...' : 'Create Role Permission Group'}</span>
                     </button>
                 </div>
             </form>
