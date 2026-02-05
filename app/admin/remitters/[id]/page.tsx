@@ -105,7 +105,7 @@ export default function EditRemitterPage() {
     };
 
     if (loading) {
-    return <div className="max-w-4xl mx-auto p-12 text-center text-slate-500 font-medium animate-pulse">Loading remitter details...</div>;
+        return <div className="max-w-7xl mx-auto p-12 text-center text-slate-500 font-medium animate-pulse">Loading remitter details...</div>;
     }
 
     const handleModalClose = () => {
@@ -116,7 +116,7 @@ export default function EditRemitterPage() {
     };
 
     return (
-    <div className="max-w-5xl mx-auto space-y-8 pb-20 animate-fade-in-up">
+    <div className="max-w-7xl mx-auto space-y-8 pb-20 animate-fade-in-up">
             <ConfirmModal
                 isOpen={confirmModal.isOpen}
                 onClose={handleModalClose}
@@ -160,14 +160,16 @@ export default function EditRemitterPage() {
 
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Full Name <span className="text-red-500">*</span></label>
-            <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative input-icon group">
+                            <span className="input-icon-left">
+                                <User className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+                            </span>
                             <input
                                 type="text"
                                 required
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="input-glass w-full pl-12"
+                className="input-glass w-full"
                                 placeholder="E.g. John Doe"
                             />
                         </div>
@@ -175,13 +177,15 @@ export default function EditRemitterPage() {
 
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Email</label>
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative input-icon group">
+                            <span className="input-icon-left">
+                                <Mail className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+                            </span>
                             <input
                                 type="email"
                                 value={formData.email || ''}
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="input-glass w-full pl-12"
+                className="input-glass w-full"
                                 placeholder="john@example.com"
                             />
                         </div>
@@ -189,14 +193,16 @@ export default function EditRemitterPage() {
 
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Phone <span className="text-red-500">*</span></label>
-            <div className="relative">
-              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative input-icon group">
+                            <span className="input-icon-left">
+                                <Phone className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+                            </span>
                             <input
                                 type="tel"
                                 required
                                 value={formData.phone}
                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="input-glass w-full pl-12"
+                className="input-glass w-full"
                                 placeholder="+44 7700 900000"
                             />
                         </div>
@@ -204,13 +210,15 @@ export default function EditRemitterPage() {
 
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Date of Birth</label>
-            <div className="relative">
-              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative input-icon group">
+                            <span className="input-icon-left">
+                                <Calendar className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+                            </span>
                             <input
                                 type="date"
                                 value={formData.dob || ''}
                                 onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-                className="input-glass w-full pl-12"
+                className="input-glass w-full"
                             />
                         </div>
                     </div>
@@ -225,14 +233,14 @@ export default function EditRemitterPage() {
 
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Status</label>
-            <div className="relative">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center pointer-events-none">
-                                <div className={`w-2.5 h-2.5 rounded-full ${formData.status === 'active' ? 'bg-teal-500 ring-4 ring-teal-500/20' : formData.status === 'suspended' ? 'bg-red-500' : 'bg-amber-500'}`}></div>
-                            </div>
+            <div className="relative input-icon">
+                            <span className="input-icon-left">
+                                <span className={`w-2.5 h-2.5 rounded-full inline-block ${formData.status === 'active' ? 'bg-teal-500 ring-4 ring-teal-500/20' : formData.status === 'suspended' ? 'bg-red-500' : 'bg-amber-500'}`}></span>
+                            </span>
                             <select
                                 value={formData.status}
                                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="input-glass w-full pl-12 appearance-none cursor-pointer"
+                className="input-glass w-full appearance-none cursor-pointer"
                             >
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
@@ -243,12 +251,14 @@ export default function EditRemitterPage() {
 
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">KYC Status</label>
-            <div className="relative">
-                            <AlertTriangle className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${formData.kyc_status === 'verified' ? 'text-teal-500' : formData.kyc_status === 'rejected' ? 'text-red-500' : 'text-amber-500'}`} />
+            <div className="relative input-icon group">
+                            <span className="input-icon-left">
+                                <AlertTriangle className={`w-5 h-5 ${formData.kyc_status === 'verified' ? 'text-teal-500' : formData.kyc_status === 'rejected' ? 'text-red-500' : 'text-amber-500'}`} />
+                            </span>
                             <select
                                 value={formData.kyc_status}
                                 onChange={(e) => setFormData({ ...formData, kyc_status: e.target.value })}
-                className="input-glass w-full pl-12 appearance-none cursor-pointer"
+                className="input-glass w-full appearance-none cursor-pointer"
                             >
                                 <option value="pending">Pending</option>
                                 <option value="verified">Verified</option>
@@ -267,13 +277,15 @@ export default function EditRemitterPage() {
 
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Country</label>
-            <div className="relative">
-              <Flag className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative input-icon group">
+                            <span className="input-icon-left">
+                                <Flag className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+                            </span>
                             <input
                                 type="text"
                                 value={formData.country || ''}
                                 onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                className="input-glass w-full pl-12"
+                className="input-glass w-full"
                                 placeholder="United Kingdom"
                             />
                         </div>
@@ -281,13 +293,15 @@ export default function EditRemitterPage() {
 
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">City</label>
-            <div className="relative">
-              <Building className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative input-icon group">
+                            <span className="input-icon-left">
+                                <Building className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+                            </span>
                             <input
                                 type="text"
                                 value={formData.city || ''}
                                 onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                className="input-glass w-full pl-12"
+                className="input-glass w-full"
                                 placeholder="London"
                             />
                         </div>
@@ -295,13 +309,15 @@ export default function EditRemitterPage() {
 
           <div className="md:col-span-2">
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Address Line</label>
-            <div className="relative">
-              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative input-icon group">
+                            <span className="input-icon-left">
+                                <MapPin className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+                            </span>
                             <input
                                 type="text"
                                 value={formData.address_1 || ''}
                                 onChange={(e) => setFormData({ ...formData, address_1: e.target.value })}
-                className="input-glass w-full pl-12"
+                className="input-glass w-full"
                                 placeholder="123 Example Street, Apt 4B"
                             />
                         </div>
@@ -309,13 +325,15 @@ export default function EditRemitterPage() {
 
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Postcode</label>
-            <div className="relative">
-              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative input-icon group">
+                            <span className="input-icon-left">
+                                <MapPin className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+                            </span>
                             <input
                                 type="text"
                                 value={formData.postcode || ''}
                                 onChange={(e) => setFormData({ ...formData, postcode: e.target.value })}
-                className="input-glass w-full pl-12"
+                className="input-glass w-full"
                                 placeholder="SW1A 1AA"
                             />
                         </div>
@@ -351,4 +369,3 @@ export default function EditRemitterPage() {
         </div>
     );
 }
-

@@ -128,7 +128,7 @@ export default function EditUserPage() {
     };
 
     if (loading) {
-    return <div className="max-w-4xl mx-auto p-12 text-center text-slate-500 font-medium animate-pulse">Loading user details...</div>;
+        return <div className="max-w-7xl mx-auto p-12 text-center text-slate-500 font-medium animate-pulse">Loading user details...</div>;
     }
 
     const permissionOptions = [
@@ -144,7 +144,7 @@ export default function EditUserPage() {
     ];
 
     return (
-    <div className="max-w-5xl mx-auto space-y-8 pb-20 animate-fade-in-up">
+    <div className="max-w-7xl mx-auto space-y-8 pb-20 animate-fade-in-up">
             <ConfirmModal
                 isOpen={confirmModal.isOpen}
                 onClose={handleModalClose}
@@ -188,55 +188,63 @@ export default function EditUserPage() {
 
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Full Name <span className="text-red-500">*</span></label>
-            <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative input-icon group">
+                            <span className="input-icon-left">
+                                <User className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+                            </span>
                             <input
                                 type="text"
                                 required
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="input-glass w-full pl-12"
+                className="input-glass w-full"
                             />
                         </div>
                     </div>
 
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Username <span className="text-red-500">*</span></label>
-            <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative input-icon group">
+                            <span className="input-icon-left">
+                                <User className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+                            </span>
                             <input
                                 type="text"
                                 required
                                 value={formData.username}
                                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                className="input-glass w-full pl-12"
+                className="input-glass w-full"
                             />
                         </div>
                     </div>
 
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Email <span className="text-red-500">*</span></label>
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative input-icon group">
+                            <span className="input-icon-left">
+                                <Mail className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+                            </span>
                             <input
                                 type="email"
                                 required
                                 value={formData.email}
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="input-glass w-full pl-12"
+                className="input-glass w-full"
                             />
                         </div>
                     </div>
 
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Branch</label>
-            <div className="relative">
-              <Building className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative input-icon group">
+                            <span className="input-icon-left">
+                                <Building className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+                            </span>
                             <input
                                 type="text"
                                 value={formData.branch}
                                 onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
-                className="input-glass w-full pl-12"
+                className="input-glass w-full"
                             />
                         </div>
                     </div>
@@ -251,12 +259,14 @@ export default function EditUserPage() {
 
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Role</label>
-            <div className="relative">
-              <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative input-icon group">
+                            <span className="input-icon-left">
+                                <Shield className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+                            </span>
                             <select
                                 value={formData.role}
                                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                className="input-glass w-full pl-12 appearance-none cursor-pointer"
+                className="input-glass w-full appearance-none cursor-pointer"
                             >
                                 <option value="admin">Admin</option>
                                 <option value="manager">Manager</option>
@@ -268,14 +278,14 @@ export default function EditUserPage() {
 
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Status</label>
-            <div className="relative">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center pointer-events-none">
-                                <div className={`w-2.5 h-2.5 rounded-full ${formData.status === 'active' ? 'bg-teal-500 ring-4 ring-teal-500/20' : 'bg-red-500'}`}></div>
-                            </div>
+            <div className="relative input-icon">
+                            <span className="input-icon-left">
+                                <span className={`w-2.5 h-2.5 rounded-full inline-block ${formData.status === 'active' ? 'bg-teal-500 ring-4 ring-teal-500/20' : 'bg-red-500'}`}></span>
+                            </span>
                             <select
                                 value={formData.status}
                                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="input-glass w-full pl-12 appearance-none cursor-pointer"
+                className="input-glass w-full appearance-none cursor-pointer"
                             >
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
@@ -289,13 +299,15 @@ export default function EditUserPage() {
                             Reset Password
               <span className="text-xs text-slate-400 ml-2 font-normal">(leave empty to keep current)</span>
                         </label>
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative input-icon group">
+                            <span className="input-icon-left">
+                                <Lock className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+                            </span>
                             <input
                                 type="password"
                                 value={formData.password}
                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="input-glass w-full pl-12"
+                className="input-glass w-full"
                                 placeholder="New password"
                             />
                         </div>

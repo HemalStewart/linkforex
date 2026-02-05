@@ -24,7 +24,8 @@ export default function RolesPage() {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [systemDefinedFilter, setSystemDefinedFilter] = useState('any');
-    const [searchType, setSearchType] = useState<'and' | 'or'>('and');
+    const [sortKey, setSortKey] = useState<string>('created_at');
+    const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [roleToDelete, setRoleToDelete] = useState<any | null>(null);
@@ -64,15 +65,18 @@ export default function RolesPage() {
 
     const normalizeYesNo = (val: any) => (val === 'yes' || val === true || val === 1) ? 'yes' : 'no';
 
-    const searched = searchQuery.trim()
+    const searchedRoles = searchQuery.trim()
         ? roles.filter((r) => {
+            const permissionLabels = (r.currentPermissions || [])
+                .map((p: string) => ALL_PERMISSIONS.find(ap => ap.id === p)?.label || p);
             const haystack = [
                 r.name,
                 r.system_defined,
                 r.created_by,
                 r.updated_by,
                 r.created_at,
-                r.updated_at
+                r.updated_at,
+                ...permissionLabels
             ]
                 .filter(Boolean)
                 .join(' ')
@@ -81,20 +85,54 @@ export default function RolesPage() {
         })
         : roles;
 
-    const systemFiltered = systemDefinedFilter === 'any'
-        ? roles
-        : roles.filter((r) => normalizeYesNo(r.system_defined) === systemDefinedFilter);
-
-    const searchedIds = new Set(searched.map(r => r.id));
-    const systemIds = new Set(systemFiltered.map(r => r.id));
-
-    const filteredRoles = roles.filter((r) => {
-        if (!searchQuery.trim() && systemDefinedFilter === 'any') return true;
-        if (searchType === 'and') {
-            return searchedIds.has(r.id) && systemIds.has(r.id);
-        }
-        return searchedIds.has(r.id) || systemIds.has(r.id);
+    const filteredRoles = searchedRoles.filter((r) => {
+        if (systemDefinedFilter === 'any') return true;
+        return normalizeYesNo(r.system_defined) === systemDefinedFilter;
     });
+
+    const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+    const getSortValue = (role: any, key: string) => {
+        switch (key) {
+            case 'name':
+                return role.name || '';
+            case 'system_defined':
+                return normalizeYesNo(role.system_defined);
+            case 'created_by':
+                return role.created_by || '';
+            case 'updated_by':
+                return role.updated_by || '';
+            case 'created_at':
+                return role.created_at ? new Date(role.created_at).getTime() : 0;
+            case 'updated_at':
+                return role.updated_at ? new Date(role.updated_at).getTime() : 0;
+            default:
+                return role[key] || '';
+        }
+    };
+
+    const sortedRoles = [...filteredRoles].sort((a, b) => {
+        const aVal = getSortValue(a, sortKey);
+        const bVal = getSortValue(b, sortKey);
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+            return sortDir === 'asc' ? aVal - bVal : bVal - aVal;
+        }
+        const result = collator.compare(String(aVal), String(bVal));
+        return sortDir === 'asc' ? result : -result;
+    });
+
+    const toggleSort = (key: string) => {
+        if (sortKey === key) {
+            setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortKey(key);
+            setSortDir('asc');
+        }
+    };
+
+    const sortIndicator = (key: string) => {
+        if (sortKey !== key) return '↕';
+        return sortDir === 'asc' ? '↑' : '↓';
+    };
 
     const getYesNoBadge = (val: any) => {
         const isYes = normalizeYesNo(val) === 'yes';
@@ -310,21 +348,9 @@ export default function RolesPage() {
                             <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none rotate-90" />
                         </div>
                     </div>
-                    <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search Type</label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left">
-                                <Search className="w-4 h-4" />
-                            </span>
-                            <select
-                                className="input-glass w-full pr-10 appearance-none cursor-pointer text-sm"
-                                value={searchType}
-                                onChange={(e) => setSearchType(e.target.value as 'and' | 'or')}
-                            >
-                                <option value="and">and</option>
-                                <option value="or">or</option>
-                            </select>
-                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none rotate-90" />
+                    <div className="flex items-end">
+                        <div className="text-xs text-slate-400 dark:text-slate-300">
+                            Search matches across all columns.
                         </div>
                     </div>
                 </div>
@@ -334,11 +360,11 @@ export default function RolesPage() {
             <div className="card-glass overflow-hidden shadow-xl">
                 <div className="px-6 py-4 border-b border-slate-100/70 dark:border-slate-700/60 flex flex-col gap-3">
                     <div className="text-sm text-slate-500 dark:text-slate-300">
-                        Results: {filteredRoles.length === 0 ? 0 : 1} - {filteredRoles.length} of {filteredRoles.length}
+                        Results: {sortedRoles.length === 0 ? 0 : 1} - {sortedRoles.length} of {sortedRoles.length}
                     </div>
                     <div className="flex flex-wrap items-center gap-3 text-sm">
                         <button
-                            onClick={() => setSelectedIds(filteredRoles.map(r => r.id))}
+                            onClick={() => setSelectedIds(sortedRoles.map(r => r.id))}
                             className="px-3 py-1.5 rounded-full glass-effect text-slate-600 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors"
                         >
                             Check All
@@ -368,12 +394,36 @@ export default function RolesPage() {
                             <tr>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider"></th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">No.</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Role Permission Group</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">System Defined</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Entered User</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Entered Date</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Modified User</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Modified Date</th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                    <button onClick={() => toggleSort('name')} className="flex items-center gap-1">
+                                        Role Permission Group <span className="text-slate-400 dark:text-slate-300">{sortIndicator('name')}</span>
+                                    </button>
+                                </th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                    <button onClick={() => toggleSort('system_defined')} className="flex items-center gap-1">
+                                        System Defined <span className="text-slate-400 dark:text-slate-300">{sortIndicator('system_defined')}</span>
+                                    </button>
+                                </th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                    <button onClick={() => toggleSort('created_by')} className="flex items-center gap-1">
+                                        Entered User <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_by')}</span>
+                                    </button>
+                                </th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                    <button onClick={() => toggleSort('created_at')} className="flex items-center gap-1">
+                                        Entered Date <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_at')}</span>
+                                    </button>
+                                </th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                    <button onClick={() => toggleSort('updated_by')} className="flex items-center gap-1">
+                                        Modified User <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_by')}</span>
+                                    </button>
+                                </th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                    <button onClick={() => toggleSort('updated_at')} className="flex items-center gap-1">
+                                        Modified Date <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_at')}</span>
+                                    </button>
+                                </th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Permission</th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Simulate Role Permission</th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">View</th>
@@ -381,7 +431,7 @@ export default function RolesPage() {
                             </tr>
                         </thead>
                         <tbody className="table-body">
-                            {filteredRoles.map((role, idx) => {
+                            {sortedRoles.map((role, idx) => {
                                 const systemDefined = normalizeYesNo(role.system_defined) === 'yes';
                                 return (
                                     <tr key={role.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">

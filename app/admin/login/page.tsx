@@ -4,11 +4,19 @@ import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
+import ConfirmModal from '../components/ConfirmModal';
 import { Mail, Lock, Loader2, Github, Chrome, Check } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const router = useRouter();
   const [loading, setLoading] = React.useState(false);
+  const [confirmModal, setConfirmModal] = React.useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'info' as 'info' | 'danger' | 'warning' | 'success',
+    isAlert: true
+  });
 
   // Check if already logged in
   React.useEffect(() => {
@@ -43,11 +51,23 @@ export default function AdminLoginPage() {
         // Redirect
         router.push('/admin/dashboard');
       } else {
-        alert(data.messages?.error || 'Login failed. Please check credentials.');
+        setConfirmModal({
+          isOpen: true,
+          title: 'Login failed',
+          message: data.messages?.error || 'Login failed. Please check credentials.',
+          type: 'danger',
+          isAlert: true
+        });
       }
     } catch (err) {
       console.error(err);
-      alert('Network error. Is backend running?');
+      setConfirmModal({
+        isOpen: true,
+        title: 'Network error',
+        message: 'Network error. Is backend running?',
+        type: 'danger',
+        isAlert: true
+      });
     } finally {
       setLoading(false);
     }
@@ -55,6 +75,16 @@ export default function AdminLoginPage() {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden bg-slate-50 dark:bg-slate-900">
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+        onConfirm={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type as any}
+        isAlert={confirmModal.isAlert}
+        confirmText="OK"
+      />
       {/* Animated Gradient Background */}
       <div className="fixed inset-0 bg-gradient-to-br from-teal-50 via-teal-50 to-teal-50 dark:from-teal-950 dark:via-teal-950 dark:to-teal-900 -z-10"></div>
 
@@ -85,16 +115,16 @@ export default function AdminLoginPage() {
               <label htmlFor="email" className="block text-sm font-bold text-slate-700 dark:text-slate-200 ml-1">
                 Email Address
               </label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Mail className="w-5 h-5 text-slate-400 group-focus-within:text-teal-500 transition-colors" />
-                </div>
+              <div className="relative input-icon group">
+                <span className="input-icon-left">
+                  <Mail className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+                </span>
                 <input
                   id="email"
                   type="email"
                   name="email"
                   placeholder="admin@linkforex.com"
-                  className="input-glass w-full pl-11 py-3.5 text-base font-medium shadow-inner"
+                  className="input-glass w-full py-3.5 text-base font-medium shadow-inner"
                   autoComplete="email"
                   required
                 />
@@ -106,16 +136,16 @@ export default function AdminLoginPage() {
               <label htmlFor="password" className="block text-sm font-bold text-slate-700 dark:text-slate-200 ml-1">
                 Password
               </label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className="w-5 h-5 text-slate-400 group-focus-within:text-teal-500 transition-colors" />
-                </div>
+              <div className="relative input-icon group">
+                <span className="input-icon-left">
+                  <Lock className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+                </span>
                 <input
                   id="password"
                   type="password"
                   name="password"
                   placeholder="••••••••"
-                  className="input-glass w-full pl-11 py-3.5 text-base font-medium shadow-inner"
+                  className="input-glass w-full py-3.5 text-base font-medium shadow-inner"
                   autoComplete="current-password"
                   required
                 />
