@@ -79,6 +79,8 @@ export default function LogsPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [sortKey, setSortKey] = useState<string>('signInTs');
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(50);
 
     useEffect(() => {
         const fetchLogs = async () => {
@@ -175,6 +177,22 @@ export default function LogsPage() {
         return sortDir === 'asc' ? result : -result;
     });
 
+    const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
+
+    useEffect(() => {
+        if (page > totalPages) {
+            setPage(totalPages);
+        }
+    }, [page, totalPages]);
+
+    useEffect(() => {
+        setPage(1);
+    }, [searchQuery, pageSize]);
+
+    const startIndex = sorted.length === 0 ? 0 : (page - 1) * pageSize;
+    const endIndex = sorted.length === 0 ? 0 : Math.min(startIndex + pageSize, sorted.length);
+    const paged = sorted.slice(startIndex, endIndex);
+
     const toggleSort = (key: string) => {
         if (sortKey === key) {
             setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
@@ -217,7 +235,7 @@ export default function LogsPage() {
             <div className="card-glass overflow-hidden shadow-xl">
                 <div className="px-6 py-4 border-b border-slate-100/70 dark:border-slate-700/60">
                     <div className="text-sm text-slate-500 dark:text-slate-300">
-                        Results: {sorted.length === 0 ? 0 : 1} - {sorted.length} of {sorted.length}
+                        Results: {sorted.length === 0 ? 0 : startIndex + 1} - {endIndex} of {sorted.length}
                     </div>
                 </div>
                 <div className="overflow-x-auto">
@@ -281,9 +299,9 @@ export default function LogsPage() {
                                     </td>
                                 </tr>
                             ) : (
-                                sorted.map((log, idx) => (
+                                paged.map((log, idx) => (
                                 <tr key={log.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
-                                    <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{idx + 1}</td>
+                                    <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
                                     <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{log.logId}</td>
                                     <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{log.username}</td>
                                     <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{log.transfersImpact}</td>
@@ -299,6 +317,39 @@ export default function LogsPage() {
                             )}
                         </tbody>
                     </table>
+                </div>
+                <div className="px-6 py-4 border-t border-slate-100/70 dark:border-slate-700/60 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-300">
+                        <span className="font-semibold">Rows per page</span>
+                        <select
+                            value={pageSize}
+                            onChange={(e) => setPageSize(Number(e.target.value))}
+                            className="input-glass h-9 text-sm px-3"
+                        >
+                            {[25, 50, 100, 250].map((size) => (
+                                <option key={size} value={size}>{size}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => setPage((p) => Math.max(1, p - 1))}
+                            disabled={page <= 1}
+                            className="px-4 py-2 rounded-full text-xs font-bold glass-effect border border-slate-200/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            Prev
+                        </button>
+                        <span className="text-xs font-semibold text-slate-500 dark:text-slate-300">
+                            Page {page} of {totalPages}
+                        </span>
+                        <button
+                            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                            disabled={page >= totalPages}
+                            className="px-4 py-2 rounded-full text-xs font-bold glass-effect border border-slate-200/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            Next
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

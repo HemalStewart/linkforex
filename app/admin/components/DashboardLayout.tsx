@@ -234,6 +234,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             children: [
                 { name: 'System Users', href: '/admin/users', badge: counts.users > 0 ? counts.users.toString() : undefined, icon: <Users className="w-4 h-4" /> },
                 { name: 'Roles & Permissions', href: '/admin/roles', badge: counts.roles > 0 ? counts.roles.toString() : undefined, icon: <Shield className="w-4 h-4" /> },
+                { name: 'Permission Groups', href: '/admin/permission-groups', icon: <ShieldCheck className="w-4 h-4" /> },
                 { name: 'Branches', href: '/admin/branches', badge: counts.branches > 0 ? counts.branches.toString() : undefined, icon: <Building2 className="w-4 h-4" /> },
                 { name: 'Countries', href: '/admin/countries', icon: <Globe className="w-4 h-4" /> },
                 { name: 'Currencies', href: '/admin/currencies', icon: <Coins className="w-4 h-4" /> },

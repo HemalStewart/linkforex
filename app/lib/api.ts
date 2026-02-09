@@ -32,6 +32,11 @@ export const ENDPOINTS = {
         LIST: `${API_BASE_URL}/roles`,
         DETAIL: (id: string | number) => `${API_BASE_URL}/roles/${id}`,
     },
+    PERMISSION_GROUPS: {
+        LIST: `${API_BASE_URL}/permission-groups`,
+        DETAIL: (id: string | number) => `${API_BASE_URL}/permission-groups/${id}`,
+        IMPORT: `${API_BASE_URL}/permission-groups/import`,
+    },
     LOGS: {
         LIST: `${API_BASE_URL}/logs`,
         DETAIL: (id: string | number) => `${API_BASE_URL}/logs/${id}`,
