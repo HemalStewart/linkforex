@@ -268,41 +268,9 @@ export default function BranchesPage() {
             </div>
 
             <div className="card-glass overflow-hidden shadow-xl">
-                <div className="px-6 py-4 border-b border-slate-100/70 dark:border-slate-700/60 flex flex-col gap-3">
+                <div className="px-6 py-4 border-b border-slate-100/70 dark:border-slate-700/60">
                     <div className="text-sm text-slate-500 dark:text-slate-300">
                         Results: {total === 0 ? 0 : startIndex + 1} - {endIndex} of {total}
-                    </div>
-                    <div className="flex flex-wrap items-center gap-3 text-sm">
-                        <span className="text-slate-400 dark:text-slate-300">Rows per page</span>
-                        <div className="relative input-icon">
-                            <select
-                                className="input-glass px-3 py-1.5 text-sm pr-8"
-                                value={rowsPerPage}
-                                onChange={(e) => {
-                                    setRowsPerPage(Number(e.target.value));
-                                    setPage(1);
-                                }}
-                            >
-                                <option value={25}>25</option>
-                                <option value={50}>50</option>
-                                <option value={100}>100</option>
-                            </select>
-                        </div>
-                        <button
-                            onClick={() => setPage(Math.max(1, currentPage - 1))}
-                            disabled={currentPage === 1}
-                            className="px-3 py-1.5 rounded-full glass-effect text-slate-600 dark:text-slate-200 disabled:opacity-40"
-                        >
-                            Prev
-                        </button>
-                        <span className="text-slate-400 dark:text-slate-300">Page {currentPage} of {totalPages}</span>
-                        <button
-                            onClick={() => setPage(Math.min(totalPages, currentPage + 1))}
-                            disabled={currentPage === totalPages}
-                            className="px-3 py-1.5 rounded-full glass-effect text-slate-600 dark:text-slate-200 disabled:opacity-40"
-                        >
-                            Next
-                        </button>
                     </div>
                 </div>
 
@@ -416,6 +384,41 @@ export default function BranchesPage() {
                             ))}
                         </tbody>
                     </table>
+                </div>
+
+                <div className="px-6 py-4 border-t border-slate-100/70 dark:border-slate-700/60">
+                    <div className="flex flex-wrap items-center gap-3 text-sm">
+                        <span className="text-slate-400 dark:text-slate-300">Rows per page</span>
+                        <div className="relative input-icon">
+                            <select
+                                className="input-glass px-3 py-1.5 text-sm pr-8"
+                                value={rowsPerPage}
+                                onChange={(e) => {
+                                    setRowsPerPage(Number(e.target.value));
+                                    setPage(1);
+                                }}
+                            >
+                                <option value={25}>25</option>
+                                <option value={50}>50</option>
+                                <option value={100}>100</option>
+                            </select>
+                        </div>
+                        <button
+                            onClick={() => setPage(Math.max(1, currentPage - 1))}
+                            disabled={currentPage === 1}
+                            className="px-3 py-1.5 rounded-full glass-effect text-slate-600 dark:text-slate-200 disabled:opacity-40"
+                        >
+                            Prev
+                        </button>
+                        <span className="text-slate-400 dark:text-slate-300">Page {currentPage} of {totalPages}</span>
+                        <button
+                            onClick={() => setPage(Math.min(totalPages, currentPage + 1))}
+                            disabled={currentPage === totalPages}
+                            className="px-3 py-1.5 rounded-full glass-effect text-slate-600 dark:text-slate-200 disabled:opacity-40"
+                        >
+                            Next
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

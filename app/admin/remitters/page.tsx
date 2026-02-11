@@ -1,204 +1,441 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
-import { Search, UserPlus, FileText, Eye, Filter, Download } from 'lucide-react';
+import ConfirmModal from '../components/ConfirmModal';
+import { Search, UserPlus, Eye, Trash2, ChevronRight } from 'lucide-react';
+
+type SortDir = 'asc' | 'desc';
 
 export default function RemittersPage() {
-    const router = useRouter();
-    const [searchQuery, setSearchQuery] = useState('');
-    const [statusFilter, setStatusFilter] = useState('all');
     const [remitters, setRemitters] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [sourceFilter, setSourceFilter] = useState('all');
+    const [sortKey, setSortKey] = useState('created_at');
+    const [sortDir, setSortDir] = useState<SortDir>('desc');
+    const [rowsPerPage, setRowsPerPage] = useState(50);
+    const [page, setPage] = useState(1);
+
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info' as 'info' | 'danger' | 'warning',
+        isAlert: false
+    });
+    const [remitterToDelete, setRemitterToDelete] = useState<any | null>(null);
 
     useEffect(() => {
-        const fetchRemitters = async () => {
-            setLoading(true);
-            try {
-                const params = new URLSearchParams();
-                params.append('registration_source', 'branch');
-                if (statusFilter !== 'all') params.append('status', statusFilter);
-                if (searchQuery) params.append('search', searchQuery);
+        fetchRemitters();
+    }, [statusFilter, sourceFilter]);
 
-                const res = await fetch(`${ENDPOINTS.REMITTERS.LIST}?${params.toString()}`);
-                if (!res.ok) throw new Error('Failed to fetch');
-                const data = await res.json();
+    useEffect(() => {
+        setPage(1);
+    }, [searchQuery]);
 
-                // Map DB fields to UI fields if necessary
-                const mappedData = data.map((c: any) => ({
-                    ...c,
-                    joinedDate: c.created_at ? new Date(c.created_at).toLocaleDateString() : '-',
-                    transfersCount: 0, // Placeholder
-                    lastLogin: c.last_login || 'Never',
-                    kycStatus: c.kyc_status || 'pending'
-                }));
-                setRemitters(mappedData);
-            } catch (error) {
-                console.error('Failed to fetch remitters:', error);
-            } finally {
-                setLoading(false);
+    const fetchRemitters = async () => {
+        setLoading(true);
+        try {
+            const params = new URLSearchParams();
+            if (statusFilter !== 'all') params.append('status', statusFilter);
+            if (sourceFilter !== 'all') params.append('registration_source', sourceFilter);
+            if (searchQuery.trim()) params.append('search', searchQuery.trim());
+
+            const res = await fetch(`${ENDPOINTS.REMITTERS.LIST}?${params.toString()}`);
+            if (!res.ok) {
+                setRemitters([]);
+                return;
             }
-        };
 
-        const debounce = setTimeout(fetchRemitters, 300);
-        return () => clearTimeout(debounce);
-    }, [searchQuery, statusFilter]);
+            const data = await res.json();
+            const normalized = (data || []).map((r: any) => ({
+                ...r,
+                company: r.company || r.company_name || 'Link Forex Ltd',
+                branch_name: r.branch || '-',
+                sender_id: r.sender_id || '-',
+                sender_name: r.sender_name || r.name || '-',
+                active: (r.status || 'inactive').toLowerCase() === 'active' ? 'Active' : 'Inactive',
+                sanction_list_verified: r.sanction_list_verified || 'no',
+                dob: r.dob || '-',
+                place_of_birth: r.place_of_birth || '-',
+                telephone: r.phone || '-',
+                postcode: r.postcode || '-',
+                address_1: r.address_1 || '-',
+                address_2: r.address_2 || '-',
+                city: r.city || '-',
+                county: r.county || '-',
+                country: r.country || '-',
+                occupation: r.occupation || '-',
+                id_verified: r.id_verified || 'no',
+                proof_of_funds: r.proof_of_funds || 'no',
+                id_type: r.id_type || '-',
+                id_no: r.id_number || '-',
+                id_expire_date: r.id_expiry || '-',
+                other_info: r.other_info || '-',
+                use_in: r.use_in || 'All',
+                sender_aml_doc: r.sender_details_aml_screening_doc || '-',
+                sender_aml_result: r.sender_aml_result || '-',
+                rescreening_sender: r.rescreening_sender || '-',
+                entered_user: r.created_by || '-',
+                entered_date: r.created_at || '-',
+                modified_user: r.updated_by || '-',
+                modified_date: r.updated_at || '-',
+                id_copy: r.id_copy || r.passport_copy || '',
+                other_doc: r.other_doc || '',
+                work_related_doc: r.work_related_docs || '',
+            }));
 
-    const getStatusBadge = (status: string) => {
-        const styles = {
-            active: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-400',
-            inactive: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
-            suspended: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
-        };
-        return styles[status as keyof typeof styles] || styles.inactive;
+            setRemitters(normalized);
+        } catch (error) {
+            console.error('Failed to fetch remitters:', error);
+            setRemitters([]);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const getKycBadge = (status: string) => {
-        const styles = {
-            verified: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-400',
-            pending: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
-            rejected: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
-        };
-        return styles[status as keyof typeof styles] || styles.pending;
+    const searchedRows = searchQuery.trim()
+        ? remitters.filter((r: any) => {
+            const haystack = [
+                r.company,
+                r.branch_name,
+                r.sender_id,
+                r.sender_name,
+                r.active,
+                r.sanction_list_verified,
+                r.dob,
+                r.place_of_birth,
+                r.telephone,
+                r.postcode,
+                r.address_1,
+                r.address_2,
+                r.city,
+                r.county,
+                r.country,
+                r.occupation,
+                r.id_type,
+                r.id_no,
+                r.entered_user,
+                r.modified_user,
+                r.use_in,
+                r.registration_source
+            ]
+                .filter(Boolean)
+                .join(' ')
+                .toLowerCase();
+            return haystack.includes(searchQuery.trim().toLowerCase());
+        })
+        : remitters;
+
+    const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+
+    const getSortValue = (row: any, key: string) => {
+        switch (key) {
+            case 'entered_date':
+                return row.entered_date ? new Date(row.entered_date).getTime() : 0;
+            case 'modified_date':
+                return row.modified_date ? new Date(row.modified_date).getTime() : 0;
+            default:
+                return row[key] ?? '';
+        }
     };
 
-    // No client-side filtering needed as API handles it
-    const filteredRemitters = remitters;
+    const sortedRows = [...searchedRows].sort((a, b) => {
+        const aVal = getSortValue(a, sortKey);
+        const bVal = getSortValue(b, sortKey);
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+            return sortDir === 'asc' ? aVal - bVal : bVal - aVal;
+        }
+        const result = collator.compare(String(aVal), String(bVal));
+        return sortDir === 'asc' ? result : -result;
+    });
+
+    const total = sortedRows.length;
+    const totalPages = Math.max(1, Math.ceil(total / rowsPerPage));
+    const currentPage = Math.min(page, totalPages);
+    const startIndex = total === 0 ? 0 : (currentPage - 1) * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, total);
+    const pagedRows = sortedRows.slice(startIndex, endIndex);
+
+    useEffect(() => {
+        if (page !== currentPage) {
+            setPage(currentPage);
+        }
+    }, [page, currentPage]);
+
+    const toggleSort = (key: string) => {
+        if (sortKey === key) {
+            setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortKey(key);
+            setSortDir('asc');
+        }
+    };
+
+    const sortIndicator = (key: string) => {
+        if (sortKey !== key) return '↕';
+        return sortDir === 'asc' ? '↑' : '↓';
+    };
+
+    const yesNo = (value: string) => (value || '').toLowerCase() === 'yes' ? 'Yes' : 'No';
+
+    const renderDocCell = (value: string) => {
+        if (!value || value === '-') {
+            return <span className="text-slate-400 dark:text-slate-300">No Image</span>;
+        }
+        return <span className="text-teal-600 dark:text-teal-300 font-semibold">View</span>;
+    };
+
+    const promptDelete = (remitter: any) => {
+        setRemitterToDelete(remitter);
+        setConfirmModal({
+            isOpen: true,
+            title: 'Delete Remitter',
+            message: 'Are you sure you want to delete this remitter? This action cannot be undone.',
+            type: 'danger',
+            isAlert: false
+        });
+    };
+
+    const handleConfirm = async () => {
+        if (confirmModal.isAlert) {
+            setConfirmModal({ ...confirmModal, isOpen: false });
+            return;
+        }
+
+        if (!remitterToDelete) return;
+
+        try {
+            const res = await fetch(ENDPOINTS.REMITTERS.DETAIL(remitterToDelete.id), { method: 'DELETE' });
+            if (res.ok) {
+                setRemitters(remitters.filter((r) => r.id !== remitterToDelete.id));
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Success',
+                    message: 'Remitter deleted successfully',
+                    type: 'info',
+                    isAlert: true
+                });
+            } else {
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: 'Failed to delete remitter',
+                    type: 'danger',
+                    isAlert: true
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'Error deleting remitter',
+                type: 'danger',
+                isAlert: true
+            });
+        } finally {
+            setRemitterToDelete(null);
+        }
+    };
+
+    const columns = [
+        { key: 'company', label: 'Company' },
+        { key: 'branch_name', label: 'Branch' },
+        { key: 'sender_id', label: 'Sender Id' },
+        { key: 'sender_name', label: 'Sender Name' },
+        { key: 'active', label: 'Active' },
+        { key: 'sanction_list_verified', label: 'Sanction List Verified' },
+        { key: 'dob', label: 'Date Of Birth' },
+        { key: 'place_of_birth', label: 'Place Of Birth' },
+        { key: 'telephone', label: 'Telephone' },
+        { key: 'postcode', label: 'Postcode' },
+        { key: 'address_1', label: 'Address 1' },
+        { key: 'address_2', label: 'Address 2' },
+        { key: 'city', label: 'City' },
+        { key: 'county', label: 'County' },
+        { key: 'country', label: 'Country' },
+        { key: 'occupation', label: 'Occupation' },
+        { key: 'id_verified', label: 'ID Verified' },
+        { key: 'proof_of_funds', label: 'Proof Of Funds' },
+        { key: 'id_type', label: 'ID Type' },
+        { key: 'id_no', label: 'ID No' },
+        { key: 'id_expire_date', label: 'ID Expire Date' },
+        { key: 'other_info', label: 'Other Info' },
+        { key: 'use_in', label: 'Use In' },
+        { key: 'id_copy', label: 'View ID Copy' },
+        { key: 'other_doc', label: 'View Other Doc' },
+        { key: 'work_related_doc', label: 'View Work related Doc' },
+        { key: 'sender_aml_doc', label: 'Sender AML Document' },
+        { key: 'sender_aml_result', label: 'Sender AML Result' },
+        { key: 'rescreening_sender', label: 'Re/screening Sender' },
+        { key: 'entered_user', label: 'Entered User' },
+        { key: 'entered_date', label: 'Entered Date' },
+        { key: 'modified_user', label: 'Modified User' },
+        { key: 'modified_date', label: 'Modified Date' },
+    ];
 
     return (
-        <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-up">
-            {/* Page Header */}
+        <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-up pb-20">
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+                onConfirm={handleConfirm}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                type={confirmModal.type}
+                isAlert={confirmModal.isAlert}
+                confirmText={confirmModal.isAlert ? 'OK' : 'Delete'}
+                cancelText="Cancel"
+            />
+
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Remitters</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Manage remitter profiles and activity</p>
+                    <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">Manage sender profiles for branch and mobile app</p>
                 </div>
-                <div className="flex items-center space-x-4">
-                    <button className="px-5 py-3 rounded-full border-0 glass-effect text-slate-700 dark:text-slate-300 font-bold hover:shadow-lg transition-all">
-                        <span className="flex items-center space-x-2">
-                            <Download className="w-5 h-5" />
-                            <span>Export</span>
-                        </span>
-                    </button>
-                    <Link href="/admin/remitters/create" className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 rounded-full px-6">
-                        <UserPlus className="w-5 h-5" />
-                        <span>Add Remitter</span>
-                    </Link>
-                </div>
+                <Link href="/admin/remitters/create" className="btn-primary flex items-center space-x-2 rounded-full px-6">
+                    <UserPlus className="w-5 h-5" />
+                    <span>Add Remitter</span>
+                </Link>
             </div>
 
-            {/* Stats Cards - Placeholder */}
-            {/* You can add stats cards here similar to Dashboard if available */}
-
-            {/* Filters and Search */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                {/* Search */}
-                <div className="relative group w-full input-icon">
-                    <div className="input-icon-left">
-                        <Search className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+            <div className="card-glass p-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search</label>
+                        <div className="relative input-icon">
+                            <span className="input-icon-left"><Search className="w-4 h-4" /></span>
+                            <input
+                                type="text"
+                                placeholder="Search all columns"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="input-glass w-full text-sm"
+                            />
+                        </div>
                     </div>
-                    <input
-                        type="search"
-                        placeholder="Search remitters by name, email or phone..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="input-glass w-full py-3 text-base shadow-sm hover:shadow-md transition-shadow"
-                    />
-                </div>
-
-                {/* Filter */}
-                <div className="flex justify-end">
-                    <div className="flex items-center card-glass p-1.5 rounded-full space-x-1">
-                        <button
-                            onClick={() => setStatusFilter('all')}
-                            className={`px-4 py-2 text-sm font-bold rounded-full transition-all ${statusFilter === 'all'
-                                ? 'bg-white shadow text-slate-900 dark:bg-slate-700 dark:text-white'
-                                : 'text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-700/50'
-                                }`}
-                        >
-                            All
-                        </button>
-                        <button
-                            onClick={() => setStatusFilter('active')}
-                            className={`px-4 py-2 text-sm font-bold rounded-full transition-all ${statusFilter === 'active'
-                                ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-400 shadow-sm'
-                                : 'text-slate-500 dark:text-slate-400 hover:bg-teal-50/50 dark:hover:bg-teal-900/20'
-                                }`}
-                        >
-                            Active
-                        </button>
-                        <button
-                            onClick={() => setStatusFilter('inactive')}
-                            className={`px-4 py-2 text-sm font-bold rounded-full transition-all ${statusFilter === 'inactive'
-                                ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 shadow-sm'
-                                : 'text-slate-500 dark:text-slate-400 hover:bg-amber-50/50 dark:hover:bg-amber-900/20'
-                                }`}
-                        >
-                            Inactive
-                        </button>
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Status</label>
+                        <div className="relative input-icon">
+                            <select
+                                className="input-glass w-full appearance-none pr-10 text-sm"
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                            >
+                                <option value="all">All</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="suspended">Suspended</option>
+                            </select>
+                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-400 pointer-events-none" />
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Source</label>
+                        <div className="relative input-icon">
+                            <select
+                                className="input-glass w-full appearance-none pr-10 text-sm"
+                                value={sourceFilter}
+                                onChange={(e) => setSourceFilter(e.target.value)}
+                            >
+                                <option value="all">All</option>
+                                <option value="branch">Branch</option>
+                                <option value="mobile_app">Mobile App</option>
+                                <option value="web">Web</option>
+                            </select>
+                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-400 pointer-events-none" />
+                        </div>
+                    </div>
+                    <div className="flex items-end">
+                        <div className="text-xs text-slate-400 dark:text-slate-300">Results include branch and mobile app remitters.</div>
                     </div>
                 </div>
             </div>
 
-            {/* Remitters Table */}
             <div className="card-glass overflow-hidden shadow-xl">
+                <div className="px-6 py-4 border-b border-slate-100/70 dark:border-slate-700/60">
+                    <div className="text-sm text-slate-500 dark:text-slate-300">
+                        Results: {total === 0 ? 0 : startIndex + 1} - {endIndex} of {total}
+                    </div>
+                </div>
+
                 <div className="overflow-x-auto">
                     {loading ? (
-                        <div className="p-12 text-center text-slate-500 animate-pulse">Loading remitters...</div>
+                        <div className="p-12 text-center text-slate-500 dark:text-slate-300">Loading remitters...</div>
                     ) : (
-                        <table className="table-shell">
+                        <table className="table-shell whitespace-nowrap">
                             <thead className="table-head">
                                 <tr>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Remitter</th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Contact</th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">KYC</th>
-                                    <th className="px-8 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">No.</th>
+                                    {columns.map((col) => (
+                                        <th key={col.key} className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                            <button onClick={() => toggleSort(col.key)} className="flex items-center gap-1">
+                                                {col.label} <span className="text-slate-400 dark:text-slate-300">{sortIndicator(col.key)}</span>
+                                            </button>
+                                        </th>
+                                    ))}
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">View</th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Delete</th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
-                                {filteredRemitters.map((remitter) => (
-                                    <tr
-                                        key={remitter.id}
-                                        className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200"
-                                    >
-                                        <td className="px-8 py-5">
-                                            <div className="flex items-center space-x-4">
-                                                <div className="avatar-circle">
-                                                    {remitter.name?.charAt(0)}
-                                                </div>
-                                                <div>
-                                                    <p className="font-bold text-slate-900 dark:text-white text-[15px]">{remitter.name}</p>
-                                                    <p className="text-xs text-slate-500 font-medium mt-0.5">Joined: {remitter.joinedDate}</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-5">
-                                            <div className="text-sm">
-                                                <p className="text-slate-700 dark:text-slate-300 font-medium">{remitter.email}</p>
-                                                <p className="text-slate-500 dark:text-slate-400 text-xs mt-0.5">{remitter.phone}</p>
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-5">
-                                            <span className={`badge-glass px-3 py-1 rounded-full uppercase tracking-wider text-[10px] font-extrabold ${getStatusBadge(remitter.status)}`}>
-                                                {remitter.status || 'Unknown'}
-                                            </span>
-                                        </td>
-                                        <td className="px-8 py-5">
-                                            <span className={`badge-glass px-3 py-1 rounded-full uppercase tracking-wider text-[10px] font-extrabold ${getKycBadge(remitter.kycStatus)}`}>
-                                                {remitter.kycStatus || 'PENDING'}
-                                            </span>
-                                        </td>
-                                        <td className="px-8 py-5 text-center">
+                                {pagedRows.map((row: any, idx: number) => (
+                                    <tr key={row.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
+                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.company || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.branch_name || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.sender_id || '-'}</td>
+                                        <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{row.sender_name || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.active || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{yesNo(row.sanction_list_verified)}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.dob || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.place_of_birth || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.telephone || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.postcode || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.address_1 || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.address_2 || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.city || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.county || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.country || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.occupation || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{yesNo(row.id_verified)}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{yesNo(row.proof_of_funds)}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.id_type || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.id_no || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.id_expire_date || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.other_info || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.use_in || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{renderDocCell(row.id_copy)}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{renderDocCell(row.other_doc)}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{renderDocCell(row.work_related_doc)}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{renderDocCell(row.sender_aml_doc)}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.sender_aml_result || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.rescreening_sender || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.entered_user || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.entered_date ? new Date(row.entered_date).toLocaleString() : '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.modified_user || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.modified_date ? new Date(row.modified_date).toLocaleString() : '-'}</td>
+                                        <td className="px-4 py-4">
                                             <Link
-                                                href={`/admin/remitters/${remitter.id}`}
-                                                className="p-2 rounded-full hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
-                                                title="View/Edit Profile"
+                                                href={`/admin/remitters/${row.id}`}
+                                                className="px-3 py-1.5 rounded-full glass-effect text-xs font-semibold text-slate-600 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors flex items-center gap-1"
                                             >
-                                                <Eye className="w-5 h-5" />
+                                                <Eye className="w-3.5 h-3.5" />
+                                                View
                                             </Link>
+                                        </td>
+                                        <td className="px-4 py-4">
+                                            <button
+                                                onClick={() => promptDelete(row)}
+                                                className="px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 transition-colors glass-effect text-slate-600 dark:text-slate-200 hover:text-red-600"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                                Delete
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}
@@ -206,12 +443,42 @@ export default function RemittersPage() {
                         </table>
                     )}
                 </div>
-                {!loading && filteredRemitters.length === 0 && (
-                    <div className="p-16 text-center text-slate-500 font-medium">
-                        No remitters found.
+
+                <div className="px-6 py-4 border-t border-slate-100/70 dark:border-slate-700/60">
+                    <div className="flex flex-wrap items-center gap-3 text-sm">
+                        <span className="text-slate-400 dark:text-slate-300">Rows per page</span>
+                        <div className="relative input-icon">
+                            <select
+                                className="input-glass px-3 py-1.5 text-sm pr-8"
+                                value={rowsPerPage}
+                                onChange={(e) => {
+                                    setRowsPerPage(Number(e.target.value));
+                                    setPage(1);
+                                }}
+                            >
+                                <option value={25}>25</option>
+                                <option value={50}>50</option>
+                                <option value={100}>100</option>
+                            </select>
+                        </div>
+                        <button
+                            onClick={() => setPage(Math.max(1, currentPage - 1))}
+                            disabled={currentPage === 1}
+                            className="px-3 py-1.5 rounded-full glass-effect text-slate-600 dark:text-slate-200 disabled:opacity-40"
+                        >
+                            Prev
+                        </button>
+                        <span className="text-slate-400 dark:text-slate-300">Page {currentPage} of {totalPages}</span>
+                        <button
+                            onClick={() => setPage(Math.min(totalPages, currentPage + 1))}
+                            disabled={currentPage === totalPages}
+                            className="px-3 py-1.5 rounded-full glass-effect text-slate-600 dark:text-slate-200 disabled:opacity-40"
+                        >
+                            Next
+                        </button>
                     </div>
-                )}
+                </div>
             </div>
-        </div >
+        </div>
     );
 }

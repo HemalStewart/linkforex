@@ -245,22 +245,28 @@ export default function EditBranchPage() {
             </div>
 
             <div className="card-glass p-6 mb-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div className="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 className="text-lg font-bold text-slate-900 dark:text-white">Branch Summary</h2>
+                        <p className="text-xs text-slate-500 dark:text-slate-300">Key details and audit info</p>
+                    </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                     {[
                         { label: 'Branch Name', value: formData.name },
-                        { label: 'Transaction Prefix', value: formData.transaction_prefix },
-                        { label: 'Branch Default Transaction Type', value: formData.default_transaction_type },
+                        { label: 'Transaction Prefix', value: formData.transaction_prefix, nowrap: true },
+                        { label: 'Branch Default Transaction Type', value: formData.default_transaction_type, nowrap: true },
                         { label: 'Day Transfer Limit', value: formData.day_transfer_limit ? `£${Number(formData.day_transfer_limit).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-' },
-                        { label: 'Telephone 1', value: formData.telephone_1 },
-                        { label: 'Telephone 2', value: formData.telephone_2 },
+                        { label: 'Telephone 1', value: formData.telephone_1, nowrap: true },
+                        { label: 'Telephone 2', value: formData.telephone_2, nowrap: true },
                         { label: 'Entered User', value: formData.created_by || '-' },
                         { label: 'Entered Date', value: formData.created_at ? new Date(formData.created_at).toLocaleString() : '-' },
                         { label: 'Modified User', value: formData.updated_by || '-' },
                         { label: 'Modified Date', value: formData.updated_at ? new Date(formData.updated_at).toLocaleString() : '-' }
                     ].map((row) => (
-                        <div key={row.label} className="flex items-center justify-between gap-4 border-b border-slate-100/60 dark:border-slate-700/40 py-2">
-                            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">{row.label}</span>
-                            <span className="font-semibold text-slate-700 dark:text-slate-100 text-right">{row.value || '-'}</span>
+                        <div key={row.label} className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 px-4 py-3">
+                            <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">{row.label}</div>
+                            <div className={`mt-1 font-semibold text-slate-800 dark:text-slate-100 ${row.nowrap ? 'whitespace-nowrap' : 'break-words'}`}>{row.value || '-'}</div>
                         </div>
                     ))}
                 </div>
