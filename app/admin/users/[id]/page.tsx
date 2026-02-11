@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../components/ConfirmModal';
-import { ArrowLeft, User, Mail, Shield, Building, Lock, Check, Save, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, User, Mail, Shield, Building, Lock, Save, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
 
 export default function EditUserPage() {
     const router = useRouter();
@@ -21,8 +21,7 @@ export default function EditUserPage() {
         role: 'agent',
         status: 'active',
         branch: '',
-        password: '',
-        permissions: [] as string[],
+        password: ''
     });
 
     const [confirmModal, setConfirmModal] = useState({
@@ -52,8 +51,7 @@ export default function EditUserPage() {
                     role: data.role || 'agent',
                     status: data.status || 'active',
                     branch: data.branch || '',
-                    password: '',
-                    permissions: data.permissions ? JSON.parse(data.permissions) : [],
+                    password: ''
                 });
             }
         } catch (error) {
@@ -70,12 +68,6 @@ export default function EditUserPage() {
         // Don't send password if empty
         const { password, ...restData } = formData;
         let dataToSend: any = password ? formData : restData;
-
-        // Convert permissions array to JSON string
-        dataToSend = {
-            ...dataToSend,
-            permissions: JSON.stringify(dataToSend.permissions)
-        };
 
         try {
             const res = await fetch(ENDPOINTS.USERS.DETAIL(id), {
@@ -130,18 +122,6 @@ export default function EditUserPage() {
     if (loading) {
         return <div className="max-w-7xl mx-auto p-12 text-center text-slate-500 font-medium animate-pulse">Loading user details...</div>;
     }
-
-    const permissionOptions = [
-        { id: 'view_dashboard', label: 'View Dashboard' },
-        { id: 'manage_remitters', label: 'Manage Remitters' },
-        { id: 'manage_transfers', label: 'Manage Transfers' },
-        { id: 'manage_users', label: 'Manage Users' },
-        { id: 'manage_beneficiaries', label: 'Manage Beneficiaries' },
-        { id: 'view_reports', label: 'View Reports' },
-        { id: 'manage_rates', label: 'Manage Rates' },
-        { id: 'manage_branches', label: 'Manage Branches' },
-        { id: 'kyc_approval', label: 'KYC Approval' },
-    ];
 
     return (
     <div className="max-w-7xl mx-auto space-y-8 pb-20 animate-fade-in-up">
@@ -311,56 +291,6 @@ export default function EditUserPage() {
                                 placeholder="New password"
                             />
                         </div>
-                    </div>
-                </div>
-
-                {/* Permissions Section */}
-        <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-700/50">
-          <label className="block text-lg font-bold text-slate-900 dark:text-white mb-6">Permission Settings</label>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {permissionOptions.map((permission) => (
-                            <label
-                                key={permission.id}
-                                className={`
-                                    flex items-center space-x-3 p-4 rounded-xl cursor-pointer transition-all duration-300 border
-                                    ${formData.permissions.includes(permission.id)
-                                        ? 'bg-teal-500/5 border-teal-500/30'
-                                        : 'bg-white/50 dark:bg-slate-800/50 border-transparent hover:bg-white hover:border-slate-200'
-                                    }
-                                `}
-                            >
-                                <div className={`
-                                    w-5 h-5 rounded-full border flex items-center justify-center transition-colors
-                                    ${formData.permissions.includes(permission.id)
-                                        ? 'bg-teal-500 border-teal-500 text-white'
-                                        : 'border-slate-300 dark:border-slate-600'
-                                    }
-                                `}>
-                  {formData.permissions.includes(permission.id) && <Check className="w-3 h-3" />}
-                                </div>
-                                <input
-                                    type="checkbox"
-                                    checked={formData.permissions.includes(permission.id)}
-                                    onChange={(e) => {
-                                        if (e.target.checked) {
-                                            setFormData({
-                                                ...formData,
-                                                permissions: [...formData.permissions, permission.id]
-                                            });
-                                        } else {
-                                            setFormData({
-                                                ...formData,
-                                                permissions: formData.permissions.filter(p => p !== permission.id)
-                                            });
-                                        }
-                                    }}
-                  className="hidden"
-                                />
-                                <span className={`text-sm font-medium ${formData.permissions.includes(permission.id) ? 'text-teal-700 dark:text-teal-300' : 'text-slate-600 dark:text-slate-400'}`}>
-                                    {permission.label}
-                                </span>
-                            </label>
-                        ))}
                     </div>
                 </div>
 

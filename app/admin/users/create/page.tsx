@@ -69,8 +69,7 @@ export default function CreateUserPage() {
         password: '',
         confirmPassword: '',
         status: 'active',
-        twofaStatus: 'active',
-        permissions: [] as string[] // Added strictly for UI state if needed, though role usually dictates permissions
+        twofaStatus: 'active'
     });
 
     const signatureInputRef = useRef<HTMLInputElement | null>(null);

@@ -4,20 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../components/ConfirmModal';
-import Modal from '../components/Modal';
 import { Search, PlusCircle, Trash2, Eye, Shield, ChevronRight } from 'lucide-react';
-
-const ALL_PERMISSIONS = [
-    { id: 'view_dashboard', label: 'View Dashboard' },
-    { id: 'manage_remitters', label: 'Manage Remitters' },
-    { id: 'manage_transfers', label: 'Manage Transfers' },
-    { id: 'manage_users', label: 'Manage Users' },
-    { id: 'manage_beneficiaries', label: 'Manage Beneficiaries' },
-    { id: 'view_reports', label: 'View Reports' },
-    { id: 'manage_rates', label: 'Manage Rates' },
-    { id: 'manage_branches', label: 'Manage Branches' },
-    { id: 'kyc_approval', label: 'KYC Approval' },
-];
 
 export default function RolesPage() {
     const [roles, setRoles] = useState<any[]>([]);
@@ -29,8 +16,7 @@ export default function RolesPage() {
 
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [roleToDelete, setRoleToDelete] = useState<any | null>(null);
-    const [confirmAction, setConfirmAction] = useState<'delete' | 'bulk_delete' | 'simulate' | null>(null);
-    const [permissionsRole, setPermissionsRole] = useState<any | null>(null);
+    const [confirmAction, setConfirmAction] = useState<'delete' | 'bulk_delete' | null>(null);
 
     const [confirmModal, setConfirmModal] = useState({
         isOpen: false,
@@ -47,11 +33,7 @@ export default function RolesPage() {
                 const res = await fetch(ENDPOINTS.ROLES.LIST);
                 if (res.ok) {
                     const data = await res.json();
-                    const cleaned = data.map((r: any) => ({
-                        ...r,
-                        currentPermissions: typeof r.permissions === 'string' ? JSON.parse(r.permissions) : (r.permissions || [])
-                    }));
-                    setRoles(cleaned);
+                    setRoles(data);
                 }
             } catch (error) {
                 console.error(error);
@@ -67,16 +49,13 @@ export default function RolesPage() {
 
     const searchedRoles = searchQuery.trim()
         ? roles.filter((r) => {
-            const permissionLabels = (r.currentPermissions || [])
-                .map((p: string) => ALL_PERMISSIONS.find(ap => ap.id === p)?.label || p);
             const haystack = [
                 r.name,
                 r.system_defined,
                 r.created_by,
                 r.updated_by,
                 r.created_at,
-                r.updated_at,
-                ...permissionLabels
+                r.updated_at
             ]
                 .filter(Boolean)
                 .join(' ')
@@ -146,8 +125,8 @@ export default function RolesPage() {
         setConfirmAction('delete');
         setConfirmModal({
             isOpen: true,
-            title: 'Delete Role Permission Group',
-            message: 'Are you sure you want to delete this role permission group? This action cannot be undone.',
+            title: 'Delete Role',
+            message: 'Are you sure you want to delete this role? This action cannot be undone.',
             type: 'danger',
             isAlert: false
         });
@@ -158,21 +137,10 @@ export default function RolesPage() {
         setConfirmAction('bulk_delete');
         setConfirmModal({
             isOpen: true,
-            title: 'Delete Selected Groups',
-            message: 'Are you sure you want to delete selected role permission groups? System defined groups will be skipped.',
+            title: 'Delete Selected Roles',
+            message: 'Are you sure you want to delete selected roles? System defined roles will be skipped.',
             type: 'danger',
             isAlert: false
-        });
-    };
-
-    const promptSimulate = () => {
-        setConfirmAction('simulate');
-        setConfirmModal({
-            isOpen: true,
-            title: 'Simulate Group Permission',
-            message: 'Simulation is not implemented yet. This will open a simulator in a future update.',
-            type: 'info',
-            isAlert: true
         });
     };
 
@@ -186,7 +154,7 @@ export default function RolesPage() {
                 setConfirmModal({
                     isOpen: true,
                     title: 'Success',
-                    message: 'Group deleted successfully',
+                    message: 'Role deleted successfully',
                     type: 'info',
                     isAlert: true
                 });
@@ -194,7 +162,7 @@ export default function RolesPage() {
                 setConfirmModal({
                     isOpen: true,
                     title: 'Error',
-                    message: 'Failed to delete role permission group',
+                    message: 'Failed to delete role',
                     type: 'danger',
                     isAlert: true
                 });
@@ -204,7 +172,7 @@ export default function RolesPage() {
             setConfirmModal({
                 isOpen: true,
                 title: 'Error',
-                message: 'Error deleting role permission group',
+                message: 'Error deleting role',
                 type: 'danger',
                 isAlert: true
             });
@@ -224,7 +192,7 @@ export default function RolesPage() {
             setConfirmModal({
                 isOpen: true,
                 title: 'Info',
-                message: 'No deletable role permission groups selected.',
+                message: 'No deletable roles selected.',
                 type: 'info',
                 isAlert: true
             });
@@ -240,7 +208,7 @@ export default function RolesPage() {
             setConfirmModal({
                 isOpen: true,
                 title: 'Success',
-                message: 'Selected role permission groups deleted successfully',
+                message: 'Selected roles deleted successfully',
                 type: 'info',
                 isAlert: true
             });
@@ -249,7 +217,7 @@ export default function RolesPage() {
             setConfirmModal({
                 isOpen: true,
                 title: 'Error',
-                message: 'Failed to delete selected role permission groups',
+                message: 'Failed to delete selected roles',
                 type: 'danger',
                 isAlert: true
             });
@@ -279,36 +247,15 @@ export default function RolesPage() {
                 cancelText="Cancel"
             />
 
-            <Modal
-                isOpen={!!permissionsRole}
-                onClose={() => setPermissionsRole(null)}
-                title={`Permission Sets - ${permissionsRole?.name || ''}`}
-                size="lg"
-            >
-                <div className="space-y-3">
-                    {(permissionsRole?.currentPermissions || []).length === 0 && (
-                        <div className="text-slate-500 dark:text-slate-300">No permissions assigned.</div>
-                    )}
-                    {(permissionsRole?.currentPermissions || []).map((p: string) => {
-                        const label = ALL_PERMISSIONS.find(ap => ap.id === p)?.label || p;
-                        return (
-                            <div key={p} className="px-4 py-2 rounded-full glass-effect text-sm font-semibold text-slate-600 dark:text-slate-200">
-                                {label}
-                            </div>
-                        );
-                    })}
-                </div>
-            </Modal>
-
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Role Permission Groups</h1>
-                    <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">Manage role permission groups and permissions</p>
+                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Roles</h1>
+                    <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">Manage roles for system users</p>
                 </div>
                 <Link href="/admin/roles/create" className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 rounded-full px-6">
                     <PlusCircle className="w-5 h-5" />
-                    <span>Add Role Permission Group</span>
+                    <span>Add Role</span>
                 </Link>
             </div>
 
@@ -323,7 +270,7 @@ export default function RolesPage() {
                             </span>
                             <input
                                 type="text"
-                                placeholder="Role permission group like"
+                                placeholder="Role name"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="input-glass w-full text-sm"
@@ -396,7 +343,7 @@ export default function RolesPage() {
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">No.</th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
                                     <button onClick={() => toggleSort('name')} className="flex items-center gap-1">
-                                        Role Permission Group <span className="text-slate-400 dark:text-slate-300">{sortIndicator('name')}</span>
+                                        Role <span className="text-slate-400 dark:text-slate-300">{sortIndicator('name')}</span>
                                     </button>
                                 </th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
@@ -424,8 +371,6 @@ export default function RolesPage() {
                                         Modified Date <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_at')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Permission</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Simulate Role Permission</th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">View</th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Delete</th>
                             </tr>
@@ -460,22 +405,6 @@ export default function RolesPage() {
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{role.created_at ? new Date(role.created_at).toLocaleString() : '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{role.updated_by || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{role.updated_at ? new Date(role.updated_at).toLocaleString() : '-'}</td>
-                                        <td className="px-4 py-4">
-                                            <button
-                                                onClick={() => setPermissionsRole(role)}
-                                                className="px-3 py-1.5 rounded-full glass-effect text-xs font-semibold text-slate-600 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors flex items-center gap-1"
-                                            >
-                                                Validate
-                                            </button>
-                                        </td>
-                                        <td className="px-4 py-4">
-                                            <button
-                                                onClick={promptSimulate}
-                                                className="px-3 py-1.5 rounded-full glass-effect text-xs font-semibold text-slate-600 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors flex items-center gap-1"
-                                            >
-                                                Simulate
-                                            </button>
-                                        </td>
                                         <td className="px-4 py-4">
                                             <Link
                                                 href={`/admin/roles/${role.id}`}
