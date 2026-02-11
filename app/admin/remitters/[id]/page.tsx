@@ -223,33 +223,11 @@ export default function EditRemitterPage() {
     const yesNoText = (value: string) => (String(value).toLowerCase() === 'yes' ? 'Yes' : 'No');
     const displayText = (value: string | null | undefined) => (value && String(value).trim() ? value : '-');
 
-    const summaryLeft = [
-        { label: 'Branch', value: displayText(formData.branch), nowrap: false },
-        { label: 'Sender Id', value: displayText(formData.sender_id), nowrap: true },
-        { label: 'Sender Name', value: displayText(formData.sender_name), nowrap: false },
-        { label: 'Date Of Birth', value: displayText(formData.dob), nowrap: true },
-        { label: 'Place Of Birth', value: displayText(formData.place_of_birth), nowrap: false },
-        { label: 'Telephone', value: displayText(formData.phone), nowrap: true },
-        { label: 'Postcode', value: displayText(formData.postcode), nowrap: true },
-        { label: 'Address 1', value: displayText(formData.address_1), nowrap: false },
-        { label: 'Address 2', value: displayText(formData.address_2), nowrap: false },
-        { label: 'Entered User', value: displayText(formData.created_by), nowrap: true },
-        { label: 'Entered Date', value: formData.created_at ? new Date(formData.created_at).toLocaleString() : '-', nowrap: true }
-    ];
-
-    const summaryRight = [
-        { label: 'Sanction List Verified', value: yesNoText(formData.sanction_list_verified), nowrap: true },
-        { label: 'Active', value: formData.status === 'active' ? 'Active' : 'Inactive', nowrap: true },
-        { label: 'Use In', value: displayText(formData.use_in), nowrap: true },
-        { label: 'Country', value: displayText(formData.country), nowrap: false },
-        { label: 'City', value: displayText(formData.city), nowrap: false },
-        { label: 'Occupation', value: displayText(formData.occupation), nowrap: false },
-        { label: 'ID Type', value: displayText(formData.id_type), nowrap: true },
-        { label: 'ID No', value: displayText(formData.id_number), nowrap: true },
-        { label: 'ID Expire Date', value: displayText(formData.id_expiry), nowrap: true },
-        { label: 'Modified User', value: displayText(formData.updated_by), nowrap: true },
-        { label: 'Modified Date', value: formData.updated_at ? new Date(formData.updated_at).toLocaleString() : '-', nowrap: true }
-    ];
+    const isActive = formData.status === 'active';
+    const yesNoBadge = (value: string) =>
+        String(value).toLowerCase() === 'yes'
+            ? 'bg-teal-500/15 text-teal-600 dark:text-teal-300'
+            : 'bg-slate-500/15 text-slate-600 dark:text-slate-300';
 
     if (loading) {
         return <div className="max-w-7xl mx-auto p-12 text-center text-slate-500 dark:text-slate-300">Loading remitter details...</div>;
@@ -286,23 +264,73 @@ export default function EditRemitterPage() {
                 </button>
             </div>
 
-            <div className="card-glass p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                    {[summaryLeft, summaryRight].map((column, idx) => (
-                        <div key={idx} className="rounded-3xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/35 dark:bg-slate-900/30 px-5 py-2">
-                            {column.map((row, rowIdx) => (
-                                <div
-                                    key={`${row.label}-${rowIdx}`}
-                                    className={`flex items-center justify-between gap-4 py-3 ${rowIdx !== column.length - 1 ? 'border-b border-slate-100/70 dark:border-slate-700/50' : ''}`}
-                                >
-                                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">{row.label}</span>
-                                    <span className={`text-sm font-semibold text-slate-800 dark:text-slate-100 text-right ${row.nowrap ? 'whitespace-nowrap' : 'break-words'}`}>
-                                        {row.value}
-                                    </span>
-                                </div>
-                            ))}
+            <div className="card-glass p-6 space-y-5">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Remitter Overview</p>
+                        <h2 className="mt-1 text-xl font-extrabold text-slate-900 dark:text-white">{displayText(formData.sender_name)}</h2>
+                    </div>
+                    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide ${isActive ? 'bg-teal-500/15 text-teal-600 dark:text-teal-300' : 'bg-slate-500/15 text-slate-600 dark:text-slate-300'}`}>
+                        {isActive ? 'Active' : 'Inactive'}
+                    </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                    <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Identity</p>
+                        <p className="mt-2 text-sm font-semibold text-slate-900 dark:text-white">Sender Id: {displayText(formData.sender_id)}</p>
+                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">DOB: {displayText(formData.dob)}</p>
+                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Place: {displayText(formData.place_of_birth)}</p>
+                    </div>
+
+                    <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Branch & Use</p>
+                        <p className="mt-2 text-sm font-semibold text-slate-900 dark:text-white">{displayText(formData.branch)}</p>
+                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Use In: {displayText(formData.use_in)}</p>
+                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Occupation: {displayText(formData.occupation)}</p>
+                    </div>
+
+                    <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Compliance</p>
+                        <div className="mt-2 flex items-center justify-between gap-2">
+                            <span className="text-sm text-slate-600 dark:text-slate-300">Sanction</span>
+                            <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${yesNoBadge(formData.sanction_list_verified)}`}>{yesNoText(formData.sanction_list_verified)}</span>
                         </div>
-                    ))}
+                        <div className="mt-2 flex items-center justify-between gap-2">
+                            <span className="text-sm text-slate-600 dark:text-slate-300">ID Verified</span>
+                            <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${yesNoBadge(formData.id_verified)}`}>{yesNoText(formData.id_verified)}</span>
+                        </div>
+                        <div className="mt-2 flex items-center justify-between gap-2">
+                            <span className="text-sm text-slate-600 dark:text-slate-300">Proof Of Funds</span>
+                            <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${yesNoBadge(formData.proof_of_funds)}`}>{yesNoText(formData.proof_of_funds)}</span>
+                        </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Audit</p>
+                        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Entered: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.created_by)}</span></p>
+                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{formData.created_at ? new Date(formData.created_at).toLocaleString() : '-'}</p>
+                        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Modified: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.updated_by)}</span></p>
+                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{formData.updated_at ? new Date(formData.updated_at).toLocaleString() : '-'}</p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Address</p>
+                        <p className="mt-2 text-sm text-slate-700 dark:text-slate-200">{displayText(formData.address_1)}</p>
+                        {displayText(formData.address_2) !== '-' && <p className="text-sm text-slate-700 dark:text-slate-200">{displayText(formData.address_2)}</p>}
+                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                            {displayText(formData.city)}, {displayText(formData.county)}, {displayText(formData.country)} {displayText(formData.postcode)}
+                        </p>
+                    </div>
+                    <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">ID & AML</p>
+                        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">ID Type: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.id_type)}</span></p>
+                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">ID No: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.id_number)}</span></p>
+                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">ID Expiry: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.id_expiry)}</span></p>
+                        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">AML Result: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.sender_aml_result)}</span></p>
+                    </div>
                 </div>
             </div>
 
