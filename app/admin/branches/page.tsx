@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../components/ConfirmModal';
-import { Search, PlusCircle, Trash2, Eye, ChevronRight, RefreshCw, Tag, Phone, ArrowRightLeft } from 'lucide-react';
+import { Search, PlusCircle, Trash2, Eye, RefreshCw, Tag, Phone, ArrowRightLeft } from 'lucide-react';
 
 export default function BranchesPage() {
     const [branches, setBranches] = useState<any[]>([]);
@@ -287,7 +287,6 @@ export default function BranchesPage() {
                                 <option value={50}>50</option>
                                 <option value={100}>100</option>
                             </select>
-                            <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none rotate-90" />
                         </div>
                         <button
                             onClick={() => setPage(Math.max(1, currentPage - 1))}
@@ -383,7 +382,7 @@ export default function BranchesPage() {
                                         </span>
                                     </td>
                                     <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
-                                        <span className="inline-flex items-center gap-2">
+                                        <span className="inline-flex items-center gap-2 whitespace-nowrap">
                                             <Phone className="w-3.5 h-3.5 text-teal-500" />
                                             {branch.telephone_1 || '-'}
                                         </span>

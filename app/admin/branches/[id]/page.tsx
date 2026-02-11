@@ -305,6 +305,7 @@ export default function EditBranchPage() {
                             >
                                 <option value="Receiver">Receiver</option>
                                 <option value="Sender">Sender</option>
+                                <option value="Both">Both</option>
                             </select>
                             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">⌄</span>
                         </div>
