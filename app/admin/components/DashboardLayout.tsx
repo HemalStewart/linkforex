@@ -50,6 +50,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         receivers: 0,
         users: 0,
         branches: 0,
+        branchCurrencyRates: 0,
         roles: 0,
         permissionGroups: 0,
         kyc: 0
@@ -101,12 +102,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             const timestamp = Date.now();
             try {
                 // Parallel fetch for dashboard counts
-                const [tRes, rRes, bRes, uRes, brRes, roRes, pgRes] = await Promise.allSettled([
+                const [tRes, rRes, bRes, uRes, brRes, bcrRes, roRes, pgRes] = await Promise.allSettled([
                     fetch(`${ENDPOINTS.TRANSFERS.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                     fetch(`${ENDPOINTS.REMITTERS.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                     fetch(`${ENDPOINTS.BENEFICIARIES.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                     fetch(`${ENDPOINTS.USERS.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                     fetch(`${ENDPOINTS.BRANCHES.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
+                    fetch(`${ENDPOINTS.BRANCH_CURRENCY_RATES.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                     fetch(`${ENDPOINTS.ROLES.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                     fetch(`${ENDPOINTS.PERMISSION_GROUPS.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : [])
                 ]);
@@ -126,6 +128,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     receivers: getCount(bRes),
                     users: getCount(uRes),
                     branches: getCount(brRes),
+                    branchCurrencyRates: getCount(bcrRes),
                     roles: getCount(roRes),
                     permissionGroups: getCount(pgRes),
                     kyc: kycCount
@@ -239,6 +242,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 { name: 'Roles & Permissions', href: '/admin/roles', badge: counts.roles > 0 ? counts.roles.toString() : undefined, icon: <Shield className="w-4 h-4" /> },
                 { name: 'Permission Groups', href: '/admin/permission-groups', badge: counts.permissionGroups > 0 ? counts.permissionGroups.toString() : undefined, icon: <ShieldCheck className="w-4 h-4" /> },
                 { name: 'Branches', href: '/admin/branches', badge: counts.branches > 0 ? counts.branches.toString() : undefined, icon: <Building2 className="w-4 h-4" /> },
+                { name: 'Branch Currency Rates', href: '/admin/branch-currency-rates', badge: counts.branchCurrencyRates > 0 ? counts.branchCurrencyRates.toString() : undefined, icon: <Coins className="w-4 h-4" /> },
                 { name: 'Countries', href: '/admin/countries', icon: <Globe className="w-4 h-4" /> },
                 { name: 'Currencies', href: '/admin/currencies', icon: <Coins className="w-4 h-4" /> },
             ]

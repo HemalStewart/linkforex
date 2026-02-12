@@ -2,18 +2,27 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
 import { ArrowLeft, User, Building, CreditCard, Save, Loader2, ChevronRight, Search } from 'lucide-react';
 import ConfirmModal from '../../components/ConfirmModal';
 
+type RemitterOption = {
+    id: string | number;
+    name: string;
+    phone?: string;
+};
+
 export default function CreateReceiverPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const returnUrl = searchParams.get('returnUrl');
+    const preselectedCustomerId = searchParams.get('customer_id') || '';
     const [loading, setLoading] = useState(false);
-    const [remitters, setRemitters] = useState<any[]>([]);
+    const [remitters, setRemitters] = useState<RemitterOption[]>([]);
 
     const [formData, setFormData] = useState({
-        customer_id: '',
+        customer_id: preselectedCustomerId,
         name: '',
         bank_name: '',
         account_number: '',
@@ -25,7 +34,8 @@ export default function CreateReceiverPage() {
         message: '',
         type: 'info' as 'info' | 'danger' | 'warning' | 'success',
         isAlert: true,
-        shouldRedirect: false
+        shouldRedirect: false,
+        redirectUrl: '/admin/receivers'
     });
 
     useEffect(() => {
@@ -58,13 +68,20 @@ export default function CreateReceiverPage() {
             });
 
             if (res.ok) {
+                const created = await res.json().catch(() => null);
+                const newReceiverId = created?.id ? String(created.id) : '';
+                const redirectUrl = returnUrl
+                    ? `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newReceiverId=${encodeURIComponent(newReceiverId)}`
+                    : '/admin/receivers';
+
                 setConfirmModal({
                     isOpen: true,
                     title: 'Success',
                     message: 'Receiver created successfully',
                     type: 'success',
                     isAlert: true,
-                    shouldRedirect: true
+                    shouldRedirect: true,
+                    redirectUrl
                 });
             } else {
                 setConfirmModal({
@@ -73,7 +90,8 @@ export default function CreateReceiverPage() {
                     message: 'Failed to create receiver',
                     type: 'danger',
                     isAlert: true,
-                    shouldRedirect: false
+                    shouldRedirect: false,
+                    redirectUrl: '/admin/receivers'
                 });
             }
         } catch (error) {
@@ -84,7 +102,8 @@ export default function CreateReceiverPage() {
                 message: 'Error creating receiver',
                 type: 'danger',
                 isAlert: true,
-                shouldRedirect: false
+                shouldRedirect: false,
+                redirectUrl: '/admin/receivers'
             });
         } finally {
             setLoading(false);
@@ -92,9 +111,10 @@ export default function CreateReceiverPage() {
     };
 
     const handleModalClose = () => {
-        setConfirmModal({ ...confirmModal, isOpen: false });
+        const redirectUrl = confirmModal.redirectUrl || '/admin/receivers';
+        setConfirmModal({ ...confirmModal, isOpen: false, redirectUrl: '/admin/receivers' });
         if (confirmModal.shouldRedirect) {
-            router.push('/admin/receivers');
+            router.push(redirectUrl);
         }
     };
 
@@ -106,7 +126,7 @@ export default function CreateReceiverPage() {
                 onConfirm={handleModalClose}
                 title={confirmModal.title}
                 message={confirmModal.message}
-                type={confirmModal.type as any}
+                type={confirmModal.type}
                 isAlert={confirmModal.isAlert}
                 confirmText="OK"
             />

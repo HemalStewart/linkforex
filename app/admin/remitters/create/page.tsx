@@ -64,8 +64,8 @@ function FormSelect({ label, name, options, defaultValue, Icon, required, value,
                     required={required}
                     className={`input-glass w-full py-3 ${Icon ? '' : 'pl-4'} pr-10 appearance-none cursor-pointer text-sm`}
                 >
-                    {options.map((opt: string) => (
-                        <option key={opt} value={opt}>{opt}</option>
+                    {options.map((opt: string, index: number) => (
+                        <option key={`${name}-${opt}-${index}`} value={opt}>{opt}</option>
                     ))}
                 </select>
         <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">

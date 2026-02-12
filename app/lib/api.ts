@@ -28,6 +28,10 @@ export const ENDPOINTS = {
         LIST: `${API_BASE_URL}/branches`,
         DETAIL: (id: string | number) => `${API_BASE_URL}/branches/${id}`,
     },
+    BRANCH_CURRENCY_RATES: {
+        LIST: `${API_BASE_URL}/branch-currency-rates`,
+        DETAIL: (id: string | number) => `${API_BASE_URL}/branch-currency-rates/${id}`,
+    },
     ROLES: {
         LIST: `${API_BASE_URL}/roles`,
         DETAIL: (id: string | number) => `${API_BASE_URL}/roles/${id}`,
