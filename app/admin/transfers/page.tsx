@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import Modal from '../components/Modal';
-import { CheckCircle2, Eye, PenLine, PlusCircle, Printer, RotateCcw, Save, Search } from 'lucide-react';
+import { CheckCircle2, Eye, ImageUp, PenLine, PlusCircle, Printer, RotateCcw, Save, Search } from 'lucide-react';
 
 type SortDir = 'asc' | 'desc';
 
@@ -221,6 +221,7 @@ export default function TransfersPage() {
     const [hasInk, setHasInk] = useState(false);
 
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    const uploadInputRef = useRef<HTMLInputElement | null>(null);
     const drawingRef = useRef(false);
     const lastPointRef = useRef<{ x: number; y: number } | null>(null);
 
@@ -697,6 +698,51 @@ export default function TransfersPage() {
         setSignError('');
     };
 
+    const drawImageOnCanvas = (image: HTMLImageElement) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const width = canvas.width / (window.devicePixelRatio || 1);
+        const height = canvas.height / (window.devicePixelRatio || 1);
+        ctx.clearRect(0, 0, width, height);
+
+        const scale = Math.min(width / image.width, height / image.height);
+        const drawWidth = image.width * scale;
+        const drawHeight = image.height * scale;
+        const x = (width - drawWidth) / 2;
+        const y = (height - drawHeight) / 2;
+
+        ctx.drawImage(image, x, y, drawWidth, drawHeight);
+        setHasInk(true);
+        setSignError('');
+    };
+
+    const handleSignatureUploadClick = () => {
+        uploadInputRef.current?.click();
+    };
+
+    const handleSignatureFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            setSignError('Please upload an image file.');
+            event.target.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            const image = new Image();
+            image.onload = () => drawImageOnCanvas(image);
+            image.src = asString(reader.result);
+        };
+        reader.readAsDataURL(file);
+        event.target.value = '';
+    };
+
     const saveSignature = async () => {
         if (!signingTransferId) return;
         const canvas = canvasRef.current;
@@ -713,7 +759,7 @@ export default function TransfersPage() {
 
         const baseMeta = parseTransferMeta(transfer);
         const nowIso = new Date().toISOString();
-        const signatureImage = canvas.toDataURL('image/png');
+        const signatureImage = canvas.toDataURL('image/jpeg', 0.82);
         const nextMeta: Record<string, unknown> = {
             ...baseMeta,
             signature_signed: 'yes',
@@ -741,9 +787,10 @@ export default function TransfersPage() {
                 throw new Error(message);
             }
 
+            const updatedTransfer = (await response.json()) as Transfer;
             setTransfers((prev) => prev.map((item) => (
                 asString(item.id) === signingTransferId
-                    ? { ...item, transfer_meta: nextMeta, meta_json: JSON.stringify(nextMeta), updated_at: nowIso }
+                    ? updatedTransfer
                     : item
             )));
             closeSignatureModal();
@@ -863,10 +910,25 @@ export default function TransfersPage() {
                             onPointerLeave={handlePointerUp}
                         />
                     </div>
+                    <input
+                        ref={uploadInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleSignatureFileChange}
+                    />
                     {signError && (
                         <p className="text-sm font-semibold text-red-600 dark:text-red-300">{signError}</p>
                     )}
                     <div className="flex flex-wrap justify-end gap-2">
+                        <button
+                            type="button"
+                            onClick={handleSignatureUploadClick}
+                            className="px-4 py-2 rounded-full glass-effect text-sm font-semibold text-slate-600 dark:text-slate-200 inline-flex items-center gap-2"
+                        >
+                            <ImageUp className="w-4 h-4" />
+                            Upload
+                        </button>
                         <button
                             type="button"
                             onClick={clearSignature}
