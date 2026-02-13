@@ -7,6 +7,7 @@ export const ENDPOINTS = {
     REMITTERS: {
         LIST: `${API_BASE_URL}/remitters`,
         DETAIL: (id: string | number) => `${API_BASE_URL}/remitters/${id}`,
+        POTENTIAL_MATCHES: `${API_BASE_URL}/remitters/potential-matches`,
     },
     BENEFICIARIES: {
         LIST: `${API_BASE_URL}/beneficiaries`,

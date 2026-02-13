@@ -11,6 +11,17 @@ import {
     CheckCircle, Shield, Layers, Save, Users, AlertCircle
 } from 'lucide-react';
 
+type DuplicateMatch = {
+    id: number;
+    name: string;
+    sender_id?: string;
+    branch?: string;
+    status?: string;
+    score?: number;
+    reasons?: string[];
+    same_branch?: boolean;
+};
+
 // --- HELPER COMPONENTS (Reused) ---
 
 function FormInput({ label, name, type = 'text', placeholder, disabled, step, defaultValue, required, Icon, value, onChange }: any) {
@@ -113,6 +124,30 @@ export default function CreateRemitterPage() {
     const [clientType, setClientType] = useState<'individual' | 'business'>('individual');
     const [branches, setBranches] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
+    const [duplicateChecking, setDuplicateChecking] = useState(false);
+    const [possibleDuplicates, setPossibleDuplicates] = useState<DuplicateMatch[]>([]);
+    const [duplicateFormSignals, setDuplicateFormSignals] = useState({
+        sender_name: '',
+        company_name: '',
+        date_of_birth: '',
+        telephone: '',
+        id_no: '',
+        postcode: '',
+        address_1: '',
+        city: '',
+        country: 'United Kingdom',
+    });
+    const [duplicateModal, setDuplicateModal] = useState<{
+        isOpen: boolean;
+        message: string;
+        matches: DuplicateMatch[];
+        payload: any | null;
+    }>({
+        isOpen: false,
+        message: '',
+        matches: [],
+        payload: null,
+    });
 
     const [confirmModal, setConfirmModal] = useState({
         isOpen: false,
@@ -162,6 +197,115 @@ export default function CreateRemitterPage() {
             }
         };
         fetchBranches();
+    }, []);
+
+    const hasMinimumDuplicateSignals = React.useCallback((signals: typeof duplicateFormSignals): boolean => {
+        const rawName = clientType === 'business' ? signals.company_name : signals.sender_name;
+        const name = rawName.trim();
+        const idNo = signals.id_no.trim();
+        const phoneDigits = (signals.telephone || '').replace(/\D+/g, '');
+        const hasNameContext = Boolean(name && (signals.date_of_birth || signals.postcode || signals.address_1));
+        return Boolean(idNo || phoneDigits.length >= 7 || hasNameContext);
+    }, [clientType]);
+
+    const buildDuplicateQuery = React.useCallback((signals: typeof duplicateFormSignals): string => {
+        const params = new URLSearchParams();
+        const resolvedName = (clientType === 'business' ? signals.company_name : signals.sender_name).trim();
+
+        if (resolvedName) params.set('sender_name', resolvedName);
+        if (signals.date_of_birth.trim()) params.set('dob', signals.date_of_birth.trim());
+        if (signals.telephone.trim()) params.set('phone', signals.telephone.trim());
+        if (signals.id_no.trim()) params.set('id_no', signals.id_no.trim());
+        if (signals.postcode.trim()) params.set('postcode', signals.postcode.trim());
+        if (signals.address_1.trim()) params.set('address_1', signals.address_1.trim());
+        if (signals.city.trim()) params.set('city', signals.city.trim());
+        if (signals.country.trim()) params.set('country', signals.country.trim());
+
+        return params.toString();
+    }, [clientType]);
+
+    const fetchPotentialMatches = React.useCallback(async (signals: typeof duplicateFormSignals): Promise<DuplicateMatch[]> => {
+        if (!hasMinimumDuplicateSignals(signals)) {
+            return [];
+        }
+
+        const query = buildDuplicateQuery(signals);
+        if (!query) return [];
+
+        const response = await fetch(`${ENDPOINTS.REMITTERS.POTENTIAL_MATCHES}?${query}`);
+        if (!response.ok) {
+            return [];
+        }
+
+        const data = await response.json() as { matches?: DuplicateMatch[] };
+        return Array.isArray(data.matches) ? data.matches : [];
+    }, [buildDuplicateQuery, hasMinimumDuplicateSignals]);
+
+    React.useEffect(() => {
+        if (!hasMinimumDuplicateSignals(duplicateFormSignals)) {
+            setPossibleDuplicates([]);
+            return;
+        }
+
+        const timer = window.setTimeout(async () => {
+            setDuplicateChecking(true);
+            try {
+                const matches = await fetchPotentialMatches(duplicateFormSignals);
+                setPossibleDuplicates(matches);
+            } catch (error) {
+                console.error('Failed to check potential duplicate remitters', error);
+                setPossibleDuplicates([]);
+            } finally {
+                setDuplicateChecking(false);
+            }
+        }, 450);
+
+        return () => window.clearTimeout(timer);
+    }, [duplicateFormSignals, fetchPotentialMatches, hasMinimumDuplicateSignals]);
+
+    const createRemitter = React.useCallback(async (
+        payload: any,
+        forceCreate: boolean
+    ): Promise<{ createdId?: string | number; blockedByDuplicate?: boolean }> => {
+        const body = forceCreate ? { ...payload, force_create: 1 } : payload;
+        const res = await fetch(ENDPOINTS.REMITTERS.LIST, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body),
+        });
+
+        if (res.status === 409) {
+            const duplicateData = await res.json() as { message?: string; matches?: DuplicateMatch[] };
+            const matches = Array.isArray(duplicateData.matches) ? duplicateData.matches : [];
+            setPossibleDuplicates(matches);
+            setDuplicateModal({
+                isOpen: true,
+                message: duplicateData.message || 'Possible matching remitter already exists.',
+                matches,
+                payload,
+            });
+            return { blockedByDuplicate: true };
+        }
+
+        if (!res.ok) {
+            const errData = await res.json();
+            console.error('Error creating remitter:', errData);
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'Failed to create remitter: ' + (JSON.stringify(errData.messages || errData.message || errData) || res.statusText),
+                type: 'danger',
+                isAlert: true,
+                shouldRedirect: false,
+                redirectUrl: ''
+            });
+            return {};
+        }
+
+        const result = await res.json();
+        return { createdId: result.id };
     }, []);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -243,31 +387,14 @@ export default function CreateRemitterPage() {
         }
 
         try {
-            const res = await fetch(ENDPOINTS.REMITTERS.LIST, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(apiData),
-            });
-
-            if (!res.ok) {
-                const errData = await res.json();
-                console.error('Error creating remitter:', errData);
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Error',
-                    message: 'Failed to create remitter: ' + (JSON.stringify(errData.messages) || res.statusText),
-                    type: 'danger',
-                    isAlert: true,
-                    shouldRedirect: false,
-                    redirectUrl: ''
-                });
+            const submitResult = await createRemitter(apiData, false);
+            if (submitResult.blockedByDuplicate) {
                 return;
             }
-
-            const result = await res.json();
-            const remitterId = result.id;
+            const remitterId = submitResult.createdId;
+            if (!remitterId) {
+                return;
+            }
 
             // Note: Beneficiaries are not created here as per DB schema (they are transaction-bound).
 
@@ -297,6 +424,41 @@ export default function CreateRemitterPage() {
         }
     };
 
+    const handleConfirmDuplicateCreate = async () => {
+        if (!duplicateModal.payload) return;
+
+        setDuplicateModal((prev) => ({ ...prev, isOpen: false }));
+        setLoading(true);
+        try {
+            const submitResult = await createRemitter(duplicateModal.payload, true);
+            const remitterId = submitResult.createdId;
+            if (!remitterId) return;
+
+            setConfirmModal({
+                isOpen: true,
+                title: 'Success',
+                message: `New ${clientType === 'business' ? 'Business' : 'Individual'} Remitter Created Successfully!`,
+                type: 'info',
+                isAlert: true,
+                shouldRedirect: true,
+                redirectUrl: returnUrl ? `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newRemitterId=${remitterId}` : '/admin/remitters'
+            });
+        } catch (error) {
+            console.error('Failed to force-create remitter', error);
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'An error occurred while creating remitter.',
+                type: 'danger',
+                isAlert: true,
+                shouldRedirect: false,
+                redirectUrl: ''
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleModalClose = () => {
         setConfirmModal({ ...confirmModal, isOpen: false });
         if (confirmModal.shouldRedirect && confirmModal.redirectUrl) {
@@ -315,6 +477,18 @@ export default function CreateRemitterPage() {
                 type={confirmModal.type as any}
                 isAlert={confirmModal.isAlert}
                 confirmText={confirmModal.shouldRedirect ? "Continue" : "OK"}
+            />
+            <ConfirmModal
+                isOpen={duplicateModal.isOpen}
+                onClose={() => setDuplicateModal({ isOpen: false, message: '', matches: [], payload: null })}
+                onConfirm={handleConfirmDuplicateCreate}
+                title="Possible Existing Remitter Found"
+                message={duplicateModal.message || 'Potential match found. Please review before creating a duplicate profile.'}
+                type="warning"
+                isAlert={false}
+                confirmText="Create Anyway"
+                cancelText="Review Details"
+                loading={loading}
             />
 
             {/* Header */}
@@ -386,8 +560,15 @@ export default function CreateRemitterPage() {
                         <FormInput label="Sender ID" name="sender_id" placeholder="Auto-generated" disabled defaultValue={'LF3992'} Icon={CreditCard} />
                         {clientType === 'business' ? (
                             <>
-                <div className="md:col-span-2">
-                                    <FormInput label="Company Name" name="company_name" placeholder="Registered Company Name" required Icon={Building} />
+                                <div className="md:col-span-2">
+                                    <FormInput
+                                        label="Company Name"
+                                        name="company_name"
+                                        placeholder="Registered Company Name"
+                                        required
+                                        Icon={Building}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, company_name: e.target.value }))}
+                                    />
                                 </div>
                                 <FormSelect label="Company Type" name="company_type" options={['LTD', 'PLC', 'Sole Trader', 'Partnership', 'LLP']} Icon={Layers} required />
                                 <FormInput label="Company Reg No" name="company_reg_no" placeholder="Registration Number" required Icon={FileText} />
@@ -395,15 +576,70 @@ export default function CreateRemitterPage() {
                             </>
                         ) : (
                             <>
-                                <FormInput label="Full Name" name="sender_name" placeholder="Full Name" required Icon={User} />
-                                <FormInput label="Date of Birth" name="date_of_birth" type="date" required Icon={Calendar} />
+                                <FormInput
+                                    label="Full Name"
+                                    name="sender_name"
+                                    placeholder="Full Name"
+                                    required
+                                    Icon={User}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, sender_name: e.target.value }))}
+                                />
+                                <FormInput
+                                    label="Date of Birth"
+                                    name="date_of_birth"
+                                    type="date"
+                                    required
+                                    Icon={Calendar}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, date_of_birth: e.target.value }))}
+                                />
                                 <FormInput label="Place of Birth" name="place_of_birth" placeholder="City, Country" Icon={MapPin} />
                                 <FormInput label="Occupation" name="occupation" placeholder="e.g. Engineer" Icon={Briefcase} />
                             </>
                         )}
-                        <FormInput label="Telephone" name="telephone" placeholder="+44..." required Icon={Phone} />
+                        <FormInput
+                            label="Telephone"
+                            name="telephone"
+                            placeholder="+44..."
+                            required
+                            Icon={Phone}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, telephone: e.target.value }))}
+                        />
                     </div>
                 </div>
+
+                {(duplicateChecking || possibleDuplicates.length > 0) && (
+                    <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
+                        <div className={`rounded-2xl border px-4 py-4 ${possibleDuplicates.length > 0 ? 'border-amber-300/70 bg-amber-50/70 dark:border-amber-500/40 dark:bg-amber-500/10' : 'border-slate-200 bg-slate-50/70 dark:border-slate-700 dark:bg-slate-800/40'}`}>
+                            <div className="flex items-start gap-3">
+                                <AlertCircle className={`mt-0.5 h-4 w-4 ${possibleDuplicates.length > 0 ? 'text-amber-600' : 'text-slate-500'}`} />
+                                <div className="w-full">
+                                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                                        {duplicateChecking ? 'Checking for possible duplicates...' : `Possible match found (${possibleDuplicates.length})`}
+                                    </p>
+                                    {!duplicateChecking && possibleDuplicates.length > 0 && (
+                                        <div className="mt-3 space-y-2">
+                                            {possibleDuplicates.slice(0, 3).map((match) => (
+                                                <div key={`dup-${match.id}`} className="rounded-xl border border-amber-200/60 bg-white/70 px-3 py-2 text-xs text-slate-700 dark:border-amber-500/30 dark:bg-slate-900/40 dark:text-slate-300">
+                                                    <div className="font-semibold">
+                                                        {match.name} {match.sender_id ? `(${match.sender_id})` : ''}
+                                                    </div>
+                                                    <div className="mt-1">
+                                                        Branch: {match.branch || '-'} · Score: {match.score ?? 0}
+                                                    </div>
+                                                    {Array.isArray(match.reasons) && match.reasons.length > 0 && (
+                                                        <div className="mt-1 text-amber-700 dark:text-amber-300">
+                                                            {match.reasons.join(', ')}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Section 3: Address */}
         <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
@@ -413,15 +649,43 @@ export default function CreateRemitterPage() {
                     </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="md:col-span-2">
-                            <FormInput label="Address Line 1" name="address_1" placeholder="House/Flat Number, Street" required Icon={MapPin} />
+                            <FormInput
+                                label="Address Line 1"
+                                name="address_1"
+                                placeholder="House/Flat Number, Street"
+                                required
+                                Icon={MapPin}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, address_1: e.target.value }))}
+                            />
                         </div>
             <div className="md:col-span-2">
                             <FormInput label="Address Line 2" name="address_2" placeholder="Locality / Area" Icon={MapPin} />
                         </div>
-                        <FormInput label="City" name="city" placeholder="e.g. London" required Icon={Building} />
-                        <FormInput label="Postcode" name="postcode" placeholder="e.g. SW1A 1AA" required Icon={MapPin} />
+                        <FormInput
+                            label="City"
+                            name="city"
+                            placeholder="e.g. London"
+                            required
+                            Icon={Building}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, city: e.target.value }))}
+                        />
+                        <FormInput
+                            label="Postcode"
+                            name="postcode"
+                            placeholder="e.g. SW1A 1AA"
+                            required
+                            Icon={MapPin}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, postcode: e.target.value }))}
+                        />
                         <FormInput label="County" name="county" Icon={MapPin} />
-                        <FormInput label="Country" name="country" defaultValue="United Kingdom" required Icon={Globe} />
+                        <FormInput
+                            label="Country"
+                            name="country"
+                            defaultValue="United Kingdom"
+                            required
+                            Icon={Globe}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, country: e.target.value }))}
+                        />
                     </div>
                 </div>
 
@@ -490,7 +754,13 @@ export default function CreateRemitterPage() {
                     </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <FormSelect label="ID Type" name="id_type" options={['Passport', 'Driving License', 'National ID', 'Residence Permit']} required Icon={CreditCard} />
-                        <FormInput label="ID Number" name="id_no" required Icon={FileText} />
+                        <FormInput
+                            label="ID Number"
+                            name="id_no"
+                            required
+                            Icon={FileText}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, id_no: e.target.value }))}
+                        />
                         <FormInput label="ID Expiry Date" name="id_expire_date" type="date" required Icon={Calendar} />
                     </div>
 
