@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import Modal from '../components/Modal';
-import { CheckCircle2, Eye, ImageUp, PenLine, PlusCircle, Printer, RotateCcw, Save, Search } from 'lucide-react';
+import { CheckCircle2, Eye, ImageUp, PenLine, PlusCircle, Printer, RotateCcw, Save, Search, XCircle } from 'lucide-react';
 
 type SortDir = 'asc' | 'desc';
 
@@ -219,6 +219,8 @@ export default function TransfersPage() {
     const [signingBusy, setSigningBusy] = useState(false);
     const [signError, setSignError] = useState('');
     const [hasInk, setHasInk] = useState(false);
+    const [statusActionBusyId, setStatusActionBusyId] = useState<string | null>(null);
+    const [statusActionType, setStatusActionType] = useState<'approve' | 'cancel' | null>(null);
 
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const uploadInputRef = useRef<HTMLInputElement | null>(null);
@@ -397,6 +399,8 @@ export default function TransfersPage() {
 
     const statusConfig = useMemo(() => {
         const pending = rows.filter((row) => row.status.toLowerCase() === 'pending').length;
+        const approved = rows.filter((row) => row.status.toLowerCase() === 'approved').length;
+        const cancelled = rows.filter((row) => row.status.toLowerCase() === 'cancelled').length;
         const completed = rows.filter((row) => row.status.toLowerCase() === 'completed').length;
         const inReview = rows.filter((row) => row.status.toLowerCase() === 'in review').length;
         const inTransit = rows.filter((row) => row.status.toLowerCase() === 'in transit').length;
@@ -404,6 +408,8 @@ export default function TransfersPage() {
         return {
             all: { label: 'All', count: rows.length },
             pending: { label: 'Pending', count: pending },
+            approved: { label: 'Approved', count: approved },
+            cancelled: { label: 'Cancelled', count: cancelled },
             in_review: { label: 'In Review', count: inReview },
             in_transit: { label: 'In Transit', count: inTransit },
             completed: { label: 'Completed', count: completed }
@@ -496,6 +502,53 @@ export default function TransfersPage() {
             return parsed.username || parsed.name || parsed.email || 'Admin';
         } catch {
             return 'Admin';
+        }
+    };
+
+    const refreshSingleTransfer = (updated: Transfer) => {
+        const updatedId = asString(updated.id);
+        setTransfers((prev) => prev.map((item) => (asString(item.id) === updatedId ? updated : item)));
+    };
+
+    const handleStatusAction = async (row: TransferRow, action: 'approve' | 'cancel') => {
+        const endpoint = action === 'approve'
+            ? ENDPOINTS.TRANSFERS.APPROVE(row.id)
+            : ENDPOINTS.TRANSFERS.CANCEL(row.id);
+        const isApprove = action === 'approve';
+        const confirmText = isApprove
+            ? `Approve transfer ${row.invoiceNo || row.id}?`
+            : `Cancel transfer ${row.invoiceNo || row.id}?`;
+
+        if (!window.confirm(confirmText)) return;
+
+        setStatusActionBusyId(row.id);
+        setStatusActionType(action);
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (!response.ok) {
+                let message = `Failed to ${action} transfer.`;
+                try {
+                    const errorData = await response.json();
+                    message = errorData?.messages?.error || errorData?.message || message;
+                } catch {
+                    // keep fallback
+                }
+                window.alert(message);
+                return;
+            }
+
+            const updated = (await response.json()) as Transfer;
+            refreshSingleTransfer(updated);
+        } catch (error) {
+            console.error(`Failed to ${action} transfer`, error);
+            window.alert(`Failed to ${action} transfer.`);
+        } finally {
+            setStatusActionBusyId(null);
+            setStatusActionType(null);
         }
     };
 
@@ -1030,6 +1083,8 @@ export default function TransfersPage() {
                                         ) : column.label}
                                     </th>
                                 ))}
+                                <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Approve</th>
+                                <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Cancel</th>
                                 <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">View</th>
                                 <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Delete</th>
                             </tr>
@@ -1045,6 +1100,36 @@ export default function TransfersPage() {
                                         </td>
                                     ))}
                                     <td className="px-4 py-3 text-sm">
+                                        {row.status.toLowerCase() === 'pending' ? (
+                                            <button
+                                                type="button"
+                                                onClick={() => void handleStatusAction(row, 'approve')}
+                                                disabled={statusActionBusyId === row.id}
+                                                className="px-3 py-1.5 rounded-full bg-teal-500/85 text-white text-xs font-semibold hover:bg-teal-500 disabled:opacity-60 inline-flex items-center gap-1"
+                                            >
+                                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                                {statusActionBusyId === row.id && statusActionType === 'approve' ? 'Approving...' : 'Approve'}
+                                            </button>
+                                        ) : (
+                                            <span className="text-slate-400 dark:text-slate-500">-</span>
+                                        )}
+                                    </td>
+                                    <td className="px-4 py-3 text-sm">
+                                        {['pending', 'in review', 'in transit'].includes(row.status.toLowerCase()) ? (
+                                            <button
+                                                type="button"
+                                                onClick={() => void handleStatusAction(row, 'cancel')}
+                                                disabled={statusActionBusyId === row.id}
+                                                className="px-3 py-1.5 rounded-full bg-red-500/85 text-white text-xs font-semibold hover:bg-red-500 disabled:opacity-60 inline-flex items-center gap-1"
+                                            >
+                                                <XCircle className="w-3.5 h-3.5" />
+                                                {statusActionBusyId === row.id && statusActionType === 'cancel' ? 'Cancelling...' : 'Cancel'}
+                                            </button>
+                                        ) : (
+                                            <span className="text-slate-400 dark:text-slate-500">-</span>
+                                        )}
+                                    </td>
+                                    <td className="px-4 py-3 text-sm">
                                         <Link
                                             href={`/admin/transfers/${row.id}`}
                                             className="px-3 py-1.5 rounded-full glass-effect text-xs font-semibold text-slate-600 dark:text-slate-200 hover:text-teal-600 inline-flex items-center gap-1"
@@ -1058,7 +1143,7 @@ export default function TransfersPage() {
                             ))}
                             {pagedRows.length === 0 && (
                                 <tr>
-                                    <td colSpan={columns.length + 2} className="px-4 py-10 text-center text-sm text-slate-500 dark:text-slate-300">
+                                    <td colSpan={columns.length + 4} className="px-4 py-10 text-center text-sm text-slate-500 dark:text-slate-300">
                                         No transfers found.
                                     </td>
                                 </tr>
@@ -1070,7 +1155,7 @@ export default function TransfersPage() {
                                     <td className="px-4 py-3 text-sm font-bold text-teal-700 dark:text-teal-300">
                                         {receivedTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </td>
-                                    <td colSpan={columns.length - 11 + 2} className="px-4 py-3" />
+                                    <td colSpan={columns.length - 11 + 4} className="px-4 py-3" />
                                 </tr>
                             )}
                         </tbody>

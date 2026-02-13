@@ -73,6 +73,19 @@ type Beneficiary = {
     status?: string;
 };
 
+type BranchAccessCheckResult = {
+    allowed?: boolean;
+    status?: 'clear' | 'pending' | 'approved';
+    message?: string;
+    request_id?: number;
+    request?: {
+        id?: number;
+        origin_branch_name?: string;
+        requested_branch_name?: string;
+        status?: string;
+    };
+};
+
 type TransferForm = {
     toBranch: string;
     invoiceNo: string;
@@ -160,6 +173,25 @@ export default function CreateTransferPage() {
     const [receiverAmlState, setReceiverAmlState] = useState<AmlState>('idle');
     const [processedReturnRemitterId, setProcessedReturnRemitterId] = useState('');
     const [processedReturnReceiverId, setProcessedReturnReceiverId] = useState('');
+    const [currentUserBranch, setCurrentUserBranch] = useState('');
+    const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+    const [currentUserName, setCurrentUserName] = useState('');
+    const [branchAccessIssue, setBranchAccessIssue] = useState<{
+        blocked: boolean;
+        message: string;
+        requestId?: number;
+    }>({
+        blocked: false,
+        message: '',
+    });
+    const [receiverBranchAccessIssue, setReceiverBranchAccessIssue] = useState<{
+        blocked: boolean;
+        message: string;
+        requestId?: number;
+    }>({
+        blocked: false,
+        message: '',
+    });
 
     const [confirmModal, setConfirmModal] = useState({
         isOpen: false,
@@ -217,6 +249,12 @@ export default function CreateTransferPage() {
         otherReference: ''
     });
 
+    const withActingUser = useCallback((url: string): string => {
+        if (!currentUserId) return url;
+        const separator = url.includes('?') ? '&' : '?';
+        return `${url}${separator}acting_user_id=${encodeURIComponent(String(currentUserId))}`;
+    }, [currentUserId]);
+
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
@@ -258,6 +296,29 @@ export default function CreateTransferPage() {
     }, []);
 
     useEffect(() => {
+        const stored = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+        if (!stored) return;
+
+        try {
+            const parsed = JSON.parse(stored) as {
+                id?: string | number;
+                username?: string;
+                name?: string;
+                branch?: string;
+                branch_id?: string;
+            };
+            const parsedId = Number(parsed.id ?? NaN);
+            setCurrentUserId(Number.isFinite(parsedId) ? parsedId : null);
+            setCurrentUserName(parsed.username || parsed.name || '');
+            setCurrentUserBranch((parsed.branch || parsed.branch_id || '').trim());
+        } catch {
+            setCurrentUserId(null);
+            setCurrentUserName('');
+            setCurrentUserBranch('');
+        }
+    }, []);
+
+    useEffect(() => {
         const term = senderSearch.trim();
         if (term.length < 2) {
             setSenderResults([]);
@@ -267,7 +328,8 @@ export default function CreateTransferPage() {
         const timer = setTimeout(async () => {
             setSenderSearching(true);
             try {
-                const res = await fetch(`${ENDPOINTS.REMITTERS.LIST}?search=${encodeURIComponent(term)}`);
+                const lookupUrl = withActingUser(`${ENDPOINTS.REMITTERS.LIST}?search=${encodeURIComponent(term)}&cross_branch_lookup=1`);
+                const res = await fetch(lookupUrl);
                 if (!res.ok) return;
                 const data = (await res.json()) as Remitter[];
                 setSenderResults(data);
@@ -279,7 +341,7 @@ export default function CreateTransferPage() {
         }, 350);
 
         return () => clearTimeout(timer);
-    }, [senderSearch]);
+    }, [senderSearch, withActingUser]);
 
     const setModal = (title: string, message: string, type: ModalType = 'info', shouldRedirect = false) => {
         setConfirmModal({
@@ -405,7 +467,8 @@ export default function CreateTransferPage() {
 
     const fetchReceiversForSender = useCallback(async (senderRecordId: string) => {
         try {
-            const res = await fetch(`${ENDPOINTS.BENEFICIARIES.LIST}?customer_id=${senderRecordId}`);
+            const receiverUrl = withActingUser(`${ENDPOINTS.BENEFICIARIES.LIST}?customer_id=${senderRecordId}`);
+            const res = await fetch(receiverUrl);
             if (!res.ok) {
                 setBeneficiaries([]);
                 return;
@@ -416,7 +479,99 @@ export default function CreateTransferPage() {
             console.error('Failed to load receivers', error);
             setBeneficiaries([]);
         }
-    }, []);
+    }, [withActingUser]);
+
+    const checkBranchAccessForSender = useCallback(async (senderRecordId: string): Promise<string | null> => {
+        if (!currentUserBranch || !senderRecordId) {
+            setBranchAccessIssue({ blocked: false, message: '' });
+            return null;
+        }
+
+        try {
+            const response = await fetch(withActingUser(ENDPOINTS.BRANCH_ACCESS_REQUESTS.CHECK), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    acting_user_id: currentUserId ?? undefined,
+                    remitter_id: Number(senderRecordId),
+                    requesting_branch: currentUserBranch,
+                    requested_by_user_id: currentUserId ?? undefined,
+                    requested_by_username: currentUserName || undefined,
+                    create_if_missing: true,
+                }),
+            });
+
+            if (!response.ok) {
+                setBranchAccessIssue({ blocked: false, message: '' });
+                return null;
+            }
+
+            const data = (await response.json()) as BranchAccessCheckResult;
+            if (data.allowed) {
+                setBranchAccessIssue({ blocked: false, message: '' });
+                return null;
+            }
+
+            const requestId = data.request_id || data.request?.id;
+            const message = data.message || 'Sender belongs to another branch and requires approval.';
+            setBranchAccessIssue({
+                blocked: true,
+                message,
+                requestId: requestId ? Number(requestId) : undefined,
+            });
+            return message;
+        } catch (error) {
+            console.error('Failed to check cross-branch access', error);
+            setBranchAccessIssue({ blocked: false, message: '' });
+            return null;
+        }
+    }, [currentUserBranch, currentUserId, currentUserName, withActingUser]);
+
+    const checkBranchAccessForReceiver = useCallback(async (receiverOwnerRemitterId: string): Promise<string | null> => {
+        if (!currentUserBranch || !receiverOwnerRemitterId) {
+            setReceiverBranchAccessIssue({ blocked: false, message: '' });
+            return null;
+        }
+
+        try {
+            const response = await fetch(withActingUser(ENDPOINTS.BRANCH_ACCESS_REQUESTS.CHECK), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    acting_user_id: currentUserId ?? undefined,
+                    remitter_id: Number(receiverOwnerRemitterId),
+                    requesting_branch: currentUserBranch,
+                    requested_by_user_id: currentUserId ?? undefined,
+                    requested_by_username: currentUserName || undefined,
+                    create_if_missing: true,
+                }),
+            });
+
+            if (!response.ok) {
+                setReceiverBranchAccessIssue({ blocked: false, message: '' });
+                return null;
+            }
+
+            const data = (await response.json()) as BranchAccessCheckResult;
+            if (data.allowed) {
+                setReceiverBranchAccessIssue({ blocked: false, message: '' });
+                return null;
+            }
+
+            const requestId = data.request_id || data.request?.id;
+            const message = data.message || 'Receiver belongs to another branch and requires approval.';
+            setReceiverBranchAccessIssue({
+                blocked: true,
+                message,
+                requestId: requestId ? Number(requestId) : undefined,
+            });
+            return message;
+        } catch (error) {
+            console.error('Failed to check receiver cross-branch access', error);
+            setReceiverBranchAccessIssue({ blocked: false, message: '' });
+            return null;
+        }
+    }, [currentUserBranch, currentUserId, currentUserName, withActingUser]);
 
     const selectSender = useCallback(async (sender: Remitter) => {
         const senderRecordId = String(sender.id);
@@ -435,8 +590,10 @@ export default function CreateTransferPage() {
         setSenderAmlState('idle');
         setSenderSearch(sender.sender_id || sender.name || '');
         setSenderResults([]);
+        setReceiverBranchAccessIssue({ blocked: false, message: '' });
         await fetchReceiversForSender(senderRecordId);
-    }, [fetchReceiversForSender]);
+        await checkBranchAccessForSender(senderRecordId);
+    }, [fetchReceiversForSender, checkBranchAccessForSender]);
 
     useEffect(() => {
         const newRemitterId = searchParams.get('newRemitterId');
@@ -444,7 +601,7 @@ export default function CreateTransferPage() {
 
         const fetchNewRemitter = async () => {
             try {
-                const res = await fetch(ENDPOINTS.REMITTERS.DETAIL(newRemitterId));
+                const res = await fetch(withActingUser(ENDPOINTS.REMITTERS.DETAIL(newRemitterId)));
                 if (!res.ok) return;
                 const remitter = (await res.json()) as Remitter;
                 await selectSender(remitter);
@@ -455,9 +612,9 @@ export default function CreateTransferPage() {
         };
 
         fetchNewRemitter();
-    }, [searchParams, selectSender, processedReturnRemitterId]);
+    }, [searchParams, selectSender, processedReturnRemitterId, withActingUser]);
 
-    const selectReceiver = (receiver: Beneficiary) => {
+    const selectReceiver = useCallback(async (receiver: Beneficiary) => {
         setFormData((prev) => ({
             ...prev,
             receiverRecordId: String(receiver.id),
@@ -470,7 +627,14 @@ export default function CreateTransferPage() {
             receiverVerified: receiver.status === 'active' ? 'yes' : prev.receiverVerified
         }));
         setReceiverAmlState('idle');
-    };
+
+        const receiverOwnerRemitterId = receiver.customer_id ? String(receiver.customer_id) : '';
+        if (receiverOwnerRemitterId) {
+            await checkBranchAccessForReceiver(receiverOwnerRemitterId);
+        } else {
+            setReceiverBranchAccessIssue({ blocked: false, message: '' });
+        }
+    }, [checkBranchAccessForReceiver]);
 
     useEffect(() => {
         const newReceiverId = searchParams.get('newReceiverId');
@@ -478,14 +642,14 @@ export default function CreateTransferPage() {
 
         const fetchNewReceiver = async () => {
             try {
-                const res = await fetch(ENDPOINTS.BENEFICIARIES.DETAIL(newReceiverId));
+                const res = await fetch(withActingUser(ENDPOINTS.BENEFICIARIES.DETAIL(newReceiverId)));
                 if (!res.ok) return;
 
                 const receiver = (await res.json()) as Beneficiary;
                 const receiverCustomerId = receiver.customer_id ? String(receiver.customer_id) : '';
 
                 if (receiverCustomerId && receiverCustomerId !== formData.senderRecordId) {
-                    const senderRes = await fetch(ENDPOINTS.REMITTERS.DETAIL(receiverCustomerId));
+                    const senderRes = await fetch(withActingUser(ENDPOINTS.REMITTERS.DETAIL(receiverCustomerId)));
                     if (senderRes.ok) {
                         const sender = (await senderRes.json()) as Remitter;
                         await selectSender(sender);
@@ -496,7 +660,7 @@ export default function CreateTransferPage() {
                     if (prev.some((item) => String(item.id) === String(receiver.id))) return prev;
                     return [receiver, ...prev];
                 });
-                selectReceiver(receiver);
+                await selectReceiver(receiver);
                 setProcessedReturnReceiverId(newReceiverId);
             } catch (error) {
                 console.error('Failed to load newly created receiver', error);
@@ -504,7 +668,7 @@ export default function CreateTransferPage() {
         };
 
         fetchNewReceiver();
-    }, [searchParams, selectSender, processedReturnReceiverId, formData.senderRecordId]);
+    }, [searchParams, selectSender, selectReceiver, processedReturnReceiverId, formData.senderRecordId, withActingUser]);
 
     const triggerAmlAction = (actionName: string, person: 'Sender' | 'Receiver') => {
         if (person === 'Sender' && !formData.senderRecordId) {
@@ -540,7 +704,8 @@ export default function CreateTransferPage() {
 
         setSenderSearching(true);
         try {
-            const res = await fetch(`${ENDPOINTS.REMITTERS.LIST}?search=${encodeURIComponent(postcode)}`);
+            const lookupUrl = withActingUser(`${ENDPOINTS.REMITTERS.LIST}?search=${encodeURIComponent(postcode)}&cross_branch_lookup=1`);
+            const res = await fetch(lookupUrl);
             if (!res.ok) {
                 setModal('Search Failed', 'Unable to search sender by postcode.', 'danger');
                 return;
@@ -587,7 +752,35 @@ export default function CreateTransferPage() {
         return null;
     };
 
+    const revalidateCrossBranchRules = async (): Promise<string | null> => {
+        if (formData.senderRecordId) {
+            const senderBlockedMessage = await checkBranchAccessForSender(formData.senderRecordId);
+            if (senderBlockedMessage) {
+                return senderBlockedMessage;
+            }
+        }
+
+        if (formData.receiverRecordId) {
+            const selectedReceiver = beneficiaries.find((receiver) => String(receiver.id) === formData.receiverRecordId);
+            const receiverOwnerId = selectedReceiver?.customer_id ? String(selectedReceiver.customer_id) : '';
+            if (receiverOwnerId) {
+                const receiverBlockedMessage = await checkBranchAccessForReceiver(receiverOwnerId);
+                if (receiverBlockedMessage) {
+                    return receiverBlockedMessage;
+                }
+            }
+        }
+
+        return null;
+    };
+
     const handleSubmit = async () => {
+        const crossBranchError = await revalidateCrossBranchRules();
+        if (crossBranchError) {
+            setModal('Branch Approval Required', crossBranchError, 'warning');
+            return;
+        }
+
         const validationError = validateForm();
         if (validationError) {
             setModal('Missing Information', validationError, 'warning');
@@ -597,25 +790,16 @@ export default function CreateTransferPage() {
         setSaving(true);
 
         const branch = branches.find((item) => (item.code || item.transaction_prefix || String(item.id)) === formData.toBranch);
-        const createdByRaw = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-        let createdBy: number | null = null;
-
-        if (createdByRaw) {
-            try {
-                const parsed = JSON.parse(createdByRaw) as { id?: string | number };
-                const parsedId = Number(parsed.id ?? NaN);
-                createdBy = Number.isFinite(parsedId) ? parsedId : null;
-            } catch {
-                createdBy = null;
-            }
-        }
 
         const payload = {
             code: formData.invoiceNo,
             remitter_id: Number(formData.senderRecordId),
             beneficiary_id: Number(formData.receiverRecordId),
             branch_id: formData.toBranch,
-            created_by: createdBy ?? undefined,
+            created_by: currentUserId ?? undefined,
+            requesting_branch: currentUserBranch || undefined,
+            requested_by_username: currentUserName || undefined,
+            acting_user_id: currentUserId ?? undefined,
             source_amount: Number(formData.receiveAmount),
             dest_amount: Number(formData.fcTransferAmount),
             rate: Number(formData.customerRate),
@@ -626,7 +810,7 @@ export default function CreateTransferPage() {
                 : formData.purposeOfTransaction,
             status: 'pending',
             type: 'branch',
-            collection_method: formData.entryType.toLowerCase().includes('cash') ? 'cash' : 'bank',
+            collection_method: formData.entryType.toLowerCase().includes('cash') ? 'cash' : 'bank_transfer',
             transfer_meta: {
                 transaction_id: formData.transactionId,
                 other_transaction_id: formData.otherTransactionId,
@@ -663,7 +847,7 @@ export default function CreateTransferPage() {
         };
 
         try {
-            const response = await fetch(ENDPOINTS.TRANSFERS.LIST, {
+            const response = await fetch(withActingUser(ENDPOINTS.TRANSFERS.LIST), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -673,6 +857,19 @@ export default function CreateTransferPage() {
                 let message = 'Failed to create transfer.';
                 try {
                     const errorData = await response.json();
+                    if (response.status === 409 && errorData?.branch_access_required) {
+                        const requestId = errorData?.request?.id ?? errorData?.request_id;
+                        const nextIssue = {
+                            blocked: true,
+                            message: errorData?.message || 'Cross-branch approval is required before transfer.',
+                            requestId: requestId ? Number(requestId) : undefined,
+                        };
+                        if (errorData?.subject === 'receiver') {
+                            setReceiverBranchAccessIssue(nextIssue);
+                        } else {
+                            setBranchAccessIssue(nextIssue);
+                        }
+                    }
                     message = errorData?.messages?.error || errorData?.message || message;
                 } catch {
                     // ignore parse errors and use fallback message
@@ -923,6 +1120,18 @@ export default function CreateTransferPage() {
                             ))}
                         </div>
                     )}
+                    {branchAccessIssue.blocked && (
+                        <div className="mt-3 rounded-2xl border border-amber-200/70 bg-amber-50/80 dark:border-amber-800/60 dark:bg-amber-900/20 px-4 py-3">
+                            <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">
+                                {branchAccessIssue.message}
+                            </p>
+                            {branchAccessIssue.requestId ? (
+                                <p className="mt-1 text-xs text-amber-700/90 dark:text-amber-200/90">
+                                    Request #{branchAccessIssue.requestId} is pending previous branch approval.
+                                </p>
+                            ) : null}
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex flex-wrap gap-2">
@@ -1115,9 +1324,10 @@ export default function CreateTransferPage() {
                             onChange={(event) => {
                                 const selected = beneficiaries.find((item) => String(item.id) === event.target.value);
                                 if (selected) {
-                                    selectReceiver(selected);
+                                    void selectReceiver(selected);
                                 } else {
                                     setFormData((prev) => ({ ...prev, receiverRecordId: '' }));
+                                    setReceiverBranchAccessIssue({ blocked: false, message: '' });
                                 }
                             }}
                         >
@@ -1130,6 +1340,18 @@ export default function CreateTransferPage() {
                         </select>
                         <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-400 pointer-events-none" />
                     </div>
+                    {receiverBranchAccessIssue.blocked && (
+                        <div className="mt-3 rounded-2xl border border-amber-200/70 bg-amber-50/80 dark:border-amber-800/60 dark:bg-amber-900/20 px-4 py-3">
+                            <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">
+                                {receiverBranchAccessIssue.message}
+                            </p>
+                            {receiverBranchAccessIssue.requestId ? (
+                                <p className="mt-1 text-xs text-amber-700/90 dark:text-amber-200/90">
+                                    Request #{receiverBranchAccessIssue.requestId} is pending previous branch approval.
+                                </p>
+                            ) : null}
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex flex-wrap gap-2">

@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { API_BASE_URL, ENDPOINTS } from '@/app/lib/api';
-import { ArrowLeft, Download } from 'lucide-react';
+import { ArrowLeft, Download, History, Search, RotateCcw } from 'lucide-react';
 
 type Transfer = {
     id: string | number;
@@ -52,6 +52,28 @@ type Beneficiary = {
     account_number?: string | null;
 };
 
+type AuditLog = {
+    id: string | number;
+    action?: string | null;
+    created_at?: string | null;
+    performed_by_username?: string | null;
+    performed_by_branch?: string | null;
+    changed_fields?: string | null;
+    changed_fields_list?: string[];
+    before?: Record<string, unknown>;
+    after?: Record<string, unknown>;
+};
+
+type AuditLogsResponse = {
+    data?: AuditLog[];
+    pagination?: {
+        page: number;
+        per_page: number;
+        total: number;
+        total_pages: number;
+    };
+};
+
 type FieldRow = {
     field: string;
     value: React.ReactNode;
@@ -79,6 +101,15 @@ const formatStatus = (value: string): string => {
         .join(' ');
 };
 
+const normalizeAction = (value: unknown): string => {
+    const raw = asString(value).trim();
+    if (!raw) return '-';
+    return raw
+        .replaceAll('_', ' ')
+        .toLowerCase()
+        .replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
 const formatDateTime = (value: unknown): string => {
     const raw = asString(value);
     if (!raw) return '-';
@@ -102,6 +133,15 @@ const paymentModeLabel = (value: unknown): string => {
     if (raw === 'D') return 'D - DIRECT BANK';
     return raw;
 };
+
+const auditActionOptions = [
+    'all',
+    'create',
+    'update',
+    'approve',
+    'cancel',
+    'delete',
+];
 
 const parseTransferMeta = (transfer: Transfer | null): Record<string, unknown> => {
     if (!transfer) return {};
@@ -179,6 +219,16 @@ export default function TransferDetailsPage() {
     const [transfer, setTransfer] = useState<Transfer | null>(null);
     const [remitter, setRemitter] = useState<Remitter | null>(null);
     const [beneficiary, setBeneficiary] = useState<Beneficiary | null>(null);
+    const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+    const [auditLoading, setAuditLoading] = useState(false);
+    const [auditAction, setAuditAction] = useState('all');
+    const [auditUser, setAuditUser] = useState('');
+    const [auditDateFrom, setAuditDateFrom] = useState('');
+    const [auditDateTo, setAuditDateTo] = useState('');
+    const [auditPage, setAuditPage] = useState(1);
+    const [auditPageSize, setAuditPageSize] = useState(10);
+    const [auditTotal, setAuditTotal] = useState(0);
+    const [auditTotalPages, setAuditTotalPages] = useState(1);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -217,6 +267,7 @@ export default function TransferDetailsPage() {
                 setTransfer(null);
                 setRemitter(null);
                 setBeneficiary(null);
+                setAuditLogs([]);
             } finally {
                 setLoading(false);
             }
@@ -224,6 +275,67 @@ export default function TransferDetailsPage() {
 
         if (id) fetchData();
     }, [id]);
+
+    useEffect(() => {
+        if (!transfer) return;
+
+        let cancelled = false;
+
+        const fetchAuditLogs = async () => {
+            setAuditLoading(true);
+            try {
+                const transferId = asString(transfer.id || id);
+                const params = new URLSearchParams({
+                    entity_type: 'transfer',
+                    entity_id: transferId,
+                    paginated: '1',
+                    page: String(auditPage),
+                    per_page: String(auditPageSize),
+                    order_by: 'created_at',
+                    order_dir: 'desc',
+                });
+
+                if (auditAction !== 'all') params.set('action', auditAction);
+                if (auditUser.trim()) params.set('performed_by', auditUser.trim());
+                if (auditDateFrom) params.set('date_from', auditDateFrom);
+                if (auditDateTo) params.set('date_to', auditDateTo);
+
+                const res = await fetch(`${ENDPOINTS.AUDIT_LOGS.LIST}?${params.toString()}`);
+                if (!res.ok) throw new Error('Failed to load audit logs');
+
+                const payload = await res.json() as AuditLogsResponse | AuditLog[];
+                if (cancelled) return;
+
+                if (Array.isArray(payload)) {
+                    setAuditLogs(payload);
+                    setAuditTotal(payload.length);
+                    setAuditTotalPages(1);
+                    return;
+                }
+
+                const rows = Array.isArray(payload.data) ? payload.data : [];
+                const pagination = payload.pagination;
+
+                setAuditLogs(rows);
+                setAuditTotal(pagination?.total ?? rows.length);
+                setAuditTotalPages(pagination?.total_pages ?? 1);
+            } catch (error) {
+                if (cancelled) return;
+                console.error('Failed to load audit logs:', error);
+                setAuditLogs([]);
+                setAuditTotal(0);
+                setAuditTotalPages(1);
+            } finally {
+                if (!cancelled) setAuditLoading(false);
+            }
+        };
+
+        fetchAuditLogs();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [transfer, id, auditAction, auditUser, auditDateFrom, auditDateTo, auditPage, auditPageSize]);
 
     const meta = useMemo(() => parseTransferMeta(transfer), [transfer]);
 
@@ -333,6 +445,31 @@ export default function TransferDetailsPage() {
         }
     ];
 
+    const normalizedAuditLogs = auditLogs.map((log) => {
+        const changedFieldsFromList = Array.isArray(log.changed_fields_list) ? log.changed_fields_list : [];
+        const changedFieldsFromString = asString(log.changed_fields)
+            .split(',')
+            .map((value) => value.trim())
+            .filter(Boolean);
+        const changedFields = changedFieldsFromList.length > 0 ? changedFieldsFromList : changedFieldsFromString;
+
+        return {
+            ...log,
+            changed_fields_list: changedFields
+        };
+    });
+
+    const auditStartRow = auditTotal === 0 ? 0 : ((auditPage - 1) * auditPageSize) + 1;
+    const auditEndRow = auditTotal === 0 ? 0 : Math.min(auditPage * auditPageSize, auditTotal);
+
+    const clearAuditFilters = () => {
+        setAuditAction('all');
+        setAuditUser('');
+        setAuditDateFrom('');
+        setAuditDateTo('');
+        setAuditPage(1);
+    };
+
     return (
         <div className="max-w-7xl mx-auto space-y-8 pb-20 animate-fade-in-up">
             <div>
@@ -366,6 +503,176 @@ export default function TransferDetailsPage() {
             <DetailCard title="Sender Details" rows={senderRows} />
             <DetailCard title="Receiver Details" rows={receiverRows} />
             <DetailCard title="Documents" rows={documentRows} />
+
+            <div className="card-glass p-6 md:p-8">
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-5 flex items-center gap-2">
+                    <History className="w-5 h-5 text-teal-500" />
+                    History Log
+                </h2>
+
+                <div className="rounded-2xl bg-white/50 dark:bg-slate-800/30 border border-slate-100/70 dark:border-slate-700/60 p-4 md:p-5 mb-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+                        <div>
+                            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-1">Action</p>
+                            <select
+                                value={auditAction}
+                                onChange={(e) => {
+                                    setAuditAction(e.target.value);
+                                    setAuditPage(1);
+                                }}
+                                className="input-glass h-10 w-full text-sm px-3"
+                            >
+                                {auditActionOptions.map((action) => (
+                                    <option key={action} value={action}>
+                                        {action === 'all' ? 'All Actions' : normalizeAction(action)}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div>
+                            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-1">User</p>
+                            <div className="relative">
+                                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                                <input
+                                    type="text"
+                                    value={auditUser}
+                                    onChange={(e) => {
+                                        setAuditUser(e.target.value);
+                                        setAuditPage(1);
+                                    }}
+                                    placeholder="Filter user"
+                                    className="input-glass h-10 w-full text-sm pl-10 pr-3"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-1">From Date</p>
+                            <input
+                                type="date"
+                                value={auditDateFrom}
+                                onChange={(e) => {
+                                    setAuditDateFrom(e.target.value);
+                                    setAuditPage(1);
+                                }}
+                                className="input-glass h-10 w-full text-sm px-3"
+                            />
+                        </div>
+
+                        <div>
+                            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-1">To Date</p>
+                            <input
+                                type="date"
+                                value={auditDateTo}
+                                onChange={(e) => {
+                                    setAuditDateTo(e.target.value);
+                                    setAuditPage(1);
+                                }}
+                                className="input-glass h-10 w-full text-sm px-3"
+                            />
+                        </div>
+
+                        <div>
+                            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-1">Rows</p>
+                            <div className="flex items-center gap-2">
+                                <select
+                                    value={auditPageSize}
+                                    onChange={(e) => {
+                                        setAuditPageSize(Number(e.target.value));
+                                        setAuditPage(1);
+                                    }}
+                                    className="input-glass h-10 flex-1 text-sm px-3"
+                                >
+                                    {[10, 25, 50, 100].map((size) => (
+                                        <option key={size} value={size}>{size}</option>
+                                    ))}
+                                </select>
+                                <button
+                                    type="button"
+                                    onClick={clearAuditFilters}
+                                    className="h-10 px-3 rounded-full text-xs font-bold glass-effect border border-slate-200/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 inline-flex items-center gap-1"
+                                >
+                                    <RotateCcw className="w-3.5 h-3.5" />
+                                    Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-3 text-xs font-semibold text-slate-500 dark:text-slate-300">
+                        Results: {auditStartRow} - {auditEndRow} of {auditTotal}
+                    </div>
+                </div>
+
+                {auditLoading ? (
+                    <p className="text-sm font-medium text-slate-500 dark:text-slate-300">Loading history...</p>
+                ) : normalizedAuditLogs.length === 0 ? (
+                    <p className="text-sm font-medium text-slate-500 dark:text-slate-300">No history found for this transfer yet.</p>
+                ) : (
+                    <div className="space-y-3">
+                        {normalizedAuditLogs.map((log) => (
+                            <div
+                                key={log.id}
+                                className="rounded-2xl bg-white/50 dark:bg-slate-800/40 border border-slate-100/70 dark:border-slate-700/60 px-4 py-3"
+                            >
+                                <div className="flex flex-wrap items-center gap-2 justify-between">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <span className="text-xs font-bold uppercase tracking-wider text-teal-700 dark:text-teal-300">
+                                            {normalizeAction(log.action)}
+                                        </span>
+                                        <span className="text-xs text-slate-400">•</span>
+                                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                                            {fieldValue(log.performed_by_username, 'System')}
+                                        </span>
+                                        <span className="text-xs text-slate-400">•</span>
+                                        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                                            {formatDateTime(log.created_at)}
+                                        </span>
+                                    </div>
+                                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                                        Branch: {fieldValue(log.performed_by_branch, '-')}
+                                    </span>
+                                </div>
+                                {Array.isArray(log.changed_fields_list) && log.changed_fields_list.length > 0 && (
+                                    <div className="mt-3 flex flex-wrap gap-2">
+                                        {log.changed_fields_list.map((field) => (
+                                            <span
+                                                key={`${log.id}-${field}`}
+                                                className="px-2 py-1 rounded-full bg-teal-500/10 text-teal-700 dark:text-teal-300 text-[11px] font-semibold"
+                                            >
+                                                {field}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                <div className="mt-5 flex items-center justify-between gap-3">
+                    <button
+                        type="button"
+                        onClick={() => setAuditPage((prev) => Math.max(1, prev - 1))}
+                        disabled={auditPage <= 1 || auditLoading}
+                        className="px-4 py-2 rounded-full text-xs font-bold glass-effect border border-slate-200/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Prev
+                    </button>
+                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-300">
+                        Page {auditPage} of {auditTotalPages}
+                    </span>
+                    <button
+                        type="button"
+                        onClick={() => setAuditPage((prev) => Math.min(auditTotalPages, prev + 1))}
+                        disabled={auditPage >= auditTotalPages || auditLoading}
+                        className="px-4 py-2 rounded-full text-xs font-bold glass-effect border border-slate-200/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Next
+                    </button>
+                </div>
+            </div>
         </div>
     );
 }

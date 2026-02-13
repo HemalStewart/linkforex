@@ -1,63 +1,120 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { BarChart3, PieChart, FileCheck, Map, Users, FileText, Download, Calendar, Mail, Clock, ChevronRight, Plus, RefreshCw, TrendingUp, DollarSign } from 'lucide-react';
+import { BarChart3, FileCheck, Map, Users, FileText, Download, Calendar, Mail, Clock, Plus, RefreshCw, TrendingUp, DollarSign } from 'lucide-react';
 import { ENDPOINTS } from '@/app/lib/api';
 
+type SummaryResponse = {
+    totals: {
+        transfers: number;
+        volume_gbp: number;
+        fc_amount: number;
+        average_transfer_gbp: number;
+        unique_senders: number;
+        active_remitters: number;
+    };
+    today: {
+        transfers: number;
+        volume_gbp: number;
+    };
+    month_to_date: {
+        transfers: number;
+        volume_gbp: number;
+    };
+    status_breakdown: Record<string, number>;
+    payout_currency_breakdown: Array<{ code: string; count: number }>;
+};
+
+type TrendsResponse = {
+    range_days: number;
+    daily: Array<{
+        date: string;
+        transfers: number;
+        volume_gbp: number;
+    }>;
+    status_breakdown: Record<string, number>;
+};
+
+const EMPTY_SUMMARY: SummaryResponse = {
+    totals: {
+        transfers: 0,
+        volume_gbp: 0,
+        fc_amount: 0,
+        average_transfer_gbp: 0,
+        unique_senders: 0,
+        active_remitters: 0
+    },
+    today: {
+        transfers: 0,
+        volume_gbp: 0
+    },
+    month_to_date: {
+        transfers: 0,
+        volume_gbp: 0
+    },
+    status_breakdown: {},
+    payout_currency_breakdown: []
+};
+
+const EMPTY_TRENDS: TrendsResponse = {
+    range_days: 30,
+    daily: [],
+    status_breakdown: {}
+};
+
+const dateRangeToDays: Record<string, number> = {
+    today: 7,
+    week: 14,
+    month: 30,
+    quarter: 90,
+    year: 180
+};
+
+const formatGbp = (value: number): string => `£${Number(value || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+
 export default function ReportsPage() {
-    const [stats, setStats] = useState({
-        totalTransfersMTD: 0,
-        revenueMTD: 0,
-        activeCustomers: 0,
-        avgTransfer: 0
-    });
+    const [summary, setSummary] = useState<SummaryResponse>(EMPTY_SUMMARY);
+    const [trends, setTrends] = useState<TrendsResponse>(EMPTY_TRENDS);
     const [loading, setLoading] = useState(true);
+    const [selectedReport, setSelectedReport] = useState('financial');
+    const [dateRange, setDateRange] = useState('month');
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
+            setLoading(true);
+            setError(null);
+
             try {
-                const [transfersRes, remittersRes] = await Promise.all([
-                    fetch(ENDPOINTS.TRANSFERS.LIST),
-                    fetch(ENDPOINTS.REMITTERS.LIST)
+                const days = dateRangeToDays[dateRange] ?? 30;
+                const [summaryRes, trendsRes] = await Promise.all([
+                    fetch(ENDPOINTS.REPORTS.SUMMARY),
+                    fetch(`${ENDPOINTS.REPORTS.TRENDS}?days=${days}`)
                 ]);
 
-                const transfers = transfersRes.ok ? await transfersRes.json() : [];
-                const remitters = remittersRes.ok ? await remittersRes.json() : [];
+                if (!summaryRes.ok || !trendsRes.ok) {
+                    throw new Error('Failed to load reports data');
+                }
 
-                const now = new Date();
-                const currentMonth = now.getMonth();
-                const currentYear = now.getFullYear();
+                const [summaryData, trendsData] = await Promise.all([
+                    summaryRes.json() as Promise<SummaryResponse>,
+                    trendsRes.json() as Promise<TrendsResponse>
+                ]);
 
-                const mtdTransfers = transfers.filter((t: any) => {
-                    const d = new Date(t.created_at);
-                    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-                });
-
-                const totalTransfersMTD = mtdTransfers.reduce((sum: number, t: any) => sum + parseFloat(t.source_amount || 0), 0);
-                const revenueMTD = totalTransfersMTD * 0.02; // estimated 2%
-
-                const activeCustomers = remitters.filter((r: any) => r.status === 'active').length;
-                const avgTransfer = mtdTransfers.length > 0 ? totalTransfersMTD / mtdTransfers.length : 0;
-
-                setStats({
-                    totalTransfersMTD,
-                    revenueMTD,
-                    activeCustomers,
-                    avgTransfer
-                });
-
-            } catch (error) {
-                console.error('Failed to fetch report stats:', error);
+                setSummary(summaryData);
+                setTrends(trendsData);
+            } catch (fetchError) {
+                console.error('Failed to fetch reports:', fetchError);
+                setSummary(EMPTY_SUMMARY);
+                setTrends(EMPTY_TRENDS);
+                setError('Could not load live report data.');
             } finally {
                 setLoading(false);
             }
         };
 
         fetchData();
-    }, []);
-
-    const [selectedReport, setSelectedReport] = useState('financial');
-    const [dateRange, setDateRange] = useState('month');
+    }, [dateRange]);
 
     const reportTypes = [
         { id: 'financial', name: 'Financial Summary', icon: TrendingUp, description: 'Revenue, fees, and profitability' },
@@ -68,12 +125,20 @@ export default function ReportsPage() {
         { id: 'audit', name: 'Audit Logs', icon: FileText, description: 'System activity and changes' },
     ];
 
+    const revenueEstimate = summary.month_to_date.volume_gbp * 0.02;
     const quickStats = [
-        { label: 'Total Volume (MTD)', value: `£${stats.totalTransfersMTD.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, icon: TrendingUp, color: 'text-teal-500' },
-        { label: 'Est. Revenue (MTD)', value: `£${stats.revenueMTD.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, icon: DollarSign, color: 'text-teal-500' },
-        { label: 'Active Customers', value: stats.activeCustomers.toLocaleString(), icon: Users, color: 'text-teal-500' },
-        { label: 'Avg. Transfer Size', value: `£${stats.avgTransfer.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, icon: RefreshCw, color: 'text-teal-500' },
+        { label: 'Total Volume (MTD)', value: formatGbp(summary.month_to_date.volume_gbp), icon: TrendingUp, color: 'text-teal-500' },
+        { label: 'Est. Revenue (MTD)', value: formatGbp(revenueEstimate), icon: DollarSign, color: 'text-teal-500' },
+        { label: 'Active Customers', value: summary.totals.active_remitters.toLocaleString(), icon: Users, color: 'text-teal-500' },
+        { label: 'Avg. Transfer Size', value: formatGbp(summary.totals.average_transfer_gbp), icon: RefreshCw, color: 'text-teal-500' },
     ];
+
+    const trendRows = trends.daily.slice(-7);
+    const trendMax = Math.max(...trendRows.map((row) => row.volume_gbp), 1);
+    const statusRows = Object.entries(summary.status_breakdown)
+        .filter(([, count]) => count > 0)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
 
     const recentReports = [
         { id: '1', name: 'Monthly Financial Report - Dec 2025', type: 'Financial', date: '2026-01-01', size: '2.4 MB' },
@@ -203,10 +268,69 @@ export default function ReportsPage() {
                             <span>Generate & Download</span>
                         </button>
                     </div>
+                    {error && (
+                        <p className="mt-4 text-xs font-semibold text-amber-600 dark:text-amber-400">{error}</p>
+                    )}
                 </div>
 
                 {/* Sidebar */}
                 <div className="flex flex-col gap-6">
+                    <div className="card-glass p-6">
+                        <h3 className="font-bold text-slate-900 dark:text-white mb-4 flex items-center">
+                            <BarChart3 className="w-5 h-5 mr-2 text-slate-400" />
+                            Transfer Trend ({trends.range_days}d)
+                        </h3>
+                        {loading ? (
+                            <div className="space-y-2">
+                                {Array.from({ length: 4 }).map((_, index) => (
+                                    <div key={index} className="h-8 rounded-xl bg-slate-200 dark:bg-slate-700/50 animate-pulse" />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="space-y-2">
+                                {trendRows.length === 0 && (
+                                    <p className="text-xs font-medium text-slate-500">No data for selected range.</p>
+                                )}
+                                {trendRows.map((row) => (
+                                    <div key={row.date} className="flex items-center gap-2">
+                                        <div className="w-16 text-[10px] font-semibold text-slate-500">
+                                            {new Date(row.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                        </div>
+                                        <div className="flex-1 h-2 rounded-full bg-slate-200/80 dark:bg-slate-700/60 overflow-hidden">
+                                            <div
+                                                className="h-full bg-gradient-to-r from-teal-500 to-teal-400 rounded-full"
+                                                style={{ width: `${Math.max((row.volume_gbp / trendMax) * 100, 4)}%` }}
+                                            />
+                                        </div>
+                                        <div className="w-16 text-right text-[10px] font-semibold text-slate-600 dark:text-slate-300">
+                                            {formatGbp(row.volume_gbp)}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="card-glass p-6">
+                        <h3 className="font-bold text-slate-900 dark:text-white mb-4 flex items-center">
+                            <FileCheck className="w-5 h-5 mr-2 text-slate-400" />
+                            Status Snapshot
+                        </h3>
+                        <div className="space-y-2">
+                            {statusRows.length === 0 && (
+                                <p className="text-xs font-medium text-slate-500">No status data available.</p>
+                            )}
+                            {statusRows.map(([status, count]) => (
+                                <div key={status} className="flex items-center justify-between rounded-xl bg-white/50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 px-3 py-2">
+                                    <span className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                                        {status}
+                                    </span>
+                                    <span className="text-sm font-bold text-slate-900 dark:text-white">{count}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
                     {/* Recent Reports */}
                     <div className="card-glass p-6 flex flex-col flex-1">
                         <div className="flex items-center justify-between mb-6">
@@ -226,7 +350,7 @@ export default function ReportsPage() {
                                             </div>
                                             <div>
                                                 <p className="font-bold text-sm text-slate-900 dark:text-white line-clamp-1">{report.name}</p>
-                                                <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-wide">{report.type} • {report.size}</p>
+                                                <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-wide">{report.type} • {report.size} • {report.date}</p>
                                             </div>
                                         </div>
                                         <Download className="w-4 h-4 text-slate-300 group-hover:text-teal-500 transition-colors mt-1" />

@@ -53,6 +53,7 @@ export default function RemittersPage() {
             const data = await res.json();
             const normalized = (data || []).map((r: any) => ({
                 ...r,
+                shared_access: Boolean(r.shared_access),
                 company: r.company || r.company_name || 'Link Forex Ltd',
                 branch_name: r.branch || '-',
                 sender_id: r.sender_id || '-',
@@ -387,7 +388,16 @@ export default function RemittersPage() {
                                     <tr key={row.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.company || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.branch_name || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
+                                            <div className="flex items-center gap-2">
+                                                <span>{row.branch_name || '-'}</span>
+                                                {row.shared_access ? (
+                                                    <span className="inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">
+                                                        Shared
+                                                    </span>
+                                                ) : null}
+                                            </div>
+                                        </td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.sender_id || '-'}</td>
                                         <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{row.sender_name || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.active || '-'}</td>
@@ -431,7 +441,9 @@ export default function RemittersPage() {
                                         <td className="px-4 py-4">
                                             <button
                                                 onClick={() => promptDelete(row)}
-                                                className="px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 transition-colors glass-effect text-slate-600 dark:text-slate-200 hover:text-red-600"
+                                                disabled={row.shared_access}
+                                                title={row.shared_access ? 'Shared remitters can only be deleted by the owner branch.' : 'Delete remitter'}
+                                                className="px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 transition-colors glass-effect text-slate-600 dark:text-slate-200 hover:text-red-600 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-slate-600 dark:disabled:hover:text-slate-200"
                                             >
                                                 <Trash2 className="w-3.5 h-3.5" />
                                                 Delete

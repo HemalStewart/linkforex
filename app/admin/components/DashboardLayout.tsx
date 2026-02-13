@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
 import {
@@ -19,25 +20,50 @@ import {
     Cpu,
     BarChart3,
     LogOut,
-    Menu,
     ChevronLeft,
     ChevronRight,
     Search,
     Bell,
     PlusCircle,
     ArrowRightLeft,
-    FileText
+    FileText,
+    AlertTriangle
 } from 'lucide-react';
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
 }
 
+interface CurrentUser {
+    id?: string | number;
+    name?: string;
+    email?: string;
+    username?: string;
+    role?: string;
+    system_defined?: string;
+}
+
+interface NavChild {
+    name: string;
+    href?: string;
+    badge?: string;
+    icon?: React.ReactNode;
+    sections?: string[];
+}
+
+interface NavItem {
+    name: string;
+    icon: React.ReactNode;
+    href?: string;
+    children?: NavChild[];
+}
+
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const [isLoadingNav, setIsLoadingNav] = useState(true);
-    const [currentUser, setCurrentUser] = useState<any>(null);
+    const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+    const originalFetchRef = React.useRef<typeof window.fetch | null>(null);
     const signOffSentRef = React.useRef(false);
     const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
         'Operations': true,
@@ -53,29 +79,31 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         branchCurrencyRates: 0,
         roles: 0,
         permissionGroups: 0,
+        branchAccessFlags: 0,
         kyc: 0
     });
+    const [viewSections, setViewSections] = useState<Set<string> | null>(null);
 
     const pathname = usePathname();
     const router = useRouter();
     const isLoginPage = pathname.startsWith('/admin/login');
 
-    const buildSignOffPayload = (note: string) => {
+    const buildSignOffPayload = React.useCallback((note: string) => {
         const stored = localStorage.getItem('user');
         if (!stored) return null;
         try {
-            const user = JSON.parse(stored);
+            const user: CurrentUser = JSON.parse(stored);
             return {
                 user_id: user.id,
                 username: user.username || user.email || user.name,
                 sign_off_note: note
             };
-        } catch (e) {
+        } catch {
             return null;
         }
-    };
+    }, []);
 
-    const logSignOff = async (note: string, useBeacon = false) => {
+    const logSignOff = React.useCallback(async (note: string, useBeacon = false) => {
         if (signOffSentRef.current) return;
         const payload = buildSignOffPayload(note);
         if (!payload) return;
@@ -92,17 +120,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-        } catch (e) {
+        } catch {
             // fail silently
         }
-    };
+    }, [buildSignOffPayload]);
 
     React.useEffect(() => {
         const fetchCounts = async () => {
             const timestamp = Date.now();
             try {
                 // Parallel fetch for dashboard counts
-                const [tRes, rRes, bRes, uRes, brRes, bcrRes, roRes, pgRes] = await Promise.allSettled([
+                const [tRes, rRes, bRes, uRes, brRes, bcrRes, roRes, pgRes, baRes] = await Promise.allSettled([
                     fetch(`${ENDPOINTS.TRANSFERS.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                     fetch(`${ENDPOINTS.REMITTERS.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                     fetch(`${ENDPOINTS.BENEFICIARIES.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
@@ -110,16 +138,20 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     fetch(`${ENDPOINTS.BRANCHES.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                     fetch(`${ENDPOINTS.BRANCH_CURRENCY_RATES.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                     fetch(`${ENDPOINTS.ROLES.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
-                    fetch(`${ENDPOINTS.PERMISSION_GROUPS.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : [])
+                    fetch(`${ENDPOINTS.PERMISSION_GROUPS.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
+                    fetch(`${ENDPOINTS.BRANCH_ACCESS_REQUESTS.LIST}?status=pending&_t=${timestamp}`).then(r => r.ok ? r.json() : [])
                 ]);
 
-                const getCount = (res: PromiseSettledResult<any>) =>
+                const getCount = (res: PromiseSettledResult<unknown>) =>
                     res.status === 'fulfilled' && Array.isArray(res.value) ? res.value.length : 0;
 
                 // For KYC, we need to filter remitters
                 let kycCount = 0;
                 if (rRes.status === 'fulfilled' && Array.isArray(rRes.value)) {
-                    kycCount = rRes.value.filter((r: any) => r.kyc_status === 'pending').length;
+                    kycCount = rRes.value.filter((r: unknown) => {
+                        if (!r || typeof r !== 'object') return false;
+                        return (r as { kyc_status?: string }).kyc_status === 'pending';
+                    }).length;
                 }
 
                 setCounts({
@@ -131,27 +163,137 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     branchCurrencyRates: getCount(bcrRes),
                     roles: getCount(roRes),
                     permissionGroups: getCount(pgRes),
+                    branchAccessFlags: getCount(baRes),
                     kyc: kycCount
                 });
 
-            } catch (e) {
+            } catch {
                 // Silent fail
             }
         };
-        // Only fetch if NOT login page
-        if (!isLoginPage) {
+        // Only fetch if NOT login page and a user is loaded (so branch-scoped headers apply).
+        if (!isLoginPage && currentUser?.id) {
             fetchCounts();
         }
-    }, [pathname, isLoginPage]);
+    }, [pathname, isLoginPage, currentUser?.id]);
 
     React.useEffect(() => {
         const stored = localStorage.getItem('user');
         if (stored) {
             try {
                 setCurrentUser(JSON.parse(stored));
-            } catch (e) { }
+            } catch { }
         }
     }, []);
+
+    React.useEffect(() => {
+        if (!currentUser?.id) {
+            setViewSections(null);
+            return;
+        }
+
+        const role = String(currentUser.role || '').trim();
+        const privileged = String(currentUser.system_defined || '').toLowerCase() === 'yes'
+            || role.toLowerCase().includes('admin')
+            || role.toLowerCase().includes('super');
+
+        if (privileged) {
+            setViewSections(null);
+            return;
+        }
+
+        const fetchPermissions = async () => {
+            try {
+                const res = await fetch(`${ENDPOINTS.PERMISSION_GROUPS.LIST}?role=${encodeURIComponent(role)}&active=yes`);
+                if (!res.ok) {
+                    setViewSections(null);
+                    return;
+                }
+                const rows = await res.json();
+                if (!Array.isArray(rows)) {
+                    setViewSections(null);
+                    return;
+                }
+                const sections = new Set<string>();
+                for (const row of rows) {
+                    const op = String(row?.operation || '').toUpperCase().trim();
+                    const section = String(row?.page_section || '').toUpperCase().trim();
+                    const active = String(row?.active || '').toLowerCase().trim();
+                    if ((op === 'VIEW' || op === 'ALL' || op === '*') && section !== '' && (active === '' || active === 'yes')) {
+                        sections.add(section);
+                    }
+                }
+                setViewSections(sections);
+            } catch {
+                setViewSections(null);
+            }
+        };
+
+        fetchPermissions();
+    }, [currentUser?.id, currentUser?.role, currentUser?.system_defined]);
+
+    React.useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        if (!originalFetchRef.current) {
+            originalFetchRef.current = window.fetch.bind(window);
+        }
+
+        const originalFetch = originalFetchRef.current;
+        const actingUserId = currentUser?.id ? String(currentUser.id) : '';
+
+        if (!actingUserId) {
+            window.fetch = originalFetch;
+            return;
+        }
+
+        const enrichApiUrl = (rawUrl: string): string => {
+            try {
+                const parsed = new URL(rawUrl, window.location.origin);
+                if (!parsed.pathname.includes('/linforex_backend/public/api/')) {
+                    return rawUrl;
+                }
+                if (!parsed.searchParams.has('acting_user_id')) {
+                    parsed.searchParams.set('acting_user_id', actingUserId);
+                }
+                return parsed.toString();
+            } catch {
+                return rawUrl;
+            }
+        };
+
+        window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
+            let requestUrl = '';
+            if (typeof input === 'string') {
+                requestUrl = input;
+            } else if (input instanceof URL) {
+                requestUrl = input.toString();
+            } else if (input instanceof Request) {
+                requestUrl = input.url;
+            }
+
+            const isApiCall = requestUrl.includes('/linforex_backend/public/api/');
+            if (!isApiCall) {
+                return originalFetch(input, init);
+            }
+
+            const enrichedUrl = enrichApiUrl(requestUrl);
+            const headers = new Headers(init?.headers || (input instanceof Request ? input.headers : undefined));
+            headers.set('X-Acting-User-Id', actingUserId);
+
+            if (input instanceof Request) {
+                const patchedBase = new Request(enrichedUrl, input);
+                const patchedRequest = new Request(patchedBase, { ...init, headers });
+                return originalFetch(patchedRequest);
+            }
+
+            return originalFetch(enrichedUrl, { ...init, headers });
+        };
+
+        return () => {
+            window.fetch = originalFetch;
+        };
+    }, [currentUser?.id]);
 
     // Initial Auth Check
     React.useEffect(() => {
@@ -202,7 +344,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             activityEvents.forEach((event) => window.removeEventListener(event, resetTimer));
             window.removeEventListener('beforeunload', handleBeforeUnload);
         };
-    }, [router, isLoginPage]);
+    }, [router, isLoginPage, logSignOff]);
 
     if (pathname.startsWith('/admin/login')) {
         return <>{children}</>;
@@ -217,7 +359,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         }));
     };
 
-    const navigation = [
+    const canViewSections = (sections?: string[]) => {
+        if (!sections || sections.length === 0) return true;
+        if (viewSections === null) return true;
+        return sections.some((section) => viewSections.has(section.toUpperCase()));
+    };
+
+    const navigation: NavItem[] = [
         {
             name: 'Dashboard',
             icon: <LayoutGrid className="w-5 h-5" />,
@@ -227,22 +375,23 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             name: 'Operations',
             icon: <Layers className="w-5 h-5" />,
             children: [
-                { name: 'Transfers', href: '/admin/transfers', badge: counts.transfers > 0 ? counts.transfers.toString() : undefined, icon: <ArrowRightLeft className="w-4 h-4" /> },
-                { name: 'Remitters', href: '/admin/remitters', badge: counts.remitters > 0 ? counts.remitters.toString() : undefined, icon: <Users className="w-4 h-4" /> },
+                { name: 'Transfers', href: '/admin/transfers', badge: counts.transfers > 0 ? counts.transfers.toString() : undefined, icon: <ArrowRightLeft className="w-4 h-4" />, sections: ['MONEY_CHANGER', 'TELEX_TRANSFER', 'ACCOUNT_TRANSACTIONS', 'TRANSFERS'] },
+                { name: 'Remitters', href: '/admin/remitters', badge: counts.remitters > 0 ? counts.remitters.toString() : undefined, icon: <Users className="w-4 h-4" />, sections: ['SENDER_DETAILS', 'CUSTOMER', 'REMITTERS'] },
                 { name: 'Mobile App Users', href: '/admin/mobile-users', icon: <Smartphone className="w-4 h-4" /> },
-                { name: 'Receivers', href: '/admin/receivers', badge: counts.receivers > 0 ? counts.receivers.toString() : undefined, icon: <UserCheck className="w-4 h-4" /> },
+                { name: 'Receivers', href: '/admin/receivers', badge: counts.receivers > 0 ? counts.receivers.toString() : undefined, icon: <UserCheck className="w-4 h-4" />, sections: ['RECEIVER_DETAILS', 'BENEFICIARIES', 'CUSTOMER', 'RECEIVERS'] },
                 { name: 'KYC Reviews', href: '/admin/kyc', badge: counts.kyc > 0 ? counts.kyc.toString() : undefined, icon: <ShieldCheck className="w-4 h-4" /> },
+                { name: 'Branch Access Flags', href: '/admin/branch-access', badge: counts.branchAccessFlags > 0 ? counts.branchAccessFlags.toString() : undefined, icon: <AlertTriangle className="w-4 h-4" /> },
             ]
         },
         {
             name: 'Management',
             icon: <Settings className="w-5 h-5" />,
             children: [
-                { name: 'System Users', href: '/admin/users', badge: counts.users > 0 ? counts.users.toString() : undefined, icon: <Users className="w-4 h-4" /> },
-                { name: 'Roles & Permissions', href: '/admin/roles', badge: counts.roles > 0 ? counts.roles.toString() : undefined, icon: <Shield className="w-4 h-4" /> },
-                { name: 'Permission Groups', href: '/admin/permission-groups', badge: counts.permissionGroups > 0 ? counts.permissionGroups.toString() : undefined, icon: <ShieldCheck className="w-4 h-4" /> },
-                { name: 'Branches', href: '/admin/branches', badge: counts.branches > 0 ? counts.branches.toString() : undefined, icon: <Building2 className="w-4 h-4" /> },
-                { name: 'Branch Currency Rates', href: '/admin/branch-currency-rates', badge: counts.branchCurrencyRates > 0 ? counts.branchCurrencyRates.toString() : undefined, icon: <Coins className="w-4 h-4" /> },
+                { name: 'System Users', href: '/admin/users', badge: counts.users > 0 ? counts.users.toString() : undefined, icon: <Users className="w-4 h-4" />, sections: ['SYSUSERS', 'SYSTEM_USERS'] },
+                { name: 'Roles & Permissions', href: '/admin/roles', badge: counts.roles > 0 ? counts.roles.toString() : undefined, icon: <Shield className="w-4 h-4" />, sections: ['SYSGROUPS', 'ROLES'] },
+                { name: 'Permission Groups', href: '/admin/permission-groups', badge: counts.permissionGroups > 0 ? counts.permissionGroups.toString() : undefined, icon: <ShieldCheck className="w-4 h-4" />, sections: ['SYSGROUPS_PERMISSION', 'PERMISSION_GROUPS'] },
+                { name: 'Branches', href: '/admin/branches', badge: counts.branches > 0 ? counts.branches.toString() : undefined, icon: <Building2 className="w-4 h-4" />, sections: ['BRANCH', 'BRANCHES'] },
+                { name: 'Branch Currency Rates', href: '/admin/branch-currency-rates', badge: counts.branchCurrencyRates > 0 ? counts.branchCurrencyRates.toString() : undefined, icon: <Coins className="w-4 h-4" />, sections: ['BRANCH_CURRENCY_RATE', 'BRANCH_CURRENCY_RATES'] },
                 { name: 'Countries', href: '/admin/countries', icon: <Globe className="w-4 h-4" /> },
                 { name: 'Currencies', href: '/admin/currencies', icon: <Coins className="w-4 h-4" /> },
             ]
@@ -251,9 +400,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             name: 'System',
             icon: <Cpu className="w-5 h-5" />,
             children: [
-                { name: 'Reports', href: '/admin/reports', icon: <BarChart3 className="w-4 h-4" /> },
+                { name: 'Reports', href: '/admin/reports', icon: <BarChart3 className="w-4 h-4" />, sections: ['TODAY_SUMMARY', 'MC_STATISTICS', 'REPORTS'] },
                 { name: 'Settings', href: '/admin/settings', icon: <Settings className="w-4 h-4" /> },
-                { name: 'Logs', href: '/admin/logs', icon: <FileText className="w-4 h-4" /> },
+                { name: 'Logs', href: '/admin/logs', icon: <FileText className="w-4 h-4" />, sections: ['SYSUSERS_LOG', 'SYSRECORD_LOGS', 'AUDIT_LOGS'] },
             ]
         }
     ];
@@ -273,7 +422,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
                     >
                         <div className={`flex items-center space-x-3 transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2 w-0 overflow-hidden'}`}>
-                            <img src="/logo-removebg-preview.png" alt="LinkForex" className="h-10 object-contain drop-shadow-md" />
+                            <Image
+                                src="/logo-removebg-preview.png"
+                                alt="LinkForex"
+                                width={164}
+                                height={40}
+                                className="h-10 w-auto object-contain drop-shadow-md"
+                                priority
+                            />
                         </div>
                         <div className={`flex items-center justify-center transition-all duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-100'}`}>
                             {sidebarOpen ? <ChevronLeft className="w-5 h-5 text-slate-500" /> : <ChevronRight className="w-5 h-5 text-slate-500" />}
@@ -284,7 +440,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 {/* Navigation */}
                 <nav className="flex-1 px-4 py-5 space-y-2.5 overflow-y-auto no-scrollbar">
                     {navigation.map((item, idx) => {
-                        const isChildActive = item.children?.some(child => pathname === child.href || pathname.startsWith(child.href!));
+                        const visibleChildren = item.children?.filter((child) => canViewSections(child.sections)) || [];
+                        if (item.children && visibleChildren.length === 0) {
+                            return null;
+                        }
+
+                        const isChildActive = visibleChildren.some((child) => pathname === child.href || pathname.startsWith(child.href || ''));
                         const isActive = pathname === item.href || isChildActive;
                         const isExpanded = expandedMenus[item.name];
 
@@ -312,7 +473,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                     {/* Submenu Items */}
                                     {sidebarOpen && isExpanded && (
                                         <div className="mt-2 ml-5 pl-5 border-l border-teal-200/60 dark:border-teal-800/50 space-y-1.5 animate-slide-down">
-                                            {item.children.map((child: any) => {
+                                            {visibleChildren.map((child) => {
                                                 const isChildItemActive = pathname === child.href;
                                                 return (
                                                     <Link
