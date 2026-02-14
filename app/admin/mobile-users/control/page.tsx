@@ -51,6 +51,11 @@ type SettingsData = {
     veriff_configured?: boolean;
 };
 
+type YesNoSettingKey = Exclude<
+    keyof SettingsData,
+    'liveness_provider' | 'veriff_base_url' | 'veriff_api_key' | 'veriff_hmac_secret' | 'veriff_callback_url' | 'veriff_configured'
+>;
+
 type QueueUser = {
     id: number;
     name: string;
@@ -62,6 +67,10 @@ type QueueUser = {
     veriff_status?: string;
     veriff_decision?: string;
     veriff_checked_at?: string;
+    mobile_verified_at?: string;
+    sanction_status?: string;
+    sanction_reason?: string;
+    sanction_checked_at?: string;
     created_at?: string;
     updated_at?: string;
 };
@@ -87,7 +96,7 @@ type MobileAd = {
     status: 'active' | 'inactive';
 };
 
-const yesNoKeys: Array<keyof SettingsData> = [
+const yesNoKeys: YesNoSettingKey[] = [
     'require_email_otp',
     'require_mobile_otp',
     'enable_liveness_check',
@@ -457,6 +466,54 @@ export default function MobileControlPage() {
         }
     };
 
+    const approveQueueUser = async (user: QueueUser) => {
+        try {
+            const res = await fetch(ENDPOINTS.MOBILE_ADMIN.REVIEW_APPROVE(user.id), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                showModal('Approve Failed', data?.message || 'Could not approve mobile profile.', 'danger');
+                return;
+            }
+
+            await Promise.all([
+                loadQueue(queueStatus, queueSearch),
+                loadOverview(),
+            ]);
+            showModal('Approved', 'Mobile profile approved successfully.', 'success');
+        } catch {
+            showModal('Approve Failed', 'Could not approve mobile profile.', 'danger');
+        }
+    };
+
+    const rejectQueueUser = async (user: QueueUser) => {
+        const reason = window.prompt('Reject reason (optional):', 'Rejected by admin review.');
+        if (reason === null) return;
+
+        try {
+            const res = await fetch(ENDPOINTS.MOBILE_ADMIN.REVIEW_REJECT(user.id), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reason }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                showModal('Reject Failed', data?.message || 'Could not reject mobile profile.', 'danger');
+                return;
+            }
+
+            await Promise.all([
+                loadQueue(queueStatus, queueSearch),
+                loadOverview(),
+            ]);
+            showModal('Rejected', 'Mobile profile rejected.', 'success');
+        } catch {
+            showModal('Reject Failed', 'Could not reject mobile profile.', 'danger');
+        }
+    };
+
     const settingsRows = useMemo(() => ([
         { key: 'require_email_otp', label: 'Require Email OTP', icon: <Mail className="h-4 w-4" /> },
         { key: 'require_mobile_otp', label: 'Require Mobile OTP', icon: <Smartphone className="h-4 w-4" /> },
@@ -650,7 +707,9 @@ export default function MobileControlPage() {
                                     <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">User</th>
                                     <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">KYC</th>
                                     <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Status</th>
+                                    <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Mobile</th>
                                     <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Liveness</th>
+                                    <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Sanction</th>
                                     <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-slate-500">Action</th>
                                 </tr>
                             </thead>
@@ -663,23 +722,44 @@ export default function MobileControlPage() {
                                         </td>
                                         <td className="px-4 py-3 text-xs font-bold uppercase text-slate-600">{u.kyc_status || '-'}</td>
                                         <td className="px-4 py-3 text-xs font-bold uppercase text-slate-600">{u.status || '-'}</td>
+                                        <td className="px-4 py-3 text-[11px] font-bold uppercase text-slate-600">
+                                            {u.mobile_verified_at ? 'Verified' : 'Pending'}
+                                        </td>
                                         <td className="px-4 py-3">
                                             <div className="text-[11px] font-bold uppercase text-slate-600">{u.veriff_status || '-'}</div>
                                             <div className="text-[10px] uppercase text-slate-400">{u.veriff_decision || '-'}</div>
                                         </td>
+                                        <td className="px-4 py-3">
+                                            <div className="text-[11px] font-bold uppercase text-slate-600">{u.sanction_status || '-'}</div>
+                                            <div className="text-[10px] uppercase text-slate-400">{u.sanction_checked_at || '-'}</div>
+                                        </td>
                                         <td className="px-4 py-3 text-right">
-                                            <button
-                                                onClick={() => syncLivenessForUser(u)}
-                                                className="rounded-full border border-slate-300 px-3 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-                                            >
-                                                Sync
-                                            </button>
+                                            <div className="inline-flex items-center gap-2">
+                                                <button
+                                                    onClick={() => syncLivenessForUser(u)}
+                                                    className="rounded-full border border-slate-300 px-3 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                                                >
+                                                    Sync
+                                                </button>
+                                                <button
+                                                    onClick={() => approveQueueUser(u)}
+                                                    className="rounded-full border border-emerald-300 px-3 py-1 text-[11px] font-bold text-emerald-700 hover:bg-emerald-50 dark:border-emerald-900/40 dark:text-emerald-300 dark:hover:bg-emerald-900/20"
+                                                >
+                                                    Approve
+                                                </button>
+                                                <button
+                                                    onClick={() => rejectQueueUser(u)}
+                                                    className="rounded-full border border-rose-300 px-3 py-1 text-[11px] font-bold text-rose-700 hover:bg-rose-50 dark:border-rose-900/40 dark:text-rose-300 dark:hover:bg-rose-900/20"
+                                                >
+                                                    Reject
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
                                 {queue.length === 0 && (
                                     <tr>
-                                        <td colSpan={5} className="px-4 py-8 text-center text-sm text-slate-500">No users in queue</td>
+                                        <td colSpan={7} className="px-4 py-8 text-center text-sm text-slate-500">No users in queue</td>
                                     </tr>
                                 )}
                             </tbody>

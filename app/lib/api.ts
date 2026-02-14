@@ -76,6 +76,8 @@ export const ENDPOINTS = {
         OVERVIEW: `${API_BASE_URL}/mobile-admin/overview`,
         SETTINGS: `${API_BASE_URL}/mobile-admin/settings`,
         REVIEW_QUEUE: `${API_BASE_URL}/mobile-admin/review-queue`,
+        REVIEW_APPROVE: (id: string | number) => `${API_BASE_URL}/mobile-admin/review-queue/${id}/approve`,
+        REVIEW_REJECT: (id: string | number) => `${API_BASE_URL}/mobile-admin/review-queue/${id}/reject`,
         CAMPAIGNS: `${API_BASE_URL}/mobile-admin/campaigns`,
         SEND_CAMPAIGN: (id: string | number) => `${API_BASE_URL}/mobile-admin/campaigns/${id}/send`,
         ADS: `${API_BASE_URL}/mobile-admin/ads`,
