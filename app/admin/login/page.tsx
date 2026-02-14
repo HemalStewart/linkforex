@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../components/ConfirmModal';
@@ -101,7 +102,14 @@ export default function AdminLoginPage() {
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center mb-6 relative">
             <div className="absolute inset-0 bg-teal-500 blur-2xl opacity-20 dark:opacity-40 rounded-full"></div>
-            <img src="/logo-removebg-preview.png" alt="LinkForex" className="h-16 object-contain relative z-10 drop-shadow-sm" />
+            <Image
+              src="/logo-removebg-preview.png"
+              alt="LinkForex"
+              width={220}
+              height={64}
+              className="h-16 w-auto object-contain relative z-10 drop-shadow-sm"
+              priority
+            />
           </div>
           <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-2">Welcome Back</h2>
           <p className="text-slate-500 dark:text-slate-400 font-medium">Sign in to your dashboard to continue</p>

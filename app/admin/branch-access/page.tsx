@@ -106,7 +106,6 @@ export default function BranchAccessPage() {
 
     useEffect(() => {
         fetchRows();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentUser, isPrivilegedUser, userBranch]);
 
     const setModal = (title: string, message: string, type: 'info' | 'danger' | 'warning' = 'info') => {
