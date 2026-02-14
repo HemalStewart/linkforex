@@ -2,15 +2,28 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
-import { Search, UserPlus, FileText, Eye, Filter, Download } from 'lucide-react';
+import { Search, UserPlus, Eye, Download } from 'lucide-react';
+
+type MobileRemitter = {
+    id: string | number;
+    name?: string;
+    email?: string;
+    phone?: string;
+    status?: string;
+    kyc_status?: string;
+    created_at?: string;
+    last_login?: string;
+    joinedDate?: string;
+    transfersCount?: number;
+    lastLogin?: string;
+    kycStatus?: string;
+};
 
 export default function RemittersPage() {
-    const router = useRouter();
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
-    const [remitters, setRemitters] = useState<any[]>([]);
+    const [remitters, setRemitters] = useState<MobileRemitter[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -18,19 +31,18 @@ export default function RemittersPage() {
             setLoading(true);
             try {
                 const params = new URLSearchParams();
-                // Ensure we list mobile users specifically if API supports it, 
-                // otherwise currently it lists all based on previous code.
-                // params.append('registration_source', 'mobile_app'); 
+                params.append('registration_source', 'mobile_app');
 
                 if (statusFilter !== 'all') params.append('status', statusFilter);
                 if (searchQuery) params.append('search', searchQuery);
 
                 const res = await fetch(`${ENDPOINTS.REMITTERS.LIST}?${params.toString()}`);
                 if (!res.ok) throw new Error('Failed to fetch');
-                const data = await res.json();
+                const data = await res.json() as unknown;
+                const rows = Array.isArray(data) ? (data as MobileRemitter[]) : [];
 
                 // Map DB fields to UI fields if necessary
-                const mappedData = data.map((c: any) => ({
+                const mappedData = rows.map((c) => ({
                     ...c,
                     joinedDate: c.created_at ? new Date(c.created_at).toLocaleDateString() : '-',
                     transfersCount: 0, // Placeholder
@@ -75,8 +87,8 @@ export default function RemittersPage() {
             {/* Page Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Mobile Remitters</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Manage mobile app remitter profiles and activity</p>
+                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Mobile Profiles</h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Detailed remitter/KYC profiles from the mobile app</p>
                 </div>
                 <div className="flex items-center space-x-4">
                     <button className="px-5 py-3 rounded-full border-0 glass-effect text-slate-700 dark:text-slate-300 font-bold hover:shadow-lg transition-all">
@@ -85,9 +97,9 @@ export default function RemittersPage() {
                             <span>Export</span>
                         </span>
                     </button>
-                    <Link href="/admin/mobile-users/remitters/create" className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 rounded-full px-6">
+                    <Link href="/admin/mobile-profiles/create" className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 rounded-full px-6">
                         <UserPlus className="w-5 h-5" />
-                        <span>Add Remitter</span>
+                        <span>Add Profile</span>
                     </Link>
                 </div>
             </div>
@@ -142,7 +154,7 @@ export default function RemittersPage() {
                 </div>
             </div>
 
-            {/* Remitters Table */}
+            {/* Profiles Table */}
             <div className="card-glass overflow-hidden shadow-xl">
                 <div className="overflow-x-auto">
                     {loading ? (
@@ -151,7 +163,7 @@ export default function RemittersPage() {
                         <table className="table-shell">
                             <thead className="table-head">
                                 <tr>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Remitter</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Profile</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Contact</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">KYC</th>
@@ -165,14 +177,9 @@ export default function RemittersPage() {
                                         className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200"
                                     >
                                         <td className="px-8 py-5">
-                                            <div className="flex items-center space-x-4">
-                                                <div className="avatar-circle">
-                                                    {remitter.name?.charAt(0)}
-                                                </div>
-                                                <div>
-                                                    <p className="font-bold text-slate-900 dark:text-white text-[15px]">{remitter.name}</p>
-                                                    <p className="text-xs text-slate-500 font-medium mt-0.5">Joined: {remitter.joinedDate}</p>
-                                                </div>
+                                            <div>
+                                                <p className="font-bold text-slate-900 dark:text-white text-[15px]">{remitter.name}</p>
+                                                <p className="text-xs text-slate-500 font-medium mt-0.5">Joined: {remitter.joinedDate}</p>
                                             </div>
                                         </td>
                                         <td className="px-8 py-5">
@@ -182,18 +189,18 @@ export default function RemittersPage() {
                                             </div>
                                         </td>
                                         <td className="px-8 py-5">
-                                            <span className={`badge-glass px-3 py-1 rounded-full uppercase tracking-wider text-[10px] font-extrabold ${getStatusBadge(remitter.status)}`}>
+                                            <span className={`badge-glass px-3 py-1 rounded-full uppercase tracking-wider text-[10px] font-extrabold ${getStatusBadge(remitter.status || 'inactive')}`}>
                                                 {remitter.status || 'Unknown'}
                                             </span>
                                         </td>
                                         <td className="px-8 py-5">
-                                            <span className={`badge-glass px-3 py-1 rounded-full uppercase tracking-wider text-[10px] font-extrabold ${getKycBadge(remitter.kycStatus)}`}>
+                                            <span className={`badge-glass px-3 py-1 rounded-full uppercase tracking-wider text-[10px] font-extrabold ${getKycBadge(remitter.kycStatus || 'pending')}`}>
                                                 {remitter.kycStatus || 'PENDING'}
                                             </span>
                                         </td>
                                         <td className="px-8 py-5 text-center">
                                             <Link
-                                                href={`/admin/mobile-users/remitters/${remitter.id}`}
+                                                href={`/admin/mobile-profiles/${remitter.id}`}
                                                 className="p-2 rounded-full hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
                                                 title="View/Edit Profile"
                                             >

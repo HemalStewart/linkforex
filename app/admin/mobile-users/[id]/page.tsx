@@ -130,11 +130,11 @@ export default function EditRemitterPage() {
                 <nav className="flex items-center text-sm text-slate-500 mb-2">
                     <Link href="/admin/dashboard" className="hover:text-slate-900 dark:hover:text-white transition-colors">Dashboard</Link>
                     <span className="mx-2">/</span>
-                    <Link href="/admin/remitters" className="hover:text-slate-900 dark:hover:text-white transition-colors">Remitters</Link>
+                    <Link href="/admin/mobile-users" className="hover:text-slate-900 dark:hover:text-white transition-colors">Mobile Accounts</Link>
                     <span className="mx-2">/</span>
                     <span className="text-slate-900 dark:text-white font-medium">Edit</span>
                 </nav>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Edit Remitter</h1>
+                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Edit Mobile Account</h1>
             </div>
 
             <form onSubmit={handleSubmit} className="card-glass p-6 space-y-6">

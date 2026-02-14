@@ -1,11 +1,23 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, User, Mail, Phone, Calendar, Smartphone, FileText, CheckCircle, XCircle, MoreVertical, Shield, Clock } from 'lucide-react';
+import Link from 'next/link';
+import { Search, Mail, Phone, MoreVertical } from 'lucide-react';
 import { ENDPOINTS } from '@/app/lib/api';
 
+type MobileUser = {
+    id: string | number;
+    name?: string;
+    email?: string;
+    phone?: string;
+    created_at?: string;
+    status?: string;
+    device?: string;
+    appVersion?: string;
+};
+
 export default function MobileUsersPage() {
-    const [users, setUsers] = useState<any[]>([]);
+    const [users, setUsers] = useState<MobileUser[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -15,17 +27,15 @@ export default function MobileUsersPage() {
 
     const fetchUsers = async () => {
         try {
-            // Using REMITTERS endpoint as proxy for mobile users if specific endpoint doesn't exist yet
-            const res = await fetch(ENDPOINTS.REMITTERS.LIST);
+            const res = await fetch(`${ENDPOINTS.MOBILE_ADMIN.REVIEW_QUEUE}?status=all`);
             if (res.ok) {
-                const data = await res.json();
-                // Filter or transform if needed to simulate mobile users
-                const mobileUsers = data.map((u: any) => ({
+                const data = await res.json() as unknown;
+                const rows = Array.isArray(data) ? (data as MobileUser[]) : [];
+                const mobileUsers = rows.map((u) => ({
                     ...u,
-                    device: 'iPhone 13 Pro', // Mock data
-                    lastLogin: new Date().toISOString(), // Mock data
-                    appVersion: '1.2.0', // Mock data
-                    status: u.kyc_status === 'verified' ? 'active' : 'pending' // Mock status mapping
+                    device: 'Mobile App',
+                    appVersion: 'latest',
+                    status: u.status || 'pending'
                 }));
                 setUsers(mobileUsers);
             }
@@ -55,20 +65,28 @@ export default function MobileUsersPage() {
         <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-up pb-20">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Mobile App Users</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Manage users registered via the mobile application</p>
+                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Mobile Accounts</h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Overview of users registered via the mobile app</p>
                 </div>
-                <div className="relative group w-72 input-icon">
-                    <div className="input-icon-left">
-                        <Search className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+                <div className="flex items-center gap-3">
+                    <Link href="/admin/mobile-users/control" className="btn-primary rounded-full px-5 py-2.5 text-sm">
+                        Mobile Control
+                    </Link>
+                    <Link href="/admin/mobile-profiles" className="rounded-full border border-slate-300 px-5 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+                        Mobile Profiles
+                    </Link>
+                    <div className="relative group w-72 input-icon">
+                        <div className="input-icon-left">
+                            <Search className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Search users..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="input-glass w-full py-3"
+                        />
                     </div>
-                    <input
-                        type="text"
-                        placeholder="Search users..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="input-glass w-full py-3"
-                    />
                 </div>
             </div>
 
@@ -92,16 +110,10 @@ export default function MobileUsersPage() {
                                     filteredUsers.map((user) => (
                                         <tr key={user.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
                                             <td className="px-8 py-5">
-                                                <div className="flex items-center space-x-4">
-                                                    <div className="avatar-circle">
-                                                        {user.name?.charAt(0) || 'U'}
-                                                    </div>
-                                                    <div>
-                                                        <div className="font-bold text-slate-900 dark:text-white text-lg">{user.name}</div>
-                                                        <div className="text-xs text-slate-500 font-medium flex items-center mt-1">
-                                                            <Calendar className="w-3 h-3 mr-1" />
-                                                            Joined {new Date(user.created_at).toLocaleDateString()}
-                                                        </div>
+                                                <div>
+                                                    <div className="font-bold text-slate-900 dark:text-white text-lg">{user.name}</div>
+                                                    <div className="text-xs text-slate-500 font-medium mt-1">
+                                                        Joined {user.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}
                                                     </div>
                                                 </div>
                                             </td>
@@ -119,18 +131,15 @@ export default function MobileUsersPage() {
                                             </td>
                                             <td className="px-8 py-5">
                                                 <div className="space-y-1.5">
-                                                    <div className="flex items-center text-sm font-bold text-slate-700 dark:text-slate-200">
-                                                        <Smartphone className="w-4 h-4 mr-2 text-slate-400" />
-                                                        {user.device}
-                                                    </div>
+                                                    <div className="text-sm font-bold text-slate-700 dark:text-slate-200">{user.device}</div>
                                                     <div className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg inline-block border border-slate-200 dark:border-slate-700">
                                                         v{user.appVersion}
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="px-8 py-5">
-                                                <span className={`badge-glass px-3 py-1 rounded-full uppercase tracking-wider text-[10px] font-extrabold ${getStatusBadge(user.status)}`}>
-                                                    {user.status}
+                                                <span className={`badge-glass px-3 py-1 rounded-full uppercase tracking-wider text-[10px] font-extrabold ${getStatusBadge(user.status || 'pending')}`}>
+                                                    {user.status || 'pending'}
                                                 </span>
                                             </td>
                                             <td className="px-8 py-5 text-right">
@@ -143,9 +152,6 @@ export default function MobileUsersPage() {
                                 ) : (
                                     <tr>
                                         <td colSpan={5} className="py-20 text-center">
-                                            <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                                                <User className="w-10 h-10 text-slate-400" />
-                                            </div>
                                             <h3 className="text-xl font-bold text-slate-900 mb-2">No users found</h3>
                                             <p className="text-slate-500">Try adjusting your search terms.</p>
                                         </td>

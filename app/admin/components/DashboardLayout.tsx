@@ -67,7 +67,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const signOffSentRef = React.useRef(false);
     const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
         'Operations': true,
-        'Management': true
+        'Management': true,
+        'Mobile Operations': true
     });
 
     const [counts, setCounts] = useState({
@@ -377,10 +378,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             children: [
                 { name: 'Transfers', href: '/admin/transfers', badge: counts.transfers > 0 ? counts.transfers.toString() : undefined, icon: <ArrowRightLeft className="w-4 h-4" />, sections: ['MONEY_CHANGER', 'TELEX_TRANSFER', 'ACCOUNT_TRANSACTIONS', 'TRANSFERS'] },
                 { name: 'Remitters', href: '/admin/remitters', badge: counts.remitters > 0 ? counts.remitters.toString() : undefined, icon: <Users className="w-4 h-4" />, sections: ['SENDER_DETAILS', 'CUSTOMER', 'REMITTERS'] },
-                { name: 'Mobile App Users', href: '/admin/mobile-users', icon: <Smartphone className="w-4 h-4" /> },
                 { name: 'Receivers', href: '/admin/receivers', badge: counts.receivers > 0 ? counts.receivers.toString() : undefined, icon: <UserCheck className="w-4 h-4" />, sections: ['RECEIVER_DETAILS', 'BENEFICIARIES', 'CUSTOMER', 'RECEIVERS'] },
                 { name: 'KYC Reviews', href: '/admin/kyc', badge: counts.kyc > 0 ? counts.kyc.toString() : undefined, icon: <ShieldCheck className="w-4 h-4" /> },
                 { name: 'Branch Access Flags', href: '/admin/branch-access', badge: counts.branchAccessFlags > 0 ? counts.branchAccessFlags.toString() : undefined, icon: <AlertTriangle className="w-4 h-4" /> },
+            ]
+        },
+        {
+            name: 'Mobile Operations',
+            icon: <Smartphone className="w-5 h-5" />,
+            children: [
+                { name: 'Mobile Accounts', href: '/admin/mobile-users', icon: <Smartphone className="w-4 h-4" /> },
+                { name: 'Mobile Profiles', href: '/admin/mobile-profiles', icon: <Users className="w-4 h-4" /> },
+                { name: 'Mobile Control', href: '/admin/mobile-users/control', badge: counts.kyc > 0 ? counts.kyc.toString() : undefined, icon: <ShieldCheck className="w-4 h-4" /> },
             ]
         },
         {

@@ -8,6 +8,7 @@ It covers:
 - Roles and operation-level permissions
 - Branch and branch-currency-rate setup
 - Sender (remitter) and receiver management
+- Duplicate remitter match checks before creating new profiles
 - Transfer lifecycle (create, approve/cancel, print, sign)
 - Session logs and audit logs
 - Mobile app user/remitter integration
@@ -79,6 +80,24 @@ If sender belongs to a different branch:
 3. Requesting branch can create transfers for that sender.
 4. Owner branch still controls sender master record edit/delete.
 
+### 6.4 Remitter Duplicate Match Rules
+When staff creates a remitter, the system checks for possible existing profiles using:
+- ID Number
+- Sender ID
+- Name similarity
+- Date of Birth
+- Phone
+- Postcode
+- Address
+
+Behavior:
+1. UI shows "Possible match found" while entering data.
+2. On submit, backend checks again (final validation).
+3. If a likely duplicate exists, create is blocked with a warning + candidate list.
+4. Staff can review and either:
+- Use the existing remitter
+- Or continue with **Create Anyway** (force create) when truly a different person.
+
 ---
 
 ## 7) Transfer Lifecycle
@@ -114,6 +133,33 @@ If sender belongs to a different branch:
 3. Mobile login uses app-specific endpoint.
 4. KYC status can be retrieved/updated through API endpoints.
 
+### 9.1 Mobile Admin Control Center
+New admin section: `Mobile Control` (`/admin/mobile-users/control`)
+
+It now provides:
+1. App flow toggles:
+- Email OTP required
+- Mobile OTP required
+- Liveness check enabled/disabled
+- Sanction screening enabled/disabled
+- Profile lock after verification
+- Google/Apple sign-in toggles
+- Push/Email notification toggles
+- In-app ads toggle
+- Exchange-rate push toggle
+2. Profile review queue:
+- Mobile users filtered by KYC status (`pending`, `verified`, `rejected`, `all`)
+- Search by name/email/phone/ID
+3. Campaign center:
+- Create draft or send push/email campaigns
+- Audience targeting (`all`, `kyc_pending`, `kyc_verified`, `inactive`)
+4. In-app ad management:
+- Create/activate/deactivate/delete ad records
+
+Current implementation note:
+- Campaign send and ad records are fully managed in backend/admin DB.
+- FCM/APNs provider delivery wiring is the next integration step.
+
 ---
 
 ## 10) End-to-End Demo Script (Client Presentation)
@@ -121,15 +167,16 @@ If sender belongs to a different branch:
 2. Show Roles and Permission Groups.
 3. Show System Users and branch assignment.
 4. Open Branches and Branch Currency Rates.
-5. Login as Branch A staff and create/verify sender list visibility.
-6. Login as Branch B staff and attempt transfer with Branch A sender.
-7. Show blocked transfer message and Branch Access Request creation.
-8. Login as Branch A reviewer and approve request in `Branch Access Flags`.
-9. Login back as Branch B and create transfer successfully.
-10. Show transfer list row, detail page, print view, and signature capture.
-11. Approve/cancel transfer (with permitted role).
-12. Open Logs and show sign-in/sign-off/session records.
-13. Open transfer history/audit logs for complete traceability.
+5. Login as Branch A staff and create remitter.
+6. Show duplicate match warning (if similar remitter exists) and explain confirmation flow.
+7. Login as Branch B staff and attempt transfer with Branch A sender.
+8. Show blocked transfer message and Branch Access Request creation.
+9. Login as Branch A reviewer and approve request in `Branch Access Flags`.
+10. Login back as Branch B and create transfer successfully.
+11. Show transfer list row, detail page, print view, and signature capture.
+12. Approve/cancel transfer (with permitted role).
+13. Open Logs and show sign-in/sign-off/session records.
+14. Open transfer history/audit logs for complete traceability.
 
 ---
 
@@ -142,15 +189,17 @@ Capture these screens for proposal or handover:
 5. Branches list
 6. Branch Currency Rates list
 7. Remitters list (normal and shared badge)
-8. Receivers list
-9. Create Transfer page (all sections visible)
-10. Cross-branch blocked warning on transfer
-11. Branch Access Flags page with pending request
-12. Branch Access Flags page after approval
-13. Transfers table (approve/cancel/sign/print actions visible)
-14. Transfer detail page (overview/sender/receiver/history)
-15. User Logs page
-16. Reports page
+8. Remitter create page duplicate warning card
+9. Remitter duplicate confirmation popup
+10. Receivers list
+11. Create Transfer page (all sections visible)
+12. Cross-branch blocked warning on transfer
+13. Branch Access Flags page with pending request
+14. Branch Access Flags page after approval
+15. Transfers table (approve/cancel/sign/print actions visible)
+16. Transfer detail page (overview/sender/receiver/history)
+17. User Logs page
+18. Reports page
 
 ---
 
@@ -158,8 +207,9 @@ Capture these screens for proposal or handover:
 1. Branch segregation is enforced by backend, not just UI.
 2. Cross-branch transfers require owner-branch approval.
 3. Approved cross-branch access is shared logically (no duplicate customer record).
-4. Every critical operation is permission-controlled and auditable.
-5. This supports operational control, compliance, and accountability.
+4. New remitter creation includes duplicate-match checks to reduce duplicate customer profiles.
+5. Every critical operation is permission-controlled and auditable.
+6. This supports operational control, compliance, and accountability.
 
 ---
 
@@ -170,12 +220,12 @@ Capture these screens for proposal or handover:
 - Permission Groups: `PermissionGroups.php`
 - Branches: `Branches.php`
 - Branch Currency Rates: `BranchCurrencyRates.php`
-- Remitters: `Remitters.php`
+- Remitters: `Remitters.php` (`index/create/show/update/delete` + `potentialMatches`)
 - Beneficiaries: `Beneficiaries.php`
 - Transfers: `Transfers.php`
 - Branch Access Requests: `BranchAccessRequests.php`
+- Mobile Admin: `MobileAdmin.php`
 - Logs: `Logs.php`
 - Audit Logs: `AuditLogs.php`
 - Reports: `Reports.php`
 - Shared enforcement trait: `ResolvesActingUser.php`
-

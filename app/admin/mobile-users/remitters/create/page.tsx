@@ -254,7 +254,7 @@ export default function CreateMobileUserRemitterPage() {
                 setConfirmModal({
                     isOpen: true,
                     title: 'Error',
-                    message: 'Failed to create remitter: ' + (JSON.stringify(errData.messages) || res.statusText),
+                    message: 'Failed to create profile: ' + (JSON.stringify(errData.messages) || res.statusText),
                     type: 'danger',
                     isAlert: true,
                     shouldRedirect: false,
@@ -271,11 +271,11 @@ export default function CreateMobileUserRemitterPage() {
             setConfirmModal({
                 isOpen: true,
                 title: 'Success',
-                message: `New Mobile ${clientType === 'business' ? 'Business' : 'Individual'} Remitter Created Successfully!`,
+                message: `New Mobile ${clientType === 'business' ? 'Business' : 'Individual'} Profile Created Successfully!`,
                 type: 'info',
                 isAlert: true,
                 shouldRedirect: true,
-                redirectUrl: returnUrl ? `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newRemitterId=${remitterId}` : '/admin/mobile-users/remitters'
+                redirectUrl: returnUrl ? `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newRemitterId=${remitterId}` : '/admin/mobile-profiles'
             });
 
         } catch (error) {
@@ -316,13 +316,13 @@ export default function CreateMobileUserRemitterPage() {
 
             {/* Header */}
       <div className="mb-8">
-        <Link href="/admin/mobile-users/remitters" className="inline-flex items-center text-sm font-bold text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 transition-colors mb-2 group">
+        <Link href="/admin/mobile-profiles" className="inline-flex items-center text-sm font-bold text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 transition-colors mb-2 group">
           <ArrowLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
-                    Back to Mobile Users
+                    Back to Mobile Profiles
                 </Link>
         <div className="flex items-center justify-between">
                     <div>
-            <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Create Mobile Remitter</h1>
+            <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Create Mobile Profile</h1>
             <p className="text-slate-500 dark:text-slate-400 mt-2">Onboard a new mobile app customer manually.</p>
                     </div>
                 </div>
@@ -502,7 +502,7 @@ export default function CreateMobileUserRemitterPage() {
 
         <div className="flex justify-end space-x-4 pt-8 mt-8 border-t border-slate-100 dark:border-slate-700/50">
                     <Link
-                        href="/admin/mobile-users/remitters"
+                        href="/admin/mobile-profiles"
             className="px-6 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-sm transition-colors border border-slate-200 dark:border-slate-600"
                     >
                         Cancel
@@ -513,7 +513,7 @@ export default function CreateMobileUserRemitterPage() {
             className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40"
                     >
             <Save className="w-4 h-4" />
-                        <span>{loading ? 'Onboarding...' : 'Onboard Remitter'}</span>
+                        <span>{loading ? 'Onboarding...' : 'Onboard Profile'}</span>
                     </button>
                 </div>
             </form>

@@ -111,7 +111,7 @@ export default function EditRemitterPage() {
     const handleModalClose = () => {
         setConfirmModal({ ...confirmModal, isOpen: false });
         if (confirmModal.shouldRedirect) {
-            router.push('/admin/mobile-users/remitters');
+            router.push('/admin/mobile-profiles');
         }
     };
 
@@ -131,13 +131,13 @@ export default function EditRemitterPage() {
             {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-          <Link href="/admin/mobile-users/remitters" className="inline-flex items-center text-sm font-bold text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 transition-colors mb-2 group">
+          <Link href="/admin/mobile-profiles" className="inline-flex items-center text-sm font-bold text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 transition-colors mb-2 group">
             <ArrowLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
-                        Back to Remitters
+                        Back to Mobile Profiles
                     </Link>
           <div className="flex items-center space-x-4">
             <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                            Edit Remitter
+                            Edit Mobile Profile
                         </h1>
             <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-3 py-1 rounded-full text-xs font-bold uppercase">
                             ID: {id}
@@ -324,7 +324,7 @@ export default function EditRemitterPage() {
 
         <div className="flex justify-end space-x-4 pt-8 mt-6 border-t border-slate-100 dark:border-slate-700/50">
                     <Link
-                        href="/admin/mobile-users/remitters"
+                        href="/admin/mobile-profiles"
             className="px-6 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-sm transition-colors border border-slate-200 dark:border-slate-600"
                     >
                         Cancel
