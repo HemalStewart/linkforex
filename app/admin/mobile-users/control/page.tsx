@@ -43,6 +43,12 @@ type SettingsData = {
     enable_email_notifications: 'yes' | 'no';
     enable_secure_message: 'yes' | 'no';
     send_exchange_rate_push: 'yes' | 'no';
+    liveness_provider: 'none' | 'veriff';
+    veriff_base_url: string;
+    veriff_api_key: string;
+    veriff_hmac_secret: string;
+    veriff_callback_url: string;
+    veriff_configured?: boolean;
 };
 
 type QueueUser = {
@@ -53,6 +59,9 @@ type QueueUser = {
     status: string;
     kyc_status: string;
     country?: string;
+    veriff_status?: string;
+    veriff_decision?: string;
+    veriff_checked_at?: string;
     created_at?: string;
     updated_at?: string;
 };
@@ -108,6 +117,12 @@ const defaultSettings: SettingsData = {
     enable_email_notifications: 'yes',
     enable_secure_message: 'yes',
     send_exchange_rate_push: 'no',
+    liveness_provider: 'veriff',
+    veriff_base_url: 'https://stationapi.veriff.com',
+    veriff_api_key: '',
+    veriff_hmac_secret: '',
+    veriff_callback_url: '',
+    veriff_configured: false,
 };
 
 export default function MobileControlPage() {
@@ -176,6 +191,13 @@ export default function MobileControlPage() {
             const value = String(data?.[key] || next[key]).toLowerCase();
             next[key] = value === 'yes' ? 'yes' : 'no';
         });
+        const provider = String(data?.liveness_provider || next.liveness_provider).toLowerCase();
+        next.liveness_provider = provider === 'none' ? 'none' : 'veriff';
+        next.veriff_base_url = String(data?.veriff_base_url || next.veriff_base_url || '').trim();
+        next.veriff_callback_url = String(data?.veriff_callback_url || next.veriff_callback_url || '').trim();
+        next.veriff_api_key = '';
+        next.veriff_hmac_secret = '';
+        next.veriff_configured = Boolean(data?.veriff_configured);
         setSettings(next);
     }, []);
 
@@ -272,6 +294,13 @@ export default function MobileControlPage() {
                 const value = String(data?.[key] || next[key]).toLowerCase();
                 next[key] = value === 'yes' ? 'yes' : 'no';
             });
+            const provider = String(data?.liveness_provider || next.liveness_provider).toLowerCase();
+            next.liveness_provider = provider === 'none' ? 'none' : 'veriff';
+            next.veriff_base_url = String(data?.veriff_base_url || next.veriff_base_url || '').trim();
+            next.veriff_callback_url = String(data?.veriff_callback_url || next.veriff_callback_url || '').trim();
+            next.veriff_api_key = '';
+            next.veriff_hmac_secret = '';
+            next.veriff_configured = Boolean(data?.veriff_configured);
             setSettings(next);
             showModal('Saved', 'Mobile settings updated successfully.', 'success');
         } catch {
@@ -399,6 +428,35 @@ export default function MobileControlPage() {
         }
     };
 
+    const syncLivenessForUser = async (user: QueueUser) => {
+        if (!user?.email) {
+            showModal('Sync Failed', 'User email is missing.', 'warning');
+            return;
+        }
+
+        try {
+            const res = await fetch(ENDPOINTS.MOBILE_AUTH.SYNC_LIVENESS, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: user.email }),
+            });
+
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                showModal('Sync Failed', data?.message || 'Could not sync liveness decision.', 'danger');
+                return;
+            }
+
+            await Promise.all([
+                loadQueue(queueStatus, queueSearch),
+                loadOverview(),
+            ]);
+            showModal('Synced', 'Latest liveness decision pulled from Veriff.', 'success');
+        } catch {
+            showModal('Sync Failed', 'Could not sync liveness decision.', 'danger');
+        }
+    };
+
     const settingsRows = useMemo(() => ([
         { key: 'require_email_otp', label: 'Require Email OTP', icon: <Mail className="h-4 w-4" /> },
         { key: 'require_mobile_otp', label: 'Require Mobile OTP', icon: <Smartphone className="h-4 w-4" /> },
@@ -492,6 +550,70 @@ export default function MobileControlPage() {
                             );
                         })}
                     </div>
+                    <div className="mt-5 rounded-2xl border border-slate-200/70 bg-white/40 p-4 dark:border-slate-700 dark:bg-slate-900/30">
+                        <div className="mb-3 flex items-center justify-between">
+                            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Veriff Integration</h3>
+                            <span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider ${settings.veriff_configured ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}`}>
+                                {settings.veriff_configured ? 'Configured' : 'Not Configured'}
+                            </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                            <label className="text-xs font-bold uppercase tracking-wider text-slate-500 md:col-span-2">
+                                Provider
+                                <select
+                                    value={settings.liveness_provider}
+                                    onChange={(e) => setSettings((prev) => ({ ...prev, liveness_provider: e.target.value as 'none' | 'veriff' }))}
+                                    className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
+                                >
+                                    <option value="veriff">Veriff</option>
+                                    <option value="none">Disabled</option>
+                                </select>
+                            </label>
+
+                            <label className="text-xs font-bold uppercase tracking-wider text-slate-500 md:col-span-2">
+                                Veriff Base URL
+                                <input
+                                    value={settings.veriff_base_url}
+                                    onChange={(e) => setSettings((prev) => ({ ...prev, veriff_base_url: e.target.value }))}
+                                    className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
+                                    placeholder="https://stationapi.veriff.com"
+                                />
+                            </label>
+
+                            <label className="text-xs font-bold uppercase tracking-wider text-slate-500 md:col-span-2">
+                                Callback URL
+                                <input
+                                    value={settings.veriff_callback_url}
+                                    onChange={(e) => setSettings((prev) => ({ ...prev, veriff_callback_url: e.target.value }))}
+                                    className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
+                                    placeholder="https://your-domain/api/webhooks/veriff"
+                                />
+                            </label>
+
+                            <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                API Key
+                                <input
+                                    type="password"
+                                    value={settings.veriff_api_key}
+                                    onChange={(e) => setSettings((prev) => ({ ...prev, veriff_api_key: e.target.value }))}
+                                    className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
+                                    placeholder={settings.veriff_configured ? 'Leave blank to keep current key' : 'Enter Veriff API key'}
+                                />
+                            </label>
+
+                            <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                HMAC Secret
+                                <input
+                                    type="password"
+                                    value={settings.veriff_hmac_secret}
+                                    onChange={(e) => setSettings((prev) => ({ ...prev, veriff_hmac_secret: e.target.value }))}
+                                    className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
+                                    placeholder={settings.veriff_configured ? 'Leave blank to keep current secret' : 'Enter Veriff HMAC secret'}
+                                />
+                            </label>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="card-glass p-6">
@@ -528,6 +650,8 @@ export default function MobileControlPage() {
                                     <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">User</th>
                                     <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">KYC</th>
                                     <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Status</th>
+                                    <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Liveness</th>
+                                    <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-slate-500">Action</th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -539,11 +663,23 @@ export default function MobileControlPage() {
                                         </td>
                                         <td className="px-4 py-3 text-xs font-bold uppercase text-slate-600">{u.kyc_status || '-'}</td>
                                         <td className="px-4 py-3 text-xs font-bold uppercase text-slate-600">{u.status || '-'}</td>
+                                        <td className="px-4 py-3">
+                                            <div className="text-[11px] font-bold uppercase text-slate-600">{u.veriff_status || '-'}</div>
+                                            <div className="text-[10px] uppercase text-slate-400">{u.veriff_decision || '-'}</div>
+                                        </td>
+                                        <td className="px-4 py-3 text-right">
+                                            <button
+                                                onClick={() => syncLivenessForUser(u)}
+                                                className="rounded-full border border-slate-300 px-3 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                                            >
+                                                Sync
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))}
                                 {queue.length === 0 && (
                                     <tr>
-                                        <td colSpan={3} className="px-4 py-8 text-center text-sm text-slate-500">No users in queue</td>
+                                        <td colSpan={5} className="px-4 py-8 text-center text-sm text-slate-500">No users in queue</td>
                                     </tr>
                                 )}
                             </tbody>

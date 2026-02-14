@@ -81,4 +81,8 @@ export const ENDPOINTS = {
         ADS: `${API_BASE_URL}/mobile-admin/ads`,
         AD_DETAIL: (id: string | number) => `${API_BASE_URL}/mobile-admin/ads/${id}`,
     },
+    MOBILE_AUTH: {
+        START_LIVENESS: `${API_BASE_URL}/auth/liveness/start`,
+        SYNC_LIVENESS: `${API_BASE_URL}/auth/liveness/sync`,
+    },
 };
