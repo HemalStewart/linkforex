@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
-import { Search } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { PlusCircle, Search } from 'lucide-react';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../components/ConfirmModal';
 
@@ -18,6 +18,13 @@ type PermissionGroupRow = {
     updated_at: string | null;
 };
 
+type RoleOption = {
+    id: number | string;
+    name: string;
+};
+
+const OPERATION_OPTIONS = ['VIEW', 'ADD', 'EDIT', 'DELETE', 'APPROVE', 'CANCEL'];
+
 const normalizeDate = (value?: string | null) => {
     if (!value) return '';
     return value.includes('T') ? value : value.replace(' ', 'T');
@@ -30,12 +37,21 @@ const formatDateTime = (value?: string | null) => {
 
 export default function PermissionGroupsPage() {
     const [rows, setRows] = useState<PermissionGroupRow[]>([]);
+    const [roles, setRoles] = useState<RoleOption[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [sortKey, setSortKey] = useState<string>('role_name');
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(50);
+    const [showCreateForm, setShowCreateForm] = useState(false);
+    const [creating, setCreating] = useState(false);
+    const [createForm, setCreateForm] = useState({
+        role_name: '',
+        page_section: '',
+        operation: 'VIEW',
+        active: true
+    });
     const [currentUserName, setCurrentUserName] = useState('');
     const [savingId, setSavingId] = useState<number | null>(null);
     const [pendingToggle, setPendingToggle] = useState<{
@@ -50,24 +66,44 @@ export default function PermissionGroupsPage() {
         isAlert: false
     });
 
-    useEffect(() => {
-        const fetchRows = async () => {
-            setLoading(true);
-            try {
-                const res = await fetch(ENDPOINTS.PERMISSION_GROUPS.LIST);
-                if (res.ok) {
-                    const data = await res.json();
-                    setRows(Array.isArray(data) ? data : []);
-                }
-            } catch (e) {
-                console.error(e);
-            } finally {
-                setLoading(false);
+    const fetchRows = useCallback(async () => {
+        setLoading(true);
+        try {
+            const res = await fetch(ENDPOINTS.PERMISSION_GROUPS.LIST);
+            if (res.ok) {
+                const data = await res.json();
+                setRows(Array.isArray(data) ? data : []);
+            } else {
+                setRows([]);
             }
-        };
-
-        fetchRows();
+        } catch (e) {
+            console.error(e);
+            setRows([]);
+        } finally {
+            setLoading(false);
+        }
     }, []);
+
+    const fetchRoles = useCallback(async () => {
+        try {
+            const res = await fetch(ENDPOINTS.ROLES.LIST);
+            if (!res.ok) return;
+            const data = await res.json();
+            const mapped = Array.isArray(data)
+                ? data
+                    .filter((item) => item && typeof item.name === 'string')
+                    .map((item) => ({ id: item.id, name: item.name }) as RoleOption)
+                : [];
+            setRoles(mapped);
+        } catch (e) {
+            console.error(e);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchRows();
+        fetchRoles();
+    }, [fetchRows, fetchRoles]);
 
     useEffect(() => {
         const stored = localStorage.getItem('user');
@@ -178,6 +214,110 @@ export default function PermissionGroupsPage() {
             ? 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border border-teal-500/30'
             : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700';
 
+    const sectionOptions = useMemo(() => {
+        return Array.from(new Set(rows.map((row) => (row.page_section || '').trim()).filter(Boolean))).sort((a, b) =>
+            a.localeCompare(b, undefined, { sensitivity: 'base' })
+        );
+    }, [rows]);
+
+    const submitCreatePermission = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        if (creating) return;
+
+        const roleName = createForm.role_name.trim();
+        const pageSection = createForm.page_section.trim().toUpperCase();
+        const operation = createForm.operation.trim().toUpperCase();
+
+        if (!roleName || !pageSection || !operation) {
+            setConfirmModal({
+                isOpen: true,
+                title: 'Missing Fields',
+                message: 'Role, page section, and operation are required.',
+                type: 'warning',
+                isAlert: true
+            });
+            return;
+        }
+
+        const alreadyExists = rows.some((row) =>
+            row.role_name === roleName &&
+            row.page_section.toUpperCase() === pageSection &&
+            row.operation.toUpperCase() === operation
+        );
+
+        if (alreadyExists) {
+            setConfirmModal({
+                isOpen: true,
+                title: 'Already Exists',
+                message: 'This permission group already exists for the selected role.',
+                type: 'warning',
+                isAlert: true
+            });
+            return;
+        }
+
+        const role = roles.find((item) => item.name === roleName);
+        setCreating(true);
+
+        try {
+            const response = await fetch(ENDPOINTS.PERMISSION_GROUPS.LIST, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    role_id: role?.id,
+                    role_name: roleName,
+                    page_section: pageSection,
+                    operation,
+                    system_defined: 'no',
+                    active: createForm.active ? 'yes' : 'no',
+                    created_by: currentUserName || 'Admin',
+                    updated_by: currentUserName || 'Admin'
+                })
+            });
+
+            if (!response.ok) {
+                let message = 'Failed to create permission group.';
+                try {
+                    const errorPayload = await response.json();
+                    if (errorPayload?.messages) {
+                        message = Object.values(errorPayload.messages).join(', ');
+                    } else if (errorPayload?.message) {
+                        message = String(errorPayload.message);
+                    }
+                } catch (_e) {
+                    // ignore json parse errors
+                }
+                throw new Error(message);
+            }
+
+            await fetchRows();
+            setShowCreateForm(false);
+            setCreateForm({
+                role_name: '',
+                page_section: '',
+                operation: 'VIEW',
+                active: true
+            });
+            setConfirmModal({
+                isOpen: true,
+                title: 'Created',
+                message: 'Permission group added successfully.',
+                type: 'success',
+                isAlert: true
+            });
+        } catch (error) {
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: error instanceof Error ? error.message : 'Failed to create permission group.',
+                type: 'danger',
+                isAlert: true
+            });
+        } finally {
+            setCreating(false);
+        }
+    };
+
     const promptToggle = (row: PermissionGroupRow, nextActive: 'yes' | 'no') => {
         setPendingToggle({ row, nextActive });
         setConfirmModal({
@@ -268,12 +408,93 @@ export default function PermissionGroupsPage() {
                 confirmText={confirmModal.isAlert ? 'OK' : 'Confirm'}
                 isAlert={confirmModal.isAlert}
             />
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Permission Groups</h1>
                     <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">Manage role permissions by page and operation</p>
                 </div>
+                <button
+                    type="button"
+                    onClick={() => setShowCreateForm((prev) => !prev)}
+                    className="btn-primary px-5 py-3 rounded-full text-sm font-semibold inline-flex items-center gap-2"
+                >
+                    <PlusCircle className="w-4 h-4" />
+                    {showCreateForm ? 'Close' : 'Add Permission'}
+                </button>
             </div>
+
+            {showCreateForm && (
+                <div className="card-glass p-6">
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Add Permission Group</h2>
+                    <form onSubmit={submitCreatePermission} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Role</label>
+                            <select
+                                value={createForm.role_name}
+                                onChange={(e) => setCreateForm((prev) => ({ ...prev, role_name: e.target.value }))}
+                                className="input-glass w-full text-sm"
+                                required
+                            >
+                                <option value="">Select role</option>
+                                {roles.map((role) => (
+                                    <option key={role.id} value={role.name}>
+                                        {role.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Page Section</label>
+                            <input
+                                list="page-section-options"
+                                value={createForm.page_section}
+                                onChange={(e) => setCreateForm((prev) => ({ ...prev, page_section: e.target.value.toUpperCase() }))}
+                                placeholder="e.g. BRANCHES"
+                                className="input-glass w-full text-sm uppercase"
+                                required
+                            />
+                            <datalist id="page-section-options">
+                                {sectionOptions.map((section) => (
+                                    <option key={section} value={section} />
+                                ))}
+                            </datalist>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Operation</label>
+                            <select
+                                value={createForm.operation}
+                                onChange={(e) => setCreateForm((prev) => ({ ...prev, operation: e.target.value }))}
+                                className="input-glass w-full text-sm"
+                                required
+                            >
+                                {OPERATION_OPTIONS.map((option) => (
+                                    <option key={option} value={option}>
+                                        {option}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="flex items-end justify-between gap-4 md:justify-end">
+                            <label className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                                <input
+                                    type="checkbox"
+                                    checked={createForm.active}
+                                    onChange={(e) => setCreateForm((prev) => ({ ...prev, active: e.target.checked }))}
+                                    className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                                />
+                                Active
+                            </label>
+                            <button
+                                type="submit"
+                                disabled={creating}
+                                className="btn-primary px-5 py-2.5 rounded-full text-sm font-semibold disabled:opacity-60"
+                            >
+                                {creating ? 'Saving...' : 'Save Permission'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
 
             <div className="card-glass p-6">
                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search</label>
