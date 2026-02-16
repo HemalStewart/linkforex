@@ -83,7 +83,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         branchAccessFlags: 0,
         kyc: 0
     });
-    const [viewSections, setViewSections] = useState<Set<string> | null>(null);
+    const [isPrivilegedUser, setIsPrivilegedUser] = useState(false);
+    const [viewSections, setViewSections] = useState<Set<string>>(new Set());
 
     const pathname = usePathname();
     const router = useRouter();
@@ -179,17 +180,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }, [pathname, isLoginPage, currentUser?.id]);
 
     React.useEffect(() => {
-        const stored = localStorage.getItem('user');
-        if (stored) {
-            try {
-                setCurrentUser(JSON.parse(stored));
-            } catch { }
-        }
-    }, []);
-
-    React.useEffect(() => {
         if (!currentUser?.id) {
-            setViewSections(null);
+            setIsPrivilegedUser(false);
+            setViewSections(new Set());
             return;
         }
 
@@ -197,9 +190,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         const privileged = String(currentUser.system_defined || '').toLowerCase() === 'yes'
             || role.toLowerCase().includes('admin')
             || role.toLowerCase().includes('super');
+        setIsPrivilegedUser(privileged);
 
         if (privileged) {
-            setViewSections(null);
+            setViewSections(new Set());
             return;
         }
 
@@ -207,12 +201,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             try {
                 const res = await fetch(`${ENDPOINTS.PERMISSION_GROUPS.LIST}?role=${encodeURIComponent(role)}&active=yes`);
                 if (!res.ok) {
-                    setViewSections(null);
+                    setViewSections(new Set());
                     return;
                 }
                 const rows = await res.json();
                 if (!Array.isArray(rows)) {
-                    setViewSections(null);
+                    setViewSections(new Set());
                     return;
                 }
                 const sections = new Set<string>();
@@ -226,12 +220,20 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 }
                 setViewSections(sections);
             } catch {
-                setViewSections(null);
+                setViewSections(new Set());
             }
         };
 
         fetchPermissions();
     }, [currentUser?.id, currentUser?.role, currentUser?.system_defined]);
+
+    React.useEffect(() => {
+        if (isLoginPage || !currentUser?.id || isPrivilegedUser) return;
+
+        if (pathname.startsWith('/admin/roles') || pathname.startsWith('/admin/permission-groups')) {
+            router.replace('/admin/branches');
+        }
+    }, [isLoginPage, currentUser?.id, isPrivilegedUser, pathname, router]);
 
     React.useEffect(() => {
         if (typeof window === 'undefined') return;
@@ -298,15 +300,48 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
     // Initial Auth Check
     React.useEffect(() => {
-        if (!isLoginPage) {
-            const user = localStorage.getItem('user');
-            if (!user) {
-                router.replace('/admin/login');
-            } else {
-                setIsLoadingNav(false);
-            }
+        if (isLoginPage) {
+            setIsLoadingNav(false);
+            return;
+        }
+
+        const stored = localStorage.getItem('user');
+        if (!stored) {
+            setCurrentUser(null);
+            setIsLoadingNav(false);
+            router.replace('/admin/login');
+            return;
+        }
+
+        try {
+            const parsed = JSON.parse(stored) as CurrentUser;
+            setCurrentUser(parsed);
+            setIsLoadingNav(false);
+        } catch {
+            localStorage.removeItem('user');
+            setCurrentUser(null);
+            setIsLoadingNav(false);
+            router.replace('/admin/login');
         }
     }, [pathname, router, isLoginPage]);
+
+    React.useEffect(() => {
+        const onStorage = (event: StorageEvent) => {
+            if (event.key !== 'user') return;
+            if (!event.newValue) {
+                setCurrentUser(null);
+                return;
+            }
+            try {
+                setCurrentUser(JSON.parse(event.newValue));
+            } catch {
+                setCurrentUser(null);
+            }
+        };
+
+        window.addEventListener('storage', onStorage);
+        return () => window.removeEventListener('storage', onStorage);
+    }, []);
 
     React.useEffect(() => {
         if (isLoginPage) return;
@@ -320,6 +355,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             timer = setTimeout(async () => {
                 await logSignOff('Auto logged out, session expired.', false);
                 localStorage.removeItem('user');
+                setCurrentUser(null);
                 router.replace('/admin/login');
             }, timeoutMs);
         };
@@ -362,7 +398,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
     const canViewSections = (sections?: string[]) => {
         if (!sections || sections.length === 0) return true;
-        if (viewSections === null) return true;
+        if (isPrivilegedUser) return true;
+
+        const restrictedForBranchUsers = new Set([
+            'SYSGROUPS',
+            'ROLES',
+            'SYSGROUPS_PERMISSION',
+            'PERMISSION_GROUPS'
+        ]);
+
+        if (sections.some((section) => restrictedForBranchUsers.has(section.toUpperCase()))) {
+            return false;
+        }
+
         return sections.some((section) => viewSections.has(section.toUpperCase()));
     };
 
@@ -544,6 +592,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                 onClick={async () => {
                                     await logSignOff('User signed out', false);
                                     localStorage.removeItem('user');
+                                    setCurrentUser(null);
                                     router.replace('/admin/login');
                                 }}
                                 className="flex items-center space-x-3 px-5 py-3 text-red-500 hover:bg-red-50/70 dark:hover:bg-red-900/20 transition-all duration-300 w-full text-left group"
