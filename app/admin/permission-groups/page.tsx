@@ -35,11 +35,18 @@ const formatDateTime = (value?: string | null) => {
     return value;
 };
 
+const normalizeYesNo = (value?: string | null) => (String(value || '').toLowerCase() === 'yes' ? 'yes' : 'no');
+
 export default function PermissionGroupsPage() {
     const [rows, setRows] = useState<PermissionGroupRow[]>([]);
     const [roles, setRoles] = useState<RoleOption[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [roleFilter, setRoleFilter] = useState('');
+    const [pageSectionFilter, setPageSectionFilter] = useState('all');
+    const [operationFilter, setOperationFilter] = useState('all');
+    const [activeFilter, setActiveFilter] = useState('all');
+    const [systemDefinedFilter, setSystemDefinedFilter] = useState('all');
     const [sortKey, setSortKey] = useState<string>('role_name');
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
     const [page, setPage] = useState(1);
@@ -50,7 +57,7 @@ export default function PermissionGroupsPage() {
         role_name: '',
         page_section: '',
         operation: 'VIEW',
-        active: true
+        active: 'yes' as 'yes' | 'no'
     });
     const [currentUserName, setCurrentUserName] = useState('');
     const [savingId, setSavingId] = useState<number | null>(null);
@@ -139,6 +146,43 @@ export default function PermissionGroupsPage() {
         });
     }, [rows, searchQuery]);
 
+    const roleOptions = useMemo(() => {
+        const roleNames = new Set<string>();
+        roles.forEach((role) => {
+            const trimmed = (role.name || '').trim();
+            if (trimmed) roleNames.add(trimmed);
+        });
+        rows.forEach((row) => {
+            const trimmed = (row.role_name || '').trim();
+            if (trimmed) roleNames.add(trimmed);
+        });
+        return Array.from(roleNames).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+    }, [roles, rows]);
+
+    const sectionOptions = useMemo(() => {
+        return Array.from(new Set(rows.map((row) => (row.page_section || '').trim()).filter(Boolean))).sort((a, b) =>
+            a.localeCompare(b, undefined, { sensitivity: 'base' })
+        );
+    }, [rows]);
+
+    const operationOptions = useMemo(() => {
+        return Array.from(new Set([...OPERATION_OPTIONS, ...rows.map((row) => (row.operation || '').trim().toUpperCase()).filter(Boolean)])).sort(
+            (a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })
+        );
+    }, [rows]);
+
+    const filtered = useMemo(() => {
+        const normalizedRoleFilter = roleFilter.trim().toLowerCase();
+        return searched.filter((row) => {
+            if (normalizedRoleFilter && !(row.role_name || '').toLowerCase().includes(normalizedRoleFilter)) return false;
+            if (pageSectionFilter !== 'all' && row.page_section !== pageSectionFilter) return false;
+            if (operationFilter !== 'all' && row.operation.toUpperCase() !== operationFilter.toUpperCase()) return false;
+            if (activeFilter !== 'all' && normalizeYesNo(row.active) !== activeFilter) return false;
+            if (systemDefinedFilter !== 'all' && normalizeYesNo(row.system_defined) !== systemDefinedFilter) return false;
+            return true;
+        });
+    }, [searched, roleFilter, pageSectionFilter, operationFilter, activeFilter, systemDefinedFilter]);
+
     const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
     const getSortValue = (row: PermissionGroupRow, key: string) => {
         switch (key) {
@@ -166,7 +210,7 @@ export default function PermissionGroupsPage() {
     };
 
     const sorted = useMemo(() => {
-        const list = [...searched];
+        const list = [...filtered];
         list.sort((a, b) => {
             const aVal = getSortValue(a, sortKey);
             const bVal = getSortValue(b, sortKey);
@@ -177,7 +221,7 @@ export default function PermissionGroupsPage() {
             return sortDir === 'asc' ? result : -result;
         });
         return list;
-    }, [searched, sortKey, sortDir]);
+    }, [filtered, sortKey, sortDir]);
 
     const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
 
@@ -189,7 +233,7 @@ export default function PermissionGroupsPage() {
 
     useEffect(() => {
         setPage(1);
-    }, [searchQuery, pageSize]);
+    }, [searchQuery, roleFilter, pageSectionFilter, operationFilter, activeFilter, systemDefinedFilter, pageSize]);
 
     const startIndex = sorted.length === 0 ? 0 : (page - 1) * pageSize;
     const endIndex = sorted.length === 0 ? 0 : Math.min(startIndex + pageSize, sorted.length);
@@ -210,15 +254,9 @@ export default function PermissionGroupsPage() {
     };
 
     const badgeClass = (value: string) =>
-        value === 'yes'
+        normalizeYesNo(value) === 'yes'
             ? 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border border-teal-500/30'
             : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700';
-
-    const sectionOptions = useMemo(() => {
-        return Array.from(new Set(rows.map((row) => (row.page_section || '').trim()).filter(Boolean))).sort((a, b) =>
-            a.localeCompare(b, undefined, { sensitivity: 'base' })
-        );
-    }, [rows]);
 
     const submitCreatePermission = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -239,20 +277,81 @@ export default function PermissionGroupsPage() {
             return;
         }
 
-        const alreadyExists = rows.some((row) =>
+        const existingPermission = rows.find((row) =>
             row.role_name === roleName &&
-            row.page_section.toUpperCase() === pageSection &&
-            row.operation.toUpperCase() === operation
+            (row.page_section || '').trim().toUpperCase() === pageSection &&
+            (row.operation || '').trim().toUpperCase() === operation
         );
 
-        if (alreadyExists) {
-            setConfirmModal({
-                isOpen: true,
-                title: 'Already Exists',
-                message: 'This permission group already exists for the selected role.',
-                type: 'warning',
-                isAlert: true
-            });
+        if (existingPermission) {
+            const existingActive = normalizeYesNo(existingPermission.active);
+            if (existingActive === createForm.active) {
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Already Exists',
+                    message: `This role permission already exists and is already ${existingActive}.`,
+                    type: 'warning',
+                    isAlert: true
+                });
+                return;
+            }
+
+            setCreating(true);
+            try {
+                const updateResponse = await fetch(ENDPOINTS.PERMISSION_GROUPS.DETAIL(existingPermission.id), {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        role_name: existingPermission.role_name,
+                        page_section: existingPermission.page_section,
+                        operation: existingPermission.operation,
+                        system_defined: existingPermission.system_defined,
+                        active: createForm.active,
+                        updated_by: currentUserName || 'Admin'
+                    })
+                });
+
+                if (!updateResponse.ok) {
+                    let message = 'Failed to update existing role permission.';
+                    try {
+                        const errorPayload = await updateResponse.json();
+                        if (errorPayload?.messages) {
+                            message = Object.values(errorPayload.messages).join(', ');
+                        } else if (errorPayload?.message) {
+                            message = String(errorPayload.message);
+                        }
+                    } catch (_error) {
+                        // ignore parsing errors
+                    }
+                    throw new Error(message);
+                }
+
+                await fetchRows();
+                setShowCreateForm(false);
+                setCreateForm({
+                    role_name: '',
+                    page_section: '',
+                    operation: 'VIEW',
+                    active: 'yes'
+                });
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Updated',
+                    message: `Existing role permission updated to ${createForm.active}.`,
+                    type: 'success',
+                    isAlert: true
+                });
+            } catch (error) {
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: error instanceof Error ? error.message : 'Failed to update existing role permission.',
+                    type: 'danger',
+                    isAlert: true
+                });
+            } finally {
+                setCreating(false);
+            }
             return;
         }
 
@@ -269,14 +368,14 @@ export default function PermissionGroupsPage() {
                     page_section: pageSection,
                     operation,
                     system_defined: 'no',
-                    active: createForm.active ? 'yes' : 'no',
+                    active: createForm.active,
                     created_by: currentUserName || 'Admin',
                     updated_by: currentUserName || 'Admin'
                 })
             });
 
             if (!response.ok) {
-                let message = 'Failed to create permission group.';
+                let message = 'Failed to create role permission.';
                 try {
                     const errorPayload = await response.json();
                     if (errorPayload?.messages) {
@@ -296,12 +395,12 @@ export default function PermissionGroupsPage() {
                 role_name: '',
                 page_section: '',
                 operation: 'VIEW',
-                active: true
+                active: 'yes'
             });
             setConfirmModal({
                 isOpen: true,
                 title: 'Created',
-                message: 'Permission group added successfully.',
+                message: 'Role permission added successfully.',
                 type: 'success',
                 isAlert: true
             });
@@ -309,7 +408,7 @@ export default function PermissionGroupsPage() {
             setConfirmModal({
                 isOpen: true,
                 title: 'Error',
-                message: error instanceof Error ? error.message : 'Failed to create permission group.',
+                message: error instanceof Error ? error.message : 'Failed to create role permission.',
                 type: 'danger',
                 isAlert: true
             });
@@ -322,8 +421,8 @@ export default function PermissionGroupsPage() {
         setPendingToggle({ row, nextActive });
         setConfirmModal({
             isOpen: true,
-            title: nextActive === 'yes' ? 'Activate Permission' : 'Deactivate Permission',
-            message: `Are you sure you want to ${nextActive === 'yes' ? 'activate' : 'deactivate'} this permission for ${row.role_name}?`,
+            title: nextActive === 'yes' ? 'Activate Role Permission' : 'Deactivate Role Permission',
+            message: `Are you sure you want to ${nextActive === 'yes' ? 'activate' : 'deactivate'} this role permission for ${row.role_name}?`,
             type: nextActive === 'yes' ? 'info' : 'warning',
             isAlert: false
         });
@@ -343,20 +442,33 @@ export default function PermissionGroupsPage() {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    role_name: row.role_name,
+                    page_section: row.page_section,
+                    operation: row.operation,
+                    system_defined: row.system_defined,
                     active: nextActive,
-                    updated_by: currentUserName || undefined
+                    updated_by: currentUserName || row.updated_by || 'Admin'
                 })
             });
 
             if (res.ok) {
-                const updated = await res.json();
+                let responsePayload: any = {};
+                try {
+                    responsePayload = await res.json();
+                } catch (_error) {
+                    responsePayload = {};
+                }
+                const updated = responsePayload?.data && typeof responsePayload.data === 'object'
+                    ? responsePayload.data
+                    : responsePayload;
+
                 setRows((prev) =>
                     prev.map((item) =>
                         item.id === row.id
                             ? {
                                 ...item,
-                                active: updated.active ?? nextActive,
-                                updated_by: updated.updated_by ?? (currentUserName || item.updated_by),
+                                active: normalizeYesNo(updated?.active ?? nextActive),
+                                updated_by: updated?.updated_by ?? (currentUserName || item.updated_by),
                                 updated_at: updated.updated_at ?? item.updated_at
                             }
                             : item
@@ -365,15 +477,26 @@ export default function PermissionGroupsPage() {
                 setConfirmModal({
                     isOpen: true,
                     title: 'Updated',
-                    message: `Permission ${nextActive === 'yes' ? 'activated' : 'deactivated'} successfully.`,
+                    message: `Role permission ${nextActive === 'yes' ? 'activated' : 'deactivated'} successfully.`,
                     type: 'success',
                     isAlert: true
                 });
             } else {
+                let message = 'Failed to update role permission status.';
+                try {
+                    const errorPayload = await res.json();
+                    if (errorPayload?.messages) {
+                        message = Object.values(errorPayload.messages).join(', ');
+                    } else if (errorPayload?.message) {
+                        message = String(errorPayload.message);
+                    }
+                } catch (_error) {
+                    // ignore parsing error
+                }
                 setConfirmModal({
                     isOpen: true,
                     title: 'Error',
-                    message: 'Failed to update permission status.',
+                    message,
                     type: 'danger',
                     isAlert: true
                 });
@@ -382,7 +505,7 @@ export default function PermissionGroupsPage() {
             setConfirmModal({
                 isOpen: true,
                 title: 'Error',
-                message: 'Network error while updating permission.',
+                message: 'Network error while updating role permission.',
                 type: 'danger',
                 isAlert: true
             });
@@ -390,6 +513,22 @@ export default function PermissionGroupsPage() {
             setSavingId(null);
             setPendingToggle(null);
         }
+    };
+
+    const hasActiveFilters = Boolean(
+        roleFilter.trim() ||
+        pageSectionFilter !== 'all' ||
+        operationFilter !== 'all' ||
+        activeFilter !== 'all' ||
+        systemDefinedFilter !== 'all'
+    );
+
+    const clearFilters = () => {
+        setRoleFilter('');
+        setPageSectionFilter('all');
+        setOperationFilter('all');
+        setActiveFilter('all');
+        setSystemDefinedFilter('all');
     };
 
     return (
@@ -410,8 +549,8 @@ export default function PermissionGroupsPage() {
             />
             <div className="flex items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Permission Groups</h1>
-                    <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">Manage role permissions by page and operation</p>
+                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Role Permissions</h1>
+                    <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">Manage role permissions by page section and operation</p>
                 </div>
                 <button
                     type="button"
@@ -425,8 +564,8 @@ export default function PermissionGroupsPage() {
 
             {showCreateForm && (
                 <div className="card-glass p-6">
-                    <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Add Permission Group</h2>
-                    <form onSubmit={submitCreatePermission} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Add Role Permission</h2>
+                    <form onSubmit={submitCreatePermission} className="grid grid-cols-1 md:grid-cols-5 gap-4">
                         <div>
                             <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Role</label>
                             <select
@@ -449,7 +588,7 @@ export default function PermissionGroupsPage() {
                                 list="page-section-options"
                                 value={createForm.page_section}
                                 onChange={(e) => setCreateForm((prev) => ({ ...prev, page_section: e.target.value.toUpperCase() }))}
-                                placeholder="e.g. BRANCHES"
+                                placeholder="Page section code"
                                 className="input-glass w-full text-sm uppercase"
                                 required
                             />
@@ -474,16 +613,18 @@ export default function PermissionGroupsPage() {
                                 ))}
                             </select>
                         </div>
-                        <div className="flex items-end justify-between gap-4 md:justify-end">
-                            <label className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-                                <input
-                                    type="checkbox"
-                                    checked={createForm.active}
-                                    onChange={(e) => setCreateForm((prev) => ({ ...prev, active: e.target.checked }))}
-                                    className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
-                                />
-                                Active
-                            </label>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Active</label>
+                            <select
+                                value={createForm.active}
+                                onChange={(e) => setCreateForm((prev) => ({ ...prev, active: e.target.value as 'yes' | 'no' }))}
+                                className="input-glass w-full text-sm"
+                            >
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+                        <div className="flex items-end justify-end">
                             <button
                                 type="submit"
                                 disabled={creating}
@@ -497,18 +638,96 @@ export default function PermissionGroupsPage() {
             )}
 
             <div className="card-glass p-6">
-                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search</label>
-                <div className="relative input-icon">
-                    <span className="input-icon-left">
-                        <Search className="w-4 h-4" />
-                    </span>
-                    <input
-                        type="text"
-                        placeholder="Search across all columns"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="input-glass w-full text-sm"
-                    />
+                <div>
+                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Global Search</label>
+                    <div className="relative input-icon">
+                        <span className="input-icon-left">
+                            <Search className="w-4 h-4" />
+                        </span>
+                        <input
+                            type="text"
+                            placeholder="Search all columns"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="input-glass w-full text-sm"
+                        />
+                    </div>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mt-4">
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Role</label>
+                        <input
+                            list="role-filter-options"
+                            value={roleFilter}
+                            onChange={(e) => setRoleFilter(e.target.value)}
+                            placeholder="Search role"
+                            className="input-glass w-full text-sm"
+                        />
+                        <datalist id="role-filter-options">
+                            {roleOptions.map((role) => (
+                                <option key={role} value={role} />
+                            ))}
+                        </datalist>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Page Section</label>
+                        <select
+                            value={pageSectionFilter}
+                            onChange={(e) => setPageSectionFilter(e.target.value)}
+                            className="input-glass w-full text-sm"
+                        >
+                            <option value="all">All</option>
+                            {sectionOptions.map((section) => (
+                                <option key={section} value={section}>{section}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Operation</label>
+                        <select
+                            value={operationFilter}
+                            onChange={(e) => setOperationFilter(e.target.value)}
+                            className="input-glass w-full text-sm"
+                        >
+                            <option value="all">All</option>
+                            {operationOptions.map((operation) => (
+                                <option key={operation} value={operation}>{operation}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Status</label>
+                        <div className="flex items-center gap-2">
+                            <select
+                                value={activeFilter}
+                                onChange={(e) => setActiveFilter(e.target.value)}
+                                className="input-glass w-full text-sm"
+                            >
+                                <option value="all">All Active</option>
+                                <option value="yes">Active</option>
+                                <option value="no">Inactive</option>
+                            </select>
+                            <select
+                                value={systemDefinedFilter}
+                                onChange={(e) => setSystemDefinedFilter(e.target.value)}
+                                className="input-glass w-full text-sm"
+                            >
+                                <option value="all">All System</option>
+                                <option value="yes">System Yes</option>
+                                <option value="no">System No</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div className="mt-4 flex justify-end">
+                    <button
+                        type="button"
+                        onClick={clearFilters}
+                        disabled={!hasActiveFilters}
+                        className="px-4 py-2 rounded-full text-xs font-semibold glass-effect text-slate-600 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Clear Filters
+                    </button>
                 </div>
             </div>
 
@@ -525,12 +744,12 @@ export default function PermissionGroupsPage() {
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">No.</th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
                                     <button onClick={() => toggleSort('role_name')} className="flex items-center gap-1">
-                                        Role Permission Group <span className="text-slate-400 dark:text-slate-300">{sortIndicator('role_name')}</span>
+                                        Role <span className="text-slate-400 dark:text-slate-300">{sortIndicator('role_name')}</span>
                                     </button>
                                 </th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
                                     <button onClick={() => toggleSort('page_section')} className="flex items-center gap-1">
-                                        Page (Section) <span className="text-slate-400 dark:text-slate-300">{sortIndicator('page_section')}</span>
+                                        Page Section <span className="text-slate-400 dark:text-slate-300">{sortIndicator('page_section')}</span>
                                     </button>
                                 </th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
@@ -543,8 +762,8 @@ export default function PermissionGroupsPage() {
                                         System Defined <span className="text-slate-400 dark:text-slate-300">{sortIndicator('system_defined')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
-                                    <button onClick={() => toggleSort('active')} className="flex items-center gap-1">
+                                <th className="px-4 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                    <button onClick={() => toggleSort('active')} className="mx-auto flex items-center gap-1">
                                         Active <span className="text-slate-400 dark:text-slate-300">{sortIndicator('active')}</span>
                                     </button>
                                 </th>
@@ -566,7 +785,7 @@ export default function PermissionGroupsPage() {
                             {loading ? (
                                 <tr>
                                     <td colSpan={10} className="px-6 py-10 text-center text-slate-500 dark:text-slate-300">
-                                        Loading permission groups...
+                                        Loading role permissions...
                                     </td>
                                 </tr>
                             ) : (
@@ -578,19 +797,22 @@ export default function PermissionGroupsPage() {
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.operation}</td>
                                         <td className="px-4 py-4 text-sm">
                                             <span className={`px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${badgeClass(row.system_defined)}`}>
-                                                {row.system_defined || 'no'}
+                                                {normalizeYesNo(row.system_defined)}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-4 text-sm">
-                                            <label className="inline-flex items-center gap-2">
+                                        <td className="px-4 py-4 text-sm text-center">
+                                            <label className="inline-flex items-center justify-center">
                                                 <input
                                                     type="checkbox"
-                                                    checked={row.active === 'yes'}
+                                                    checked={normalizeYesNo(row.active) === 'yes'}
                                                     onChange={(e) => promptToggle(row, e.target.checked ? 'yes' : 'no')}
                                                     disabled={savingId === row.id}
                                                     className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-50"
                                                 />
                                             </label>
+                                            <div className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
+                                                {normalizeYesNo(row.active)}
+                                            </div>
                                         </td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.created_by || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime(row.created_at)}</td>

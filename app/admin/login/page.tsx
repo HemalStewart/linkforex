@@ -131,7 +131,7 @@ export default function AdminLoginPage() {
                   id="email"
                   type="email"
                   name="email"
-                  placeholder="admin@linkforex.com"
+                  placeholder="Email address"
                   className="input-glass w-full py-3.5 text-base font-medium shadow-inner"
                   autoComplete="email"
                   required

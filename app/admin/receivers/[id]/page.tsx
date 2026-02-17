@@ -172,7 +172,7 @@ export default function EditReceiverPage() {
                                     </option>
                                 ))}
                             </select>
-              <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none rotate-90" />
+              <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
                         </div>
                     </div>
 
@@ -202,7 +202,7 @@ export default function EditReceiverPage() {
                                     value={formData.bank_name}
                                     onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })}
                   className="input-glass w-full pl-12"
-                                    placeholder="e.g. Bank of London"
+                                    placeholder="Bank name"
                                 />
                             </div>
                         </div>

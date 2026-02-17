@@ -20,7 +20,9 @@ import {
     CreditCard,
     Shield,
     Layers,
-    FileText
+    FileText,
+    RefreshCcw,
+    ExternalLink
 } from 'lucide-react';
 
 export default function EditRemitterPage() {
@@ -63,11 +65,20 @@ export default function EditRemitterPage() {
         sender_details_aml_screening_doc: '',
         sender_aml_result: '',
         rescreening_sender: '',
+        veriff_status: '',
+        veriff_decision: '',
+        veriff_reason: '',
+        veriff_checked_at: '',
+        veriff_url: '',
+        verification_state: 'not_started',
+        id_expired: false,
+        branch_veriff_enabled: false,
         created_by: '',
         created_at: '',
         updated_by: '',
         updated_at: ''
     });
+    const [veriffLoading, setVeriffLoading] = useState(false);
 
     const [confirmModal, setConfirmModal] = useState({
         isOpen: false,
@@ -120,6 +131,14 @@ export default function EditRemitterPage() {
                     sender_details_aml_screening_doc: data.sender_details_aml_screening_doc || '',
                     sender_aml_result: data.sender_aml_result || '',
                     rescreening_sender: data.rescreening_sender || '',
+                    veriff_status: data.veriff_status || '',
+                    veriff_decision: data.veriff_decision || '',
+                    veriff_reason: data.veriff_reason || '',
+                    veriff_checked_at: data.veriff_checked_at || '',
+                    veriff_url: data.veriff_url || '',
+                    verification_state: data.verification_state || 'not_started',
+                    id_expired: Boolean(data.id_expired),
+                    branch_veriff_enabled: Boolean(data.branch_veriff_enabled),
                     created_by: data.created_by || '',
                     created_at: data.created_at || '',
                     updated_by: data.updated_by || '',
@@ -229,6 +248,68 @@ export default function EditRemitterPage() {
             ? 'bg-teal-500/15 text-teal-600 dark:text-teal-300'
             : 'bg-slate-500/15 text-slate-600 dark:text-slate-300';
 
+    const verificationLabel = (state?: string) => {
+        const normalized = (state || '').toLowerCase();
+        if (normalized === 'verified') return 'Already Verified';
+        if (normalized === 'pending') return 'Pending';
+        if (normalized === 'rejected') return 'Rejected';
+        if (normalized === 'expired') return 'Expired ID';
+        return 'Not Verified';
+    };
+
+    const verificationBadgeClass = (state?: string) => {
+        const normalized = (state || '').toLowerCase();
+        if (normalized === 'verified') return 'bg-teal-500/15 text-teal-600 dark:text-teal-300';
+        if (normalized === 'pending') return 'bg-amber-500/15 text-amber-600 dark:text-amber-300';
+        if (normalized === 'rejected') return 'bg-rose-500/15 text-rose-600 dark:text-rose-300';
+        if (normalized === 'expired') return 'bg-red-500/15 text-red-600 dark:text-red-300';
+        return 'bg-slate-500/15 text-slate-600 dark:text-slate-300';
+    };
+
+    const syncVeriff = async (action: 'start' | 'sync') => {
+        setVeriffLoading(true);
+        try {
+            const endpoint = action === 'start'
+                ? ENDPOINTS.REMITTERS.VERIFF_START(id)
+                : ENDPOINTS.REMITTERS.VERIFF_SYNC(id);
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({}),
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Verification Error',
+                    message: data?.message || 'Unable to run verification action.',
+                    type: 'danger',
+                    isAlert: true,
+                    shouldRedirect: false
+                });
+                return;
+            }
+
+            if (data?.session_url && action === 'start') {
+                window.open(data.session_url, '_blank', 'noopener,noreferrer');
+            }
+
+            await fetchRemitter();
+        } catch (error) {
+            console.error('Verification request failed', error);
+            setConfirmModal({
+                isOpen: true,
+                title: 'Verification Error',
+                message: 'Unable to run verification action.',
+                type: 'danger',
+                isAlert: true,
+                shouldRedirect: false
+            });
+        } finally {
+            setVeriffLoading(false);
+        }
+    };
+
     if (loading) {
         return <div className="max-w-7xl mx-auto p-12 text-center text-slate-500 dark:text-slate-300">Loading remitter details...</div>;
     }
@@ -304,6 +385,50 @@ export default function EditRemitterPage() {
                             <span className="text-sm text-slate-600 dark:text-slate-300">Proof Of Funds</span>
                             <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${yesNoBadge(formData.proof_of_funds)}`}>{yesNoText(formData.proof_of_funds)}</span>
                         </div>
+                        <div className="mt-2 flex items-center justify-between gap-2">
+                            <span className="text-sm text-slate-600 dark:text-slate-300">Verification</span>
+                            <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${verificationBadgeClass(formData.verification_state)}`}>
+                                {verificationLabel(formData.verification_state)}
+                            </span>
+                        </div>
+                        {formData.id_expired ? (
+                            <p className="mt-2 text-xs font-semibold text-red-600 dark:text-red-300">ID expired: transfer will be blocked until re-verified.</p>
+                        ) : null}
+                        {formData.veriff_reason ? (
+                            <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">Reason: {formData.veriff_reason}</p>
+                        ) : null}
+                        <div className="mt-3 flex flex-wrap gap-2">
+                            <button
+                                type="button"
+                                onClick={() => syncVeriff('start')}
+                                disabled={veriffLoading || formData.branch_veriff_enabled === false || (formData.verification_state === 'verified' && !formData.id_expired)}
+                                className="px-2.5 py-1.5 rounded-full text-[11px] font-bold glass-effect text-slate-700 dark:text-slate-200 disabled:opacity-40"
+                            >
+                                {veriffLoading ? 'Working...' : 'Start Verification'}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => syncVeriff('sync')}
+                                disabled={veriffLoading || formData.branch_veriff_enabled === false}
+                                className="px-2.5 py-1.5 rounded-full text-[11px] font-bold glass-effect text-slate-700 dark:text-slate-200 disabled:opacity-40"
+                            >
+                                <RefreshCcw className="inline-block w-3 h-3 mr-1" />
+                                Sync Result
+                            </button>
+                            {formData.veriff_url ? (
+                                <button
+                                    type="button"
+                                    onClick={() => window.open(formData.veriff_url, '_blank', 'noopener,noreferrer')}
+                                    className="px-2.5 py-1.5 rounded-full text-[11px] font-bold glass-effect text-slate-700 dark:text-slate-200"
+                                >
+                                    <ExternalLink className="inline-block w-3 h-3 mr-1" />
+                                    Open Link
+                                </button>
+                            ) : null}
+                        </div>
+                        {formData.branch_veriff_enabled === false ? (
+                            <p className="mt-2 text-xs font-semibold text-amber-600 dark:text-amber-300">Branch verification is currently disabled by backend flag.</p>
+                        ) : null}
                     </div>
 
                     <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
@@ -329,6 +454,8 @@ export default function EditRemitterPage() {
                         <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">ID Type: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.id_type)}</span></p>
                         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">ID No: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.id_number)}</span></p>
                         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">ID Expiry: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.id_expiry)}</span></p>
+                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Veriff Decision: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.veriff_decision)}</span></p>
+                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Veriff Checked: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.veriff_checked_at)}</span></p>
                         <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">AML Result: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.sender_aml_result)}</span></p>
                     </div>
                 </div>

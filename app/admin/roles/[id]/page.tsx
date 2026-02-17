@@ -195,7 +195,7 @@ export default function EditRolePage() {
                                 type="text"
                                 required
                                 className="input-glass w-full"
-                                placeholder="e.g. Admin"
+                                placeholder="Role name"
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             />
@@ -216,7 +216,7 @@ export default function EditRolePage() {
                                 <option value="no">No</option>
                                 <option value="yes">Yes</option>
                             </select>
-                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">⌄</span>
+                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-200 pointer-events-none">⌄</span>
                         </div>
                     </div>
 

@@ -219,7 +219,7 @@ export default function CreateUserPage() {
                                 type="text"
                                 required
                 className="input-glass w-full"
-                                placeholder="e.g. jdoe"
+                                placeholder="Username"
                                 value={formData.username}
                                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                             />
@@ -236,7 +236,7 @@ export default function CreateUserPage() {
                                 type="email"
                                 required
                 className="input-glass w-full"
-                                placeholder="john@example.com"
+                                placeholder="Email address"
                                 value={formData.email}
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                             />
@@ -311,7 +311,7 @@ export default function CreateUserPage() {
                             <input
                                 type="tel"
                                 className="input-glass w-full"
-                                placeholder="+44 7700 900000"
+                                placeholder="Phone number"
                                 value={formData.phone}
                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                             />
@@ -350,7 +350,7 @@ export default function CreateUserPage() {
                                     <option key={r.id} value={r.id}>{r.name}</option>
                                 ))}
                             </select>
-              <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none rotate-90" />
+              <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
                         </div>
                     </div>
 
@@ -372,7 +372,7 @@ export default function CreateUserPage() {
                                     </option>
                                 ))}
                             </select>
-              <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none rotate-90" />
+              <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
                         </div>
                     </div>
 
@@ -392,7 +392,7 @@ export default function CreateUserPage() {
                                 <option value="inactive">Inactive</option>
                                 <option value="suspended">Suspended</option>
                             </select>
-              <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none rotate-90" />
+              <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
                         </div>
                     </div>
 
@@ -411,7 +411,7 @@ export default function CreateUserPage() {
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
                             </select>
-              <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none rotate-90" />
+              <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
                         </div>
                     </div>
 

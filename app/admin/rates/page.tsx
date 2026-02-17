@@ -272,7 +272,7 @@ export default function ExchangeRatesPage() {
                             <input
                                 type="text"
                                 required
-                                placeholder="e.g. Euro"
+                                placeholder="Currency name"
                                 className="input-glass w-full pl-10"
                                 value={newCurrency.name}
                                 onChange={e => setNewCurrency({ ...newCurrency, name: e.target.value })}
@@ -288,7 +288,7 @@ export default function ExchangeRatesPage() {
                                 <input
                                     type="text"
                                     required
-                                    placeholder="e.g. EUR"
+                                    placeholder="Currency code"
                                     className="input-glass w-full pl-10 uppercase font-mono"
                                     value={newCurrency.code}
                                     onChange={e => setNewCurrency({ ...newCurrency, code: e.target.value.toUpperCase() })}
@@ -300,7 +300,7 @@ export default function ExchangeRatesPage() {
                             <input
                                 type="text"
                                 required
-                                placeholder="e.g. €"
+                                placeholder="Symbol"
                                 className="input-glass w-full text-center font-mono text-lg"
                                 value={newCurrency.symbol}
                                 onChange={e => setNewCurrency({ ...newCurrency, symbol: e.target.value })}
@@ -315,7 +315,7 @@ export default function ExchangeRatesPage() {
                                 type="number"
                                 step="0.0001"
                                 required
-                                placeholder="e.g. 1.15"
+                                placeholder="Rate"
                                 className="input-glass w-full pl-10 font-mono"
                                 value={newCurrency.rate}
                                 onChange={e => setNewCurrency({ ...newCurrency, rate: e.target.value })}

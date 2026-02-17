@@ -173,7 +173,7 @@ export default function CreateBranchPage() {
                                 className="input-glass w-full"
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                placeholder="e.g. Jalalabad - Khyber MSP"
+                                placeholder="Branch name"
                             />
                         </div>
                     </div>
@@ -186,12 +186,12 @@ export default function CreateBranchPage() {
                                 className="input-glass w-full uppercase"
                                 value={formData.transaction_prefix}
                                 onChange={(e) => setFormData({ ...formData, transaction_prefix: e.target.value })}
-                                placeholder="e.g. J"
+                                placeholder="Prefix"
                             />
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Branch Default Transaction Type <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Default Transaction Type <span className="text-red-500">*</span></label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><ArrowRightLeft className="w-5 h-5" /></span>
                             <select
@@ -203,11 +203,11 @@ export default function CreateBranchPage() {
                                 <option value="Sender">Sender</option>
                                 <option value="Both">Both</option>
                             </select>
-                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">⌄</span>
+                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-200 pointer-events-none">⌄</span>
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Day Transfer Limit - £ Value</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Daily Transfer Limit (£)</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Coins className="w-5 h-5" /></span>
                             <input
@@ -217,26 +217,26 @@ export default function CreateBranchPage() {
                                 className="input-glass w-full"
                                 value={formData.day_transfer_limit}
                                 onChange={(e) => setFormData({ ...formData, day_transfer_limit: e.target.value })}
-                                placeholder="100000"
+                                placeholder="Daily limit amount"
                             />
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Theme 1</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Theme Option 1</label>
                         <input
                             className="input-glass w-full"
                             value={formData.theme_1}
                             onChange={(e) => setFormData({ ...formData, theme_1: e.target.value })}
-                            placeholder="Theme 1"
+                            placeholder="Theme option 1"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Theme 2</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Theme Option 2</label>
                         <input
                             className="input-glass w-full"
                             value={formData.theme_2}
                             onChange={(e) => setFormData({ ...formData, theme_2: e.target.value })}
-                            placeholder="Theme 2"
+                            placeholder="Theme option 2"
                         />
                     </div>
                     <div>
@@ -247,7 +247,7 @@ export default function CreateBranchPage() {
                                 className="input-glass w-full"
                                 value={formData.address_line_1}
                                 onChange={(e) => setFormData({ ...formData, address_line_1: e.target.value })}
-                                placeholder="Shop 125"
+                                placeholder="Address line 1"
                             />
                         </div>
                     </div>
@@ -259,7 +259,7 @@ export default function CreateBranchPage() {
                                 className="input-glass w-full"
                                 value={formData.address_line_2}
                                 onChange={(e) => setFormData({ ...formData, address_line_2: e.target.value })}
-                                placeholder="Second Floor, Haji Gholamullah Market"
+                                placeholder="Address line 2"
                             />
                         </div>
                     </div>
@@ -271,7 +271,7 @@ export default function CreateBranchPage() {
                                 className="input-glass w-full"
                                 value={formData.city}
                                 onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                                placeholder="Jalalabad"
+                                placeholder="City"
                             />
                         </div>
                     </div>
@@ -283,60 +283,60 @@ export default function CreateBranchPage() {
                                 className="input-glass w-full"
                                 value={formData.country}
                                 onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                                placeholder="AFGHANISTAN"
+                                placeholder="Country"
                             />
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Telephone 1</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Primary Telephone</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Phone className="w-5 h-5" /></span>
                             <input
                                 className="input-glass w-full"
                                 value={formData.telephone_1}
                                 onChange={(e) => setFormData({ ...formData, telephone_1: e.target.value })}
-                                placeholder="020 210 7218"
+                                placeholder="Telephone 1"
                             />
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Telephone 2</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Secondary Telephone</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Phone className="w-5 h-5" /></span>
                             <input
                                 className="input-glass w-full"
                                 value={formData.telephone_2}
                                 onChange={(e) => setFormData({ ...formData, telephone_2: e.target.value })}
-                                placeholder="070 588 4252"
+                                placeholder="Telephone 2"
                             />
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Fax 1</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Primary Fax</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Printer className="w-5 h-5" /></span>
                             <input
                                 className="input-glass w-full"
                                 value={formData.fax_1}
                                 onChange={(e) => setFormData({ ...formData, fax_1: e.target.value })}
-                                placeholder="Fax 1"
+                                placeholder="Fax number"
                             />
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Fax 2</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Secondary Fax</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Printer className="w-5 h-5" /></span>
                             <input
                                 className="input-glass w-full"
                                 value={formData.fax_2}
                                 onChange={(e) => setFormData({ ...formData, fax_2: e.target.value })}
-                                placeholder="Fax 2"
+                                placeholder="Alternate fax number"
                             />
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Email 1</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Primary Email</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Mail className="w-5 h-5" /></span>
                             <input
@@ -344,12 +344,12 @@ export default function CreateBranchPage() {
                                 className="input-glass w-full"
                                 value={formData.email_1}
                                 onChange={(e) => setFormData({ ...formData, email_1: e.target.value })}
-                                placeholder="email@linkforex.com"
+                                placeholder="Email address"
                             />
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Email 2</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Secondary Email</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Mail className="w-5 h-5" /></span>
                             <input
@@ -357,7 +357,7 @@ export default function CreateBranchPage() {
                                 className="input-glass w-full"
                                 value={formData.email_2}
                                 onChange={(e) => setFormData({ ...formData, email_2: e.target.value })}
-                                placeholder="email2@linkforex.com"
+                                placeholder="Alternate email address"
                             />
                         </div>
                     </div>
@@ -370,7 +370,7 @@ export default function CreateBranchPage() {
                                 className="input-glass w-full resize-none"
                                 value={formData.remarks}
                                 onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
-                                placeholder="Remarks"
+                                placeholder="Additional notes"
                             />
                         </div>
                     </div>

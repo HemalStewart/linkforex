@@ -168,7 +168,7 @@ export default function EditRemitterPage() {
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="input-glass w-full pl-12 py-3"
-                                placeholder="E.g. John Doe"
+                                placeholder="Full name"
                             />
                         </div>
                     </div>
@@ -182,7 +182,7 @@ export default function EditRemitterPage() {
                                 value={formData.email || ''}
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="input-glass w-full pl-12 py-3"
-                                placeholder="john@example.com"
+                                placeholder="Email address"
                             />
                         </div>
                     </div>
@@ -197,7 +197,7 @@ export default function EditRemitterPage() {
                                 value={formData.phone}
                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 className="input-glass w-full pl-12 py-3"
-                                placeholder="+44 7700 900000"
+                                placeholder="Phone number"
                             />
                         </div>
                     </div>
@@ -302,7 +302,7 @@ export default function EditRemitterPage() {
                                 value={formData.address_1 || ''}
                                 onChange={(e) => setFormData({ ...formData, address_1: e.target.value })}
                 className="input-glass w-full pl-12 py-3"
-                                placeholder="123 Example Street, Apt 4B"
+                                placeholder="Address"
                             />
                         </div>
                     </div>
@@ -316,7 +316,7 @@ export default function EditRemitterPage() {
                                 value={formData.postcode || ''}
                                 onChange={(e) => setFormData({ ...formData, postcode: e.target.value })}
                 className="input-glass w-full pl-12 py-3"
-                                placeholder="SW1A 1AA"
+                                placeholder="Postcode"
                             />
                         </div>
                     </div>

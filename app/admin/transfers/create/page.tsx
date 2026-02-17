@@ -59,6 +59,13 @@ type Remitter = {
     status?: string;
     kyc_status?: string;
     branch?: string;
+    id_expiry?: string;
+    id_expired?: boolean;
+    id_verified?: string;
+    verification_state?: string;
+    veriff_status?: string;
+    veriff_decision?: string;
+    branch_veriff_enabled?: boolean;
 };
 
 type Beneficiary = {
@@ -191,6 +198,14 @@ export default function CreateTransferPage() {
     }>({
         blocked: false,
         message: '',
+    });
+    const [senderComplianceIssue, setSenderComplianceIssue] = useState<{
+        idExpired: boolean;
+        verificationWarning: string;
+        idExpiry?: string;
+    }>({
+        idExpired: false,
+        verificationWarning: '',
     });
 
     const [confirmModal, setConfirmModal] = useState({
@@ -573,6 +588,24 @@ export default function CreateTransferPage() {
         }
     }, [currentUserBranch, currentUserId, currentUserName, withActingUser]);
 
+    const evaluateSenderCompliance = useCallback((sender: Remitter) => {
+        const idExpired = Boolean(sender.id_expired);
+        const branchVeriffEnabled = Boolean(sender.branch_veriff_enabled);
+        const verificationState = String(sender.verification_state || '').toLowerCase();
+        const isVerified = verificationState === 'verified' || String(sender.id_verified || '').toLowerCase() === 'yes';
+
+        let verificationWarning = '';
+        if (branchVeriffEnabled && !isVerified && !idExpired) {
+            verificationWarning = 'Sender is not verified yet. Transfer is allowed, but verification is recommended before proceeding.';
+        }
+
+        setSenderComplianceIssue({
+            idExpired,
+            verificationWarning,
+            idExpiry: sender.id_expiry || '',
+        });
+    }, []);
+
     const selectSender = useCallback(async (sender: Remitter) => {
         const senderRecordId = String(sender.id);
         setFormData((prev) => ({
@@ -584,16 +617,21 @@ export default function CreateTransferPage() {
             senderPlaceOfBirth: sender.place_of_birth || '',
             senderContacts: sender.phone || '',
             senderPostcode: sender.postcode || '',
-            senderVerified: sender.kyc_status === 'verified' ? 'yes' : 'no',
+            senderVerified: (
+                String(sender.id_verified || '').toLowerCase() === 'yes'
+                || String(sender.verification_state || '').toLowerCase() === 'verified'
+                || sender.kyc_status === 'verified'
+            ) ? 'yes' : 'no',
             toBranch: prev.toBranch || sender.branch || prev.toBranch
         }));
         setSenderAmlState('idle');
         setSenderSearch(sender.sender_id || sender.name || '');
         setSenderResults([]);
         setReceiverBranchAccessIssue({ blocked: false, message: '' });
+        evaluateSenderCompliance(sender);
         await fetchReceiversForSender(senderRecordId);
         await checkBranchAccessForSender(senderRecordId);
-    }, [fetchReceiversForSender, checkBranchAccessForSender]);
+    }, [fetchReceiversForSender, checkBranchAccessForSender, evaluateSenderCompliance]);
 
     useEffect(() => {
         const newRemitterId = searchParams.get('newRemitterId');
@@ -775,6 +813,15 @@ export default function CreateTransferPage() {
     };
 
     const handleSubmit = async () => {
+        if (senderComplianceIssue.idExpired) {
+            setModal(
+                'Expired Sender ID',
+                `Sender ID expired${senderComplianceIssue.idExpiry ? ` on ${senderComplianceIssue.idExpiry}` : ''}. Update ID and re-verify before creating transfer.`,
+                'warning'
+            );
+            return;
+        }
+
         const crossBranchError = await revalidateCrossBranchRules();
         if (crossBranchError) {
             setModal('Branch Approval Required', crossBranchError, 'warning');
@@ -857,6 +904,13 @@ export default function CreateTransferPage() {
                 let message = 'Failed to create transfer.';
                 try {
                     const errorData = await response.json();
+                    if (response.status === 422 && errorData?.error === 'id_expired') {
+                        setSenderComplianceIssue({
+                            idExpired: true,
+                            verificationWarning: '',
+                            idExpiry: errorData?.id_expiry || senderComplianceIssue.idExpiry,
+                        });
+                    }
                     if (response.status === 409 && errorData?.branch_access_required) {
                         const requestId = errorData?.request?.id ?? errorData?.request_id;
                         const nextIssue = {
@@ -963,7 +1017,7 @@ export default function CreateTransferPage() {
                                     );
                                 })}
                             </select>
-                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-400 pointer-events-none" />
+                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-500 dark:text-slate-200 pointer-events-none" />
                         </div>
                     </div>
 
@@ -1012,7 +1066,7 @@ export default function CreateTransferPage() {
                                     </option>
                                 ))}
                             </select>
-                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-400 pointer-events-none" />
+                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-500 dark:text-slate-200 pointer-events-none" />
                         </div>
                     </div>
 
@@ -1132,6 +1186,20 @@ export default function CreateTransferPage() {
                             ) : null}
                         </div>
                     )}
+                    {senderComplianceIssue.idExpired ? (
+                        <div className="mt-3 rounded-2xl border border-red-200/70 bg-red-50/80 dark:border-red-800/60 dark:bg-red-900/20 px-4 py-3">
+                            <p className="text-sm font-semibold text-red-700 dark:text-red-300">
+                                Sender ID is expired{senderComplianceIssue.idExpiry ? ` (${senderComplianceIssue.idExpiry})` : ''}. Transfer is blocked until re-verification is completed.
+                            </p>
+                        </div>
+                    ) : null}
+                    {!senderComplianceIssue.idExpired && senderComplianceIssue.verificationWarning ? (
+                        <div className="mt-3 rounded-2xl border border-amber-200/70 bg-amber-50/80 dark:border-amber-800/60 dark:bg-amber-900/20 px-4 py-3">
+                            <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">
+                                {senderComplianceIssue.verificationWarning}
+                            </p>
+                        </div>
+                    ) : null}
                 </div>
 
                 <div className="flex flex-wrap gap-2">
@@ -1338,7 +1406,7 @@ export default function CreateTransferPage() {
                                 </option>
                             ))}
                         </select>
-                        <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-400 pointer-events-none" />
+                        <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-500 dark:text-slate-200 pointer-events-none" />
                     </div>
                     {receiverBranchAccessIssue.blocked && (
                         <div className="mt-3 rounded-2xl border border-amber-200/70 bg-amber-50/80 dark:border-amber-800/60 dark:bg-amber-900/20 px-4 py-3">

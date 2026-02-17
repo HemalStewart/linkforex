@@ -445,8 +445,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             icon: <Settings className="w-5 h-5" />,
             children: [
                 { name: 'System Users', href: '/admin/users', badge: counts.users > 0 ? counts.users.toString() : undefined, icon: <Users className="w-4 h-4" />, sections: ['SYSUSERS', 'SYSTEM_USERS'] },
-                { name: 'Roles & Permissions', href: '/admin/roles', badge: counts.roles > 0 ? counts.roles.toString() : undefined, icon: <Shield className="w-4 h-4" />, sections: ['SYSGROUPS', 'ROLES'] },
-                { name: 'Permission Groups', href: '/admin/permission-groups', badge: counts.permissionGroups > 0 ? counts.permissionGroups.toString() : undefined, icon: <ShieldCheck className="w-4 h-4" />, sections: ['SYSGROUPS_PERMISSION', 'PERMISSION_GROUPS'] },
+                { name: 'Roles', href: '/admin/roles', badge: counts.roles > 0 ? counts.roles.toString() : undefined, icon: <Shield className="w-4 h-4" />, sections: ['SYSGROUPS', 'ROLES'] },
+                { name: 'Role Permissions', href: '/admin/permission-groups', badge: counts.permissionGroups > 0 ? counts.permissionGroups.toString() : undefined, icon: <ShieldCheck className="w-4 h-4" />, sections: ['SYSGROUPS_PERMISSION', 'PERMISSION_GROUPS'] },
                 { name: 'Branches', href: '/admin/branches', badge: counts.branches > 0 ? counts.branches.toString() : undefined, icon: <Building2 className="w-4 h-4" />, sections: ['BRANCH', 'BRANCHES'] },
                 { name: 'Branch Currency Rates', href: '/admin/branch-currency-rates', badge: counts.branchCurrencyRates > 0 ? counts.branchCurrencyRates.toString() : undefined, icon: <Coins className="w-4 h-4" />, sections: ['BRANCH_CURRENCY_RATE', 'BRANCH_CURRENCY_RATES'] },
                 { name: 'Countries', href: '/admin/countries', icon: <Globe className="w-4 h-4" /> },

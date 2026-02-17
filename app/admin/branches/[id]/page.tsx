@@ -255,10 +255,10 @@ export default function EditBranchPage() {
                     {[
                         { label: 'Branch Name', value: formData.name },
                         { label: 'Transaction Prefix', value: formData.transaction_prefix, nowrap: true },
-                        { label: 'Branch Default Transaction Type', value: formData.default_transaction_type, nowrap: true },
+                        { label: 'Default Transaction Type', value: formData.default_transaction_type, nowrap: true },
                         { label: 'Day Transfer Limit', value: formData.day_transfer_limit ? `£${Number(formData.day_transfer_limit).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-' },
-                        { label: 'Telephone 1', value: formData.telephone_1, nowrap: true },
-                        { label: 'Telephone 2', value: formData.telephone_2, nowrap: true },
+                        { label: 'Primary Telephone', value: formData.telephone_1, nowrap: true },
+                        { label: 'Secondary Telephone', value: formData.telephone_2, nowrap: true },
                         { label: 'Entered User', value: formData.created_by || '-' },
                         { label: 'Entered Date', value: formData.created_at ? new Date(formData.created_at).toLocaleString() : '-' },
                         { label: 'Modified User', value: formData.updated_by || '-' },
@@ -301,7 +301,7 @@ export default function EditBranchPage() {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Branch Default Transaction Type <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Default Transaction Type <span className="text-red-500">*</span></label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><ArrowRightLeft className="w-5 h-5" /></span>
                             <select
@@ -313,11 +313,11 @@ export default function EditBranchPage() {
                                 <option value="Sender">Sender</option>
                                 <option value="Both">Both</option>
                             </select>
-                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">⌄</span>
+                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-200 pointer-events-none">⌄</span>
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Day Transfer Limit - £ Value</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Daily Transfer Limit (£)</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Coins className="w-5 h-5" /></span>
                             <input
@@ -331,7 +331,7 @@ export default function EditBranchPage() {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Theme 1</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Theme Option 1</label>
                         <input
                             className="input-glass w-full"
                             value={formData.theme_1}
@@ -339,7 +339,7 @@ export default function EditBranchPage() {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Theme 2</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Theme Option 2</label>
                         <input
                             className="input-glass w-full"
                             value={formData.theme_2}
@@ -391,7 +391,7 @@ export default function EditBranchPage() {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Telephone 1</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Primary Telephone</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Phone className="w-5 h-5" /></span>
                             <input
@@ -402,7 +402,7 @@ export default function EditBranchPage() {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Telephone 2</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Secondary Telephone</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Phone className="w-5 h-5" /></span>
                             <input
@@ -413,7 +413,7 @@ export default function EditBranchPage() {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Fax 1</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Primary Fax</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Printer className="w-5 h-5" /></span>
                             <input
@@ -424,7 +424,7 @@ export default function EditBranchPage() {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Fax 2</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Secondary Fax</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Printer className="w-5 h-5" /></span>
                             <input
@@ -435,7 +435,7 @@ export default function EditBranchPage() {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Email 1</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Primary Email</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Mail className="w-5 h-5" /></span>
                             <input
@@ -447,7 +447,7 @@ export default function EditBranchPage() {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Email 2</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Secondary Email</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Mail className="w-5 h-5" /></span>
                             <input

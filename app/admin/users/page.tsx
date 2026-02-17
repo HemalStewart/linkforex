@@ -12,8 +12,6 @@ export default function UsersPage() {
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
     const [users, setUsers] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [currentUserName, setCurrentUserName] = useState('');
 
     const [confirmModal, setConfirmModal] = useState({
@@ -25,11 +23,10 @@ export default function UsersPage() {
     });
     const [userToDelete, setUserToDelete] = useState<number | null>(null);
     const [userToReset, setUserToReset] = useState<any | null>(null);
-    const [confirmAction, setConfirmAction] = useState<'delete' | 'reset' | 'bulk_delete' | null>(null);
+    const [confirmAction, setConfirmAction] = useState<'delete' | 'reset' | null>(null);
 
     useEffect(() => {
         const fetchUsers = async () => {
-            setLoading(true);
             try {
                 const res = await fetch(`${ENDPOINTS.USERS.LIST}`);
                 if (res.ok) {
@@ -42,7 +39,6 @@ export default function UsersPage() {
                     setUsers(mappedData);
                 }
             } catch (e) { console.error(e); }
-            finally { setLoading(false); }
         };
 
         const debounce = setTimeout(fetchUsers, 200);
@@ -81,18 +77,6 @@ export default function UsersPage() {
             title: 'Reset Password',
             message: `Reset password for ${user.username || user.name}? A temporary password will be generated.`,
             type: 'warning',
-            isAlert: false
-        });
-    };
-
-    const promptBulkDelete = () => {
-        if (selectedIds.length === 0) return;
-        setConfirmAction('bulk_delete');
-        setConfirmModal({
-            isOpen: true,
-            title: 'Delete Selected Users',
-            message: 'Are you sure you want to delete selected users? System defined users will be skipped.',
-            type: 'danger',
             isAlert: false
         });
     };
@@ -183,57 +167,12 @@ export default function UsersPage() {
         }
     };
 
-    const executeBulkDelete = async () => {
-        if (selectedIds.length === 0) return;
-        const toDelete = selectedIds.filter((id) => {
-            const u = users.find((user) => user.id === id);
-            return u ? normalizeYesNo(u.system_defined) !== 'yes' : false;
-        });
-        if (toDelete.length === 0) {
-            setConfirmModal({
-                isOpen: true,
-                title: 'Info',
-                message: 'No deletable users selected.',
-                type: 'info',
-                isAlert: true
-            });
-            return;
-        }
-
-        try {
-            await Promise.all(
-                toDelete.map((id) =>
-                    fetch(ENDPOINTS.USERS.DETAIL(id), { method: 'DELETE' })
-                )
-            );
-            setUsers(users.filter((u) => !toDelete.includes(u.id)));
-            setSelectedIds([]);
-            setConfirmModal({
-                isOpen: true,
-                title: 'Success',
-                message: 'Selected users deleted successfully',
-                type: 'info',
-                isAlert: true
-            });
-        } catch (error) {
-            console.error('Error deleting selected users:', error);
-            setConfirmModal({
-                isOpen: true,
-                title: 'Error',
-                message: 'Failed to delete selected users',
-                type: 'danger',
-                isAlert: true
-            });
-        }
-    };
-
     const handleConfirm = () => {
         if (confirmModal.isAlert) {
             setConfirmModal({ ...confirmModal, isOpen: false });
         } else {
             if (confirmAction === 'delete') executeDelete();
             if (confirmAction === 'reset') executeReset();
-            if (confirmAction === 'bulk_delete') executeBulkDelete();
         }
     };
 
@@ -425,37 +364,12 @@ export default function UsersPage() {
                     <div className="text-sm text-slate-500 dark:text-slate-300">
                         Results: {filteredUsers.length === 0 ? 0 : 1} - {filteredUsers.length} of {filteredUsers.length}
                     </div>
-                    <div className="flex flex-wrap items-center gap-3 text-sm">
-                        <button
-                            onClick={() => setSelectedIds(filteredUsers.map(u => u.id))}
-                            className="px-3 py-1.5 rounded-full glass-effect text-slate-600 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors"
-                        >
-                            Check All
-                        </button>
-                        <button
-                            onClick={() => setSelectedIds([])}
-                            className="px-3 py-1.5 rounded-full glass-effect text-slate-600 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors"
-                        >
-                            Uncheck All
-                        </button>
-                        <span className="text-slate-400 dark:text-slate-300">With selected:</span>
-                        <select className="input-glass px-3 py-1.5 text-sm">
-                            <option>Delete</option>
-                        </select>
-                        <button
-                            onClick={promptBulkDelete}
-                            className="px-3 py-1.5 rounded-full btn-primary text-sm"
-                        >
-                            Apply
-                        </button>
-                    </div>
                 </div>
 
                 <div className="overflow-x-auto">
                     <table className="table-shell">
                         <thead className="table-head">
                             <tr>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider"></th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">No.</th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
                                     <button onClick={() => toggleSort('username')} className="flex items-center gap-1">
@@ -526,20 +440,6 @@ export default function UsersPage() {
                                         key={user.id}
                                         className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200"
                                     >
-                                        <td className="px-4 py-4">
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedIds.includes(user.id)}
-                                                onChange={(e) => {
-                                                    if (e.target.checked) {
-                                                        setSelectedIds([...selectedIds, user.id]);
-                                                    } else {
-                                                        setSelectedIds(selectedIds.filter(id => id !== user.id));
-                                                    }
-                                                }}
-                                                className="w-4 h-4 accent-teal-500"
-                                            />
-                                        </td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{idx + 1}</td>
                                         <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{user.username || '-'}</td>
                                         <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{user.name || '-'}</td>

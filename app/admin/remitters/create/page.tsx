@@ -20,6 +20,23 @@ type DuplicateMatch = {
     score?: number;
     reasons?: string[];
     same_branch?: boolean;
+    verification_state?: string;
+    id_expired?: boolean;
+    id_expiry?: string;
+    veriff_status?: string;
+    veriff_decision?: string;
+};
+
+type VeriffState = {
+    verification_state?: string;
+    veriff_status?: string;
+    veriff_decision?: string;
+    veriff_reason?: string;
+    veriff_url?: string;
+    veriff_checked_at?: string;
+    id_expiry?: string;
+    id_expired?: boolean;
+    branch_veriff_enabled?: boolean;
 };
 
 // --- HELPER COMPONENTS (Reused) ---
@@ -158,6 +175,9 @@ export default function CreateRemitterPage() {
         shouldRedirect: false,
         redirectUrl: ''
     });
+    const [createdRemitterId, setCreatedRemitterId] = useState<string>('');
+    const [createdRemitterVeriff, setCreatedRemitterVeriff] = useState<VeriffState | null>(null);
+    const [veriffActionLoading, setVeriffActionLoading] = useState(false);
 
     // Director State - Limited to 3 to match Database Schema (bc_d1, bc_d2, bc_d3)
     interface Director {
@@ -267,13 +287,24 @@ export default function CreateRemitterPage() {
         payload: any,
         forceCreate: boolean
     ): Promise<{ createdId?: string | number; blockedByDuplicate?: boolean }> => {
-        const body = forceCreate ? { ...payload, force_create: 1 } : payload;
+        let body: BodyInit;
+        const headers: Record<string, string> = {};
+
+        if (payload instanceof FormData) {
+            const fd = new FormData();
+            payload.forEach((value, key) => fd.append(key, value));
+            if (forceCreate) fd.set('force_create', '1');
+            body = fd;
+        } else {
+            const jsonBody = forceCreate ? { ...payload, force_create: 1 } : payload;
+            headers['Content-Type'] = 'application/json';
+            body = JSON.stringify(jsonBody);
+        }
+
         const res = await fetch(ENDPOINTS.REMITTERS.LIST, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(body),
+            headers,
+            body,
         });
 
         if (res.status === 409) {
@@ -308,6 +339,110 @@ export default function CreateRemitterPage() {
         return { createdId: result.id };
     }, []);
 
+    const verificationLabel = (state?: string) => {
+        const normalized = (state || '').toLowerCase();
+        if (normalized === 'verified') return 'Already Verified';
+        if (normalized === 'pending') return 'Pending';
+        if (normalized === 'rejected') return 'Rejected';
+        if (normalized === 'expired') return 'Expired ID';
+        return 'Not Verified';
+    };
+
+    const verificationBadgeClass = (state?: string) => {
+        const normalized = (state || '').toLowerCase();
+        if (normalized === 'verified') return 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300';
+        if (normalized === 'pending') return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
+        if (normalized === 'rejected') return 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300';
+        if (normalized === 'expired') return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300';
+        return 'bg-slate-100 text-slate-700 dark:bg-slate-700/50 dark:text-slate-300';
+    };
+
+    const loadRemitterVeriffState = React.useCallback(async (remitterId: string | number) => {
+        try {
+            const response = await fetch(ENDPOINTS.REMITTERS.DETAIL(remitterId));
+            if (!response.ok) return;
+            const data = await response.json();
+            setCreatedRemitterVeriff({
+                verification_state: data.verification_state,
+                veriff_status: data.veriff_status,
+                veriff_decision: data.veriff_decision,
+                veriff_reason: data.veriff_reason,
+                veriff_url: data.veriff_url,
+                veriff_checked_at: data.veriff_checked_at,
+                id_expiry: data.id_expiry,
+                id_expired: Boolean(data.id_expired),
+                branch_veriff_enabled: Boolean(data.branch_veriff_enabled),
+            });
+        } catch (error) {
+            console.error('Failed to load verification state', error);
+        }
+    }, []);
+
+    const triggerVeriffAction = React.useCallback(async (action: 'start' | 'sync') => {
+        if (!createdRemitterId) return;
+        setVeriffActionLoading(true);
+        try {
+            const endpoint = action === 'start'
+                ? ENDPOINTS.REMITTERS.VERIFF_START(createdRemitterId)
+                : ENDPOINTS.REMITTERS.VERIFF_SYNC(createdRemitterId);
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({}),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Verification Error',
+                    message: data?.message || 'Unable to process verification action.',
+                    type: 'danger',
+                    isAlert: true,
+                    shouldRedirect: false,
+                    redirectUrl: '',
+                });
+                return;
+            }
+
+            const remitter = data?.remitter;
+            if (remitter) {
+                setCreatedRemitterVeriff({
+                    verification_state: remitter.verification_state,
+                    veriff_status: remitter.veriff_status,
+                    veriff_decision: remitter.veriff_decision,
+                    veriff_reason: remitter.veriff_reason,
+                    veriff_url: remitter.veriff_url,
+                    veriff_checked_at: remitter.veriff_checked_at,
+                    id_expiry: remitter.id_expiry,
+                    id_expired: Boolean(remitter.id_expired),
+                    branch_veriff_enabled: Boolean(remitter.branch_veriff_enabled),
+                });
+            } else {
+                await loadRemitterVeriffState(createdRemitterId);
+            }
+
+            if (action === 'start' && (data?.session_url || remitter?.veriff_url)) {
+                const target = data?.session_url || remitter?.veriff_url;
+                if (target) {
+                    window.open(target, '_blank', 'noopener,noreferrer');
+                }
+            }
+        } catch (error) {
+            console.error('Verification action failed', error);
+            setConfirmModal({
+                isOpen: true,
+                title: 'Verification Error',
+                message: 'Unable to process verification action.',
+                type: 'danger',
+                isAlert: true,
+                shouldRedirect: false,
+                redirectUrl: '',
+            });
+        } finally {
+            setVeriffActionLoading(false);
+        }
+    }, [createdRemitterId, loadRemitterVeriffState]);
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
@@ -326,9 +461,11 @@ export default function CreateRemitterPage() {
         }
 
         setLoading(true);
-        const formData = new FormData(e.currentTarget);
+        setCreatedRemitterId('');
+        setCreatedRemitterVeriff(null);
+        const submitFormData = new FormData(e.currentTarget);
         const data: any = {};
-        formData.forEach((value, key) => {
+        submitFormData.forEach((value, key) => {
             data[key] = value;
         });
 
@@ -371,7 +508,7 @@ export default function CreateRemitterPage() {
             id_type: data.id_type,
             id_no: data.id_no,
             id_expire_date: data.id_expire_date,
-            email: 'admin-entry@linkforex.com', // Placeholder or add input if needed
+            email: (data.email || '').trim() || null,
         };
 
         // --- FLATTEN DIRECTORS INTO API PAYLOAD (bc_d1, bc_d2, bc_d3) ---
@@ -387,7 +524,22 @@ export default function CreateRemitterPage() {
         }
 
         try {
-            const submitResult = await createRemitter(apiData, false);
+            const payload = new FormData();
+            Object.entries(apiData).forEach(([key, value]) => {
+                if (value !== null && value !== undefined && value !== '') {
+                    payload.append(key, String(value));
+                }
+            });
+
+            const uploadFields = ['passport_copy', 'proof_of_address_doc', 'work_related_docs', 'sender_details_aml_screening_doc', 'other_doc', 'id_copy'];
+            uploadFields.forEach((field) => {
+                const file = submitFormData.get(field);
+                if (file instanceof File && file.size > 0) {
+                    payload.append(field, file);
+                }
+            });
+
+            const submitResult = await createRemitter(payload, false);
             if (submitResult.blockedByDuplicate) {
                 return;
             }
@@ -396,17 +548,31 @@ export default function CreateRemitterPage() {
                 return;
             }
 
-            // Note: Beneficiaries are not created here as per DB schema (they are transaction-bound).
+            const remitterIdStr = String(remitterId);
+            setCreatedRemitterId(remitterIdStr);
+            await loadRemitterVeriffState(remitterIdStr);
 
-            setConfirmModal({
-                isOpen: true,
-                title: 'Success',
-                message: `New ${clientType === 'business' ? 'Business' : 'Individual'} Remitter Created Successfully!`,
-                type: 'info',
-                isAlert: true,
-                shouldRedirect: true,
-                redirectUrl: returnUrl ? `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newRemitterId=${remitterId}` : '/admin/remitters'
-            });
+            if (returnUrl) {
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Success',
+                    message: `New ${clientType === 'business' ? 'Business' : 'Individual'} Remitter Created Successfully!`,
+                    type: 'info',
+                    isAlert: true,
+                    shouldRedirect: true,
+                    redirectUrl: `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newRemitterId=${remitterIdStr}`
+                });
+            } else {
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Saved',
+                    message: 'Remitter created. You can verify this remitter now from the Verification panel.',
+                    type: 'info',
+                    isAlert: true,
+                    shouldRedirect: false,
+                    redirectUrl: ''
+                });
+            }
 
         } catch (error) {
             console.error('Failed to submit:', error);
@@ -429,20 +595,37 @@ export default function CreateRemitterPage() {
 
         setDuplicateModal((prev) => ({ ...prev, isOpen: false }));
         setLoading(true);
+        setCreatedRemitterId('');
+        setCreatedRemitterVeriff(null);
         try {
             const submitResult = await createRemitter(duplicateModal.payload, true);
             const remitterId = submitResult.createdId;
             if (!remitterId) return;
+            const remitterIdStr = String(remitterId);
+            setCreatedRemitterId(remitterIdStr);
+            await loadRemitterVeriffState(remitterIdStr);
 
-            setConfirmModal({
-                isOpen: true,
-                title: 'Success',
-                message: `New ${clientType === 'business' ? 'Business' : 'Individual'} Remitter Created Successfully!`,
-                type: 'info',
-                isAlert: true,
-                shouldRedirect: true,
-                redirectUrl: returnUrl ? `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newRemitterId=${remitterId}` : '/admin/remitters'
-            });
+            if (returnUrl) {
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Success',
+                    message: `New ${clientType === 'business' ? 'Business' : 'Individual'} Remitter Created Successfully!`,
+                    type: 'info',
+                    isAlert: true,
+                    shouldRedirect: true,
+                    redirectUrl: `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newRemitterId=${remitterIdStr}`
+                });
+            } else {
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Saved',
+                    message: 'Remitter created. You can verify this remitter now from the Verification panel.',
+                    type: 'info',
+                    isAlert: true,
+                    shouldRedirect: false,
+                    redirectUrl: ''
+                });
+            }
         } catch (error) {
             console.error('Failed to force-create remitter', error);
             setConfirmModal({
@@ -593,16 +776,23 @@ export default function CreateRemitterPage() {
                                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, date_of_birth: e.target.value }))}
                                 />
                                 <FormInput label="Place of Birth" name="place_of_birth" placeholder="City, Country" Icon={MapPin} />
-                                <FormInput label="Occupation" name="occupation" placeholder="e.g. Engineer" Icon={Briefcase} />
+                                <FormInput label="Occupation" name="occupation" placeholder="Occupation" Icon={Briefcase} />
                             </>
                         )}
                         <FormInput
                             label="Telephone"
                             name="telephone"
-                            placeholder="+44..."
+                            placeholder="Phone number"
                             required
                             Icon={Phone}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, telephone: e.target.value }))}
+                        />
+                        <FormInput
+                            label="Email (Optional)"
+                            name="email"
+                            type="email"
+                            placeholder="Email address"
+                            Icon={FileText}
                         />
                     </div>
                 </div>
@@ -625,6 +815,16 @@ export default function CreateRemitterPage() {
                                                     </div>
                                                     <div className="mt-1">
                                                         Branch: {match.branch || '-'} · Score: {match.score ?? 0}
+                                                    </div>
+                                                    <div className="mt-1 flex flex-wrap items-center gap-2">
+                                                        <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${verificationBadgeClass(match.verification_state)}`}>
+                                                            {verificationLabel(match.verification_state)}
+                                                        </span>
+                                                        {match.id_expired ? (
+                                                            <span className="inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300">
+                                                                ID Expired
+                                                            </span>
+                                                        ) : null}
                                                     </div>
                                                     {Array.isArray(match.reasons) && match.reasons.length > 0 && (
                                                         <div className="mt-1 text-amber-700 dark:text-amber-300">
@@ -664,7 +864,7 @@ export default function CreateRemitterPage() {
                         <FormInput
                             label="City"
                             name="city"
-                            placeholder="e.g. London"
+                            placeholder="City"
                             required
                             Icon={Building}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, city: e.target.value }))}
@@ -672,7 +872,7 @@ export default function CreateRemitterPage() {
                         <FormInput
                             label="Postcode"
                             name="postcode"
-                            placeholder="e.g. SW1A 1AA"
+                            placeholder="Postcode"
                             required
                             Icon={MapPin}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, postcode: e.target.value }))}
@@ -771,6 +971,75 @@ export default function CreateRemitterPage() {
                         <FormFileUpload label="Source of Income" name="work_related_docs" compact />
                         <FormFileUpload label="AML Doc" name="sender_details_aml_screening_doc" compact />
                     </div>
+                </div>
+
+                <div className="mb-8 border border-slate-200/70 dark:border-slate-700/70 rounded-2xl p-5 bg-white/60 dark:bg-slate-900/40">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                            <h4 className="text-sm font-bold text-slate-900 dark:text-white">Verification Status</h4>
+                            <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">
+                                Verification starts after saving because a remitter ID is required.
+                            </p>
+                        </div>
+                        {createdRemitterVeriff?.verification_state ? (
+                            <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${verificationBadgeClass(createdRemitterVeriff.verification_state)}`}>
+                                {verificationLabel(createdRemitterVeriff.verification_state)}
+                            </span>
+                        ) : null}
+                    </div>
+
+                    {!createdRemitterId ? (
+                        <p className="text-xs text-slate-500 dark:text-slate-300 mt-4">
+                            Save remitter to enable `Start Verification` and `Sync Result`.
+                        </p>
+                    ) : (
+                        <div className="mt-4 space-y-3">
+                            <div className="text-xs text-slate-600 dark:text-slate-300 flex flex-wrap items-center gap-4">
+                                <span>Remitter ID: <span className="font-semibold text-slate-800 dark:text-slate-200">{createdRemitterId}</span></span>
+                                <span>ID Expiry: <span className="font-semibold text-slate-800 dark:text-slate-200">{createdRemitterVeriff?.id_expiry || '-'}</span></span>
+                                <span>Last Check: <span className="font-semibold text-slate-800 dark:text-slate-200">{createdRemitterVeriff?.veriff_checked_at || '-'}</span></span>
+                            </div>
+                            {createdRemitterVeriff?.id_expired ? (
+                                <p className="text-xs font-semibold text-red-600 dark:text-red-300">ID is expired. Re-verification and updated ID are required before transfer.</p>
+                            ) : null}
+                            {createdRemitterVeriff?.branch_veriff_enabled === false ? (
+                                <p className="text-xs font-semibold text-amber-600 dark:text-amber-300">Branch verification is currently disabled by backend flag.</p>
+                            ) : null}
+                            <div className="flex flex-wrap gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => triggerVeriffAction('start')}
+                                    disabled={veriffActionLoading || createdRemitterVeriff?.branch_veriff_enabled === false || (createdRemitterVeriff?.verification_state === 'verified' && !createdRemitterVeriff?.id_expired)}
+                                    className="px-3 py-2 rounded-full text-xs font-bold glass-effect text-slate-700 dark:text-slate-200 disabled:opacity-40"
+                                >
+                                    {veriffActionLoading ? 'Working...' : 'Start Verification'}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => triggerVeriffAction('sync')}
+                                    disabled={veriffActionLoading || createdRemitterVeriff?.branch_veriff_enabled === false}
+                                    className="px-3 py-2 rounded-full text-xs font-bold glass-effect text-slate-700 dark:text-slate-200 disabled:opacity-40"
+                                >
+                                    Sync Result
+                                </button>
+                                {createdRemitterVeriff?.veriff_url ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => window.open(createdRemitterVeriff.veriff_url, '_blank', 'noopener,noreferrer')}
+                                        className="px-3 py-2 rounded-full text-xs font-bold glass-effect text-slate-700 dark:text-slate-200"
+                                    >
+                                        Open Verification Link
+                                    </button>
+                                ) : null}
+                                <Link
+                                    href={`/admin/remitters/${createdRemitterId}`}
+                                    className="px-3 py-2 rounded-full text-xs font-bold glass-effect text-slate-700 dark:text-slate-200"
+                                >
+                                    Open Remitter Details
+                                </Link>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
         <div className="flex justify-end space-x-4 pt-8 mt-8 border-t border-slate-100 dark:border-slate-700/50">

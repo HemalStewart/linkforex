@@ -523,11 +523,11 @@ export default function CreateRemitterPage() {
                                         <FormInput label="Sender Name *" name="sender_name" placeholder="Full Name" required />
                                         <FormInput label="Date of Birth *" name="date_of_birth" type="date" required />
                                         <FormInput label="Place of Birth" name="place_of_birth" placeholder="City, Country" />
-                                        <FormInput label="Occupation" name="occupation" placeholder="e.g. Engineer" />
+                                        <FormInput label="Occupation" name="occupation" placeholder="Occupation" />
                                     </>
                                 )}
 
-                                <FormInput label="Telephone *" name="telephone" placeholder="+44..." required />
+                                <FormInput label="Telephone *" name="telephone" placeholder="Phone number" required />
                             </div>
 
                             <div className="border-t border-slate-100 dark:border-slate-800 pt-6">
@@ -539,8 +539,8 @@ export default function CreateRemitterPage() {
                                     <div className="md:col-span-2">
                                         <FormInput label="Address Line 2" name="address_2" placeholder="Locality / Area" />
                                     </div>
-                                    <FormInput label="City *" name="city" placeholder="e.g. London" />
-                                    <FormInput label="Postcode *" name="postcode" placeholder="e.g. SW1A 1AA" />
+                                    <FormInput label="City *" name="city" placeholder="City" />
+                                    <FormInput label="Postcode *" name="postcode" placeholder="Postcode" />
                                     <FormInput label="County" name="county" />
                                     <FormInput label="Country *" name="country" defaultValue="United Kingdom" />
                                 </div>

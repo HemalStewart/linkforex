@@ -238,36 +238,36 @@ export default function CountriesPage() {
                     <div className="grid grid-cols-2 gap-6">
                         <div className="col-span-2">
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Country Name *</label>
-                            <input required className="input-glass w-full" value={newCountry.name} onChange={e => setNewCountry({ ...newCountry, name: e.target.value })} placeholder="e.g. United Kingdom" />
+                            <input required className="input-glass w-full" value={newCountry.name} onChange={e => setNewCountry({ ...newCountry, name: e.target.value })} placeholder="Country name" />
                         </div>
                         <div>
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">ISO Code *</label>
                             <div className="relative">
                                 <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                                <input required className="input-glass w-full pl-10 uppercase" value={newCountry.iso_code} onChange={e => setNewCountry({ ...newCountry, iso_code: e.target.value })} placeholder="e.g. GBR" />
+                                <input required className="input-glass w-full pl-10 uppercase" value={newCountry.iso_code} onChange={e => setNewCountry({ ...newCountry, iso_code: e.target.value })} placeholder="ISO code" />
                             </div>
                         </div>
                         <div>
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Phone Code</label>
                             <div className="relative">
                                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                <input className="input-glass w-full pl-10" value={newCountry.phone_code} onChange={e => setNewCountry({ ...newCountry, phone_code: e.target.value })} placeholder="e.g. +44" />
+                                <input className="input-glass w-full pl-10" value={newCountry.phone_code} onChange={e => setNewCountry({ ...newCountry, phone_code: e.target.value })} placeholder="Calling code" />
                             </div>
                         </div>
                         <div>
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Currency Code</label>
                             <div className="relative">
                                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                <input className="input-glass w-full pl-10 uppercase" value={newCountry.currency_code} onChange={e => setNewCountry({ ...newCountry, currency_code: e.target.value })} placeholder="e.g. GBP" />
+                                <input className="input-glass w-full pl-10 uppercase" value={newCountry.currency_code} onChange={e => setNewCountry({ ...newCountry, currency_code: e.target.value })} placeholder="Currency code" />
                             </div>
                         </div>
                         <div>
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Currency Symbol</label>
-                            <input className="input-glass w-full text-center font-mono text-lg" value={newCountry.currency_symbol} onChange={e => setNewCountry({ ...newCountry, currency_symbol: e.target.value })} placeholder="e.g. £" />
+                            <input className="input-glass w-full text-center font-mono text-lg" value={newCountry.currency_symbol} onChange={e => setNewCountry({ ...newCountry, currency_symbol: e.target.value })} placeholder="Currency symbol" />
                         </div>
                         <div className="col-span-2">
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Currency Name</label>
-                            <input className="input-glass w-full" value={newCountry.currency_name} onChange={e => setNewCountry({ ...newCountry, currency_name: e.target.value })} placeholder="e.g. British Pound" />
+                            <input className="input-glass w-full" value={newCountry.currency_name} onChange={e => setNewCountry({ ...newCountry, currency_name: e.target.value })} placeholder="Currency name" />
                         </div>
                     </div>
                     <div className="flex justify-end pt-6 space-x-3">

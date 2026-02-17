@@ -459,8 +459,12 @@ html {
   }
 
   .input-glass::placeholder {
-    color: #64748b;
+    color: #94a3b8;
   }
+}
+
+.dark .input-glass::placeholder {
+  color: #94a3b8;
 }
 
 /* Loading Spinner */
@@ -561,8 +565,22 @@ html {
 
 @media (prefers-color-scheme: dark) {
   .input-icon-left {
-    color: rgba(148, 163, 184, 0.8);
+    color: rgba(226, 232, 240, 0.88);
   }
+}
+
+.dark .input-icon-left {
+  color: rgba(241, 245, 249, 0.95);
+}
+
+/* Force better icon contrast in dark mode for create/edit form controls */
+.dark .input-icon :is(svg, .lucide),
+.dark .input-icon-left :is(svg, .lucide) {
+  color: #f1f5f9 !important;
+}
+
+.dark .input-icon .absolute {
+  color: #f1f5f9 !important;
 }
 
 /* Avatar System */

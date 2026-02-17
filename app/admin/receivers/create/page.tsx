@@ -165,7 +165,7 @@ export default function CreateReceiverPage() {
                                     </option>
                                 ))}
                             </select>
-              <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none rotate-90" />
+              <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
                         </div>
             <p className="text-xs text-slate-400 mt-2 ml-1">Select the person sending money to this receiver.</p>
                     </div>
@@ -200,7 +200,7 @@ export default function CreateReceiverPage() {
                                     value={formData.bank_name}
                                     onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })}
                                     className="input-glass w-full"
-                                    placeholder="e.g. Bank of London"
+                                    placeholder="Bank name"
                                 />
                             </div>
                         </div>

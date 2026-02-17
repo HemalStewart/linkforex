@@ -395,10 +395,10 @@ export default function CreateMobileUserRemitterPage() {
                                 <FormInput label="Full Name" name="sender_name" placeholder="Full Name" required Icon={User} />
                                 <FormInput label="Date of Birth" name="date_of_birth" type="date" required Icon={Calendar} />
                                 <FormInput label="Place of Birth" name="place_of_birth" placeholder="City, Country" Icon={MapPin} />
-                                <FormInput label="Occupation" name="occupation" placeholder="e.g. Engineer" Icon={Briefcase} />
+                                <FormInput label="Occupation" name="occupation" placeholder="Occupation" Icon={Briefcase} />
                             </>
                         )}
-                        <FormInput label="Telephone" name="telephone" placeholder="+44..." required Icon={Phone} />
+                        <FormInput label="Telephone" name="telephone" placeholder="Phone number" required Icon={Phone} />
                     </div>
                 </div>
 
@@ -415,8 +415,8 @@ export default function CreateMobileUserRemitterPage() {
             <div className="md:col-span-2">
                             <FormInput label="Address Line 2" name="address_2" placeholder="Locality / Area" Icon={MapPin} />
                         </div>
-                        <FormInput label="City" name="city" placeholder="e.g. London" required Icon={Building} />
-                        <FormInput label="Postcode" name="postcode" placeholder="e.g. SW1A 1AA" required Icon={MapPin} />
+                        <FormInput label="City" name="city" placeholder="City" required Icon={Building} />
+                        <FormInput label="Postcode" name="postcode" placeholder="Postcode" required Icon={MapPin} />
                         <FormInput label="County" name="county" Icon={MapPin} />
                         <FormInput label="Country" name="country" defaultValue="United Kingdom" required Icon={Globe} />
                     </div>

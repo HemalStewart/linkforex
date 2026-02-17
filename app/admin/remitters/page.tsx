@@ -80,6 +80,10 @@ export default function RemittersPage() {
                 sender_aml_doc: r.sender_details_aml_screening_doc || '-',
                 sender_aml_result: r.sender_aml_result || '-',
                 rescreening_sender: r.rescreening_sender || '-',
+                veriff_status: r.veriff_status || '-',
+                veriff_decision: r.veriff_decision || '-',
+                verification_state: r.verification_state || 'not_started',
+                id_expired: Boolean(r.id_expired),
                 entered_user: r.created_by || '-',
                 entered_date: r.created_at || '-',
                 modified_user: r.updated_by || '-',
@@ -119,6 +123,9 @@ export default function RemittersPage() {
                 r.occupation,
                 r.id_type,
                 r.id_no,
+                r.verification_state,
+                r.veriff_decision,
+                r.veriff_status,
                 r.entered_user,
                 r.modified_user,
                 r.use_in,
@@ -265,6 +272,8 @@ export default function RemittersPage() {
         { key: 'id_type', label: 'ID Type' },
         { key: 'id_no', label: 'ID No' },
         { key: 'id_expire_date', label: 'ID Expire Date' },
+        { key: 'verification_state', label: 'Verification' },
+        { key: 'id_expired', label: 'ID Expired' },
         { key: 'other_info', label: 'Other Info' },
         { key: 'use_in', label: 'Use In' },
         { key: 'id_copy', label: 'View ID Copy' },
@@ -332,7 +341,7 @@ export default function RemittersPage() {
                                 <option value="inactive">Inactive</option>
                                 <option value="suspended">Suspended</option>
                             </select>
-                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-400 pointer-events-none" />
+                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-500 dark:text-slate-200 pointer-events-none" />
                         </div>
                     </div>
                     <div>
@@ -348,7 +357,7 @@ export default function RemittersPage() {
                                 <option value="mobile_app">Mobile App</option>
                                 <option value="web">Web</option>
                             </select>
-                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-400 pointer-events-none" />
+                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-500 dark:text-slate-200 pointer-events-none" />
                         </div>
                     </div>
                     <div className="flex items-end">
@@ -417,6 +426,24 @@ export default function RemittersPage() {
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.id_type || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.id_no || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.id_expire_date || '-'}</td>
+                                        <td className="px-4 py-4 text-sm">
+                                            <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                                                row.verification_state === 'verified'
+                                                    ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300'
+                                                    : row.verification_state === 'pending'
+                                                        ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
+                                                        : row.verification_state === 'rejected'
+                                                            ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300'
+                                                            : row.verification_state === 'expired'
+                                                                ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+                                                                : 'bg-slate-100 text-slate-700 dark:bg-slate-700/40 dark:text-slate-300'
+                                            }`}>
+                                                {String(row.verification_state || 'not_started').replaceAll('_', ' ')}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
+                                            {row.id_expired ? 'Yes' : 'No'}
+                                        </td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.other_info || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.use_in || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{renderDocCell(row.id_copy)}</td>

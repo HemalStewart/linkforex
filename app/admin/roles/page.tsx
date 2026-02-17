@@ -292,7 +292,7 @@ export default function RolesPage() {
                                 <option value="yes">Yes</option>
                                 <option value="no">No</option>
                             </select>
-                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none rotate-90" />
+                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
                         </div>
                     </div>
                     <div className="flex items-end">

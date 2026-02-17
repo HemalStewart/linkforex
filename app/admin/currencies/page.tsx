@@ -251,7 +251,7 @@ export default function CurrenciesPage() {
                     <div>
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Select Country</label>
                         <div className="relative">
-                            <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+                            <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 dark:text-slate-200 pointer-events-none" />
                             <select
                                 className="input-glass w-full appearance-none pl-12"
                                 onChange={(e) => {
@@ -281,7 +281,7 @@ export default function CurrenciesPage() {
                             <input
                                 type="text"
                                 required
-                                placeholder="e.g. Euro"
+                                placeholder="Currency name"
                                 className="input-glass w-full pl-12"
                                 value={newCurrency.name}
                                 onChange={e => setNewCurrency({ ...newCurrency, name: e.target.value })}
@@ -295,7 +295,7 @@ export default function CurrenciesPage() {
                             <input
                                 type="text"
                                 required
-                                placeholder="e.g. EUR"
+                                placeholder="Currency code"
                                 className="input-glass w-full uppercase font-mono text-center"
                                 value={newCurrency.code}
                                 onChange={e => setNewCurrency({ ...newCurrency, code: e.target.value.toUpperCase() })}
@@ -306,7 +306,7 @@ export default function CurrenciesPage() {
                             <input
                                 type="text"
                                 required
-                                placeholder="e.g. €"
+                                placeholder="Symbol"
                                 className="input-glass w-full text-center"
                                 value={newCurrency.symbol}
                                 onChange={e => setNewCurrency({ ...newCurrency, symbol: e.target.value })}
@@ -319,7 +319,7 @@ export default function CurrenciesPage() {
                             type="number"
                             step="0.0001"
                             required
-                            placeholder="e.g. 1.15"
+                            placeholder="Rate"
                             className="input-glass w-full font-mono text-center"
                             value={newCurrency.rate}
                             onChange={e => setNewCurrency({ ...newCurrency, rate: e.target.value })}

@@ -259,7 +259,7 @@ export default function CreateBranchCurrencyRatePage() {
                                     );
                                 })}
                             </select>
-                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-400 pointer-events-none" />
+                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-500 dark:text-slate-200 pointer-events-none" />
                         </div>
                     </div>
 
@@ -280,7 +280,7 @@ export default function CreateBranchCurrencyRatePage() {
                                     </option>
                                 ))}
                             </select>
-                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-400 pointer-events-none" />
+                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-500 dark:text-slate-200 pointer-events-none" />
                         </div>
                     </div>
 
@@ -295,7 +295,7 @@ export default function CreateBranchCurrencyRatePage() {
                                 <option value="yes">Yes</option>
                                 <option value="no">No</option>
                             </select>
-                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-400 pointer-events-none" />
+                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-500 dark:text-slate-200 pointer-events-none" />
                         </div>
                     </div>
 
