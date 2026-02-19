@@ -3,6 +3,9 @@ import { getBackendPublicBaseUrl } from '@/app/lib/backendProxy';
 
 type RouteContext = { params: Promise<{ path: string[] }> };
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 const HOP_BY_HOP_HEADERS = new Set([
     'connection',
     'content-length',
