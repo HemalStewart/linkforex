@@ -1,4 +1,42 @@
-export const API_BASE_URL = 'http://localhost:8888/linforex_backend/public/api';
+const stripTrailingSlash = (value: string): string => value.replace(/\/+$/, '');
+
+const toPathname = (value: string): string => {
+    try {
+        return new URL(value, 'http://localhost').pathname;
+    } catch {
+        return value;
+    }
+};
+
+const normalizeBaseUrl = (value: string): string => {
+    const trimmed = value.trim();
+    if (!trimmed) return '';
+    return stripTrailingSlash(trimmed);
+};
+
+export const API_BASE_URL = normalizeBaseUrl(
+    process.env.NEXT_PUBLIC_API_BASE_URL || '/api/proxy'
+);
+
+export const UPLOADS_BASE_URL = normalizeBaseUrl(
+    process.env.NEXT_PUBLIC_UPLOADS_BASE_URL || '/api/uploads'
+);
+
+const apiBasePathname = toPathname(API_BASE_URL);
+
+export const isApiRequestUrl = (rawUrl: string, origin = 'http://localhost'): boolean => {
+    if (!rawUrl) return false;
+
+    try {
+        const parsed = new URL(rawUrl, origin);
+        return (
+            parsed.pathname === apiBasePathname ||
+            parsed.pathname.startsWith(`${apiBasePathname}/`)
+        );
+    } catch {
+        return false;
+    }
+};
 
 export const ENDPOINTS = {
     AUTH: {

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { ENDPOINTS } from '@/app/lib/api';
+import { ENDPOINTS, isApiRequestUrl } from '@/app/lib/api';
 import {
     LayoutGrid,
     Layers,
@@ -252,10 +252,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
         const enrichApiUrl = (rawUrl: string): string => {
             try {
-                const parsed = new URL(rawUrl, window.location.origin);
-                if (!parsed.pathname.includes('/linforex_backend/public/api/')) {
+                if (!isApiRequestUrl(rawUrl, window.location.origin)) {
                     return rawUrl;
                 }
+                const parsed = new URL(rawUrl, window.location.origin);
                 if (!parsed.searchParams.has('acting_user_id')) {
                     parsed.searchParams.set('acting_user_id', actingUserId);
                 }
@@ -275,7 +275,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 requestUrl = input.url;
             }
 
-            const isApiCall = requestUrl.includes('/linforex_backend/public/api/');
+            const isApiCall = isApiRequestUrl(requestUrl, window.location.origin);
             if (!isApiCall) {
                 return originalFetch(input, init);
             }

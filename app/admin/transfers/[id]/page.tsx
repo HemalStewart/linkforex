@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { API_BASE_URL, ENDPOINTS } from '@/app/lib/api';
+import { ENDPOINTS, UPLOADS_BASE_URL } from '@/app/lib/api';
 import { ArrowLeft, Download, History, Search, RotateCcw } from 'lucide-react';
 
 type Transfer = {
@@ -165,12 +165,26 @@ const fieldValue = (...values: unknown[]): string => {
     return '-';
 };
 
+const encodePath = (rawPath: string): string => (
+    rawPath
+        .split('/')
+        .filter(Boolean)
+        .map((segment) => encodeURIComponent(segment))
+        .join('/')
+);
+
 const docUrl = (value: unknown): string | null => {
     const raw = asString(value).trim();
     if (!raw || raw === '-' || raw.toLowerCase() === 'none') return null;
-    if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('data:') || raw.startsWith('/')) return raw;
-    const root = API_BASE_URL.replace('/api', '');
-    return `${root}/uploads/${encodeURIComponent(raw)}`;
+    if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('data:')) return raw;
+
+    const normalized = raw.replace(/^\/+/, '');
+    const withoutUploadsPrefix = normalized.startsWith('uploads/')
+        ? normalized.slice('uploads/'.length)
+        : normalized;
+    const encoded = encodePath(withoutUploadsPrefix);
+
+    return `${UPLOADS_BASE_URL}/${encoded}`;
 };
 
 function DocumentCell({ value }: { value: unknown }) {
