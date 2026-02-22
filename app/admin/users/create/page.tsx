@@ -4,6 +4,7 @@ import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
+import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../../components/ConfirmModal';
 import { ArrowLeft, User, Mail, Lock, Shield, Building, Save, MapPin, Phone, FileSignature, ChevronRight } from 'lucide-react';
 
@@ -36,15 +37,8 @@ export default function CreateUserPage() {
     }, []);
 
     React.useEffect(() => {
-        const stored = localStorage.getItem('user');
-        if (stored) {
-            try {
-                const parsed = JSON.parse(stored);
-                setEnteredBy(parsed.username || parsed.name || '');
-            } catch (e) {
-                setEnteredBy('');
-            }
-        }
+        const parsed = getStoredUser<{ username?: string; name?: string }>();
+        setEnteredBy(parsed?.username || parsed?.name || '');
     }, []);
 
     const [confirmModal, setConfirmModal] = useState({

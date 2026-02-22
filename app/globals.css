@@ -461,10 +461,44 @@ html {
   .input-glass::placeholder {
     color: #94a3b8;
   }
+
+  .input-glass:-webkit-autofill,
+  .input-glass:-webkit-autofill:hover,
+  .input-glass:-webkit-autofill:focus,
+  .input-glass:-webkit-autofill:active {
+    -webkit-text-fill-color: #f8fafc;
+    caret-color: #f8fafc;
+    box-shadow: 0 0 0 1000px rgba(15, 32, 32, 0.82) inset;
+    -webkit-box-shadow: 0 0 0 1000px rgba(15, 32, 32, 0.82) inset;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: background-color 9999s ease-in-out 0s;
+  }
+}
+
+.dark .input-glass {
+  background: rgba(15, 32, 32, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+}
+
+.dark .input-glass:focus {
+  background: rgba(15, 32, 32, 0.8);
 }
 
 .dark .input-glass::placeholder {
   color: #94a3b8;
+}
+
+.dark .input-glass:-webkit-autofill,
+.dark .input-glass:-webkit-autofill:hover,
+.dark .input-glass:-webkit-autofill:focus,
+.dark .input-glass:-webkit-autofill:active {
+  -webkit-text-fill-color: #f8fafc;
+  caret-color: #f8fafc;
+  box-shadow: 0 0 0 1000px rgba(15, 32, 32, 0.82) inset;
+  -webkit-box-shadow: 0 0 0 1000px rgba(15, 32, 32, 0.82) inset;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background-color 9999s ease-in-out 0s;
 }
 
 /* Loading Spinner */

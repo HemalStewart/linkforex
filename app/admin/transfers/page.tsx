@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
+import { getStoredUser } from '@/app/lib/authStorage';
 import Modal from '../components/Modal';
 import { CheckCircle2, Eye, ImageUp, PenLine, PlusCircle, Printer, RotateCcw, Save, Search, XCircle } from 'lucide-react';
 
@@ -494,15 +495,8 @@ export default function TransfersPage() {
     };
 
     const getCurrentUserName = (): string => {
-        if (typeof window === 'undefined') return 'Admin';
-        const raw = localStorage.getItem('user');
-        if (!raw) return 'Admin';
-        try {
-            const parsed = JSON.parse(raw) as { username?: string; name?: string; email?: string };
-            return parsed.username || parsed.name || parsed.email || 'Admin';
-        } catch {
-            return 'Admin';
-        }
+        const user = getStoredUser<{ username?: string; name?: string; email?: string }>();
+        return user?.username || user?.name || user?.email || 'Admin';
     };
 
     const refreshSingleTransfer = (updated: Transfer) => {

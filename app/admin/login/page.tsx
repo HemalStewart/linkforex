@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
+import { getStoredUserRaw, setStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../components/ConfirmModal';
-import { Mail, Lock, Loader2, Github, Chrome, Check } from 'lucide-react';
+import { Mail, Lock, Loader2, Check, Eye, EyeOff } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -18,12 +18,21 @@ export default function AdminLoginPage() {
     type: 'info' as 'info' | 'danger' | 'warning' | 'success',
     isAlert: true
   });
+  const [rememberMe, setRememberMe] = React.useState(false);
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [identifierValue, setIdentifierValue] = React.useState('');
 
   // Check if already logged in
   React.useEffect(() => {
-    const user = localStorage.getItem('user');
+    const user = getStoredUserRaw();
     if (user) {
       router.replace('/admin/dashboard');
+    }
+
+    const rememberedLogin = localStorage.getItem('remembered_login') || localStorage.getItem('remembered_email');
+    if (rememberedLogin) {
+      setIdentifierValue(rememberedLogin);
+      setRememberMe(true);
     }
   }, [router]);
 
@@ -32,8 +41,8 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const email = formData.get('email');
-    const password = formData.get('password');
+    const identifier = String(formData.get('identifier') || '').trim();
+    const password = String(formData.get('password') || '');
 
     try {
       const response = await fetch(ENDPOINTS.AUTH.LOGIN, {
@@ -41,14 +50,22 @@ export default function AdminLoginPage() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({
+          email: identifier,
+          username: identifier,
+          password
+        })
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // Save user to local storage (Simple Auth)
-        localStorage.setItem('user', JSON.stringify(data.user));
+        setStoredUser(data.user, rememberMe);
+        if (rememberMe) {
+          localStorage.setItem('remembered_login', identifier);
+        } else {
+          localStorage.removeItem('remembered_login');
+        }
         // Redirect
         router.push('/admin/dashboard');
       } else {
@@ -107,7 +124,15 @@ export default function AdminLoginPage() {
               alt="LinkForex"
               width={220}
               height={64}
-              className="h-16 w-auto object-contain relative z-10 drop-shadow-sm"
+              className="h-16 w-auto object-contain relative z-10 drop-shadow-sm dark:hidden"
+              priority
+            />
+            <Image
+              src="/logo-dark-theme.png"
+              alt="LinkForex"
+              width={220}
+              height={64}
+              className="hidden h-16 w-auto object-contain relative z-10 drop-shadow-sm dark:block"
               priority
             />
           </div>
@@ -120,20 +145,22 @@ export default function AdminLoginPage() {
           <form className="space-y-6" onSubmit={handleLogin}>
             {/* Email Input */}
             <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-bold text-slate-700 dark:text-slate-200 ml-1">
-                Email Address
+              <label htmlFor="identifier" className="block text-sm font-bold text-slate-700 dark:text-slate-200 ml-1">
+                Email or Username
               </label>
               <div className="relative input-icon group">
                 <span className="input-icon-left">
                   <Mail className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
                 </span>
                 <input
-                  id="email"
-                  type="email"
-                  name="email"
-                  placeholder="Email address"
+                  id="identifier"
+                  type="text"
+                  name="identifier"
+                  placeholder="Email or username"
                   className="input-glass w-full py-3.5 text-base font-medium shadow-inner"
-                  autoComplete="email"
+                  autoComplete="username"
+                  value={identifierValue}
+                  onChange={(e) => setIdentifierValue(e.target.value)}
                   required
                 />
               </div>
@@ -150,13 +177,21 @@ export default function AdminLoginPage() {
                 </span>
                 <input
                   id="password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   name="password"
                   placeholder="••••••••"
-                  className="input-glass w-full py-3.5 text-base font-medium shadow-inner"
+                  className="input-glass w-full py-3.5 pr-12 text-base font-medium shadow-inner"
                   autoComplete="current-password"
                   required
                 />
+                <button
+                  type="button"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-200 hover:text-teal-500 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
             </div>
 
@@ -167,6 +202,8 @@ export default function AdminLoginPage() {
                   <input
                     type="checkbox"
                     className="peer sr-only"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
                   />
                   <div className="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-white/50 dark:bg-slate-800/50 peer-checked:bg-teal-500 peer-checked:border-teal-500 transition-all"></div>
                   <Check className="w-3.5 h-3.5 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" strokeWidth={3} />
@@ -195,35 +232,6 @@ export default function AdminLoginPage() {
             </button>
           </form>
 
-          {/* Divider */}
-          <div className="relative my-8">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-200 dark:border-slate-700/50"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 glass-effect rounded-full py-1 text-slate-500 dark:text-slate-400 font-bold text-xs uppercase tracking-wide">
-                Or continue with
-              </span>
-            </div>
-          </div>
-
-          {/* SSO Options */}
-          <div className="grid grid-cols-2 gap-4">
-            <button
-              type="button"
-              className="glass-effect flex items-center justify-center space-x-2 py-3 rounded-2xl font-bold text-slate-700 dark:text-slate-300 hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] group bg-white/40 dark:bg-slate-800/40 border-0"
-            >
-              <Chrome className="w-5 h-5 group-hover:text-red-500 transition-colors" />
-              <span>Google</span>
-            </button>
-            <button
-              type="button"
-              className="glass-effect flex items-center justify-center space-x-2 py-3 rounded-2xl font-bold text-slate-700 dark:text-slate-300 hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] group bg-white/40 dark:bg-slate-800/40 border-0"
-            >
-              <Github className="w-5 h-5 group-hover:text-black dark:group-hover:text-white transition-colors" />
-              <span>GitHub</span>
-            </button>
-          </div>
         </div>
 
         {/* Footer */}

@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PlusCircle, Search } from 'lucide-react';
 import { ENDPOINTS } from '@/app/lib/api';
+import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../components/ConfirmModal';
 
 type PermissionGroupRow = {
@@ -113,15 +114,8 @@ export default function PermissionGroupsPage() {
     }, [fetchRows, fetchRoles]);
 
     useEffect(() => {
-        const stored = localStorage.getItem('user');
-        if (stored) {
-            try {
-                const parsed = JSON.parse(stored);
-                setCurrentUserName(parsed.username || parsed.name || parsed.email || '');
-            } catch (e) {
-                setCurrentUserName('');
-            }
-        }
+        const parsed = getStoredUser<{ username?: string; name?: string; email?: string }>();
+        setCurrentUserName(parsed?.username || parsed?.name || parsed?.email || '');
     }, []);
 
     const searched = useMemo(() => {

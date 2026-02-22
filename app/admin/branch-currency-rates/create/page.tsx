@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
+import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../../components/ConfirmModal';
 import {
     ArrowLeft,
@@ -128,8 +129,8 @@ export default function CreateBranchCurrencyRatePage() {
         setSubmitting(true);
 
         try {
-            const userRaw = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-            const userName = userRaw ? (JSON.parse(userRaw).username || JSON.parse(userRaw).name || 'Admin') : 'Admin';
+            const user = getStoredUser<{ username?: string; name?: string }>();
+            const userName = user?.username || user?.name || 'Admin';
 
             const payload = {
                 company: formData.company || 'Link Forex Ltd',

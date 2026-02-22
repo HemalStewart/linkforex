@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
+import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../components/ConfirmModal';
 import { CheckCircle2, XCircle, RefreshCcw, AlertTriangle } from 'lucide-react';
 
@@ -60,17 +61,12 @@ export default function BranchAccessPage() {
     };
 
     useEffect(() => {
-        const stored = localStorage.getItem('user');
-        if (!stored) return;
-        try {
-            const parsed = JSON.parse(stored);
-            setCurrentUser({
-                ...parsed,
-                id: Number.isFinite(Number(parsed.id)) ? Number(parsed.id) : undefined,
-            });
-        } catch {
-            setCurrentUser(null);
-        }
+        const parsed = getStoredUser<any>();
+        if (!parsed) return;
+        setCurrentUser({
+            ...parsed,
+            id: Number.isFinite(Number(parsed.id)) ? Number(parsed.id) : undefined,
+        });
     }, []);
 
     const fetchRows = async () => {

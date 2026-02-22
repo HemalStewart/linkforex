@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
+import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../../components/ConfirmModal';
 import { ArrowLeft, Shield, Save } from 'lucide-react';
 
@@ -28,15 +29,8 @@ export default function CreateRolePage() {
     });
 
     useEffect(() => {
-        const stored = localStorage.getItem('user');
-        if (stored) {
-            try {
-                const parsed = JSON.parse(stored);
-                setEnteredBy(parsed.username || parsed.name || '');
-            } catch (e) {
-                setEnteredBy('');
-            }
-        }
+        const parsed = getStoredUser<{ username?: string; name?: string }>();
+        setEnteredBy(parsed?.username || parsed?.name || '');
     }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {

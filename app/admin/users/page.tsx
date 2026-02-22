@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
+import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../components/ConfirmModal';
 import { Search, UserPlus, Download, Trash2, Users, UserCheck, User, Shield, QrCode, Eye, RotateCcw, ChevronRight } from 'lucide-react';
 
@@ -46,15 +47,8 @@ export default function UsersPage() {
     }, []);
 
     useEffect(() => {
-        const stored = localStorage.getItem('user');
-        if (stored) {
-            try {
-                const parsed = JSON.parse(stored);
-                setCurrentUserName(parsed.username || parsed.name || '');
-            } catch (e) {
-                setCurrentUserName('');
-            }
-        }
+        const parsed = getStoredUser<{ username?: string; name?: string }>();
+        setCurrentUserName(parsed?.username || parsed?.name || '');
     }, []);
 
     const promptDelete = (id: number) => {

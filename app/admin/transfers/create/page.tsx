@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
+import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../../components/ConfirmModal';
 import {
     ArrowLeft,
@@ -311,26 +312,24 @@ export default function CreateTransferPage() {
     }, []);
 
     useEffect(() => {
-        const stored = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-        if (!stored) return;
-
-        try {
-            const parsed = JSON.parse(stored) as {
-                id?: string | number;
-                username?: string;
-                name?: string;
-                branch?: string;
-                branch_id?: string;
-            };
-            const parsedId = Number(parsed.id ?? NaN);
-            setCurrentUserId(Number.isFinite(parsedId) ? parsedId : null);
-            setCurrentUserName(parsed.username || parsed.name || '');
-            setCurrentUserBranch((parsed.branch || parsed.branch_id || '').trim());
-        } catch {
+        const parsed = getStoredUser<{
+            id?: string | number;
+            username?: string;
+            name?: string;
+            branch?: string;
+            branch_id?: string;
+        }>();
+        if (!parsed) return;
+        const parsedId = Number(parsed.id ?? NaN);
+        if (!Number.isFinite(parsedId)) {
             setCurrentUserId(null);
             setCurrentUserName('');
             setCurrentUserBranch('');
+            return;
         }
+        setCurrentUserId(parsedId);
+        setCurrentUserName(parsed.username || parsed.name || '');
+        setCurrentUserBranch((parsed.branch || parsed.branch_id || '').trim());
     }, []);
 
     useEffect(() => {

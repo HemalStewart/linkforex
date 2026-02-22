@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
+import { getStoredUser } from '@/app/lib/authStorage';
 import { Search, PlusCircle, Trash2, RefreshCcw } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 
@@ -139,8 +140,8 @@ export default function BranchCurrencyRatesPage() {
 
     const toggleActive = async (row: BranchCurrencyRate) => {
         const nextActive = row.active === 'yes' ? 'no' : 'yes';
-        const userRaw = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-        const userName = userRaw ? (JSON.parse(userRaw).username || JSON.parse(userRaw).name || 'Admin') : 'Admin';
+        const user = getStoredUser<{ username?: string; name?: string }>();
+        const userName = user?.username || user?.name || 'Admin';
 
         setRows((prev) => prev.map((item) => (item.id === row.id ? { ...item, active: nextActive } : item)));
 

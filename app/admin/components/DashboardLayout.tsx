@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { ENDPOINTS, isApiRequestUrl } from '@/app/lib/api';
+import { clearStoredUser, getStoredUserRaw } from '@/app/lib/authStorage';
 import {
     LayoutGrid,
     Layers,
@@ -91,7 +92,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const isLoginPage = pathname.startsWith('/admin/login');
 
     const buildSignOffPayload = React.useCallback((note: string) => {
-        const stored = localStorage.getItem('user');
+        const stored = getStoredUserRaw();
         if (!stored) return null;
         try {
             const user: CurrentUser = JSON.parse(stored);
@@ -305,7 +306,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             return;
         }
 
-        const stored = localStorage.getItem('user');
+        const stored = getStoredUserRaw();
         if (!stored) {
             setCurrentUser(null);
             setIsLoadingNav(false);
@@ -318,7 +319,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             setCurrentUser(parsed);
             setIsLoadingNav(false);
         } catch {
-            localStorage.removeItem('user');
+            clearStoredUser();
             setCurrentUser(null);
             setIsLoadingNav(false);
             router.replace('/admin/login');
@@ -354,7 +355,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             if (timer) clearTimeout(timer);
             timer = setTimeout(async () => {
                 await logSignOff('Auto logged out, session expired.', false);
-                localStorage.removeItem('user');
+                clearStoredUser();
                 setCurrentUser(null);
                 router.replace('/admin/login');
             }, timeoutMs);
@@ -484,7 +485,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                 alt="LinkForex"
                                 width={164}
                                 height={40}
-                                className="h-10 w-auto object-contain drop-shadow-md"
+                                className="h-10 w-auto object-contain drop-shadow-md dark:hidden"
+                                priority
+                            />
+                            <Image
+                                src="/logo-dark-theme.png"
+                                alt="LinkForex"
+                                width={164}
+                                height={40}
+                                className="hidden h-10 w-auto object-contain drop-shadow-md dark:block"
                                 priority
                             />
                         </div>
@@ -591,7 +600,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                             <button
                                 onClick={async () => {
                                     await logSignOff('User signed out', false);
-                                    localStorage.removeItem('user');
+                                    clearStoredUser();
                                     setCurrentUser(null);
                                     router.replace('/admin/login');
                                 }}
