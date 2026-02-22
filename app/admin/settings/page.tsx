@@ -11,7 +11,8 @@ export default function SettingsPage() {
     const [generalSettings, setGeneralSettings] = useState({
         siteName: 'LinkForex Admin',
         supportEmail: 'support@linkforex.com',
-        maintenanceMode: false
+        maintenanceMode: false,
+        footerText: '© 2026 LinkForex. Protected by 256-bit encryption.',
     });
 
     const [profileSettings, setProfileSettings] = useState({
@@ -151,6 +152,15 @@ export default function SettingsPage() {
                                             className="input-glass w-full"
                                         />
                                     </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Login Footer Text</label>
+                                    <input
+                                        type="text"
+                                        value={generalSettings.footerText}
+                                        onChange={e => setGeneralSettings({ ...generalSettings, footerText: e.target.value })}
+                                        className="input-glass w-full"
+                                    />
                                 </div>
                                 <div className="flex items-center justify-between p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50">
                                     <div>

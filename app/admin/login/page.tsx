@@ -10,6 +10,7 @@ import { Mail, Lock, Loader2, Check, Eye, EyeOff } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const defaultFooterText = '© 2026 LinkForex. Protected by 256-bit encryption.';
   const [loading, setLoading] = React.useState(false);
   const [confirmModal, setConfirmModal] = React.useState({
     isOpen: false,
@@ -21,6 +22,7 @@ export default function AdminLoginPage() {
   const [rememberMe, setRememberMe] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
   const [identifierValue, setIdentifierValue] = React.useState('');
+  const [footerText, setFooterText] = React.useState(defaultFooterText);
 
   // Check if already logged in
   React.useEffect(() => {
@@ -33,6 +35,18 @@ export default function AdminLoginPage() {
     if (rememberedLogin) {
       setIdentifierValue(rememberedLogin);
       setRememberMe(true);
+    }
+
+    const savedGeneral = localStorage.getItem('generalSettings');
+    if (savedGeneral) {
+      try {
+        const parsed = JSON.parse(savedGeneral);
+        if (typeof parsed?.footerText === 'string' && parsed.footerText.trim()) {
+          setFooterText(parsed.footerText.trim());
+        }
+      } catch {
+        // keep default footer text
+      }
     }
   }, [router]);
 
@@ -236,7 +250,7 @@ export default function AdminLoginPage() {
 
         {/* Footer */}
         <p className="mt-8 text-center text-xs font-semibold text-slate-400 dark:text-slate-500 animate-fade-in">
-          © 2026 LinkForex. Protected by 256-bit encryption.
+          {footerText}
         </p>
       </div>
     </div>
