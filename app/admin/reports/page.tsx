@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { BarChart3, FileCheck, Map, Users, FileText, Download, Calendar, Mail, Clock, Plus, RefreshCw, TrendingUp, DollarSign } from 'lucide-react';
+import { BarChart3, FileCheck, Map, Users, FileText, Download, Calendar, Mail, Clock, Plus, RefreshCw, TrendingUp, DollarSign, ChevronDown } from 'lucide-react';
 import { ENDPOINTS } from '@/app/lib/api';
 
 type SummaryResponse = {
@@ -222,12 +222,14 @@ export default function ReportsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">Date Range</label>
-                            <div className="relative">
-                                <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 z-10" />
+                            <div className="relative input-icon group">
+                                <span className="input-icon-left pointer-events-none">
+                                    <Calendar className="w-4 h-4" />
+                                </span>
                                 <select
                                     value={dateRange}
                                     onChange={(e) => setDateRange(e.target.value)}
-                                    className="input-glass w-full pl-10 pr-8 appearance-none cursor-pointer hover:bg-white/80 transition-colors"
+                                    className="input-glass w-full pl-10 pr-10 appearance-none cursor-pointer text-slate-700 dark:text-slate-200 hover:bg-white/80 dark:hover:bg-slate-800/60 transition-colors"
                                 >
                                     <option value="today">Today</option>
                                     <option value="week">This Week</option>
@@ -235,29 +237,36 @@ export default function ReportsPage() {
                                     <option value="quarter">This Quarter</option>
                                     <option value="year">This Year</option>
                                 </select>
+                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-300 pointer-events-none" />
                             </div>
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">Format</label>
-                            <div className="relative">
-                                <FileText className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 z-10" />
-                                <select className="input-glass w-full pl-10 pr-8 appearance-none cursor-pointer hover:bg-white/80 transition-colors">
+                            <div className="relative input-icon group">
+                                <span className="input-icon-left pointer-events-none">
+                                    <FileText className="w-4 h-4" />
+                                </span>
+                                <select className="input-glass w-full pl-10 pr-10 appearance-none cursor-pointer text-slate-700 dark:text-slate-200 hover:bg-white/80 dark:hover:bg-slate-800/60 transition-colors">
                                     <option>PDF Document</option>
                                     <option>Excel Spreadsheet</option>
                                     <option>CSV File</option>
                                     <option>JSON Data</option>
                                 </select>
+                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-300 pointer-events-none" />
                             </div>
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">Delivery Method</label>
-                            <div className="relative">
-                                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 z-10" />
-                                <select className="input-glass w-full pl-10 pr-8 appearance-none cursor-pointer hover:bg-white/80 transition-colors">
+                            <div className="relative input-icon group">
+                                <span className="input-icon-left pointer-events-none">
+                                    <Mail className="w-4 h-4" />
+                                </span>
+                                <select className="input-glass w-full pl-10 pr-10 appearance-none cursor-pointer text-slate-700 dark:text-slate-200 hover:bg-white/80 dark:hover:bg-slate-800/60 transition-colors">
                                     <option>Download Now</option>
                                     <option>Email to Me</option>
                                     <option>Schedule Recurring</option>
                                 </select>
+                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-300 pointer-events-none" />
                             </div>
                         </div>
                     </div>
