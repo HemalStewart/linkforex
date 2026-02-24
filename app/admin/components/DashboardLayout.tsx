@@ -552,11 +552,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             name: 'Mobile Control',
             icon: <ShieldCheck className="w-5 h-5" />,
             children: [
-                { name: 'Overview', href: '/admin/mobile-users/control#overview' },
-                { name: 'App Flow Settings', href: '/admin/mobile-users/control#app-flow-settings', sections: ['MOBILE_APP_FLOW_SETTINGS'] },
-                { name: 'Profile Review Queue', href: '/admin/mobile-users/control#profile-review-queue', sections: ['MOBILE_PROFILE_REVIEW_QUEUE'] },
-                { name: 'Campaigns', href: '/admin/mobile-users/control#campaigns', sections: ['MOBILE_CAMPAIGNS'] },
-                { name: 'In-App Ads', href: '/admin/mobile-users/control#in-app-ads', sections: ['MOBILE_ADS'] },
+                { name: 'Overview', href: '/admin/mobile-users/control/overview' },
+                { name: 'App Flow Settings', href: '/admin/mobile-users/control/app-flow-settings', sections: ['MOBILE_APP_FLOW_SETTINGS'] },
+                { name: 'Profile Review Queue', href: '/admin/mobile-users/control/profile-review-queue', sections: ['MOBILE_PROFILE_REVIEW_QUEUE'] },
+                { name: 'Campaigns', href: '/admin/mobile-users/control/campaigns', sections: ['MOBILE_CAMPAIGNS'] },
+                { name: 'In-App Ads', href: '/admin/mobile-users/control/in-app-ads', sections: ['MOBILE_ADS'] },
             ]
         },
         {

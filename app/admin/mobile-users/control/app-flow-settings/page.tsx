@@ -1,0 +1,213 @@
+'use client';
+
+import React, { useEffect, useMemo, useState } from 'react';
+import { BadgeCheck, Bell, Mail, Megaphone, Newspaper, RefreshCcw, Save, ShieldAlert, ShieldCheck, Smartphone } from 'lucide-react';
+import { ENDPOINTS } from '@/app/lib/api';
+import ConfirmModal from '../../../components/ConfirmModal';
+import { defaultSettings, type SettingsData, yesNoKeys } from '../_shared';
+
+export default function MobileAppFlowSettingsPage() {
+    const [loading, setLoading] = useState(true);
+    const [savingSettings, setSavingSettings] = useState(false);
+    const [settings, setSettings] = useState<SettingsData>(defaultSettings);
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info' as 'info' | 'warning' | 'danger' | 'success',
+    });
+
+    const showModal = (title: string, message: string, type: 'info' | 'warning' | 'danger' | 'success' = 'info') => {
+        setConfirmModal({ isOpen: true, title, message, type });
+    };
+
+    const loadSettings = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch(ENDPOINTS.MOBILE_ADMIN.SETTINGS);
+            if (!res.ok) return;
+            const data = await res.json();
+            const next: SettingsData = { ...defaultSettings };
+            yesNoKeys.forEach((key) => {
+                const value = String(data?.[key] || next[key]).toLowerCase();
+                next[key] = value === 'yes' ? 'yes' : 'no';
+            });
+            const provider = String(data?.liveness_provider || next.liveness_provider).toLowerCase();
+            next.liveness_provider = provider === 'none' ? 'none' : 'veriff';
+            next.veriff_base_url = String(data?.veriff_base_url || next.veriff_base_url || '').trim();
+            next.veriff_callback_url = String(data?.veriff_callback_url || next.veriff_callback_url || '').trim();
+            next.veriff_api_key = '';
+            next.veriff_hmac_secret = '';
+            next.veriff_configured = Boolean(data?.veriff_configured);
+            setSettings(next);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadSettings();
+    }, []);
+
+    const setToggle = (key: keyof SettingsData, value: boolean) => {
+        setSettings((prev) => ({ ...prev, [key]: value ? 'yes' : 'no' }));
+    };
+
+    const saveSettings = async () => {
+        setSavingSettings(true);
+        try {
+            const res = await fetch(ENDPOINTS.MOBILE_ADMIN.SETTINGS, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(settings),
+            });
+            if (!res.ok) {
+                showModal('Save Failed', 'Could not save mobile settings.', 'danger');
+                return;
+            }
+            await loadSettings();
+            showModal('Saved', 'Mobile settings updated successfully.', 'success');
+        } catch {
+            showModal('Save Failed', 'Could not save mobile settings.', 'danger');
+        } finally {
+            setSavingSettings(false);
+        }
+    };
+
+    const settingsRows = useMemo(() => ([
+        { key: 'require_email_otp', label: 'Require Email OTP', icon: <Mail className="h-4 w-4" /> },
+        { key: 'require_mobile_otp', label: 'Require Mobile OTP', icon: <Smartphone className="h-4 w-4" /> },
+        { key: 'enable_liveness_check', label: 'Enable Liveness Check', icon: <ShieldCheck className="h-4 w-4" /> },
+        { key: 'enable_sanction_screening', label: 'Enable Sanction Screening', icon: <ShieldAlert className="h-4 w-4" /> },
+        { key: 'lock_profile_after_verification', label: 'Lock Profile After Verification', icon: <BadgeCheck className="h-4 w-4" /> },
+        { key: 'allow_profile_edit_after_lock', label: 'Allow Edit After Lock', icon: <RefreshCcw className="h-4 w-4" /> },
+        { key: 'enable_google_sign_in', label: 'Enable Google Sign-In', icon: <Smartphone className="h-4 w-4" /> },
+        { key: 'enable_apple_sign_in', label: 'Enable Apple Sign-In', icon: <Smartphone className="h-4 w-4" /> },
+        { key: 'enable_push_notifications', label: 'Enable Push Notifications', icon: <Bell className="h-4 w-4" /> },
+        { key: 'enable_email_notifications', label: 'Enable Email Notifications', icon: <Mail className="h-4 w-4" /> },
+        { key: 'enable_secure_message', label: 'Enable Secure Message', icon: <ShieldCheck className="h-4 w-4" /> },
+        { key: 'enable_in_app_ads', label: 'Enable In-App Ads', icon: <Newspaper className="h-4 w-4" /> },
+        { key: 'send_exchange_rate_push', label: 'Send Exchange Rate Push', icon: <Megaphone className="h-4 w-4" /> },
+    ]), []);
+
+    return (
+        <div className="mx-auto max-w-7xl space-y-8 pb-20 animate-fade-in-up">
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+                onConfirm={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                type={confirmModal.type}
+                isAlert
+                confirmText="OK"
+            />
+
+            <div className="flex items-start justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">App Flow Settings</h1>
+                    <p className="mt-2 font-medium text-slate-500 dark:text-slate-400">
+                        Configure onboarding checks, sign-in options, and liveness provider.
+                    </p>
+                </div>
+                <div className="flex items-center gap-3">
+                    <button onClick={loadSettings} className="glass-effect rounded-full px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-300">
+                        Refresh
+                    </button>
+                    <button onClick={saveSettings} className="btn-primary flex items-center gap-2 rounded-full px-4 py-2 text-sm" disabled={savingSettings || loading}>
+                        <Save className="h-4 w-4" />
+                        {savingSettings ? 'Saving...' : 'Save'}
+                    </button>
+                </div>
+            </div>
+
+            <div className="card-glass p-6">
+                <div className="space-y-3">
+                    {settingsRows.map((row) => {
+                        const key = row.key as keyof SettingsData;
+                        const checked = settings[key] === 'yes';
+                        return (
+                            <label key={key} className="flex items-center justify-between rounded-2xl border border-slate-200/70 bg-white/40 px-4 py-3 dark:border-slate-700 dark:bg-slate-900/30">
+                                <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                                    {row.icon}
+                                    {row.label}
+                                </div>
+                                <input
+                                    type="checkbox"
+                                    checked={checked}
+                                    onChange={(e) => setToggle(key, e.target.checked)}
+                                    className="h-4 w-4 cursor-pointer rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                                />
+                            </label>
+                        );
+                    })}
+                </div>
+
+                <div className="mt-5 rounded-2xl border border-slate-200/70 bg-white/40 p-4 dark:border-slate-700 dark:bg-slate-900/30">
+                    <div className="mb-3 flex items-center justify-between">
+                        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Veriff Integration</h3>
+                        <span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider ${settings.veriff_configured ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}`}>
+                            {settings.veriff_configured ? 'Configured' : 'Not Configured'}
+                        </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 md:col-span-2">
+                            Provider
+                            <select
+                                value={settings.liveness_provider}
+                                onChange={(e) => setSettings((prev) => ({ ...prev, liveness_provider: e.target.value as 'none' | 'veriff' }))}
+                                className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
+                            >
+                                <option value="veriff">Veriff</option>
+                                <option value="none">Disabled</option>
+                            </select>
+                        </label>
+
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 md:col-span-2">
+                            Veriff Base URL
+                            <input
+                                value={settings.veriff_base_url}
+                                onChange={(e) => setSettings((prev) => ({ ...prev, veriff_base_url: e.target.value }))}
+                                className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
+                                placeholder="https://stationapi.veriff.com"
+                            />
+                        </label>
+
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 md:col-span-2">
+                            Callback URL
+                            <input
+                                value={settings.veriff_callback_url}
+                                onChange={(e) => setSettings((prev) => ({ ...prev, veriff_callback_url: e.target.value }))}
+                                className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
+                                placeholder="https://your-domain/api/webhooks/veriff"
+                            />
+                        </label>
+
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                            API Key
+                            <input
+                                type="password"
+                                value={settings.veriff_api_key}
+                                onChange={(e) => setSettings((prev) => ({ ...prev, veriff_api_key: e.target.value }))}
+                                className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
+                                placeholder={settings.veriff_configured ? 'Leave blank to keep current key' : 'Enter Veriff API key'}
+                            />
+                        </label>
+
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                            HMAC Secret
+                            <input
+                                type="password"
+                                value={settings.veriff_hmac_secret}
+                                onChange={(e) => setSettings((prev) => ({ ...prev, veriff_hmac_secret: e.target.value }))}
+                                className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
+                                placeholder={settings.veriff_configured ? 'Leave blank to keep current secret' : 'Enter Veriff HMAC secret'}
+                            />
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
