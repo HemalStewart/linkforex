@@ -139,8 +139,8 @@ export default function EditRemitterPage() {
             <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                             Edit Mobile Profile
                         </h1>
-            <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-3 py-1 rounded-full text-xs font-bold uppercase">
-                            ID: {id}
+            <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-3 py-1 rounded-full text-xs font-bold">
+                            Profile ID: {id}
                         </span>
                     </div>
                 </div>
@@ -154,7 +154,7 @@ export default function EditRemitterPage() {
           <div className="md:col-span-2">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center border-b border-slate-100 dark:border-slate-700/50 pb-2">
               <User className="w-5 h-5 mr-2 text-teal-500" />
-                            Personal Information
+                            Personal Details
                         </h3>
                     </div>
 
@@ -176,7 +176,7 @@ export default function EditRemitterPage() {
                     </div>
 
                     <div>
-            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Email</label>
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Email Address</label>
             <div className="relative input-icon group">
               <span className="input-icon-left">
                 <Mail className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
@@ -192,7 +192,7 @@ export default function EditRemitterPage() {
                     </div>
 
                     <div>
-            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Phone <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Phone Number <span className="text-red-500">*</span></label>
             <div className="relative input-icon group">
               <span className="input-icon-left">
                 <Phone className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
@@ -227,7 +227,7 @@ export default function EditRemitterPage() {
           <div className="md:col-span-2 mt-2">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center border-b border-slate-100 dark:border-slate-700/50 pb-2">
               <CheckCircle className="w-5 h-5 mr-2 text-teal-500" />
-                            Account Status
+                            Account and Verification
                         </h3>
                     </div>
 
@@ -275,22 +275,22 @@ export default function EditRemitterPage() {
           <div className="md:col-span-2 mt-2">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center border-b border-slate-100 dark:border-slate-700/50 pb-2">
               <MapPin className="w-5 h-5 mr-2 text-teal-500" />
-                            Address Information
+                            Address Details
                         </h3>
                     </div>
 
-                    <div>
-            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Country</label>
+          <div className="md:col-span-2">
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Address Line</label>
             <div className="relative input-icon group">
               <span className="input-icon-left">
-                <Flag className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+                <MapPin className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
               </span>
                             <input
                                 type="text"
-                                value={formData.country || ''}
-                                onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                                value={formData.address_1 || ''}
+                                onChange={(e) => setFormData({ ...formData, address_1: e.target.value })}
                 className="input-glass w-full py-3"
-                                placeholder="United Kingdom"
+                                placeholder="Address"
                             />
                         </div>
                     </div>
@@ -311,22 +311,6 @@ export default function EditRemitterPage() {
                         </div>
                     </div>
 
-          <div className="md:col-span-2">
-            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Address Line</label>
-            <div className="relative input-icon group">
-              <span className="input-icon-left">
-                <MapPin className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
-              </span>
-                            <input
-                                type="text"
-                                value={formData.address_1 || ''}
-                                onChange={(e) => setFormData({ ...formData, address_1: e.target.value })}
-                className="input-glass w-full py-3"
-                                placeholder="Address"
-                            />
-                        </div>
-                    </div>
-
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Postcode</label>
             <div className="relative input-icon group">
@@ -339,6 +323,22 @@ export default function EditRemitterPage() {
                                 onChange={(e) => setFormData({ ...formData, postcode: e.target.value })}
                 className="input-glass w-full py-3"
                                 placeholder="Postcode"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Country</label>
+            <div className="relative input-icon group">
+              <span className="input-icon-left">
+                <Flag className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+              </span>
+                            <input
+                                type="text"
+                                value={formData.country || ''}
+                                onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                className="input-glass w-full py-3"
+                                placeholder="United Kingdom"
                             />
                         </div>
                     </div>

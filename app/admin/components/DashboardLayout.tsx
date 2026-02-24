@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { ENDPOINTS, isApiRequestUrl } from '@/app/lib/api';
 import { clearStoredUser, getStoredUserRaw } from '@/app/lib/authStorage';
+import { applyThemePreference, getStoredThemePreference, resolveTheme, type ThemePreference, type ResolvedTheme } from '@/app/lib/theme';
 import {
     LayoutGrid,
     Layers,
@@ -24,12 +25,15 @@ import {
     ChevronLeft,
     ChevronRight,
     ChevronDown,
+    Moon,
+    Monitor,
     Search,
     Bell,
     PlusCircle,
     ArrowRightLeft,
     FileText,
     AlertTriangle,
+    Sun,
     User
 } from 'lucide-react';
 
@@ -66,16 +70,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [headerUserMenuOpen, setHeaderUserMenuOpen] = useState(false);
     const [notificationMenuOpen, setNotificationMenuOpen] = useState(false);
+    const [themeMenuOpen, setThemeMenuOpen] = useState(false);
+    const [themePreference, setThemePreference] = useState<ThemePreference>('system');
+    const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>('light');
     const [isLoadingNav, setIsLoadingNav] = useState(true);
     const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
     const headerUserMenuRef = React.useRef<HTMLDivElement | null>(null);
     const notificationMenuRef = React.useRef<HTMLDivElement | null>(null);
+    const themeMenuRef = React.useRef<HTMLDivElement | null>(null);
     const originalFetchRef = React.useRef<typeof window.fetch | null>(null);
     const signOffSentRef = React.useRef(false);
     const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
         'Operations': true,
-        'Management': true,
-        'Mobile Operations': true
+        'Management': true
     });
 
     const [counts, setCounts] = useState({
@@ -351,12 +358,50 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }, []);
 
     React.useEffect(() => {
+        const syncThemeState = () => {
+            const preference = getStoredThemePreference();
+            setThemePreference(preference);
+            setResolvedTheme(resolveTheme(preference));
+        };
+
+        syncThemeState();
+
+        const handleThemeChange = () => syncThemeState();
+        const handleStorage = (event: StorageEvent) => {
+            if (event.key === 'theme_preference') {
+                syncThemeState();
+            }
+        };
+
+        const media = window.matchMedia('(prefers-color-scheme: dark)');
+        const handleMediaChange = () => {
+            if (getStoredThemePreference() === 'system') {
+                syncThemeState();
+            }
+        };
+
+        window.addEventListener('theme-preference-change', handleThemeChange);
+        window.addEventListener('storage', handleStorage);
+
+        media.addEventListener('change', handleMediaChange);
+
+        return () => {
+            window.removeEventListener('theme-preference-change', handleThemeChange);
+            window.removeEventListener('storage', handleStorage);
+            media.removeEventListener('change', handleMediaChange);
+        };
+    }, []);
+
+    React.useEffect(() => {
         const handleOutsideClick = (event: MouseEvent) => {
             if (headerUserMenuRef.current && !headerUserMenuRef.current.contains(event.target as Node)) {
                 setHeaderUserMenuOpen(false);
             }
             if (notificationMenuRef.current && !notificationMenuRef.current.contains(event.target as Node)) {
                 setNotificationMenuOpen(false);
+            }
+            if (themeMenuRef.current && !themeMenuRef.current.contains(event.target as Node)) {
+                setThemeMenuOpen(false);
             }
         };
 
@@ -441,10 +486,28 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         setCurrentUser(null);
         setHeaderUserMenuOpen(false);
         setNotificationMenuOpen(false);
+        setThemeMenuOpen(false);
         router.replace('/admin/login');
     };
 
+    const handleThemeChange = (preference: ThemePreference) => {
+        applyThemePreference(preference);
+        setThemePreference(preference);
+        setResolvedTheme(resolveTheme(preference));
+        setThemeMenuOpen(false);
+    };
+
     const notifications: Array<{ id: string; text: string }> = [];
+    const toTitleCase = (value?: string, fallback = ''): string => {
+        const text = String(value || '').trim();
+        if (!text) return fallback;
+        return text
+            .replace(/[_-]+/g, ' ')
+            .toLowerCase()
+            .replace(/\b\w/g, (char) => char.toUpperCase());
+    };
+    const displayName = String(currentUser?.name || '').trim() || 'User';
+    const displayRole = toTitleCase(currentUser?.role, 'Guest');
 
     const navigation: NavItem[] = [
         {
@@ -470,13 +533,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             ]
         },
         {
-            name: 'Mobile Operations',
+            name: 'Mobile Accounts',
             icon: <Smartphone className="w-5 h-5" />,
-            children: [
-                { name: 'Mobile Accounts', href: '/admin/mobile-users', icon: <Smartphone className="w-4 h-4" /> },
-                { name: 'Mobile Profiles', href: '/admin/mobile-profiles', icon: <Users className="w-4 h-4" /> },
-                { name: 'Mobile Control', href: '/admin/mobile-users/control', badge: counts.kyc > 0 ? counts.kyc.toString() : undefined, icon: <ShieldCheck className="w-4 h-4" /> },
-            ]
+            href: '/admin/mobile-users'
+        },
+        {
+            name: 'Mobile Profiles',
+            icon: <Users className="w-5 h-5" />,
+            href: '/admin/mobile-profiles'
+        },
+        {
+            name: 'Mobile Control',
+            icon: <ShieldCheck className="w-5 h-5" />,
+            href: '/admin/mobile-users/control'
         },
         {
             name: 'Management',
@@ -645,6 +714,72 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     </div>
 
                     <div className="flex items-center space-x-5">
+                        <div ref={themeMenuRef} className="relative">
+                            <button
+                                onClick={() => {
+                                    setThemeMenuOpen((prev) => !prev);
+                                    setHeaderUserMenuOpen(false);
+                                    setNotificationMenuOpen(false);
+                                }}
+                                className="p-3 glass-effect rounded-full text-slate-500 dark:text-slate-400 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 relative group"
+                                aria-label="Theme"
+                                title="Theme"
+                            >
+                                {resolvedTheme === 'dark' ? (
+                                    <Moon className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                                ) : (
+                                    <Sun className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                                )}
+                            </button>
+                            {themeMenuOpen && (
+                                <div className="absolute right-0 mt-2 w-56 glass-effect-strong rounded-[16px] shadow-lg overflow-hidden animate-scale-in border border-white/20 dark:border-white/10 z-30">
+                                    <div className="p-2">
+                                        <button
+                                            onClick={() => handleThemeChange('system')}
+                                            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-left ${
+                                                themePreference === 'system'
+                                                    ? 'bg-white/70 dark:bg-white/10 text-teal-600 dark:text-teal-300'
+                                                    : 'text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-white/5'
+                                            }`}
+                                        >
+                                            <span className="flex items-center space-x-3">
+                                                <Monitor className="w-4 h-4" />
+                                                <span className="text-sm font-semibold">System</span>
+                                            </span>
+                                            {themePreference === 'system' && <span className="text-xs font-semibold">Active</span>}
+                                        </button>
+                                        <button
+                                            onClick={() => handleThemeChange('light')}
+                                            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-left ${
+                                                themePreference === 'light'
+                                                    ? 'bg-white/70 dark:bg-white/10 text-teal-600 dark:text-teal-300'
+                                                    : 'text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-white/5'
+                                            }`}
+                                        >
+                                            <span className="flex items-center space-x-3">
+                                                <Sun className="w-4 h-4" />
+                                                <span className="text-sm font-semibold">Light</span>
+                                            </span>
+                                            {themePreference === 'light' && <span className="text-xs font-semibold">Active</span>}
+                                        </button>
+                                        <button
+                                            onClick={() => handleThemeChange('dark')}
+                                            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-left ${
+                                                themePreference === 'dark'
+                                                    ? 'bg-white/70 dark:bg-white/10 text-teal-600 dark:text-teal-300'
+                                                    : 'text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-white/5'
+                                            }`}
+                                        >
+                                            <span className="flex items-center space-x-3">
+                                                <Moon className="w-4 h-4" />
+                                                <span className="text-sm font-semibold">Dark</span>
+                                            </span>
+                                            {themePreference === 'dark' && <span className="text-xs font-semibold">Active</span>}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                         <div ref={notificationMenuRef} className="relative">
                             <button
                                 onClick={() => setNotificationMenuOpen((prev) => !prev)}
@@ -674,14 +809,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                 className="glass-effect rounded-full pl-2 pr-3 py-1.5 text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 flex items-center space-x-2 hover:shadow-lg"
                             >
                                 <div className="avatar-circle avatar-circle-sm shrink-0">
-                                    {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
+                                    {displayName.charAt(0).toUpperCase()}
                                 </div>
                                 <div className="hidden md:block text-left max-w-[180px]">
                                     <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                                        {currentUser?.name || 'User'}
+                                        {displayName}
                                     </p>
                                     <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                                        {currentUser?.role || 'Guest'}
+                                        {displayRole}
                                     </p>
                                 </div>
                                 <ChevronDown className={`w-4 h-4 transition-transform ${headerUserMenuOpen ? 'rotate-180' : ''}`} />

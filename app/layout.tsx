@@ -22,8 +22,53 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const themeScript = `
+    (function () {
+      try {
+        var KEY = 'theme_preference';
+        var getPreference = function () {
+          var value = localStorage.getItem(KEY);
+          if (value === 'light' || value === 'dark' || value === 'system') return value;
+          return 'system';
+        };
+        var getSystemTheme = function () {
+          return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        };
+        var apply = function (preference) {
+          var resolved = preference === 'system' ? getSystemTheme() : preference;
+          document.documentElement.classList.toggle('dark', resolved === 'dark');
+          document.documentElement.style.colorScheme = resolved;
+        };
+
+        apply(getPreference());
+
+        var media = window.matchMedia('(prefers-color-scheme: dark)');
+        var onSystemChange = function () {
+          if (getPreference() === 'system') apply('system');
+        };
+
+        if (media.addEventListener) {
+          media.addEventListener('change', onSystemChange);
+        } else if (media.addListener) {
+          media.addListener(onSystemChange);
+        }
+
+        window.addEventListener('storage', function (event) {
+          if (event.key === KEY) apply(getPreference());
+        });
+
+        window.addEventListener('theme-preference-change', function () {
+          apply(getPreference());
+        });
+      } catch (e) {}
+    })();
+  `;
+
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
