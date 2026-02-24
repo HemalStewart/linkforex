@@ -714,6 +714,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     </div>
 
                     <div className="flex items-center space-x-5">
+                        <Link
+                            href="/admin/transfers/create"
+                            className="glass-effect rounded-full px-4 py-2.5 text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 flex items-center space-x-2 hover:shadow-lg"
+                        >
+                            <PlusCircle className="w-5 h-5" />
+                            <span className="font-semibold">New Transfer</span>
+                        </Link>
                         <div ref={themeMenuRef} className="relative">
                             <button
                                 onClick={() => {
@@ -844,13 +851,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                 </div>
                             )}
                         </div>
-                        <Link
-                            href="/admin/transfers/create"
-                            className="glass-effect rounded-full px-4 py-2.5 text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 flex items-center space-x-2 hover:shadow-lg"
-                        >
-                            <PlusCircle className="w-5 h-5" />
-                            <span className="font-semibold">New Transfer</span>
-                        </Link>
                     </div>
                 </header>
 
