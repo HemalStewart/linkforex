@@ -516,12 +516,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             href: '/admin/dashboard'
         },
         {
-            name: 'Reports',
-            icon: <BarChart3 className="w-5 h-5" />,
-            href: '/admin/reports',
-            sections: ['TODAY_SUMMARY', 'MC_STATISTICS', 'REPORTS']
-        },
-        {
             name: 'Operations',
             icon: <Layers className="w-5 h-5" />,
             children: [
@@ -567,6 +561,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 { name: 'Settings', href: '/admin/settings', icon: <Settings className="w-4 h-4" /> },
                 { name: 'Logs', href: '/admin/logs', icon: <FileText className="w-4 h-4" />, sections: ['SYSUSERS_LOG', 'SYSRECORD_LOGS', 'AUDIT_LOGS'] },
             ]
+        },
+        {
+            name: 'Reports',
+            icon: <BarChart3 className="w-5 h-5" />,
+            href: '/admin/reports',
+            sections: ['TODAY_SUMMARY', 'MC_STATISTICS', 'REPORTS']
         }
     ];
 
