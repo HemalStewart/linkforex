@@ -23,12 +23,16 @@ import {
     LogOut,
     ChevronLeft,
     ChevronRight,
+    ChevronDown,
+    Moon,
     Search,
     Bell,
     PlusCircle,
     ArrowRightLeft,
     FileText,
-    AlertTriangle
+    AlertTriangle,
+    Sun,
+    User
 } from 'lucide-react';
 
 interface DashboardLayoutProps {
@@ -57,13 +61,17 @@ interface NavItem {
     icon: React.ReactNode;
     href?: string;
     children?: NavChild[];
+    sections?: string[];
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
+    const [headerUserMenuOpen, setHeaderUserMenuOpen] = useState(false);
+    const [theme, setTheme] = useState<'light' | 'dark'>('light');
     const [isLoadingNav, setIsLoadingNav] = useState(true);
     const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+    const headerUserMenuRef = React.useRef<HTMLDivElement | null>(null);
     const originalFetchRef = React.useRef<typeof window.fetch | null>(null);
     const signOffSentRef = React.useRef(false);
     const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
@@ -345,6 +353,38 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }, []);
 
     React.useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const applyTheme = (nextTheme: 'light' | 'dark') => {
+            document.documentElement.classList.toggle('dark', nextTheme === 'dark');
+            document.documentElement.style.colorScheme = nextTheme;
+            localStorage.setItem('theme', nextTheme);
+            setTheme(nextTheme);
+        };
+
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light' || savedTheme === 'dark') {
+            applyTheme(savedTheme);
+            return;
+        }
+
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        applyTheme(prefersDark ? 'dark' : 'light');
+    }, []);
+
+    React.useEffect(() => {
+        const handleOutsideClick = (event: MouseEvent) => {
+            if (!headerUserMenuRef.current) return;
+            if (!headerUserMenuRef.current.contains(event.target as Node)) {
+                setHeaderUserMenuOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleOutsideClick);
+        return () => document.removeEventListener('mousedown', handleOutsideClick);
+    }, []);
+
+    React.useEffect(() => {
         if (isLoginPage) return;
         signOffSentRef.current = false;
 
@@ -415,11 +455,34 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         return sections.some((section) => viewSections.has(section.toUpperCase()));
     };
 
+    const handleSignOut = async () => {
+        await logSignOff('User signed out', false);
+        clearStoredUser();
+        setCurrentUser(null);
+        setUserMenuOpen(false);
+        setHeaderUserMenuOpen(false);
+        router.replace('/admin/login');
+    };
+
+    const toggleTheme = () => {
+        const nextTheme = theme === 'dark' ? 'light' : 'dark';
+        document.documentElement.classList.toggle('dark', nextTheme === 'dark');
+        document.documentElement.style.colorScheme = nextTheme;
+        localStorage.setItem('theme', nextTheme);
+        setTheme(nextTheme);
+    };
+
     const navigation: NavItem[] = [
         {
             name: 'Dashboard',
             icon: <LayoutGrid className="w-5 h-5" />,
             href: '/admin/dashboard'
+        },
+        {
+            name: 'Reports',
+            icon: <BarChart3 className="w-5 h-5" />,
+            href: '/admin/reports',
+            sections: ['TODAY_SUMMARY', 'MC_STATISTICS', 'REPORTS']
         },
         {
             name: 'Operations',
@@ -458,7 +521,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             name: 'System',
             icon: <Cpu className="w-5 h-5" />,
             children: [
-                { name: 'Reports', href: '/admin/reports', icon: <BarChart3 className="w-4 h-4" />, sections: ['TODAY_SUMMARY', 'MC_STATISTICS', 'REPORTS'] },
                 { name: 'Settings', href: '/admin/settings', icon: <Settings className="w-4 h-4" /> },
                 { name: 'Logs', href: '/admin/logs', icon: <FileText className="w-4 h-4" />, sections: ['SYSUSERS_LOG', 'SYSRECORD_LOGS', 'AUDIT_LOGS'] },
             ]
@@ -506,6 +568,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 {/* Navigation */}
                 <nav className="flex-1 px-4 py-5 space-y-2.5 overflow-y-auto no-scrollbar">
                     {navigation.map((item, idx) => {
+                        if (!item.children && !canViewSections(item.sections)) {
+                            return null;
+                        }
+
                         const visibleChildren = item.children?.filter((child) => canViewSections(child.sections)) || [];
                         if (item.children && visibleChildren.length === 0) {
                             return null;
@@ -598,12 +664,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     {userMenuOpen && (
                         <div className="absolute bottom-[110%] left-4 right-4 mb-2 glass-effect-strong rounded-[16px] shadow-lg overflow-hidden animate-scale-in border border-white/20 dark:border-white/10">
                             <button
-                                onClick={async () => {
-                                    await logSignOff('User signed out', false);
-                                    clearStoredUser();
-                                    setCurrentUser(null);
-                                    router.replace('/admin/login');
-                                }}
+                                onClick={handleSignOut}
                                 className="flex items-center space-x-3 px-5 py-3 text-red-500 hover:bg-red-50/70 dark:hover:bg-red-900/20 transition-all duration-300 w-full text-left group"
                             >
                                 <LogOut className="w-5 h-5 group-hover:scale-110 transition-transform" />
@@ -660,6 +721,73 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                             <Bell className="w-6 h-6 group-hover:scale-110 transition-transform" />
                             <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-800 animate-pulse"></span>
                         </button>
+                        <button
+                            type="button"
+                            onClick={toggleTheme}
+                            className="p-3 glass-effect rounded-full text-slate-500 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300"
+                            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                        >
+                            {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                        </button>
+                        <div ref={headerUserMenuRef} className="relative">
+                            <button
+                                onClick={() => setHeaderUserMenuOpen((prev) => !prev)}
+                                className="glass-effect rounded-full pl-2 pr-3 py-1.5 text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 flex items-center space-x-2 hover:shadow-lg"
+                            >
+                                <div className="avatar-circle avatar-circle-sm shrink-0">
+                                    {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
+                                </div>
+                                <div className="hidden md:block text-left max-w-[180px]">
+                                    <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                                        {currentUser?.name || 'User'}
+                                    </p>
+                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                                        {currentUser?.role || 'Guest'}
+                                    </p>
+                                </div>
+                                <ChevronDown className={`w-4 h-4 transition-transform ${headerUserMenuOpen ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            {headerUserMenuOpen && (
+                                <div className="absolute right-0 mt-2 w-72 glass-effect-strong rounded-[16px] shadow-lg overflow-hidden animate-scale-in border border-white/20 dark:border-white/10 z-30">
+                                    <div className="px-4 py-3 border-b border-white/10 dark:border-white/10">
+                                        <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                                            {currentUser?.name || 'User'}
+                                        </p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                                            {currentUser?.email || 'No email'}
+                                        </p>
+                                        {currentUser?.username && (
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                                                @{currentUser.username}
+                                            </p>
+                                        )}
+                                        <p className="text-xs mt-1 text-teal-600 dark:text-teal-300 font-semibold uppercase tracking-wide">
+                                            {currentUser?.role || 'Guest'}
+                                        </p>
+                                    </div>
+
+                                    <div className="p-2">
+                                        <Link
+                                            href="/admin/settings"
+                                            onClick={() => setHeaderUserMenuOpen(false)}
+                                            className="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-white/5 transition-all"
+                                        >
+                                            <User className="w-4 h-4" />
+                                            <span className="text-sm font-semibold">Profile Settings</span>
+                                        </Link>
+                                        <button
+                                            onClick={handleSignOut}
+                                            className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-red-500 hover:bg-red-50/70 dark:hover:bg-red-900/20 transition-all text-left"
+                                        >
+                                            <LogOut className="w-4 h-4" />
+                                            <span className="text-sm font-semibold">Sign Out</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                         <Link
                             href="/admin/transfers/create"
                             className="glass-effect rounded-full px-4 py-2.5 text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 flex items-center space-x-2 hover:shadow-lg"

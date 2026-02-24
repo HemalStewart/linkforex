@@ -11,6 +11,7 @@ import { Mail, Lock, Loader2, Check, Eye, EyeOff } from 'lucide-react';
 export default function AdminLoginPage() {
   const router = useRouter();
   const defaultFooterText = '© 2026 LinkForex. Protected by 256-bit encryption.';
+  const genericLoginError = 'Invalid login credentials.';
   const [loading, setLoading] = React.useState(false);
   const [confirmModal, setConfirmModal] = React.useState({
     isOpen: false,
@@ -86,7 +87,7 @@ export default function AdminLoginPage() {
         setConfirmModal({
           isOpen: true,
           title: 'Login failed',
-          message: data.messages?.error || 'Login failed. Please check credentials.',
+          message: genericLoginError,
           type: 'danger',
           isAlert: true
         });
@@ -96,7 +97,7 @@ export default function AdminLoginPage() {
       setConfirmModal({
         isOpen: true,
         title: 'Network error',
-        message: 'Network error. Is backend running?',
+        message: genericLoginError,
         type: 'danger',
         isAlert: true
       });

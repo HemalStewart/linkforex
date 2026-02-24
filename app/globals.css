@@ -251,6 +251,15 @@ textarea {
   }
 }
 
+@keyframes toast-progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
 /* Animation Classes */
 .animate-fade-in-up {
   animation: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -282,6 +291,12 @@ textarea {
 
 .animate-float {
   animation: float 3s ease-in-out infinite;
+}
+
+.animate-toast-progress {
+  animation-name: toast-progress;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
 }
 
 /* Interactive Elements - Smooth Transitions */
