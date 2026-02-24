@@ -66,12 +66,13 @@ interface NavItem {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(true);
-    const [userMenuOpen, setUserMenuOpen] = useState(false);
     const [headerUserMenuOpen, setHeaderUserMenuOpen] = useState(false);
+    const [notificationMenuOpen, setNotificationMenuOpen] = useState(false);
     const [theme, setTheme] = useState<'light' | 'dark'>('light');
     const [isLoadingNav, setIsLoadingNav] = useState(true);
     const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
     const headerUserMenuRef = React.useRef<HTMLDivElement | null>(null);
+    const notificationMenuRef = React.useRef<HTMLDivElement | null>(null);
     const originalFetchRef = React.useRef<typeof window.fetch | null>(null);
     const signOffSentRef = React.useRef(false);
     const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
@@ -374,9 +375,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
     React.useEffect(() => {
         const handleOutsideClick = (event: MouseEvent) => {
-            if (!headerUserMenuRef.current) return;
-            if (!headerUserMenuRef.current.contains(event.target as Node)) {
+            if (headerUserMenuRef.current && !headerUserMenuRef.current.contains(event.target as Node)) {
                 setHeaderUserMenuOpen(false);
+            }
+            if (notificationMenuRef.current && !notificationMenuRef.current.contains(event.target as Node)) {
+                setNotificationMenuOpen(false);
             }
         };
 
@@ -459,8 +462,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         await logSignOff('User signed out', false);
         clearStoredUser();
         setCurrentUser(null);
-        setUserMenuOpen(false);
         setHeaderUserMenuOpen(false);
+        setNotificationMenuOpen(false);
         router.replace('/admin/login');
     };
 
@@ -471,6 +474,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         localStorage.setItem('theme', nextTheme);
         setTheme(nextTheme);
     };
+
+    const notifications: Array<{ id: string; text: string }> = [];
 
     const navigation: NavItem[] = [
         {
@@ -659,44 +664,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     })}
                 </nav>
 
-                {/* User Profile */}
-                <div className="p-4 border-t border-white/10 dark:border-white/10 relative mb-2">
-                    {userMenuOpen && (
-                        <div className="absolute bottom-[110%] left-4 right-4 mb-2 glass-effect-strong rounded-[16px] shadow-lg overflow-hidden animate-scale-in border border-white/20 dark:border-white/10">
-                            <button
-                                onClick={handleSignOut}
-                                className="flex items-center space-x-3 px-5 py-3 text-red-500 hover:bg-red-50/70 dark:hover:bg-red-900/20 transition-all duration-300 w-full text-left group"
-                            >
-                                <LogOut className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                                <span className="font-semibold text-sm">Sign Out</span>
-                            </button>
-                        </div>
-                    )}
-                    <button
-                        onClick={() => setUserMenuOpen(!userMenuOpen)}
-                        className={`w-full flex items-center ${sidebarOpen ? 'space-x-3' : 'justify-center'} p-3 rounded-full glass-effect hover:shadow-md transition-all duration-300`}
-                    >
-                        <div className="avatar-circle avatar-circle-sm shrink-0">
-                            {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
-                        </div>
-                        {sidebarOpen && (
-                            <div className="flex-1 text-left overflow-hidden">
-                                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
-                                    {currentUser?.name || 'User'}
-                                </p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate opacity-80">
-                                    {currentUser?.role || 'Guest'}
-                                </p>
-                            </div>
-                        )}
-                        {sidebarOpen && (
-                            <div className="text-slate-400">
-                                {/* Using a simplified indicator or small icon */}
-                                <div className={`w-1.5 h-1.5 rounded-full bg-slate-400/50 ${userMenuOpen ? 'bg-teal-500' : ''}`}></div>
-                            </div>
-                        )}
-                    </button>
-                </div>
             </aside>
 
             {/* Main Content Area */}
@@ -717,10 +684,29 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     </div>
 
                     <div className="flex items-center space-x-5">
-                        <button className="p-3 glass-effect rounded-full text-slate-500 dark:text-slate-400 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 relative group">
-                            <Bell className="w-6 h-6 group-hover:scale-110 transition-transform" />
-                            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-800 animate-pulse"></span>
-                        </button>
+                        <div ref={notificationMenuRef} className="relative">
+                            <button
+                                onClick={() => setNotificationMenuOpen((prev) => !prev)}
+                                className="p-3 glass-effect rounded-full text-slate-500 dark:text-slate-400 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 relative group"
+                                aria-label="Notifications"
+                                title="Notifications"
+                            >
+                                <Bell className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                                {notifications.length > 0 && (
+                                    <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-800 animate-pulse"></span>
+                                )}
+                            </button>
+                            {notificationMenuOpen && (
+                                <div className="absolute right-0 mt-2 w-80 glass-effect-strong rounded-[16px] shadow-lg overflow-hidden animate-scale-in border border-white/20 dark:border-white/10 z-30">
+                                    <div className="px-4 py-3 border-b border-white/10 dark:border-white/10">
+                                        <p className="text-sm font-bold text-slate-900 dark:text-white">Notifications</p>
+                                    </div>
+                                    <div className="p-4">
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">No notifications yet.</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                         <button
                             type="button"
                             onClick={toggleTheme}
@@ -750,24 +736,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                             </button>
 
                             {headerUserMenuOpen && (
-                                <div className="absolute right-0 mt-2 w-72 glass-effect-strong rounded-[16px] shadow-lg overflow-hidden animate-scale-in border border-white/20 dark:border-white/10 z-30">
-                                    <div className="px-4 py-3 border-b border-white/10 dark:border-white/10">
-                                        <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
-                                            {currentUser?.name || 'User'}
-                                        </p>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                                            {currentUser?.email || 'No email'}
-                                        </p>
-                                        {currentUser?.username && (
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                                                @{currentUser.username}
-                                            </p>
-                                        )}
-                                        <p className="text-xs mt-1 text-teal-600 dark:text-teal-300 font-semibold uppercase tracking-wide">
-                                            {currentUser?.role || 'Guest'}
-                                        </p>
-                                    </div>
-
+                                <div className="absolute right-0 mt-2 w-56 glass-effect-strong rounded-[16px] shadow-lg overflow-hidden animate-scale-in border border-white/20 dark:border-white/10 z-30">
                                     <div className="p-2">
                                         <Link
                                             href="/admin/settings"
