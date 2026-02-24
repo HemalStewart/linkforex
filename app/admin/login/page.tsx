@@ -139,15 +139,7 @@ export default function AdminLoginPage() {
               alt="LinkForex"
               width={220}
               height={64}
-              className="h-16 w-auto object-contain relative z-10 drop-shadow-sm dark:hidden"
-              priority
-            />
-            <Image
-              src="/logo-dark-theme.png"
-              alt="LinkForex"
-              width={220}
-              height={64}
-              className="hidden h-16 w-auto object-contain relative z-10 drop-shadow-sm dark:block"
+              className="h-16 w-auto object-contain relative z-10 drop-shadow-sm"
               priority
             />
           </div>

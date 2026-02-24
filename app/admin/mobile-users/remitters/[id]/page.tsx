@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../../components/ConfirmModal';
-import { ArrowLeft, User, Mail, Phone, Calendar, MapPin, Flag, Save, Loader2, CheckCircle, AlertTriangle, Building } from 'lucide-react';
+import { ArrowLeft, User, Mail, Phone, Calendar, MapPin, Flag, Save, Loader2, CheckCircle, AlertTriangle, Building, ChevronDown } from 'lucide-react';
 
 export default function EditRemitterPage() {
     const router = useRouter();
@@ -105,7 +105,7 @@ export default function EditRemitterPage() {
     };
 
     if (loading) {
-    return <div className="max-w-4xl mx-auto p-12 text-center text-slate-500 font-medium animate-pulse">Loading remitter details...</div>;
+    return <div className="w-full p-12 text-center text-slate-500 font-medium animate-pulse">Loading remitter details...</div>;
     }
 
     const handleModalClose = () => {
@@ -116,7 +116,7 @@ export default function EditRemitterPage() {
     };
 
     return (
-    <div className="max-w-5xl mx-auto space-y-8 pb-20 animate-fade-in-up">
+    <div className="w-full max-w-none space-y-8 pb-20 animate-fade-in-up">
             <ConfirmModal
                 isOpen={confirmModal.isOpen}
                 onClose={handleModalClose}
@@ -160,14 +160,16 @@ export default function EditRemitterPage() {
 
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Full Name <span className="text-red-500">*</span></label>
-            <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative input-icon group">
+              <span className="input-icon-left">
+                <User className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+              </span>
                             <input
                                 type="text"
                                 required
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="input-glass w-full pl-12 py-3"
+                className="input-glass w-full py-3"
                                 placeholder="Full name"
                             />
                         </div>
@@ -175,13 +177,15 @@ export default function EditRemitterPage() {
 
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Email</label>
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative input-icon group">
+              <span className="input-icon-left">
+                <Mail className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+              </span>
                             <input
                                 type="email"
                                 value={formData.email || ''}
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="input-glass w-full pl-12 py-3"
+                className="input-glass w-full py-3"
                                 placeholder="Email address"
                             />
                         </div>
@@ -189,14 +193,16 @@ export default function EditRemitterPage() {
 
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Phone <span className="text-red-500">*</span></label>
-            <div className="relative">
-              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative input-icon group">
+              <span className="input-icon-left">
+                <Phone className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+              </span>
                             <input
                                 type="tel"
                                 required
                                 value={formData.phone}
                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="input-glass w-full pl-12 py-3"
+                className="input-glass w-full py-3"
                                 placeholder="Phone number"
                             />
                         </div>
@@ -204,13 +210,15 @@ export default function EditRemitterPage() {
 
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Date of Birth</label>
-            <div className="relative">
-              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative input-icon group">
+              <span className="input-icon-left">
+                <Calendar className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+              </span>
                             <input
                                 type="date"
                                 value={formData.dob || ''}
                                 onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-                className="input-glass w-full pl-12 py-3"
+                className="input-glass w-full py-3"
                             />
                         </div>
                     </div>
@@ -225,35 +233,41 @@ export default function EditRemitterPage() {
 
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Status</label>
-            <div className="relative">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center pointer-events-none">
+            <div className="relative input-icon group">
+              <span className="input-icon-left">
+                <div className="w-5 h-5 flex items-center justify-center pointer-events-none">
                                 <div className={`w-2.5 h-2.5 rounded-full ${formData.status === 'active' ? 'bg-teal-500 ring-4 ring-teal-500/20' : formData.status === 'suspended' ? 'bg-red-500' : 'bg-amber-500'}`}></div>
                             </div>
+              </span>
                             <select
                                 value={formData.status}
                                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="input-glass w-full pl-12 py-3 appearance-none cursor-pointer"
+                className="input-glass w-full py-3 pr-10 appearance-none cursor-pointer"
                             >
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
                                 <option value="suspended">Suspended</option>
                             </select>
+                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-300 pointer-events-none" />
                         </div>
                     </div>
 
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">KYC Status</label>
-            <div className="relative">
-                            <AlertTriangle className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${formData.kyc_status === 'verified' ? 'text-teal-500' : formData.kyc_status === 'rejected' ? 'text-red-500' : 'text-amber-500'}`} />
+            <div className="relative input-icon group">
+                            <span className="input-icon-left">
+                                <AlertTriangle className={`w-5 h-5 ${formData.kyc_status === 'verified' ? 'text-teal-500' : formData.kyc_status === 'rejected' ? 'text-red-500' : 'text-amber-500'}`} />
+                            </span>
                             <select
                                 value={formData.kyc_status}
                                 onChange={(e) => setFormData({ ...formData, kyc_status: e.target.value })}
-                className="input-glass w-full pl-12 py-3 appearance-none cursor-pointer"
+                className="input-glass w-full py-3 pr-10 appearance-none cursor-pointer"
                             >
                                 <option value="pending">Pending</option>
                                 <option value="verified">Verified</option>
                                 <option value="rejected">Rejected</option>
                             </select>
+                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-300 pointer-events-none" />
                         </div>
                     </div>
 
@@ -267,13 +281,15 @@ export default function EditRemitterPage() {
 
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Country</label>
-            <div className="relative">
-              <Flag className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative input-icon group">
+              <span className="input-icon-left">
+                <Flag className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+              </span>
                             <input
                                 type="text"
                                 value={formData.country || ''}
                                 onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                className="input-glass w-full pl-12 py-3"
+                className="input-glass w-full py-3"
                                 placeholder="United Kingdom"
                             />
                         </div>
@@ -281,13 +297,15 @@ export default function EditRemitterPage() {
 
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">City</label>
-            <div className="relative">
-              <Building className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative input-icon group">
+              <span className="input-icon-left">
+                <Building className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+              </span>
                             <input
                                 type="text"
                                 value={formData.city || ''}
                                 onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                className="input-glass w-full pl-12 py-3"
+                className="input-glass w-full py-3"
                                 placeholder="London"
                             />
                         </div>
@@ -295,13 +313,15 @@ export default function EditRemitterPage() {
 
           <div className="md:col-span-2">
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Address Line</label>
-            <div className="relative">
-              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative input-icon group">
+              <span className="input-icon-left">
+                <MapPin className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+              </span>
                             <input
                                 type="text"
                                 value={formData.address_1 || ''}
                                 onChange={(e) => setFormData({ ...formData, address_1: e.target.value })}
-                className="input-glass w-full pl-12 py-3"
+                className="input-glass w-full py-3"
                                 placeholder="Address"
                             />
                         </div>
@@ -309,13 +329,15 @@ export default function EditRemitterPage() {
 
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Postcode</label>
-            <div className="relative">
-              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <div className="relative input-icon group">
+              <span className="input-icon-left">
+                <MapPin className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+              </span>
                             <input
                                 type="text"
                                 value={formData.postcode || ''}
                                 onChange={(e) => setFormData({ ...formData, postcode: e.target.value })}
-                className="input-glass w-full pl-12 py-3"
+                className="input-glass w-full py-3"
                                 placeholder="Postcode"
                             />
                         </div>

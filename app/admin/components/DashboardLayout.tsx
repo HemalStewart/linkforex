@@ -24,14 +24,12 @@ import {
     ChevronLeft,
     ChevronRight,
     ChevronDown,
-    Moon,
     Search,
     Bell,
     PlusCircle,
     ArrowRightLeft,
     FileText,
     AlertTriangle,
-    Sun,
     User
 } from 'lucide-react';
 
@@ -68,7 +66,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [headerUserMenuOpen, setHeaderUserMenuOpen] = useState(false);
     const [notificationMenuOpen, setNotificationMenuOpen] = useState(false);
-    const [theme, setTheme] = useState<'light' | 'dark'>('light');
     const [isLoadingNav, setIsLoadingNav] = useState(true);
     const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
     const headerUserMenuRef = React.useRef<HTMLDivElement | null>(null);
@@ -354,26 +351,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }, []);
 
     React.useEffect(() => {
-        if (typeof window === 'undefined') return;
-
-        const applyTheme = (nextTheme: 'light' | 'dark') => {
-            document.documentElement.classList.toggle('dark', nextTheme === 'dark');
-            document.documentElement.style.colorScheme = nextTheme;
-            localStorage.setItem('theme', nextTheme);
-            setTheme(nextTheme);
-        };
-
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'light' || savedTheme === 'dark') {
-            applyTheme(savedTheme);
-            return;
-        }
-
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        applyTheme(prefersDark ? 'dark' : 'light');
-    }, []);
-
-    React.useEffect(() => {
         const handleOutsideClick = (event: MouseEvent) => {
             if (headerUserMenuRef.current && !headerUserMenuRef.current.contains(event.target as Node)) {
                 setHeaderUserMenuOpen(false);
@@ -467,14 +444,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         router.replace('/admin/login');
     };
 
-    const toggleTheme = () => {
-        const nextTheme = theme === 'dark' ? 'light' : 'dark';
-        document.documentElement.classList.toggle('dark', nextTheme === 'dark');
-        document.documentElement.style.colorScheme = nextTheme;
-        localStorage.setItem('theme', nextTheme);
-        setTheme(nextTheme);
-    };
-
     const notifications: Array<{ id: string; text: string }> = [];
 
     const navigation: NavItem[] = [
@@ -552,15 +521,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                 alt="LinkForex"
                                 width={164}
                                 height={40}
-                                className="h-10 w-auto object-contain drop-shadow-md dark:hidden"
-                                priority
-                            />
-                            <Image
-                                src="/logo-dark-theme.png"
-                                alt="LinkForex"
-                                width={164}
-                                height={40}
-                                className="hidden h-10 w-auto object-contain drop-shadow-md dark:block"
+                                className="h-10 w-auto object-contain drop-shadow-md"
                                 priority
                             />
                         </div>
@@ -707,15 +668,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                 </div>
                             )}
                         </div>
-                        <button
-                            type="button"
-                            onClick={toggleTheme}
-                            className="p-3 glass-effect rounded-full text-slate-500 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300"
-                            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-                            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-                        >
-                            {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                        </button>
                         <div ref={headerUserMenuRef} className="relative">
                             <button
                                 onClick={() => setHeaderUserMenuOpen((prev) => !prev)}
