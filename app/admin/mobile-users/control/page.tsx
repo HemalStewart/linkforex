@@ -559,7 +559,7 @@ export default function MobileControlPage() {
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3 xl:grid-cols-6">
+            <div id="overview" className="grid scroll-mt-24 grid-cols-1 gap-4 md:grid-cols-3 xl:grid-cols-6">
                 {[
                     { label: 'Mobile Users', value: overview.mobile_users_total, icon: <Smartphone className="h-4 w-4" /> },
                     { label: 'KYC Pending', value: overview.kyc_pending, icon: <ShieldAlert className="h-4 w-4" /> },
@@ -579,7 +579,7 @@ export default function MobileControlPage() {
             </div>
 
             <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-                <div className="card-glass p-6">
+                <div id="app-flow-settings" className="card-glass scroll-mt-24 p-6">
                     <div className="mb-4 flex items-center justify-between">
                         <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">App Flow Settings</h2>
                         <button onClick={saveSettings} className="btn-primary flex items-center gap-2 rounded-full px-4 py-2 text-sm" disabled={savingSettings}>
@@ -673,7 +673,7 @@ export default function MobileControlPage() {
                     </div>
                 </div>
 
-                <div className="card-glass p-6">
+                <div id="profile-review-queue" className="card-glass scroll-mt-24 p-6">
                     <div className="mb-4 flex items-center justify-between">
                         <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">Profile Review Queue</h2>
                         <div className="flex items-center gap-2">
@@ -769,7 +769,7 @@ export default function MobileControlPage() {
             </div>
 
             <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-                <div className="card-glass p-6">
+                <div id="campaigns" className="card-glass scroll-mt-24 p-6">
                     <h2 className="mb-4 text-lg font-extrabold text-slate-900 dark:text-white">Push / Email Campaigns</h2>
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                         <input
@@ -867,7 +867,7 @@ export default function MobileControlPage() {
                     </div>
                 </div>
 
-                <div className="card-glass p-6">
+                <div id="in-app-ads" className="card-glass scroll-mt-24 p-6">
                     <h2 className="mb-4 text-lg font-extrabold text-slate-900 dark:text-white">In-App Ads</h2>
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                         <input

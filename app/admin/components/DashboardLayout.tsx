@@ -73,6 +73,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const [themeMenuOpen, setThemeMenuOpen] = useState(false);
     const [themePreference, setThemePreference] = useState<ThemePreference>('system');
     const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>('light');
+    const [currentHash, setCurrentHash] = useState('');
     const [isLoadingNav, setIsLoadingNav] = useState(true);
     const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
     const headerUserMenuRef = React.useRef<HTMLDivElement | null>(null);
@@ -358,6 +359,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }, []);
 
     React.useEffect(() => {
+        const syncHash = () => {
+            if (typeof window === 'undefined') return;
+            setCurrentHash(window.location.hash || '');
+        };
+
+        syncHash();
+        window.addEventListener('hashchange', syncHash);
+        return () => window.removeEventListener('hashchange', syncHash);
+    }, []);
+
+    React.useEffect(() => {
         const syncThemeState = () => {
             const preference = getStoredThemePreference();
             setThemePreference(preference);
@@ -539,7 +551,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         {
             name: 'Mobile Control',
             icon: <ShieldCheck className="w-5 h-5" />,
-            href: '/admin/mobile-users/control'
+            children: [
+                { name: 'Overview', href: '/admin/mobile-users/control#overview' },
+                { name: 'App Flow Settings', href: '/admin/mobile-users/control#app-flow-settings', sections: ['MOBILE_APP_FLOW_SETTINGS'] },
+                { name: 'Profile Review Queue', href: '/admin/mobile-users/control#profile-review-queue', sections: ['MOBILE_PROFILE_REVIEW_QUEUE'] },
+                { name: 'Campaigns', href: '/admin/mobile-users/control#campaigns', sections: ['MOBILE_CAMPAIGNS'] },
+                { name: 'In-App Ads', href: '/admin/mobile-users/control#in-app-ads', sections: ['MOBILE_ADS'] },
+            ]
         },
         {
             name: 'Management',
@@ -612,7 +630,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                             return null;
                         }
 
-                        const isChildActive = visibleChildren.some((child) => pathname === child.href || pathname.startsWith(child.href || ''));
+                        const isChildActive = visibleChildren.some((child) => {
+                            const href = child.href || '';
+                            const hashIndex = href.indexOf('#');
+                            const queryIndex = href.indexOf('?');
+                            const cutIndex = [hashIndex, queryIndex].filter((value) => value >= 0).sort((a, b) => a - b)[0];
+                            const basePath = cutIndex !== undefined ? href.slice(0, cutIndex) : href;
+                            const hash = hashIndex >= 0 ? href.slice(hashIndex) : '';
+                            const pathMatched = pathname === basePath || pathname.startsWith(`${basePath}/`);
+                            if (!pathMatched) return false;
+                            if (!hash) return true;
+                            return currentHash === hash;
+                        });
                         const isActive = pathname === item.href || isChildActive;
                         const isExpanded = expandedMenus[item.name];
 
@@ -641,7 +670,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                     {sidebarOpen && isExpanded && (
                                         <div className="mt-2 ml-5 pl-5 border-l border-teal-200/60 dark:border-teal-800/50 space-y-1.5 animate-slide-down">
                                             {visibleChildren.map((child) => {
-                                                const isChildItemActive = pathname === child.href;
+                                                const href = child.href || '';
+                                                const hashIndex = href.indexOf('#');
+                                                const queryIndex = href.indexOf('?');
+                                                const cutIndex = [hashIndex, queryIndex].filter((value) => value >= 0).sort((a, b) => a - b)[0];
+                                                const basePath = cutIndex !== undefined ? href.slice(0, cutIndex) : href;
+                                                const hash = hashIndex >= 0 ? href.slice(hashIndex) : '';
+                                                const pathMatched = pathname === basePath || pathname.startsWith(`${basePath}/`);
+                                                const isChildItemActive = pathMatched && (!hash || currentHash === hash);
                                                 return (
                                                     <Link
                                                         key={child.name}
@@ -652,8 +688,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                                             }`}
                                                     >
                                                         <div className="flex items-center space-x-2">
-                                                            {/* Optional icons for submenus if wanted, user asked for icons everywhere */}
-                                                            {/* {child.icon && <span className="opacity-70">{child.icon}</span>} */}
+                                                            {child.icon && <span className="opacity-70">{child.icon}</span>}
                                                             <span>{child.name}</span>
                                                         </div>
                                                         {child.badge && (
