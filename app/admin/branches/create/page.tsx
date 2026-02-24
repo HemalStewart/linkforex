@@ -22,6 +22,12 @@ import {
     Save
 } from 'lucide-react';
 
+const normalizeBranchPrefix = (value: string): string =>
+    value
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, '')
+        .slice(0, 3);
+
 export default function CreateBranchPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
@@ -66,6 +72,20 @@ export default function CreateBranchPage() {
         e.preventDefault();
         setLoading(true);
 
+        const normalizedPrefix = normalizeBranchPrefix(formData.transaction_prefix);
+        if (!normalizedPrefix) {
+            setConfirmModal({
+                isOpen: true,
+                title: 'Validation Error',
+                message: 'Branch prefix is required and must be up to 3 letters/numbers.',
+                type: 'warning',
+                isAlert: true,
+                shouldRedirect: false
+            });
+            setLoading(false);
+            return;
+        }
+
         const addressParts = [
             formData.address_line_1,
             formData.address_line_2,
@@ -75,7 +95,8 @@ export default function CreateBranchPage() {
 
         const payload = {
             ...formData,
-            code: formData.transaction_prefix || undefined,
+            transaction_prefix: normalizedPrefix,
+            code: normalizedPrefix || undefined,
             phone: formData.telephone_1 || undefined,
             address: addressParts.length ? addressParts.join(', ') : undefined,
             day_transfer_limit: formData.day_transfer_limit ? Number(formData.day_transfer_limit) : 0,
@@ -179,10 +200,12 @@ export default function CreateBranchPage() {
                                 required
                                 className="input-glass w-full uppercase"
                                 value={formData.transaction_prefix}
-                                onChange={(e) => setFormData({ ...formData, transaction_prefix: e.target.value })}
-                                placeholder="Prefix"
+                                maxLength={3}
+                                onChange={(e) => setFormData({ ...formData, transaction_prefix: normalizeBranchPrefix(e.target.value) })}
+                                placeholder="e.g. LON"
                             />
                         </div>
+                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Max 3 characters.</p>
                     </div>
                     <div>
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Default Transaction Type <span className="text-red-500">*</span></label>

@@ -38,6 +38,11 @@ type Branch = {
     default_transaction_type?: string;
 };
 
+type BranchOption = {
+    value: string;
+    label: string;
+};
+
 type Currency = {
     id: string | number;
     code: string;
@@ -160,6 +165,9 @@ const toDateLocal = (date: Date): string => {
 
 const generateCode = (prefix: string): string => `${prefix}${Math.floor(10000 + Math.random() * 90000)}`;
 
+const getBranchValue = (branch: Branch): string =>
+    String(branch.code || branch.transaction_prefix || branch.id || '').trim();
+
 export default function CreateTransferPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -265,6 +273,26 @@ export default function CreateTransferPage() {
         otherReference: ''
     });
 
+    const branchOptions = useMemo<BranchOption[]>(() => {
+        const seen = new Set<string>();
+        const options: BranchOption[] = [];
+        for (const branch of branches) {
+            const value = getBranchValue(branch);
+            if (!value || seen.has(value)) continue;
+            seen.add(value);
+            options.push({
+                value,
+                label: branch.name ? `${branch.name} (${value})` : value,
+            });
+        }
+        return options;
+    }, [branches]);
+
+    const hasReceiverBranchOption = useMemo(
+        () => branchOptions.some((option) => option.value === formData.receiverBranchCode),
+        [branchOptions, formData.receiverBranchCode]
+    );
+
     const withActingUser = useCallback((url: string): string => {
         if (!currentUserId) return url;
         const separator = url.includes('?') ? '&' : '?';
@@ -284,7 +312,7 @@ export default function CreateTransferPage() {
                     setBranches(branchData);
                     if (branchData.length > 0) {
                         const first = branchData[0];
-                        const branchCode = first.code || first.transaction_prefix || String(first.id);
+                        const branchCode = getBranchValue(first);
                         setFormData((prev) => ({ ...prev, toBranch: prev.toBranch || branchCode }));
                     }
                 }
@@ -835,7 +863,7 @@ export default function CreateTransferPage() {
 
         setSaving(true);
 
-        const branch = branches.find((item) => (item.code || item.transaction_prefix || String(item.id)) === formData.toBranch);
+        const branch = branches.find((item) => getBranchValue(item) === formData.toBranch);
 
         const payload = {
             code: formData.invoiceNo,
@@ -1007,14 +1035,11 @@ export default function CreateTransferPage() {
                                 className="input-glass w-full pr-10 appearance-none"
                             >
                                 <option value="">NONE</option>
-                                {branches.map((branch) => {
-                                    const value = branch.code || branch.transaction_prefix || String(branch.id);
-                                    return (
-                                        <option key={branch.id} value={value}>
-                                            {branch.name}
-                                        </option>
-                                    );
-                                })}
+                                {branchOptions.map((branch) => (
+                                    <option key={branch.value} value={branch.value}>
+                                        {branch.label}
+                                    </option>
+                                ))}
                             </select>
                             <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-500 dark:text-slate-200 pointer-events-none" />
                         </div>
@@ -1549,11 +1574,25 @@ export default function CreateTransferPage() {
 
                     <div>
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Branch (Branch Code)</label>
-                        <input
-                            className="input-glass w-full"
-                            value={formData.receiverBranchCode}
-                            onChange={(event) => setFormData((prev) => ({ ...prev, receiverBranchCode: event.target.value }))}
-                        />
+                        <div className="relative input-icon">
+                            <span className="input-icon-left"><Building2 className="w-5 h-5" /></span>
+                            <select
+                                className="input-glass w-full pr-10 appearance-none"
+                                value={formData.receiverBranchCode}
+                                onChange={(event) => setFormData((prev) => ({ ...prev, receiverBranchCode: event.target.value }))}
+                            >
+                                <option value="">Select branch</option>
+                                {!hasReceiverBranchOption && formData.receiverBranchCode ? (
+                                    <option value={formData.receiverBranchCode}>{formData.receiverBranchCode}</option>
+                                ) : null}
+                                {branchOptions.map((branch) => (
+                                    <option key={`receiver-${branch.value}`} value={branch.value}>
+                                        {branch.label}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-500 dark:text-slate-200 pointer-events-none" />
+                        </div>
                     </div>
 
                     <div>

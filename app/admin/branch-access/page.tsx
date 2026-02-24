@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
+import { isPrivilegedUser as getIsPrivilegedUser } from '@/app/lib/permissions';
 import ConfirmModal from '../components/ConfirmModal';
 import { CheckCircle2, XCircle, RefreshCcw, AlertTriangle } from 'lucide-react';
 
@@ -49,9 +50,7 @@ export default function BranchAccessPage() {
     }, [currentUser]);
 
     const isPrivilegedUser = useMemo(() => {
-        const role = (currentUser?.role || '').toLowerCase();
-        const systemDefined = (currentUser?.system_defined || '').toLowerCase() === 'yes';
-        return systemDefined || role.includes('admin') || role.includes('super');
+        return getIsPrivilegedUser(currentUser);
     }, [currentUser]);
 
     const withActingUser = (url: string): string => {

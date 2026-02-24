@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { ENDPOINTS, isApiRequestUrl } from '@/app/lib/api';
 import { clearStoredUser, getStoredUserRaw } from '@/app/lib/authStorage';
+import { isPrivilegedUser as getIsPrivilegedUser } from '@/app/lib/permissions';
 import { applyThemePreference, getStoredThemePreference, resolveTheme, type ThemePreference, type ResolvedTheme } from '@/app/lib/theme';
 import {
     LayoutGrid,
@@ -202,9 +203,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         }
 
         const role = String(currentUser.role || '').trim();
-        const privileged = String(currentUser.system_defined || '').toLowerCase() === 'yes'
-            || role.toLowerCase().includes('admin')
-            || role.toLowerCase().includes('super');
+        const privileged = getIsPrivilegedUser(currentUser);
         setIsPrivilegedUser(privileged);
 
         if (privileged) {
