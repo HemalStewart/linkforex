@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
-import { Filter, Download, Clock, Search, AlertCircle, CheckCircle, XCircle, User, Phone, Calendar, FileText, Shield } from 'lucide-react';
+import { Filter, Download, Clock, Search, AlertCircle, CheckCircle, XCircle, User, Phone, Calendar, FileText, Shield, RefreshCcw } from 'lucide-react';
 
 export default function KYCPage() {
     const [filterStatus, setFilterStatus] = useState('all');
@@ -27,21 +27,55 @@ export default function KYCPage() {
         }
     };
 
-    const mapStatus = (status: string) => {
-        if (status === 'verified') return 'approved';
-        return status || 'pending';
+    const mapStatus = (kycStatus?: string, verificationState?: string) => {
+        const normalizedKyc = String(kycStatus || '').toLowerCase().trim();
+        if (normalizedKyc === 'verified') return 'approved';
+        if (normalizedKyc) return normalizedKyc;
+
+        const normalizedVerification = String(verificationState || '').toLowerCase().trim();
+        if (normalizedVerification === 'verified') return 'approved';
+        if (normalizedVerification === 'pending') return 'in_review';
+        if (normalizedVerification === 'rejected') return 'rejected';
+        return 'pending';
+    };
+
+    const parseDocuments = (remitter: any): string[] => {
+        if (Array.isArray(remitter.documents)) return remitter.documents;
+        if (typeof remitter.documents === 'string' && remitter.documents.trim()) {
+            try {
+                const parsed = JSON.parse(remitter.documents);
+                if (Array.isArray(parsed)) return parsed;
+            } catch {
+                // fall back below
+            }
+        }
+
+        const detectedDocs: string[] = [];
+        if (remitter.id_copy || remitter.passport_copy) detectedDocs.push('Identity Proof');
+        if (remitter.proof_of_address_doc) detectedDocs.push('Address Proof');
+        if (remitter.work_related_docs) detectedDocs.push('Source Of Income');
+        if (remitter.sender_details_aml_screening_doc) detectedDocs.push('AML Document');
+        if (remitter.other_doc) detectedDocs.push('Other Document');
+
+        return detectedDocs.length ? detectedDocs : ['Identity Proof'];
+    };
+
+    const formatDate = (value?: string): string => {
+        if (!value) return '-';
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString();
     };
 
     const processedApplications = remitters.map(r => ({
         id: r.id.toString(),
-        user: r.name,
+        user: r.sender_name || r.name || r.company_name || `Remitter #${r.id}`,
         email: r.email,
         phone: r.phone,
-        submittedDate: new Date(r.created_at).toLocaleString(),
-        status: mapStatus(r.kyc_status),
-        documents: r.documents ? JSON.parse(r.documents) : ['Identity Proof'],
+        submittedDate: formatDate(r.created_at),
+        status: mapStatus(r.kyc_status, r.verification_state),
+        documents: parseDocuments(r),
         riskLevel: r.risk_level || 'low',
-        country: r.country || 'UK'
+        country: r.country || 'Unknown'
     }));
 
     const statusConfig = {
@@ -97,6 +131,13 @@ export default function KYCPage() {
             <Filter className="w-5 h-5" />
                         <span>Filters</span>
                     </button>
+          <button
+            onClick={fetchRemitters}
+            className="px-5 py-3 rounded-2xl border-0 glass-effect text-slate-700 dark:text-slate-300 font-bold hover:shadow-lg transition-all flex items-center space-x-2"
+          >
+            <RefreshCcw className="w-5 h-5" />
+            <span>Refresh</span>
+          </button>
           <button className="btn-primary flex items-center space-x-2">
             <Download className="w-5 h-5" />
                         <span>Export Report</span>

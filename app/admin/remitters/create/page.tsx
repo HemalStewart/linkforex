@@ -485,6 +485,7 @@ export default function CreateRemitterPage() {
         const apiData: any = {
             client_type: clientType,
             status: 'active',
+            kyc_status: 'pending',
             branch: data.branch_id,
             role: 'customer', // Logical role
 
