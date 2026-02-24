@@ -262,7 +262,7 @@ export default function BranchCurrencyRatesPage() {
                     </div>
                 </div>
 
-                <div className="overflow-x-auto">
+                <div className="table-scroll">
                     {loading ? (
                         <div className="p-12 text-center text-slate-500 dark:text-slate-300">Loading branch currency rates...</div>
                     ) : (

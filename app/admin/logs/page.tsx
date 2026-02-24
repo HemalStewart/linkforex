@@ -557,7 +557,7 @@ export default function LogsPage() {
                     </div>
                 </div>
 
-                <div className="overflow-x-auto">
+                <div className="table-scroll">
                     <table className="table-shell min-w-[1320px]">
                         <thead className="table-head">
                             <tr>

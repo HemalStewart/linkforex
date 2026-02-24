@@ -947,7 +947,7 @@ export default function TransfersPage() {
                     <p className="text-sm text-slate-500 dark:text-slate-300">
                         Draw signature using mouse, stylus, or touch.
                     </p>
-                    <div className="rounded-2xl border border-slate-200/70 dark:border-slate-700/70 bg-white/70 dark:bg-slate-900/40 p-2 overflow-x-auto">
+                    <div className="table-scroll rounded-2xl border border-slate-200/70 dark:border-slate-700/70 bg-white/70 dark:bg-slate-900/40 p-2">
                         <canvas
                             ref={canvasRef}
                             className="touch-none rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700"
@@ -1056,7 +1056,7 @@ export default function TransfersPage() {
             </div>
 
             <div className="card-glass overflow-hidden shadow-xl">
-                <div className="overflow-x-auto">
+                <div className="table-scroll">
                     <table className="table-shell whitespace-nowrap">
                         <thead className="table-head">
                             <tr>

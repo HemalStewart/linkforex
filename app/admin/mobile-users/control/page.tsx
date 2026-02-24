@@ -700,7 +700,7 @@ export default function MobileControlPage() {
                             className="input-glass w-full py-2.5 text-sm"
                         />
                     </div>
-                    <div className="max-h-[360px] overflow-auto rounded-2xl border border-slate-200/70 dark:border-slate-700">
+                    <div className="table-scroll max-h-[360px] rounded-2xl border border-slate-200/70 dark:border-slate-700">
                         <table className="table-shell">
                             <thead className="table-head">
                                 <tr>
@@ -829,7 +829,7 @@ export default function MobileControlPage() {
                             </button>
                         </div>
                     </div>
-                    <div className="mt-5 max-h-56 overflow-auto rounded-2xl border border-slate-200/70 dark:border-slate-700">
+                    <div className="table-scroll mt-5 max-h-56 rounded-2xl border border-slate-200/70 dark:border-slate-700">
                         <table className="table-shell">
                             <thead className="table-head">
                                 <tr>
@@ -918,7 +918,7 @@ export default function MobileControlPage() {
                             Add Ad
                         </button>
                     </div>
-                    <div className="mt-5 max-h-56 overflow-auto rounded-2xl border border-slate-200/70 dark:border-slate-700">
+                    <div className="table-scroll mt-5 max-h-56 rounded-2xl border border-slate-200/70 dark:border-slate-700">
                         <table className="table-shell">
                             <thead className="table-head">
                                 <tr>

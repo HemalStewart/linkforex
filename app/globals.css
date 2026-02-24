@@ -620,18 +620,36 @@ html {
   font-size: 0.875rem;
 }
 
+.table-scroll {
+  overflow: auto;
+  max-height: clamp(320px, 62vh, 760px);
+  overscroll-behavior: contain;
+}
+
+.table-scroll > table {
+  min-width: 100%;
+}
+
 .table-head {
   background: rgba(15, 23, 42, 0.03);
   border-bottom: 1px solid var(--line-1);
 }
 
+.table-scroll thead th,
 .table-shell thead th {
+  position: sticky;
+  top: 0;
+  z-index: 16;
   padding: 0.75rem 1.25rem;
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: rgba(15, 23, 42, 0.6);
+  background: rgba(248, 250, 252, 0.92);
+  backdrop-filter: blur(10px) saturate(130%);
+  -webkit-backdrop-filter: blur(10px) saturate(130%);
+  box-shadow: inset 0 -1px 0 var(--line-1);
 }
 
 .table-body {
@@ -657,8 +675,11 @@ html {
   border-bottom: 1px solid var(--line-1);
 }
 
+.dark .table-scroll thead th,
 .dark .table-shell thead th {
   color: rgba(248, 250, 252, 0.6);
+  background: rgba(15, 23, 42, 0.88);
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .dark .table-shell tbody tr:hover {

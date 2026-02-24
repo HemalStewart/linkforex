@@ -335,7 +335,7 @@ export default function RolesPage() {
                     </div>
                 </div>
 
-                <div className="overflow-x-auto">
+                <div className="table-scroll">
                     <table className="table-shell">
                         <thead className="table-head">
                             <tr>

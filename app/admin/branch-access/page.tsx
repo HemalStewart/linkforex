@@ -182,7 +182,7 @@ export default function BranchAccessPage() {
                         No pending cross-branch access requests.
                     </div>
                 ) : (
-                    <div className="overflow-x-auto rounded-2xl border border-slate-200/70 dark:border-slate-700/60">
+                    <div className="table-scroll rounded-2xl border border-slate-200/70 dark:border-slate-700/60">
                         <table className="min-w-full">
                             <thead className="bg-slate-50/80 dark:bg-slate-800/60">
                                 <tr className="text-left text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-300">

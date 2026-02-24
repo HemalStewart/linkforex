@@ -74,7 +74,7 @@ export default function BeneficiariesPage() {
                     <Users className="w-6 h-6 text-slate-400" />
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white">All Beneficiaries</h2>
                 </div>
-                <div className="overflow-x-auto">
+                <div className="table-scroll">
                     {loading ? (
                         <div className="p-12 text-center text-slate-500 animate-pulse">Loading beneficiaries...</div>
                     ) : (

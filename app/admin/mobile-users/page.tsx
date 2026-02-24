@@ -91,7 +91,7 @@ export default function MobileUsersPage() {
             </div>
 
             <div className="card-glass overflow-hidden shadow-xl">
-                <div className="overflow-x-auto">
+                <div className="table-scroll">
                     {loading ? (
                         <div className="p-12 text-center text-slate-500 animate-pulse">Loading mobile users...</div>
                     ) : (

@@ -731,7 +731,7 @@ export default function PermissionGroupsPage() {
                         Results: {sorted.length === 0 ? 0 : startIndex + 1} - {endIndex} of {sorted.length}
                     </div>
                 </div>
-                <div className="overflow-x-auto">
+                <div className="table-scroll">
                     <table className="table-shell">
                         <thead className="table-head">
                             <tr>
