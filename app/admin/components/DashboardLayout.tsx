@@ -586,7 +586,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     >
                         <div className={`flex items-center space-x-3 transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2 w-0 overflow-hidden'}`}>
                             <Image
-                                src="/logo-removebg-preview.png"
+                                src={resolvedTheme === 'dark' ? '/logo-dark-theme.png' : '/logo-removebg-preview.png'}
                                 alt="LinkForex"
                                 width={164}
                                 height={40}

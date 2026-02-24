@@ -15,12 +15,13 @@ type LogRow = {
     signInTs: string;
     signOffTs: string | null;
     signOffNote: string;
+    riskLabel: string;
 };
 
 type SessionLog = LogRow & {
     status: 'Active' | 'Closed';
     forcedSignOff: boolean;
-    risk: 'Low' | 'Medium' | 'High';
+    risk: 'Low' | 'Medium' | 'High' | 'N/A';
     activityScore: number;
     sessionSeconds: number;
     sessionPeriod: string;
@@ -57,17 +58,30 @@ const toEpoch = (value?: string | null): number => {
     return Number.isNaN(epoch) ? 0 : epoch;
 };
 
+const firstNonEmpty = (source: Record<string, unknown>, keys: string[]): string => {
+    for (const key of keys) {
+        const value = source[key];
+        if (value === null || value === undefined) continue;
+        const text = String(value).trim();
+        if (text) return text;
+    }
+    return '';
+};
+
 const mapApiLog = (log: Record<string, unknown>): LogRow => ({
     id: Number(log.id ?? 0),
     logId: Number(log.id ?? 0),
-    username: String(log.username ?? '-'),
+    username: firstNonEmpty(log, ['username', 'user_name', 'user', 'email']) || '-',
     transfersImpact: Number(log.transfers_impact ?? 0),
     transfersApproveImpact: Number(log.transfers_approve_impact ?? 0),
-    logCountry: String(log.log_country ?? ''),
-    ip: String(log.log_ip ?? ''),
-    signInTs: normalizeDate(String(log.sign_in ?? '')),
-    signOffTs: log.sign_off ? normalizeDate(String(log.sign_off)) : null,
-    signOffNote: String(log.sign_off_note ?? '')
+    logCountry: firstNonEmpty(log, ['log_country', 'country', 'logCountry', 'country_name']),
+    ip: firstNonEmpty(log, ['log_ip', 'ip', 'ip_address', 'logIp']),
+    signInTs: normalizeDate(firstNonEmpty(log, ['sign_in', 'signin', 'signed_in_at', 'created_at'])),
+    signOffTs: firstNonEmpty(log, ['sign_off', 'signoff', 'signed_off_at', 'updated_at'])
+        ? normalizeDate(firstNonEmpty(log, ['sign_off', 'signoff', 'signed_off_at', 'updated_at']))
+        : null,
+    signOffNote: firstNonEmpty(log, ['sign_off_note', 'signoff_note', 'note', 'remarks']),
+    riskLabel: firstNonEmpty(log, ['risk', 'risk_level', 'log_risk', 'riskLabel'])
 });
 
 const formatDateTime = (value: string | null): string => {
@@ -112,13 +126,11 @@ const looksForcedSignOff = (note: string): boolean => {
 };
 
 const getRisk = (row: Omit<SessionLog, 'risk'>): SessionLog['risk'] => {
-    if ((row.forcedSignOff && row.activityScore >= 10) || (row.status === 'Active' && row.activityScore >= 20)) {
-        return 'High';
-    }
-    if (row.forcedSignOff || !row.ip || !row.logCountry) {
-        return 'Medium';
-    }
-    return 'Low';
+    const raw = row.riskLabel.trim().toLowerCase();
+    if (raw === 'high') return 'High';
+    if (raw === 'medium') return 'Medium';
+    if (raw === 'low') return 'Low';
+    return 'N/A';
 };
 
 const escapeCsv = (value: unknown): string => {
@@ -249,7 +261,7 @@ export default function LogsPage() {
     }, [activityOnly, countryFilter, dateRangeFilter, searchQuery, sessionLogs, statusFilter]);
 
     const sorted = useMemo(() => {
-        const rankRisk: Record<SessionLog['risk'], number> = { Low: 1, Medium: 2, High: 3 };
+        const rankRisk: Record<SessionLog['risk'], number> = { 'N/A': 0, Low: 1, Medium: 2, High: 3 };
         const rankStatus: Record<SessionLog['status'], number> = { Closed: 1, Active: 2 };
         const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
 
@@ -650,14 +662,16 @@ export default function LogsPage() {
                                                 {row.status}
                                             </span>
                                         </td>
-                                        <td>
+                                    <td>
                                             <span
                                                 className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-bold ${
                                                     row.risk === 'High'
                                                         ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300'
-                                                        : row.risk === 'Medium'
+                                                    : row.risk === 'Medium'
                                                             ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300'
-                                                            : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
+                                                            : row.risk === 'Low'
+                                                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
+                                                                : 'bg-slate-200 text-slate-700 dark:bg-slate-600/40 dark:text-slate-200'
                                                 }`}
                                             >
                                                 <ShieldAlert className="w-3 h-3" />
