@@ -310,6 +310,17 @@ export default function EditRemitterPage() {
         }
     };
 
+    const refreshCompliance = async () => {
+        setVeriffLoading(true);
+        try {
+            await fetchRemitter();
+        } catch (error) {
+            console.error('Failed to refresh remitter state', error);
+        } finally {
+            setVeriffLoading(false);
+        }
+    };
+
     if (loading) {
         return <div className="max-w-7xl mx-auto p-12 text-center text-slate-500 dark:text-slate-300">Loading remitter details...</div>;
     }
@@ -398,6 +409,15 @@ export default function EditRemitterPage() {
                             <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">Reason: {formData.veriff_reason}</p>
                         ) : null}
                         <div className="mt-3 flex flex-wrap gap-2">
+                            <button
+                                type="button"
+                                onClick={() => void refreshCompliance()}
+                                disabled={veriffLoading}
+                                className="px-2.5 py-1.5 rounded-full text-[11px] font-bold glass-effect text-slate-700 dark:text-slate-200 disabled:opacity-40"
+                            >
+                                <RefreshCcw className={`inline-block w-3 h-3 mr-1 ${veriffLoading ? 'animate-spin' : ''}`} />
+                                Refresh Status
+                            </button>
                             <button
                                 type="button"
                                 onClick={() => syncVeriff('start')}

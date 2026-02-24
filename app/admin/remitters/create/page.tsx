@@ -8,7 +8,7 @@ import ConfirmModal from '../../components/ConfirmModal';
 import {
     User, Calendar, MapPin, Briefcase, Phone, Building, CreditCard,
     Globe, FileText, Upload, Trash2, Plus, ArrowLeft,
-    CheckCircle, Shield, Layers, Save, Users, AlertCircle
+    CheckCircle, Shield, Layers, Save, Users, AlertCircle, RefreshCcw
 } from 'lucide-react';
 
 type DuplicateMatch = {
@@ -438,6 +438,18 @@ export default function CreateRemitterPage() {
                 shouldRedirect: false,
                 redirectUrl: '',
             });
+        } finally {
+            setVeriffActionLoading(false);
+        }
+    }, [createdRemitterId, loadRemitterVeriffState]);
+
+    const refreshVerificationStatus = React.useCallback(async () => {
+        if (!createdRemitterId) return;
+        setVeriffActionLoading(true);
+        try {
+            await loadRemitterVeriffState(createdRemitterId);
+        } catch (error) {
+            console.error('Failed to refresh verification state', error);
         } finally {
             setVeriffActionLoading(false);
         }
@@ -1006,6 +1018,15 @@ export default function CreateRemitterPage() {
                                 <p className="text-xs font-semibold text-amber-600 dark:text-amber-300">Branch verification is currently disabled by backend flag.</p>
                             ) : null}
                             <div className="flex flex-wrap gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => void refreshVerificationStatus()}
+                                    disabled={veriffActionLoading}
+                                    className="px-3 py-2 rounded-full text-xs font-bold glass-effect text-slate-700 dark:text-slate-200 disabled:opacity-40"
+                                >
+                                    <RefreshCcw className={`inline-block w-3 h-3 mr-1 ${veriffActionLoading ? 'animate-spin' : ''}`} />
+                                    Refresh Status
+                                </button>
                                 <button
                                     type="button"
                                     onClick={() => triggerVeriffAction('start')}

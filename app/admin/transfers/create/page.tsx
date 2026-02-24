@@ -71,6 +71,9 @@ type Remitter = {
     verification_state?: string;
     veriff_status?: string;
     veriff_decision?: string;
+    veriff_checked_at?: string;
+    sanction_list_verified?: string;
+    sender_aml_result?: string;
     branch_veriff_enabled?: boolean;
 };
 
@@ -168,6 +171,9 @@ const generateCode = (prefix: string): string => `${prefix}${Math.floor(10000 + 
 const getBranchValue = (branch: Branch): string =>
     String(branch.code || branch.transaction_prefix || branch.id || '').trim();
 
+const TRANSFER_DRAFT_KEY = 'transfer_create_draft_v1';
+const TRANSFER_SCROLL_KEY = 'transfer_create_scroll_y_v1';
+
 export default function CreateTransferPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -187,6 +193,7 @@ export default function CreateTransferPage() {
     const [selectedBranchRate, setSelectedBranchRate] = useState('');
     const [senderAmlState, setSenderAmlState] = useState<AmlState>('idle');
     const [receiverAmlState, setReceiverAmlState] = useState<AmlState>('idle');
+    const [refreshingSenderChecks, setRefreshingSenderChecks] = useState(false);
     const [processedReturnRemitterId, setProcessedReturnRemitterId] = useState('');
     const [processedReturnReceiverId, setProcessedReturnReceiverId] = useState('');
     const [currentUserBranch, setCurrentUserBranch] = useState('');
@@ -215,6 +222,19 @@ export default function CreateTransferPage() {
     }>({
         idExpired: false,
         verificationWarning: '',
+    });
+    const [senderScreeningState, setSenderScreeningState] = useState<{
+        sanctionListVerified: string;
+        veriffStatus: string;
+        veriffDecision: string;
+        veriffCheckedAt: string;
+        amlResult: string;
+    }>({
+        sanctionListVerified: '',
+        veriffStatus: '',
+        veriffDecision: '',
+        veriffCheckedAt: '',
+        amlResult: '',
     });
 
     const [confirmModal, setConfirmModal] = useState({
@@ -273,6 +293,88 @@ export default function CreateTransferPage() {
         otherReference: ''
     });
 
+    const persistTransferDraft = useCallback(() => {
+        if (typeof window === 'undefined') return;
+        window.sessionStorage.setItem(
+            TRANSFER_DRAFT_KEY,
+            JSON.stringify({
+                formData,
+                senderSearch,
+                savedAt: Date.now(),
+            })
+        );
+    }, [formData, senderSearch]);
+
+    const persistTransferScroll = useCallback(() => {
+        if (typeof window === 'undefined') return;
+        window.sessionStorage.setItem(TRANSFER_SCROLL_KEY, String(Math.max(0, Math.floor(window.scrollY || 0))));
+    }, []);
+
+    const persistTransferPageState = useCallback(() => {
+        persistTransferDraft();
+        persistTransferScroll();
+    }, [persistTransferDraft, persistTransferScroll]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        try {
+            const raw = window.sessionStorage.getItem(TRANSFER_DRAFT_KEY);
+            if (!raw) return;
+            const parsed = JSON.parse(raw) as { formData?: Partial<TransferForm>; senderSearch?: string };
+            if (parsed?.formData && typeof parsed.formData === 'object') {
+                setFormData((prev) => ({ ...prev, ...parsed.formData }));
+            }
+            if (typeof parsed?.senderSearch === 'string') {
+                setSenderSearch(parsed.senderSearch);
+            }
+        } catch (error) {
+            console.error('Failed to restore transfer draft', error);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (typeof window === 'undefined' || loading) return;
+        persistTransferDraft();
+    }, [persistTransferDraft, loading]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        let timer: number | null = null;
+        const onScroll = () => {
+            if (timer !== null) return;
+            timer = window.setTimeout(() => {
+                persistTransferScroll();
+                timer = null;
+            }, 120);
+        };
+
+        const onBeforeUnload = () => persistTransferPageState();
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('beforeunload', onBeforeUnload);
+
+        return () => {
+            window.removeEventListener('scroll', onScroll);
+            window.removeEventListener('beforeunload', onBeforeUnload);
+            if (timer !== null) window.clearTimeout(timer);
+        };
+    }, [persistTransferPageState, persistTransferScroll]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined' || loading) return;
+        const raw = window.sessionStorage.getItem(TRANSFER_SCROLL_KEY);
+        if (!raw) return;
+        const y = Number(raw);
+        if (!Number.isFinite(y) || y <= 0) return;
+
+        window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(() => {
+                window.scrollTo({ top: y, left: 0, behavior: 'auto' });
+            });
+        });
+    }, [loading]);
+
     const branchOptions = useMemo<BranchOption[]>(() => {
         const seen = new Set<string>();
         const options: BranchOption[] = [];
@@ -324,7 +426,7 @@ export default function CreateTransferPage() {
                     if (preferred) {
                         setFormData((prev) => ({
                             ...prev,
-                            payoutCurrency: preferred.code,
+                            payoutCurrency: prev.payoutCurrency || preferred.code,
                             customerRate: prev.customerRate || preferred.rate || '0'
                         }));
                     }
@@ -656,6 +758,13 @@ export default function CreateTransferPage() {
         setSenderResults([]);
         setReceiverBranchAccessIssue({ blocked: false, message: '' });
         evaluateSenderCompliance(sender);
+        setSenderScreeningState({
+            sanctionListVerified: String(sender.sanction_list_verified || ''),
+            veriffStatus: String(sender.veriff_status || ''),
+            veriffDecision: String(sender.veriff_decision || ''),
+            veriffCheckedAt: String(sender.veriff_checked_at || ''),
+            amlResult: String(sender.sender_aml_result || ''),
+        });
         await fetchReceiversForSender(senderRecordId);
         await checkBranchAccessForSender(senderRecordId);
     }, [fetchReceiversForSender, checkBranchAccessForSender, evaluateSenderCompliance]);
@@ -734,6 +843,30 @@ export default function CreateTransferPage() {
 
         fetchNewReceiver();
     }, [searchParams, selectSender, selectReceiver, processedReturnReceiverId, formData.senderRecordId, withActingUser]);
+
+    const refreshSenderCompliance = useCallback(async () => {
+        if (!formData.senderRecordId) {
+            setModal('No Sender Selected', 'Please select a sender first.', 'warning');
+            return;
+        }
+
+        setRefreshingSenderChecks(true);
+        try {
+            const response = await fetch(withActingUser(ENDPOINTS.REMITTERS.DETAIL(formData.senderRecordId)));
+            if (!response.ok) {
+                setModal('Refresh Failed', 'Unable to refresh sender screening status.', 'danger');
+                return;
+            }
+            const sender = (await response.json()) as Remitter;
+            await selectSender(sender);
+            setModal('Refreshed', 'Sender sanction and verification status refreshed.', 'info');
+        } catch (error) {
+            console.error('Failed to refresh sender status', error);
+            setModal('Refresh Failed', 'Unable to refresh sender screening status.', 'danger');
+        } finally {
+            setRefreshingSenderChecks(false);
+        }
+    }, [formData.senderRecordId, selectSender, withActingUser]);
 
     const triggerAmlAction = (actionName: string, person: 'Sender' | 'Receiver') => {
         if (person === 'Sender' && !formData.senderRecordId) {
@@ -959,6 +1092,10 @@ export default function CreateTransferPage() {
                 return;
             }
 
+            if (typeof window !== 'undefined') {
+                window.sessionStorage.removeItem(TRANSFER_DRAFT_KEY);
+                window.sessionStorage.removeItem(TRANSFER_SCROLL_KEY);
+            }
             setModal('Success', 'Transfer created successfully.', 'info', true);
         } catch (error) {
             console.error('Failed to create transfer', error);
@@ -1162,13 +1299,25 @@ export default function CreateTransferPage() {
             <div className="card-glass p-6 md:p-8 space-y-6">
                 <div className="flex items-center justify-between gap-3">
                     <h2 className="text-lg font-bold text-slate-900 dark:text-white">Sender Details</h2>
-                    <Link
-                        href="/admin/remitters/create?returnUrl=/admin/transfers/create"
-                        className="px-4 py-2 rounded-full btn-primary text-sm font-semibold inline-flex items-center gap-2"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Add new sender
-                    </Link>
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={() => void refreshSenderCompliance()}
+                            disabled={!formData.senderRecordId || refreshingSenderChecks}
+                            className="px-3 py-2 rounded-full glass-effect text-xs font-semibold text-slate-700 dark:text-slate-200 disabled:opacity-40 inline-flex items-center gap-2"
+                        >
+                            <RefreshCcw className={`w-4 h-4 ${refreshingSenderChecks ? 'animate-spin' : ''}`} />
+                            Refresh Screening
+                        </button>
+                        <Link
+                            href="/admin/remitters/create?returnUrl=/admin/transfers/create"
+                            onClick={persistTransferPageState}
+                            className="px-4 py-2 rounded-full btn-primary text-sm font-semibold inline-flex items-center gap-2"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Add new sender
+                        </Link>
+                    </div>
                 </div>
 
                 <div>
@@ -1222,6 +1371,25 @@ export default function CreateTransferPage() {
                             <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">
                                 {senderComplianceIssue.verificationWarning}
                             </p>
+                        </div>
+                    ) : null}
+                    {formData.senderRecordId ? (
+                        <div className="mt-3 rounded-2xl border border-slate-200/70 dark:border-slate-700/60 bg-slate-50/60 dark:bg-slate-900/30 px-4 py-3 text-xs text-slate-600 dark:text-slate-300 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-2">
+                            <div>
+                                <span className="font-semibold text-slate-800 dark:text-slate-200">Sanction:</span> {senderScreeningState.sanctionListVerified || '-'}
+                            </div>
+                            <div>
+                                <span className="font-semibold text-slate-800 dark:text-slate-200">Veriff:</span> {senderScreeningState.veriffStatus || '-'}
+                            </div>
+                            <div>
+                                <span className="font-semibold text-slate-800 dark:text-slate-200">Decision:</span> {senderScreeningState.veriffDecision || '-'}
+                            </div>
+                            <div>
+                                <span className="font-semibold text-slate-800 dark:text-slate-200">Checked:</span> {senderScreeningState.veriffCheckedAt || '-'}
+                            </div>
+                            <div>
+                                <span className="font-semibold text-slate-800 dark:text-slate-200">AML:</span> {senderScreeningState.amlResult || '-'}
+                            </div>
                         </div>
                     ) : null}
                 </div>
@@ -1399,6 +1567,7 @@ export default function CreateTransferPage() {
                     <h2 className="text-lg font-bold text-slate-900 dark:text-white">Receiver Details</h2>
                     <Link
                         href={addReceiverHref}
+                        onClick={persistTransferPageState}
                         className="px-4 py-2 rounded-full btn-primary text-sm font-semibold inline-flex items-center gap-2"
                     >
                         <Plus className="w-4 h-4" />
