@@ -149,6 +149,22 @@ export default function SettingsPage() {
                                 </div>
                             </div>
                             <div className="space-y-6 max-w-2xl">
+                                <div className="flex items-center justify-between p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50">
+                                    <div>
+                                        <h3 className="font-bold text-slate-900 dark:text-white">Maintenance Mode</h3>
+                                        <p className="text-sm text-slate-500 mt-1">Temporarily disable access to the site</p>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={generalSettings.maintenanceMode}
+                                            onChange={e => setGeneralSettings({ ...generalSettings, maintenanceMode: e.target.checked })}
+                                            className="sr-only peer"
+                                        />
+                                        <div className="w-14 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-teal-600"></div>
+                                    </label>
+                                </div>
+
                                 <div>
                                     <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Site Name</label>
                                     <input
@@ -181,22 +197,6 @@ export default function SettingsPage() {
                                         className="input-glass w-full"
                                     />
                                 </div>
-                                <div className="flex items-center justify-between p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50">
-                                    <div>
-                                        <h3 className="font-bold text-slate-900 dark:text-white">Maintenance Mode</h3>
-                                        <p className="text-sm text-slate-500 mt-1">Temporarily disable access to the site</p>
-                                    </div>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={generalSettings.maintenanceMode}
-                                            onChange={e => setGeneralSettings({ ...generalSettings, maintenanceMode: e.target.checked })}
-                                            className="sr-only peer"
-                                        />
-                                        <div className="w-14 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-teal-600"></div>
-                                    </label>
-                                </div>
-
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Theme Color</label>

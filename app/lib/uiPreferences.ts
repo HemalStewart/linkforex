@@ -58,9 +58,9 @@ const COLOR_PRESETS: Record<ThemeColorPreset, {
 };
 
 const TABLE_FONT_PRESETS: Record<TableFontSizePreset, { body: string; head: string }> = {
-    small: { body: '0.8125rem', head: '0.65rem' },
-    medium: { body: '0.875rem', head: '0.7rem' },
-    large: { body: '0.95rem', head: '0.78rem' },
+    small: { body: '0.75rem', head: '0.62rem' },
+    medium: { body: '0.9rem', head: '0.72rem' },
+    large: { body: '1.05rem', head: '0.85rem' },
 };
 
 const themePaletteNames: ThemeColorPreset[] = ['teal', 'blue', 'emerald', 'slate'];
