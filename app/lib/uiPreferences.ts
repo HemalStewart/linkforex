@@ -20,6 +20,7 @@ const COLOR_PRESETS: Record<ThemeColorPreset, {
     middle: string;
     end: string;
     accent: string;
+    accentRgb: string;
     chart: string;
 }> = {
     teal: {
@@ -27,6 +28,7 @@ const COLOR_PRESETS: Record<ThemeColorPreset, {
         middle: '#14b8a6',
         end: '#0d9488',
         accent: '#0ea5a4',
+        accentRgb: '14 165 164',
         chart: '#0ea5a4',
     },
     blue: {
@@ -34,6 +36,7 @@ const COLOR_PRESETS: Record<ThemeColorPreset, {
         middle: '#3b82f6',
         end: '#2563eb',
         accent: '#2563eb',
+        accentRgb: '37 99 235',
         chart: '#3b82f6',
     },
     emerald: {
@@ -41,6 +44,7 @@ const COLOR_PRESETS: Record<ThemeColorPreset, {
         middle: '#34d399',
         end: '#059669',
         accent: '#059669',
+        accentRgb: '5 150 105',
         chart: '#10b981',
     },
     slate: {
@@ -48,6 +52,7 @@ const COLOR_PRESETS: Record<ThemeColorPreset, {
         middle: '#64748b',
         end: '#475569',
         accent: '#475569',
+        accentRgb: '71 85 105',
         chart: '#64748b',
     },
 };
@@ -158,6 +163,7 @@ export const applyUiSettings = (settings: UiSettings): void => {
     root.style.setProperty('--blue-gradient-middle', palette.middle);
     root.style.setProperty('--blue-gradient-end', palette.end);
     root.style.setProperty('--accent-primary', palette.accent);
+    root.style.setProperty('--accent-primary-rgb', palette.accentRgb);
     root.style.setProperty('--accent-success', palette.accent);
     root.style.setProperty('--chart-primary', palette.chart);
     root.style.setProperty('--table-font-size', table.body);
