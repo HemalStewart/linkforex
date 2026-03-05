@@ -689,3 +689,41 @@ html {
 .dark .table-shell tbody tr:hover {
   background: rgba(45, 212, 191, 0.08);
 }
+
+/* Dynamic theme color overrides (used by Settings > General) */
+.text-teal-500,
+.text-teal-600,
+.text-teal-700 {
+  color: var(--accent-primary) !important;
+}
+
+.bg-teal-500,
+.bg-teal-600 {
+  background-color: var(--accent-primary) !important;
+}
+
+.border-teal-500,
+.border-teal-600 {
+  border-color: var(--accent-primary) !important;
+}
+
+.from-teal-500 {
+  --tw-gradient-from: var(--blue-gradient-middle) var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgb(20 184 166 / 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+.to-teal-600 {
+  --tw-gradient-to: var(--blue-gradient-end) var(--tw-gradient-to-position) !important;
+}
+
+/* Dynamic table font-size overrides (used by Settings > General) */
+.table-shell tbody td,
+.table-scroll tbody td {
+  font-size: var(--table-font-size) !important;
+}
+
+.table-shell thead th,
+.table-scroll thead th {
+  font-size: var(--table-head-font-size) !important;
+}

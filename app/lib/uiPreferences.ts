@@ -58,6 +58,64 @@ const TABLE_FONT_PRESETS: Record<TableFontSizePreset, { body: string; head: stri
     large: { body: '0.95rem', head: '0.78rem' },
 };
 
+const themePaletteNames: ThemeColorPreset[] = ['teal', 'blue', 'emerald', 'slate'];
+const themeShadeRegex = /\b(teal|blue|emerald|slate)-(50|100|200|300|400|500|600|700|800|900|950)\b/g;
+
+const rewriteClassStringForTheme = (className: string, preset: ThemeColorPreset): string =>
+    className.replace(themeShadeRegex, (_match, _family, shade) => `${preset}-${shade}`);
+
+const rewriteElementThemeClasses = (element: Element, preset: ThemeColorPreset): void => {
+    if (!(element instanceof HTMLElement || element instanceof SVGElement)) return;
+    const className = element.getAttribute('class');
+    if (!className) return;
+    const next = rewriteClassStringForTheme(className, preset);
+    if (next !== className) {
+        element.setAttribute('class', next);
+    }
+};
+
+const rewriteThemeClassesInTree = (root: ParentNode, preset: ThemeColorPreset): void => {
+    if (root instanceof Element) {
+        rewriteElementThemeClasses(root, preset);
+    }
+    const elements = root.querySelectorAll?.('[class]');
+    if (!elements) return;
+    elements.forEach((element) => rewriteElementThemeClasses(element, preset));
+};
+
+const ensureThemeClassObserver = (): MutationObserver | null => {
+    if (typeof window === 'undefined') return null;
+    const win = window as Window & { __lfThemeClassObserver?: MutationObserver };
+    if (win.__lfThemeClassObserver) return win.__lfThemeClassObserver;
+
+    const observer = new MutationObserver((mutations) => {
+        const currentPreset = ((window as Window & { __lfCurrentThemePreset?: ThemeColorPreset }).__lfCurrentThemePreset) || 'teal';
+        for (const mutation of mutations) {
+            if (mutation.type === 'attributes') {
+                rewriteElementThemeClasses(mutation.target as Element, currentPreset);
+                continue;
+            }
+            if (mutation.type === 'childList') {
+                mutation.addedNodes.forEach((node) => {
+                    if (node instanceof Element) {
+                        rewriteThemeClassesInTree(node, currentPreset);
+                    }
+                });
+            }
+        }
+    });
+
+    observer.observe(document.body, {
+        subtree: true,
+        childList: true,
+        attributes: true,
+        attributeFilter: ['class'],
+    });
+
+    win.__lfThemeClassObserver = observer;
+    return observer;
+};
+
 const normalizeThemeColorPreset = (value: unknown): ThemeColorPreset => {
     if (value === 'teal' || value === 'blue' || value === 'emerald' || value === 'slate') return value;
     return defaultSettings.themeColorPreset;
@@ -104,6 +162,11 @@ export const applyUiSettings = (settings: UiSettings): void => {
     root.style.setProperty('--chart-primary', palette.chart);
     root.style.setProperty('--table-font-size', table.body);
     root.style.setProperty('--table-head-font-size', table.head);
+
+    const win = window as Window & { __lfCurrentThemePreset?: ThemeColorPreset };
+    win.__lfCurrentThemePreset = normalized.themeColorPreset;
+    rewriteThemeClassesInTree(document.body, normalized.themeColorPreset);
+    ensureThemeClassObserver();
 
     window.localStorage.setItem(UI_SETTINGS_KEY, JSON.stringify(normalized));
     window.dispatchEvent(new Event('ui-settings-change'));
