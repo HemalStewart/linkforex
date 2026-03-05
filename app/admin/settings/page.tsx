@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Settings, User, Lock, Bell, Database, Save, Loader2, Check, Shield, Mail, Phone } from 'lucide-react';
+import { applyUiSettings, getStoredUiSettings, type TableFontSizePreset, type ThemeColorPreset } from '@/app/lib/uiPreferences';
 
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState('general');
@@ -27,6 +28,13 @@ export default function SettingsPage() {
         sessionTimeout: '30',
         passwordExpiry: '90'
     });
+    const [uiSettings, setUiSettings] = useState<{
+        themeColorPreset: ThemeColorPreset;
+        tableFontSize: TableFontSizePreset;
+    }>({
+        themeColorPreset: 'teal',
+        tableFontSize: 'medium',
+    });
 
     useEffect(() => {
         // Load settings from local storage or API
@@ -38,6 +46,10 @@ export default function SettingsPage() {
 
         const savedSecurity = localStorage.getItem('securitySettings');
         if (savedSecurity) setSecuritySettings(JSON.parse(savedSecurity));
+
+        const loadedUiSettings = getStoredUiSettings();
+        setUiSettings(loadedUiSettings);
+        applyUiSettings(loadedUiSettings);
     }, []);
 
     const handleSave = async () => {
@@ -51,11 +63,18 @@ export default function SettingsPage() {
         localStorage.setItem('generalSettings', JSON.stringify(generalSettings));
         localStorage.setItem('profileSettings', JSON.stringify(profileSettings));
         localStorage.setItem('securitySettings', JSON.stringify(securitySettings));
+        localStorage.setItem('uiSettings', JSON.stringify(uiSettings));
+        applyUiSettings(uiSettings);
 
         setLoading(false);
         setMessage('Settings saved successfully!');
 
         setTimeout(() => setMessage(''), 3000);
+    };
+
+    const handleUiChange = (next: typeof uiSettings) => {
+        setUiSettings(next);
+        applyUiSettings(next);
     };
 
     const tabs = [
@@ -176,6 +195,34 @@ export default function SettingsPage() {
                                         />
                                         <div className="w-14 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-teal-600"></div>
                                     </label>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Theme Color</label>
+                                        <select
+                                            value={uiSettings.themeColorPreset}
+                                            onChange={e => handleUiChange({ ...uiSettings, themeColorPreset: e.target.value as ThemeColorPreset })}
+                                            className="input-glass w-full"
+                                        >
+                                            <option value="teal">Teal (Default)</option>
+                                            <option value="blue">Blue</option>
+                                            <option value="emerald">Emerald</option>
+                                            <option value="slate">Slate</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Table Font Size</label>
+                                        <select
+                                            value={uiSettings.tableFontSize}
+                                            onChange={e => handleUiChange({ ...uiSettings, tableFontSize: e.target.value as TableFontSizePreset })}
+                                            className="input-glass w-full"
+                                        >
+                                            <option value="small">Small</option>
+                                            <option value="medium">Medium</option>
+                                            <option value="large">Large</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                         </div>

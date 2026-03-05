@@ -42,6 +42,10 @@
   --radius-s: 10px;
   --radius-m: 14px;
   --radius-l: 24px;
+
+  /* Table typography controls (overridable from settings) */
+  --table-font-size: 0.875rem;
+  --table-head-font-size: 0.7rem;
 }
 
 :root.dark {
@@ -617,7 +621,7 @@ html {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 0.875rem;
+  font-size: var(--table-font-size);
 }
 
 .table-scroll {
@@ -641,7 +645,7 @@ html {
   top: 0;
   z-index: 16;
   padding: 0.75rem 1.25rem;
-  font-size: 0.7rem;
+  font-size: var(--table-head-font-size);
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;

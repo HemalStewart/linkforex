@@ -16,6 +16,7 @@ type LogRow = {
     signOffTs: string | null;
     signOffNote: string;
     riskLabel: string;
+    rawStatus: string;
 };
 
 type SessionLog = LogRow & {
@@ -77,11 +78,12 @@ const mapApiLog = (log: Record<string, unknown>): LogRow => ({
     logCountry: firstNonEmpty(log, ['log_country', 'country', 'logCountry', 'country_name']),
     ip: firstNonEmpty(log, ['log_ip', 'ip', 'ip_address', 'logIp']),
     signInTs: normalizeDate(firstNonEmpty(log, ['sign_in', 'signin', 'signed_in_at', 'created_at'])),
-    signOffTs: firstNonEmpty(log, ['sign_off', 'signoff', 'signed_off_at', 'updated_at'])
-        ? normalizeDate(firstNonEmpty(log, ['sign_off', 'signoff', 'signed_off_at', 'updated_at']))
+    signOffTs: firstNonEmpty(log, ['sign_off', 'signoff', 'signed_off_at'])
+        ? normalizeDate(firstNonEmpty(log, ['sign_off', 'signoff', 'signed_off_at']))
         : null,
     signOffNote: firstNonEmpty(log, ['sign_off_note', 'signoff_note', 'note', 'remarks']),
-    riskLabel: firstNonEmpty(log, ['risk', 'risk_level', 'log_risk', 'riskLabel'])
+    riskLabel: firstNonEmpty(log, ['risk', 'risk_level', 'log_risk', 'riskLabel']),
+    rawStatus: firstNonEmpty(log, ['status', 'session_status', 'log_status']).toLowerCase()
 });
 
 const formatDateTime = (value: string | null): string => {
@@ -123,6 +125,19 @@ const looksForcedSignOff = (note: string): boolean => {
     const text = note.toLowerCase();
     if (!text) return false;
     return ['auto', 'expired', 'browser closed', 'timeout', 'session', 'terminated'].some((term) => text.includes(term));
+};
+
+const deriveStatus = (row: LogRow): SessionLog['status'] => {
+    const explicit = row.rawStatus.trim();
+    if (['active', 'open', 'logged_in', 'signed_in'].includes(explicit)) return 'Active';
+    if (['closed', 'signed_off', 'logged_out', 'inactive'].includes(explicit)) return 'Closed';
+    return row.signOffTs ? 'Closed' : 'Active';
+};
+
+const isLikelyIpAddress = (value: string): boolean => {
+    const text = value.trim();
+    if (!text) return false;
+    return /^[0-9a-fA-F:.]+$/.test(text) && (text.includes('.') || text.includes(':'));
 };
 
 const getRisk = (row: Omit<SessionLog, 'risk'>): SessionLog['risk'] => {
@@ -186,7 +201,7 @@ export default function LogsPage() {
             const signOffEpoch = toEpoch(row.signOffTs);
             const sessionSeconds = getSessionSeconds(row.signInTs, row.signOffTs);
             const forcedSignOff = looksForcedSignOff(row.signOffNote);
-            const status: SessionLog['status'] = row.signOffTs ? 'Closed' : 'Active';
+            const status: SessionLog['status'] = deriveStatus(row);
             const activityScore = row.transfersImpact + row.transfersApproveImpact * 2;
 
             const base: Omit<SessionLog, 'risk'> = {
@@ -687,7 +702,19 @@ export default function LogsPage() {
                                             </span>
                                         </td>
                                         <td className="text-sm text-slate-600 dark:text-slate-300">{row.logCountry || '-'}</td>
-                                        <td className="text-sm text-slate-600 dark:text-slate-300 font-mono">{row.ip || '-'}</td>
+                                        <td className="text-sm text-slate-600 dark:text-slate-300 font-mono">
+                                            {isLikelyIpAddress(row.ip) ? (
+                                                <a
+                                                    href={`https://whatismyipaddress.com/ip/${encodeURIComponent(row.ip)}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-teal-600 dark:text-teal-300 hover:underline"
+                                                    title="Open IP lookup"
+                                                >
+                                                    {row.ip}
+                                                </a>
+                                            ) : (row.ip || '-')}
+                                        </td>
                                         <td className="text-sm text-slate-700 dark:text-slate-200 font-semibold">{row.transfersImpact}</td>
                                         <td className="text-sm text-slate-700 dark:text-slate-200 font-semibold">{row.transfersApproveImpact}</td>
                                         <td className="text-sm text-slate-700 dark:text-slate-200">
