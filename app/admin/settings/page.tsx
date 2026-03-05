@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Settings, User, Lock, Bell, Database, Save, Loader2, Check, Shield, Mail, Phone } from 'lucide-react';
-import { applyUiSettings, getStoredUiSettings, type TableFontSizePreset, type ThemeColorPreset } from '@/app/lib/uiPreferences';
+import { applyUiSettings, getStoredUiSettings, type TableFontSizePreset } from '@/app/lib/uiPreferences';
 
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState('general');
@@ -28,11 +28,7 @@ export default function SettingsPage() {
         sessionTimeout: '30',
         passwordExpiry: '90'
     });
-    const [uiSettings, setUiSettings] = useState<{
-        themeColorPreset: ThemeColorPreset;
-        tableFontSize: TableFontSizePreset;
-    }>({
-        themeColorPreset: 'teal',
+    const [uiSettings, setUiSettings] = useState<{ tableFontSize: TableFontSizePreset }>({
         tableFontSize: 'medium',
     });
 
@@ -197,20 +193,7 @@ export default function SettingsPage() {
                                         className="input-glass w-full"
                                     />
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Theme Color</label>
-                                        <select
-                                            value={uiSettings.themeColorPreset}
-                                            onChange={e => handleUiChange({ ...uiSettings, themeColorPreset: e.target.value as ThemeColorPreset })}
-                                            className="input-glass w-full"
-                                        >
-                                            <option value="teal">Teal (Default)</option>
-                                            <option value="blue">Blue</option>
-                                            <option value="emerald">Emerald</option>
-                                            <option value="slate">Slate</option>
-                                        </select>
-                                    </div>
+                                <div className="grid grid-cols-1 gap-6">
                                     <div>
                                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Table Font Size</label>
                                         <select
