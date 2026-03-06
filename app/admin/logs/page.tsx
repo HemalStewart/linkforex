@@ -422,9 +422,18 @@ export default function LogsPage() {
         const low = filtered.filter((row) => row.risk === 'Low').length;
         const transfersTouched = filtered.reduce((sum, row) => sum + row.transfersImpact, 0);
         const approvals = filtered.reduce((sum, row) => sum + row.transfersApproveImpact, 0);
-        const closedSessions = filtered.filter((row) => row.status === 'Closed' && row.sessionSeconds > 0);
-        const avgSessionSeconds = closedSessions.length
-            ? Math.floor(closedSessions.reduce((sum, row) => sum + row.sessionSeconds, 0) / closedSessions.length)
+        const now = Date.now();
+        const sessionDurations = filtered
+            .map((row) => {
+                if (row.status === 'Closed') return row.sessionSeconds;
+                if (row.status === 'Active' && row.signInEpoch > 0) {
+                    return Math.max(0, Math.floor((now - row.signInEpoch) / 1000));
+                }
+                return 0;
+            })
+            .filter((seconds) => seconds > 0);
+        const avgSessionSeconds = sessionDurations.length
+            ? Math.floor(sessionDurations.reduce((sum, seconds) => sum + seconds, 0) / sessionDurations.length)
             : 0;
 
         return {
@@ -578,6 +587,9 @@ export default function LogsPage() {
                                 <span className="font-semibold"> Low {summary.low}</span>,
                                 <span className="font-semibold"> Forced {summary.forced}</span>.
                             </p>
+                            <p>
+                                Avg session duration = average of closed sessions + currently active elapsed time.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -601,7 +613,7 @@ export default function LogsPage() {
                     <p className="text-2xl font-black mt-2 text-slate-900 dark:text-white">{summary.approvals}</p>
                 </div>
                 <div className="card-glass p-4">
-                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Avg Session</p>
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Avg Session Duration</p>
                     <p className="text-2xl font-black mt-2 text-slate-900 dark:text-white">{formatDuration(summary.avgSessionSeconds)}</p>
                 </div>
                 <div className="card-glass p-4">
