@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Activity, Clock3, Download, FilterX, RefreshCw, Search, ShieldAlert, UserCheck } from 'lucide-react';
+import { Activity, AlertCircle, Clock3, Download, FilterX, RefreshCw, Search, ShieldAlert, UserCheck } from 'lucide-react';
 import { ENDPOINTS } from '@/app/lib/api';
 
 type LogRow = {
@@ -22,7 +22,9 @@ type LogRow = {
 type SessionLog = LogRow & {
     status: 'Active' | 'Closed';
     forcedSignOff: boolean;
-    risk: 'Low' | 'Medium' | 'High' | 'N/A';
+    risk: 'Low' | 'Medium' | 'High';
+    riskScore: number;
+    riskReasons: string[];
     activityScore: number;
     sessionSeconds: number;
     sessionPeriod: string;
@@ -69,6 +71,15 @@ const firstNonEmpty = (source: Record<string, unknown>, keys: string[]): string 
     return '';
 };
 
+const normalizeTimestampOrNull = (value: string): string | null => {
+    const normalized = normalizeDate(value);
+    if (!normalized) return null;
+    if (normalized.startsWith('0000-00-00')) return null;
+    const epoch = new Date(normalized).getTime();
+    if (Number.isNaN(epoch) || epoch <= 0) return null;
+    return normalized;
+};
+
 const mapApiLog = (log: Record<string, unknown>): LogRow => ({
     id: Number(log.id ?? 0),
     logId: Number(log.id ?? 0),
@@ -77,10 +88,8 @@ const mapApiLog = (log: Record<string, unknown>): LogRow => ({
     transfersApproveImpact: Number(log.transfers_approve_impact ?? 0),
     logCountry: firstNonEmpty(log, ['log_country', 'country', 'logCountry', 'country_name']),
     ip: firstNonEmpty(log, ['log_ip', 'ip', 'ip_address', 'logIp']),
-    signInTs: normalizeDate(firstNonEmpty(log, ['sign_in', 'signin', 'signed_in_at', 'created_at'])),
-    signOffTs: firstNonEmpty(log, ['sign_off', 'signoff', 'signed_off_at'])
-        ? normalizeDate(firstNonEmpty(log, ['sign_off', 'signoff', 'signed_off_at']))
-        : null,
+    signInTs: normalizeTimestampOrNull(firstNonEmpty(log, ['sign_in', 'signin', 'signed_in_at', 'created_at'])) || '',
+    signOffTs: normalizeTimestampOrNull(firstNonEmpty(log, ['sign_off', 'signoff', 'signed_off_at'])),
     signOffNote: firstNonEmpty(log, ['sign_off_note', 'signoff_note', 'note', 'remarks']),
     riskLabel: firstNonEmpty(log, ['risk', 'risk_level', 'log_risk', 'riskLabel']),
     rawStatus: firstNonEmpty(log, ['status', 'session_status', 'log_status']).toLowerCase()
@@ -131,6 +140,10 @@ const deriveStatus = (row: LogRow): SessionLog['status'] => {
     const explicit = row.rawStatus.trim();
     if (['active', 'open', 'logged_in', 'signed_in'].includes(explicit)) return 'Active';
     if (['closed', 'signed_off', 'logged_out', 'inactive'].includes(explicit)) return 'Closed';
+    if (!row.signOffTs) return 'Active';
+    const signInEpoch = toEpoch(row.signInTs);
+    const signOffEpoch = toEpoch(row.signOffTs);
+    if (signInEpoch && signOffEpoch && signOffEpoch < signInEpoch) return 'Active';
     return row.signOffTs ? 'Closed' : 'Active';
 };
 
@@ -140,12 +153,74 @@ const isLikelyIpAddress = (value: string): boolean => {
     return /^[0-9a-fA-F:.]+$/.test(text) && (text.includes('.') || text.includes(':'));
 };
 
-const getRisk = (row: Omit<SessionLog, 'risk'>): SessionLog['risk'] => {
-    const raw = row.riskLabel.trim().toLowerCase();
-    if (raw === 'high') return 'High';
-    if (raw === 'medium') return 'Medium';
-    if (raw === 'low') return 'Low';
-    return 'N/A';
+const riskSignalsFromNote = (note: string): number => {
+    const text = note.toLowerCase();
+    if (!text) return 0;
+    const criticalTerms = ['suspicious', 'blocked', 'locked', 'fraud', 'compromised', 'multiple failed'];
+    const warningTerms = ['failed', 'invalid', 'denied', 'retry', 'timeout'];
+    if (criticalTerms.some((term) => text.includes(term))) return 50;
+    if (warningTerms.some((term) => text.includes(term))) return 25;
+    return 0;
+};
+
+const deriveRisk = (
+    row: Omit<SessionLog, 'risk' | 'riskScore' | 'riskReasons'>,
+    previousSession: Omit<SessionLog, 'risk' | 'riskScore' | 'riskReasons'> | null
+): Pick<SessionLog, 'risk' | 'riskScore' | 'riskReasons'> => {
+    const reasons: string[] = [];
+    let score = 0;
+
+    if (row.forcedSignOff) {
+        score += 70;
+        reasons.push('Forced/automatic sign-off detected');
+    }
+
+    const noteScore = riskSignalsFromNote(row.signOffNote);
+    if (noteScore > 0) {
+        score += noteScore;
+        reasons.push('Sign-off note contains security warning terms');
+    }
+
+    if (row.activityScore >= 30) {
+        score += 30;
+        reasons.push('Very high session activity');
+    } else if (row.activityScore >= 10) {
+        score += 15;
+        reasons.push('Elevated session activity');
+    }
+
+    if (row.activityScore > 0 && row.sessionSeconds > 0 && row.sessionSeconds < 120) {
+        score += 15;
+        reasons.push('High activity in unusually short session');
+    }
+
+    if (row.status === 'Active' && row.signInEpoch > 0) {
+        const activeForMs = Date.now() - row.signInEpoch;
+        if (activeForMs > 12 * 60 * 60 * 1000) {
+            score += 10;
+            reasons.push('Long-running active session');
+        }
+    }
+
+    if (previousSession) {
+        if (row.logCountry && previousSession.logCountry && row.logCountry !== previousSession.logCountry) {
+            score += 25;
+            reasons.push('Country changed from previous session');
+        }
+
+        if (row.ip && previousSession.ip && row.ip !== previousSession.ip) {
+            score += 10;
+            reasons.push('IP changed from previous session');
+        }
+    }
+
+    // Respect explicit backend labels when present.
+    const backendRisk = row.riskLabel.trim().toLowerCase();
+    if (backendRisk === 'high') score = Math.max(score, 70);
+    if (backendRisk === 'medium') score = Math.max(score, 35);
+
+    const risk: SessionLog['risk'] = score >= 70 ? 'High' : score >= 35 ? 'Medium' : 'Low';
+    return { risk, riskScore: score, riskReasons: reasons.length ? reasons : ['Normal session pattern'] };
 };
 
 const escapeCsv = (value: unknown): string => {
@@ -165,7 +240,7 @@ export default function LogsPage() {
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
     const [countryFilter, setCountryFilter] = useState('all');
     const [dateRangeFilter, setDateRangeFilter] = useState<DateRangeFilter>('30d');
-    const [activityOnly, setActivityOnly] = useState(false);
+    const [showRiskGuide, setShowRiskGuide] = useState(false);
 
     const [sortKey, setSortKey] = useState<SortKey>('signInTs');
     const [sortDir, setSortDir] = useState<SortDir>('desc');
@@ -196,7 +271,7 @@ export default function LogsPage() {
     }, [fetchLogs]);
 
     const sessionLogs = useMemo<SessionLog[]>(() => {
-        return logs.map((row) => {
+        const baseRows = logs.map((row) => {
             const signInEpoch = toEpoch(row.signInTs);
             const signOffEpoch = toEpoch(row.signOffTs);
             const sessionSeconds = getSessionSeconds(row.signInTs, row.signOffTs);
@@ -204,7 +279,7 @@ export default function LogsPage() {
             const status: SessionLog['status'] = deriveStatus(row);
             const activityScore = row.transfersImpact + row.transfersApproveImpact * 2;
 
-            const base: Omit<SessionLog, 'risk'> = {
+            const base: Omit<SessionLog, 'risk' | 'riskScore' | 'riskReasons'> = {
                 ...row,
                 status,
                 forcedSignOff,
@@ -215,10 +290,25 @@ export default function LogsPage() {
                 signOffEpoch
             };
 
-            return {
-                ...base,
-                risk: getRisk(base)
-            };
+            return base;
+        });
+
+        const byUser = new Map<string, typeof baseRows>();
+        baseRows.forEach((row) => {
+            const key = (row.username || '-').toLowerCase();
+            const list = byUser.get(key) ?? [];
+            list.push(row);
+            byUser.set(key, list);
+        });
+
+        byUser.forEach((list) => list.sort((a, b) => a.signInEpoch - b.signInEpoch));
+
+        return baseRows.map((row) => {
+            const key = (row.username || '-').toLowerCase();
+            const list = byUser.get(key) ?? [];
+            const idx = list.findIndex((entry) => entry.id === row.id && entry.signInEpoch === row.signInEpoch);
+            const previousSession = idx > 0 ? list[idx - 1] : null;
+            return { ...row, ...deriveRisk(row, previousSession) };
         });
     }, [logs]);
 
@@ -241,7 +331,6 @@ export default function LogsPage() {
             if (statusFilter === 'closed' && row.status !== 'Closed') return false;
 
             if (countryFilter !== 'all' && row.logCountry !== countryFilter) return false;
-            if (activityOnly && row.activityScore <= 0) return false;
 
             if (dateRangeFilter !== 'all') {
                 const signInEpoch = row.signInEpoch;
@@ -258,6 +347,8 @@ export default function LogsPage() {
                 row.username,
                 row.status,
                 row.risk,
+                row.riskScore,
+                row.riskReasons.join(' '),
                 row.transfersImpact,
                 row.transfersApproveImpact,
                 row.activityScore,
@@ -273,10 +364,10 @@ export default function LogsPage() {
 
             return haystack.includes(query);
         });
-    }, [activityOnly, countryFilter, dateRangeFilter, searchQuery, sessionLogs, statusFilter]);
+    }, [countryFilter, dateRangeFilter, searchQuery, sessionLogs, statusFilter]);
 
     const sorted = useMemo(() => {
-        const rankRisk: Record<SessionLog['risk'], number> = { 'N/A': 0, Low: 1, Medium: 2, High: 3 };
+        const rankRisk: Record<SessionLog['risk'], number> = { Low: 1, Medium: 2, High: 3 };
         const rankStatus: Record<SessionLog['status'], number> = { Closed: 1, Active: 2 };
         const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
 
@@ -326,6 +417,9 @@ export default function LogsPage() {
         const total = filtered.length;
         const active = filtered.filter((row) => row.status === 'Active').length;
         const forced = filtered.filter((row) => row.forcedSignOff).length;
+        const high = filtered.filter((row) => row.risk === 'High').length;
+        const medium = filtered.filter((row) => row.risk === 'Medium').length;
+        const low = filtered.filter((row) => row.risk === 'Low').length;
         const transfersTouched = filtered.reduce((sum, row) => sum + row.transfersImpact, 0);
         const approvals = filtered.reduce((sum, row) => sum + row.transfersApproveImpact, 0);
         const closedSessions = filtered.filter((row) => row.status === 'Closed' && row.sessionSeconds > 0);
@@ -337,6 +431,9 @@ export default function LogsPage() {
             total,
             active,
             forced,
+            high,
+            medium,
+            low,
             transfersTouched,
             approvals,
             avgSessionSeconds
@@ -347,7 +444,7 @@ export default function LogsPage() {
 
     useEffect(() => {
         setPage(1);
-    }, [searchQuery, statusFilter, countryFilter, dateRangeFilter, activityOnly, pageSize]);
+    }, [searchQuery, statusFilter, countryFilter, dateRangeFilter, pageSize]);
 
     useEffect(() => {
         if (page > totalPages) {
@@ -364,7 +461,6 @@ export default function LogsPage() {
         setStatusFilter('all');
         setCountryFilter('all');
         setDateRangeFilter('30d');
-        setActivityOnly(false);
     };
 
     const toggleSort = (key: SortKey) => {
@@ -435,6 +531,14 @@ export default function LogsPage() {
                 </div>
                 <div className="flex items-center gap-3">
                     <button
+                        onClick={() => setShowRiskGuide((current) => !current)}
+                        className="glass-effect rounded-full px-4 py-2.5 text-slate-600 dark:text-slate-300 hover:text-amber-500 dark:hover:text-amber-300 transition-all duration-300 flex items-center space-x-2"
+                        title="Risk & forced sign-off guide"
+                    >
+                        <AlertCircle className="w-4 h-4" />
+                        <span className="text-sm font-semibold">Risk Guide</span>
+                    </button>
+                    <button
                         onClick={fetchLogs}
                         className="glass-effect rounded-full px-4 py-2.5 text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 flex items-center space-x-2"
                     >
@@ -451,6 +555,33 @@ export default function LogsPage() {
                     </button>
                 </div>
             </div>
+
+            {showRiskGuide && (
+                <div className="card-glass p-5 border border-amber-200/70 dark:border-amber-900/40">
+                    <div className="flex items-start gap-3">
+                        <AlertCircle className="w-5 h-5 text-amber-500 mt-0.5" />
+                        <div className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
+                            <p className="font-semibold text-slate-900 dark:text-white">
+                                Risk levels are rule-based from session data (not random):
+                            </p>
+                            <p><span className="font-semibold text-red-600 dark:text-red-300">High</span>: score {`>=`} 70 (forced sign-off, critical note terms, or backend high risk label).</p>
+                            <p><span className="font-semibold text-amber-600 dark:text-amber-300">Medium</span>: score 35-69 (elevated activity, warning note terms, country/IP change, or backend medium label).</p>
+                            <p><span className="font-semibold text-emerald-600 dark:text-emerald-300">Low</span>: score {`<`} 35 (normal pattern).</p>
+                            <p>
+                                Forced sign-off is detected when sign-off notes include keywords like:
+                                <span className="font-semibold"> auto, timeout, expired, terminated, browser closed</span>.
+                            </p>
+                            <p>
+                                Current filtered totals:
+                                <span className="font-semibold"> High {summary.high}</span>,
+                                <span className="font-semibold"> Medium {summary.medium}</span>,
+                                <span className="font-semibold"> Low {summary.low}</span>,
+                                <span className="font-semibold"> Forced {summary.forced}</span>.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-4">
                 <div className="card-glass p-4">
@@ -540,23 +671,14 @@ export default function LogsPage() {
                         </select>
                     </div>
 
-                    <div className="xl:col-span-2 flex items-end gap-2">
-                        <button
-                            onClick={() => setActivityOnly((current) => !current)}
-                            className={`w-full px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                                activityOnly
-                                    ? 'bg-teal-500 text-white shadow-sm shadow-teal-500/25'
-                                    : 'glass-effect text-slate-600 dark:text-slate-300'
-                            }`}
-                        >
-                            Activity Only
-                        </button>
+                    <div className="xl:col-span-2 flex items-end">
                         <button
                             onClick={resetFilters}
-                            className="glass-effect rounded-xl px-3 py-2.5 text-slate-500 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all"
+                            className="w-full glass-effect rounded-xl px-3 py-2.5 text-slate-500 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all inline-flex items-center justify-center"
                             title="Reset filters"
                         >
-                            <FilterX className="w-4 h-4" />
+                            <FilterX className="w-4 h-4 mr-2" />
+                            Reset
                         </button>
                     </div>
                 </div>
@@ -684,10 +806,9 @@ export default function LogsPage() {
                                                         ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300'
                                                     : row.risk === 'Medium'
                                                             ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300'
-                                                            : row.risk === 'Low'
-                                                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
-                                                                : 'bg-slate-200 text-slate-700 dark:bg-slate-600/40 dark:text-slate-200'
+                                                            : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
                                                 }`}
+                                                title={`${row.riskReasons.join(' • ')} (score ${row.riskScore})`}
                                             >
                                                 <ShieldAlert className="w-3 h-3" />
                                                 {row.risk}
