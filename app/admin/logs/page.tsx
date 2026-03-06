@@ -139,8 +139,9 @@ const looksForcedSignOff = (note: string): boolean => {
 const deriveStatus = (row: LogRow): SessionLog['status'] => {
     const explicit = row.rawStatus.trim();
     if (['active', 'open', 'logged_in', 'signed_in'].includes(explicit)) return 'Active';
-    if (['closed', 'signed_off', 'logged_out', 'inactive'].includes(explicit)) return 'Closed';
+    // If there is no valid sign-off time, treat session as active even if raw status is stale.
     if (!row.signOffTs) return 'Active';
+    if (['closed', 'signed_off', 'logged_out', 'inactive'].includes(explicit)) return 'Closed';
     const signInEpoch = toEpoch(row.signInTs);
     const signOffEpoch = toEpoch(row.signOffTs);
     if (signInEpoch && signOffEpoch && signOffEpoch < signInEpoch) return 'Active';
@@ -571,24 +572,30 @@ export default function LogsPage() {
                         <AlertCircle className="w-5 h-5 text-amber-500 mt-0.5" />
                         <div className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
                             <p className="font-semibold text-slate-900 dark:text-white">
-                                Risk levels are rule-based from session data (not random):
-                            </p>
-                            <p><span className="font-semibold text-red-600 dark:text-red-300">High</span>: score {`>=`} 70 (forced sign-off, critical note terms, or backend high risk label).</p>
-                            <p><span className="font-semibold text-amber-600 dark:text-amber-300">Medium</span>: score 35-69 (elevated activity, warning note terms, country/IP change, or backend medium label).</p>
-                            <p><span className="font-semibold text-emerald-600 dark:text-emerald-300">Low</span>: score {`<`} 35 (normal pattern).</p>
-                            <p>
-                                Forced sign-off is detected when sign-off notes include keywords like:
-                                <span className="font-semibold"> auto, timeout, expired, terminated, browser closed</span>.
+                                Risk guidance for operations team
                             </p>
                             <p>
-                                Current filtered totals:
+                                <span className="font-semibold text-red-600 dark:text-red-300">High</span>: Unusual or potentially unsafe session behavior.
+                                Review this user immediately and verify actions.
+                            </p>
+                            <p>
+                                <span className="font-semibold text-amber-600 dark:text-amber-300">Medium</span>: Session needs review, but no immediate block required.
+                                Check activity and approve if valid.
+                            </p>
+                            <p>
+                                <span className="font-semibold text-emerald-600 dark:text-emerald-300">Low</span>: Session appears normal.
+                                Keep under routine monitoring.
+                            </p>
+                            <p>
+                                <span className="font-semibold">Forced sign-off</span> means the session ended unexpectedly
+                                (for example timeout, browser closed, or system termination) instead of normal user logout.
+                            </p>
+                            <p>
+                                Filtered results:
                                 <span className="font-semibold"> High {summary.high}</span>,
                                 <span className="font-semibold"> Medium {summary.medium}</span>,
                                 <span className="font-semibold"> Low {summary.low}</span>,
-                                <span className="font-semibold"> Forced {summary.forced}</span>.
-                            </p>
-                            <p>
-                                Avg session duration = average of closed sessions + currently active elapsed time.
+                                <span className="font-semibold"> Forced sign-offs {summary.forced}</span>.
                             </p>
                         </div>
                     </div>

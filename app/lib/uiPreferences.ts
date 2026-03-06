@@ -1,26 +1,28 @@
 'use client';
 
-export type TableFontSizePreset = 'small' | 'medium' | 'large';
-
 export type UiSettings = {
-    tableFontSize: TableFontSizePreset;
+    tableFontSizePx: number;
 };
 
 const UI_SETTINGS_KEY = 'uiSettings';
 
 const defaultSettings: UiSettings = {
-    tableFontSize: 'medium',
+    tableFontSizePx: 14,
 };
 
-const TABLE_FONT_PRESETS: Record<TableFontSizePreset, { body: string; head: string }> = {
-    small: { body: '0.75rem', head: '0.62rem' },
-    medium: { body: '0.9rem', head: '0.72rem' },
-    large: { body: '1.05rem', head: '0.85rem' },
+const LEGACY_PRESET_TO_PX: Record<string, number> = {
+    small: 12,
+    medium: 14,
+    large: 17,
 };
 
-const normalizeTableFontPreset = (value: unknown): TableFontSizePreset => {
-    if (value === 'small' || value === 'medium' || value === 'large') return value;
-    return defaultSettings.tableFontSize;
+const normalizeTableFontPx = (value: unknown): number => {
+    if (typeof value === 'string' && value in LEGACY_PRESET_TO_PX) {
+        return LEGACY_PRESET_TO_PX[value];
+    }
+    const num = typeof value === 'number' ? value : Number(value);
+    if (!Number.isFinite(num)) return defaultSettings.tableFontSizePx;
+    return Math.max(10, Math.min(20, Math.round(num)));
 };
 
 export const getStoredUiSettings = (): UiSettings => {
@@ -31,7 +33,7 @@ export const getStoredUiSettings = (): UiSettings => {
     try {
         const parsed = JSON.parse(raw) as Partial<UiSettings>;
         return {
-            tableFontSize: normalizeTableFontPreset(parsed?.tableFontSize),
+            tableFontSizePx: normalizeTableFontPx((parsed as Record<string, unknown>)?.tableFontSizePx ?? (parsed as Record<string, unknown>)?.tableFontSize),
         };
     } catch {
         return defaultSettings;
@@ -42,14 +44,14 @@ export const applyUiSettings = (settings: UiSettings): void => {
     if (typeof window === 'undefined') return;
 
     const normalized: UiSettings = {
-        tableFontSize: normalizeTableFontPreset(settings.tableFontSize),
+        tableFontSizePx: normalizeTableFontPx(settings.tableFontSizePx),
     };
 
-    const table = TABLE_FONT_PRESETS[normalized.tableFontSize];
     const root = document.documentElement;
+    const headPx = Math.max(10, normalized.tableFontSizePx - 2);
 
-    root.style.setProperty('--table-font-size', table.body);
-    root.style.setProperty('--table-head-font-size', table.head);
+    root.style.setProperty('--table-font-size', `${normalized.tableFontSizePx}px`);
+    root.style.setProperty('--table-head-font-size', `${headPx}px`);
 
     window.localStorage.setItem(UI_SETTINGS_KEY, JSON.stringify(normalized));
     window.dispatchEvent(new Event('ui-settings-change'));

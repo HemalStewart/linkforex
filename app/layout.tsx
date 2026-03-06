@@ -40,28 +40,32 @@ export default function RootLayout({
         var getUiSettings = function () {
           try {
             var raw = localStorage.getItem(UI_KEY);
-            if (!raw) return { tableFontSize: 'medium' };
+            if (!raw) return { tableFontSizePx: 14 };
             var parsed = JSON.parse(raw);
+            var legacy = { small: 12, medium: 14, large: 17 };
+            var rawSize = parsed && (parsed.tableFontSizePx !== undefined ? parsed.tableFontSizePx : parsed.tableFontSize);
+            if (typeof rawSize === 'string' && legacy[rawSize]) rawSize = legacy[rawSize];
+            var num = Number(rawSize);
+            if (!isFinite(num)) num = 14;
+            num = Math.max(10, Math.min(20, Math.round(num)));
             return {
-              tableFontSize: (parsed && (parsed.tableFontSize === 'small' || parsed.tableFontSize === 'medium' || parsed.tableFontSize === 'large')) ? parsed.tableFontSize : 'medium'
+              tableFontSizePx: num
             };
           } catch (e) {
-            return { tableFontSize: 'medium' };
+            return { tableFontSizePx: 14 };
           }
         };
         var getSystemTheme = function () {
           return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         };
         var applyUiSettings = function (settings) {
-          var tables = {
-            small: { body: '0.75rem', head: '0.62rem' },
-            medium: { body: '0.9rem', head: '0.72rem' },
-            large: { body: '1.05rem', head: '0.85rem' }
-          };
-          var table = tables[settings.tableFontSize] || tables.medium;
+          var size = Number(settings && settings.tableFontSizePx);
+          if (!isFinite(size)) size = 14;
+          size = Math.max(10, Math.min(20, Math.round(size)));
+          var headSize = Math.max(10, size - 2);
           var root = document.documentElement;
-          root.style.setProperty('--table-font-size', table.body);
-          root.style.setProperty('--table-head-font-size', table.head);
+          root.style.setProperty('--table-font-size', size + 'px');
+          root.style.setProperty('--table-head-font-size', headSize + 'px');
         };
         var apply = function (preference) {
           var resolved = preference === 'system' ? getSystemTheme() : preference;

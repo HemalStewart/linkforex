@@ -129,8 +129,8 @@ export default function ExchangeRatesPage() {
         <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-up">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Countries & Exchange Rates</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Manage supported countries and their currency exchange rates</p>
+                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Countries</h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Manage countries with their currency and exchange-rate data</p>
                 </div>
                 <div className="flex items-center space-x-4">
                     <button
@@ -152,7 +152,7 @@ export default function ExchangeRatesPage() {
             <div className="card-glass overflow-hidden shadow-xl">
                 <div className="px-8 py-6 border-b border-gray-100 dark:border-slate-700/50 flex items-center space-x-3">
                     <Coins className="w-6 h-6 text-slate-400" />
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">Current Exchange Rates</h2>
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">Countries & Currencies</h2>
                 </div>
                 <div className="table-scroll">
                     {loading ? (
