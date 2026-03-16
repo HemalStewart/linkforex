@@ -553,6 +553,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             children: [
                 { name: 'Overview', href: '/admin/mobile-users/control/overview' },
                 { name: 'App Flow Settings', href: '/admin/mobile-users/control/app-flow-settings', sections: ['MOBILE_APP_FLOW_SETTINGS'] },
+                { name: 'Wallet Funding Queue', href: '/admin/mobile-users/control/wallet-transfers' },
                 { name: 'Profile Review Queue', href: '/admin/mobile-users/control/profile-review-queue', sections: ['MOBILE_PROFILE_REVIEW_QUEUE'] },
                 { name: 'Campaigns', href: '/admin/mobile-users/control/campaigns', sections: ['MOBILE_CAMPAIGNS'] },
                 { name: 'In-App Ads', href: '/admin/mobile-users/control/in-app-ads', sections: ['MOBILE_ADS'] },

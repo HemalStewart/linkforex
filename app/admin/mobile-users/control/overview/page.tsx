@@ -15,6 +15,9 @@ export default function MobileControlOverviewPage() {
         inactive_users: 0,
         campaigns_sent: 0,
         active_ads: 0,
+        wallet_awaiting_funds: 0,
+        wallet_funds_received: 0,
+        wallet_processing: 0,
     });
 
     const loadOverview = async () => {
@@ -40,10 +43,14 @@ export default function MobileControlOverviewPage() {
         { label: 'Inactive', value: overview.inactive_users, icon: <Bell className="h-4 w-4" /> },
         { label: 'Campaigns Sent', value: overview.campaigns_sent, icon: <Send className="h-4 w-4" /> },
         { label: 'Active Ads', value: overview.active_ads, icon: <Newspaper className="h-4 w-4" /> },
+        { label: 'Awaiting Funds', value: overview.wallet_awaiting_funds, icon: <ShieldAlert className="h-4 w-4" /> },
+        { label: 'Funds Received', value: overview.wallet_funds_received, icon: <ShieldCheck className="h-4 w-4" /> },
+        { label: 'Wallet Processing', value: overview.wallet_processing, icon: <RefreshCcw className="h-4 w-4" /> },
     ];
 
     const shortcuts = [
         { href: '/admin/mobile-users/control/app-flow-settings', title: 'App Flow Settings', description: 'OTP, verification, liveness and provider setup.' },
+        { href: '/admin/mobile-users/control/wallet-transfers', title: 'Wallet Funding Queue', description: 'Review wallet-funded mobile transfers and update manual settlement status.' },
         { href: '/admin/mobile-users/control/profile-review-queue', title: 'Profile Review Queue', description: 'Review and approve/reject pending mobile profiles.' },
         { href: '/admin/mobile-users/control/campaigns', title: 'Campaigns', description: 'Create and send push/email campaigns.' },
         { href: '/admin/mobile-users/control/in-app-ads', title: 'In-App Ads', description: 'Create and manage ad inventory shown in the app.' },
@@ -64,7 +71,7 @@ export default function MobileControlOverviewPage() {
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3 xl:grid-cols-6">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3 xl:grid-cols-9">
                 {cards.map((card) => (
                     <div key={card.label} className="card-glass p-4">
                         <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500">

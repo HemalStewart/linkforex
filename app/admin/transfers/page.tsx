@@ -26,6 +26,7 @@ const asNumber = (value: unknown): number => {
 type Transfer = {
     id: string | number;
     code?: string | null;
+    type?: string | null;
     remitter_id?: string | number | null;
     beneficiary_id?: string | number | null;
     branch_id?: string | null;
@@ -93,6 +94,7 @@ type TransferRow = {
     id: string;
     rowNo: number;
     rowRef: string;
+    rawStatus: string;
     print: string;
     sign: string;
     signatureSigned: boolean;
@@ -103,6 +105,8 @@ type TransferRow = {
     toBranch: string;
     invoiceDate: string;
     invoiceNo: string;
+    channel: string;
+    fundingModel: string;
     status: string;
     payoutCurrency: string;
     receivedAmount: number;
@@ -110,6 +114,8 @@ type TransferRow = {
     fcAmount: number;
     transactionId: string;
     otherTransactionId: string;
+    paymentReference: string;
+    walletTxHash: string;
     branchRate: number;
     branchPayAmount: number;
     senderVerified: string;
@@ -162,6 +168,39 @@ const formatDateTime = (value: string): string => {
 const formatStatus = (value: string): string => {
     if (!value) return '-';
     return value.split('_').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
+};
+
+const normalizeStatusKey = (value: unknown): string => (
+    asString(value).trim().toLowerCase().replace(/\s+/g, '_')
+);
+
+const isMobileWalletTransfer = (transfer: Transfer, meta: Record<string, unknown>): boolean => (
+    normalizeStatusKey(transfer.type) === 'mobile_app'
+    || normalizeStatusKey(meta.channel) === 'mobile_app'
+    || normalizeStatusKey(transfer.payment_mode) === 'trust_wallet'
+);
+
+const statusBadgeClass = (value: string): string => {
+    switch (normalizeStatusKey(value)) {
+        case 'awaiting_funds':
+            return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
+        case 'funds_received':
+            return 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300';
+        case 'processing':
+            return 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300';
+        case 'approved':
+        case 'completed':
+            return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300';
+        case 'cancelled':
+        case 'rejected':
+            return 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300';
+        case 'pending':
+        case 'in_review':
+        case 'in_transit':
+            return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+        default:
+            return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+    }
 };
 
 const yesNo = (value: unknown): string => {
@@ -311,6 +350,8 @@ export default function TransfersPage() {
             const meta = parseTransferMeta(transfer);
             const remitter = remitterById.get(asString(transfer.remitter_id));
             const beneficiary = beneficiaryById.get(asString(transfer.beneficiary_id));
+            const mobileWallet = isMobileWalletTransfer(transfer, meta);
+            const rawStatus = normalizeStatusKey(asString(transfer.status) || 'pending');
 
             const toBranchCode = asString(transfer.branch_id);
             const toBranch = branchByKey.get(toBranchCode) || asString(meta.branch_name) || toBranchCode || '-';
@@ -345,6 +386,7 @@ export default function TransfersPage() {
                 id: asString(transfer.id),
                 rowNo: index + 1,
                 rowRef: asString(transfer.id),
+                rawStatus,
                 print: 'None',
                 sign: signatureSigned ? 'Signed' : 'Not Signed',
                 signatureSigned,
@@ -355,13 +397,17 @@ export default function TransfersPage() {
                 toBranch,
                 invoiceDate: asString(meta.invoicing_date) || asString(transfer.created_at),
                 invoiceNo: asString(transfer.code) || '-',
-                status: formatStatus(asString(transfer.status) || 'pending'),
+                channel: mobileWallet ? 'Mobile App' : (asString(meta.channel) || 'Branch Admin'),
+                fundingModel: mobileWallet ? 'Mobile Wallet' : 'Standard Transfer',
+                status: formatStatus(rawStatus || 'pending'),
                 payoutCurrency: asString(meta.payout_currency) || '-',
                 receivedAmount,
                 customerRate,
                 fcAmount,
                 transactionId: asString(meta.transaction_id) || asString(meta.transfer_id) || '-',
                 otherTransactionId: asString(meta.other_transaction_id) || '-',
+                paymentReference: asString(meta.payment_reference) || asString(meta.transaction_id) || asString(transfer.code) || '-',
+                walletTxHash: asString(meta.wallet_tx_hash) || '-',
                 branchRate,
                 branchPayAmount,
                 senderVerified: yesNo(meta.sender_verified || remitter?.kyc_status),
@@ -399,29 +445,27 @@ export default function TransfersPage() {
     }, [transfers, remitterById, beneficiaryById, branchByKey, userById]);
 
     const statusConfig = useMemo(() => {
-        const pending = rows.filter((row) => row.status.toLowerCase() === 'pending').length;
-        const approved = rows.filter((row) => row.status.toLowerCase() === 'approved').length;
-        const cancelled = rows.filter((row) => row.status.toLowerCase() === 'cancelled').length;
-        const completed = rows.filter((row) => row.status.toLowerCase() === 'completed').length;
-        const inReview = rows.filter((row) => row.status.toLowerCase() === 'in review').length;
-        const inTransit = rows.filter((row) => row.status.toLowerCase() === 'in transit').length;
+        const countByStatus = (status: string) => rows.filter((row) => row.rawStatus === status).length;
 
         return {
             all: { label: 'All', count: rows.length },
-            pending: { label: 'Pending', count: pending },
-            approved: { label: 'Approved', count: approved },
-            cancelled: { label: 'Cancelled', count: cancelled },
-            in_review: { label: 'In Review', count: inReview },
-            in_transit: { label: 'In Transit', count: inTransit },
-            completed: { label: 'Completed', count: completed }
+            awaiting_funds: { label: 'Awaiting Funds', count: countByStatus('awaiting_funds') },
+            funds_received: { label: 'Funds Received', count: countByStatus('funds_received') },
+            processing: { label: 'Processing', count: countByStatus('processing') },
+            pending: { label: 'Pending', count: countByStatus('pending') },
+            approved: { label: 'Approved', count: countByStatus('approved') },
+            cancelled: { label: 'Cancelled', count: countByStatus('cancelled') },
+            in_review: { label: 'In Review', count: countByStatus('in_review') },
+            in_transit: { label: 'In Transit', count: countByStatus('in_transit') },
+            completed: { label: 'Completed', count: countByStatus('completed') },
+            rejected: { label: 'Rejected', count: countByStatus('rejected') }
         };
     }, [rows]);
 
     const filteredRows = useMemo(() => {
         const statusFiltered = rows.filter((row) => {
             if (filterStatus === 'all') return true;
-            const rowStatus = row.status.toLowerCase().replace(/\s+/g, '_');
-            return rowStatus === filterStatus;
+            return row.rawStatus === filterStatus;
         });
 
         if (!searchQuery.trim()) return statusFiltered;
@@ -890,13 +934,51 @@ export default function TransfersPage() {
         { key: 'toBranch', label: 'To Branch', sortable: true, className: 'min-w-[170px]' },
         { key: 'invoiceDate', label: 'Invoice Date', sortable: true, className: 'min-w-[180px]', render: (row) => formatDateTime(row.invoiceDate) },
         { key: 'invoiceNo', label: 'Invoice No', sortable: true },
-        { key: 'status', label: 'Status', sortable: true },
+        {
+            key: 'channel',
+            label: 'Channel',
+            sortable: true,
+            className: 'min-w-[180px]',
+            render: (row) => (
+                <div className="flex flex-col items-start gap-1">
+                    <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider ${row.channel === 'Mobile App' ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'}`}>
+                        {row.fundingModel}
+                    </span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-300">{row.channel}</span>
+                </div>
+            )
+        },
+        {
+            key: 'status',
+            label: 'Status',
+            sortable: true,
+            className: 'min-w-[160px]',
+            render: (row) => (
+                <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider ${statusBadgeClass(row.rawStatus)}`}>
+                    {row.status}
+                </span>
+            )
+        },
         { key: 'payoutCurrency', label: 'Payout Currency', sortable: true },
         { key: 'receivedAmount', label: 'Received Amount (£)', sortable: true, render: (row) => row.receivedAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) },
         { key: 'customerRate', label: 'Customer Rate', sortable: true, render: (row) => row.customerRate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }) },
         { key: 'fcAmount', label: 'FC Amount', sortable: true, render: (row) => row.fcAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) },
         { key: 'transactionId', label: 'Transaction Id', sortable: true },
         { key: 'otherTransactionId', label: 'Other Transaction Id', sortable: true },
+        {
+            key: 'paymentReference',
+            label: 'Funding Ref',
+            sortable: true,
+            className: 'min-w-[180px]',
+            render: (row) => (
+                <div className="flex flex-col gap-1">
+                    <span className="truncate">{row.paymentReference}</span>
+                    {row.walletTxHash !== '-' && (
+                        <span className="truncate text-[11px] text-slate-500 dark:text-slate-300">{row.walletTxHash}</span>
+                    )}
+                </div>
+            )
+        },
         { key: 'branchRate', label: 'Branch Rate', sortable: true, render: (row) => row.branchRate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }) },
         { key: 'branchPayAmount', label: 'Branch Pay Amount', sortable: true, render: (row) => row.branchPayAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) },
         { key: 'senderVerified', label: 'Sender Verified', sortable: true },
@@ -930,6 +1012,8 @@ export default function TransfersPage() {
         { key: 'modifiedDate', label: 'Modified Date', sortable: true, render: (row) => formatDateTime(row.modifiedDate) },
         { key: 'historyLog', label: 'History Log', sortable: true }
     ];
+
+    const receivedAmountColumnIndex = columns.findIndex((column) => column.key === 'receivedAmount');
 
     if (loading) {
         return <div className="max-w-7xl mx-auto p-8 text-center text-slate-500 animate-pulse">Loading transfers...</div>;
@@ -1000,7 +1084,7 @@ export default function TransfersPage() {
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Transfers</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Transfer register with sender/receiver and branch rate details</p>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Transfer register for branch operations and mobile wallet-funded requests</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <button
@@ -1094,7 +1178,7 @@ export default function TransfersPage() {
                                         </td>
                                     ))}
                                     <td className="px-4 py-3 text-sm">
-                                        {row.status.toLowerCase() === 'pending' ? (
+                                        {row.rawStatus === 'pending' ? (
                                             <button
                                                 type="button"
                                                 onClick={() => void handleStatusAction(row, 'approve')}
@@ -1109,7 +1193,7 @@ export default function TransfersPage() {
                                         )}
                                     </td>
                                     <td className="px-4 py-3 text-sm">
-                                        {['pending', 'in review', 'in transit'].includes(row.status.toLowerCase()) ? (
+                                        {['pending', 'in_review', 'in_transit'].includes(row.rawStatus) ? (
                                             <button
                                                 type="button"
                                                 onClick={() => void handleStatusAction(row, 'cancel')}
@@ -1145,11 +1229,11 @@ export default function TransfersPage() {
                             {pagedRows.length > 0 && (
                                 <tr className="bg-teal-50/40 dark:bg-slate-800/50">
                                     <td className="px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-200">Total:</td>
-                                    <td colSpan={9} className="px-4 py-3" />
+                                    <td colSpan={Math.max(receivedAmountColumnIndex - 1, 1)} className="px-4 py-3" />
                                     <td className="px-4 py-3 text-sm font-bold text-teal-700 dark:text-teal-300">
                                         {receivedTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </td>
-                                    <td colSpan={columns.length - 11 + 4} className="px-4 py-3" />
+                                    <td colSpan={Math.max(columns.length - receivedAmountColumnIndex - 1 + 4, 1)} className="px-4 py-3" />
                                 </tr>
                             )}
                         </tbody>

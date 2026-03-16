@@ -5,6 +5,9 @@ export type Overview = {
     inactive_users: number;
     campaigns_sent: number;
     active_ads: number;
+    wallet_awaiting_funds: number;
+    wallet_funds_received: number;
+    wallet_processing: number;
 };
 
 export type SettingsData = {
@@ -21,6 +24,15 @@ export type SettingsData = {
     enable_email_notifications: 'yes' | 'no';
     enable_secure_message: 'yes' | 'no';
     send_exchange_rate_push: 'yes' | 'no';
+    restrict_blacklisted_countries: 'yes' | 'no';
+    require_new_device_verification: 'yes' | 'no';
+    blacklisted_countries: string;
+    password_rotation_days: number;
+    support_email: string;
+    trust_wallet_label: string;
+    trust_wallet_network: string;
+    trust_wallet_address: string;
+    trust_wallet_instructions: string;
     liveness_provider: 'none' | 'veriff';
     veriff_base_url: string;
     veriff_api_key: string;
@@ -31,7 +43,19 @@ export type SettingsData = {
 
 export type YesNoSettingKey = Exclude<
     keyof SettingsData,
-    'liveness_provider' | 'veriff_base_url' | 'veriff_api_key' | 'veriff_hmac_secret' | 'veriff_callback_url' | 'veriff_configured'
+    | 'blacklisted_countries'
+    | 'password_rotation_days'
+    | 'support_email'
+    | 'trust_wallet_label'
+    | 'trust_wallet_network'
+    | 'trust_wallet_address'
+    | 'trust_wallet_instructions'
+    | 'liveness_provider'
+    | 'veriff_base_url'
+    | 'veriff_api_key'
+    | 'veriff_hmac_secret'
+    | 'veriff_callback_url'
+    | 'veriff_configured'
 >;
 
 export type QueueUser = {
@@ -51,6 +75,38 @@ export type QueueUser = {
     sanction_checked_at?: string;
     created_at?: string;
     updated_at?: string;
+};
+
+export type WalletTransfer = {
+    id: number;
+    code: string;
+    status: string;
+    source_amount: number;
+    dest_amount: number;
+    rate: number;
+    purpose: string;
+    payment_mode: string;
+    collection_method: string;
+    created_at?: string | null;
+    updated_at?: string | null;
+    remitter_id: number;
+    beneficiary_id: number;
+    remitter_name: string;
+    remitter_email: string;
+    remitter_phone: string;
+    beneficiary_name: string;
+    beneficiary_bank_name: string;
+    beneficiary_account_number: string;
+    source_currency: string;
+    payout_currency: string;
+    wallet_tx_hash: string;
+    payment_reference: string;
+    wallet_status_note: string;
+    wallet_received_at?: string | null;
+    processing_started_at?: string | null;
+    completed_at?: string | null;
+    rejected_at?: string | null;
+    status_history?: Array<{ status: string; note?: string; updated_at?: string; updated_by?: string }>;
 };
 
 export type Campaign = {
@@ -88,6 +144,8 @@ export const yesNoKeys: YesNoSettingKey[] = [
     'enable_email_notifications',
     'enable_secure_message',
     'send_exchange_rate_push',
+    'restrict_blacklisted_countries',
+    'require_new_device_verification',
 ];
 
 export const defaultSettings: SettingsData = {
@@ -104,6 +162,15 @@ export const defaultSettings: SettingsData = {
     enable_email_notifications: 'yes',
     enable_secure_message: 'yes',
     send_exchange_rate_push: 'no',
+    restrict_blacklisted_countries: 'no',
+    require_new_device_verification: 'no',
+    blacklisted_countries: '',
+    password_rotation_days: 180,
+    support_email: '',
+    trust_wallet_label: 'LinkForex Trust Wallet',
+    trust_wallet_network: '',
+    trust_wallet_address: '',
+    trust_wallet_instructions: '',
     liveness_provider: 'veriff',
     veriff_base_url: 'https://stationapi.veriff.com',
     veriff_api_key: '',

@@ -36,6 +36,15 @@ export default function MobileAppFlowSettingsPage() {
             next.liveness_provider = provider === 'none' ? 'none' : 'veriff';
             next.veriff_base_url = String(data?.veriff_base_url || next.veriff_base_url || '').trim();
             next.veriff_callback_url = String(data?.veriff_callback_url || next.veriff_callback_url || '').trim();
+            next.blacklisted_countries = Array.isArray(data?.blacklisted_countries)
+                ? data.blacklisted_countries.join('\n')
+                : String(data?.blacklisted_countries || '').trim();
+            next.password_rotation_days = Number(data?.password_rotation_days || next.password_rotation_days || 180);
+            next.support_email = String(data?.support_email || '').trim();
+            next.trust_wallet_label = String(data?.trust_wallet_label || next.trust_wallet_label || '').trim();
+            next.trust_wallet_network = String(data?.trust_wallet_network || next.trust_wallet_network || '').trim();
+            next.trust_wallet_address = String(data?.trust_wallet_address || next.trust_wallet_address || '').trim();
+            next.trust_wallet_instructions = String(data?.trust_wallet_instructions || next.trust_wallet_instructions || '').trim();
             next.veriff_api_key = '';
             next.veriff_hmac_secret = '';
             next.veriff_configured = Boolean(data?.veriff_configured);
@@ -88,6 +97,8 @@ export default function MobileAppFlowSettingsPage() {
         { key: 'enable_secure_message', label: 'Enable Secure Message', icon: <ShieldCheck className="h-4 w-4" /> },
         { key: 'enable_in_app_ads', label: 'Enable In-App Ads', icon: <Newspaper className="h-4 w-4" /> },
         { key: 'send_exchange_rate_push', label: 'Send Exchange Rate Push', icon: <Megaphone className="h-4 w-4" /> },
+        { key: 'restrict_blacklisted_countries', label: 'Block Blacklisted Countries', icon: <ShieldAlert className="h-4 w-4" /> },
+        { key: 'require_new_device_verification', label: 'Require New Device Verification', icon: <Smartphone className="h-4 w-4" /> },
     ]), []);
 
     return (
@@ -141,6 +152,100 @@ export default function MobileAppFlowSettingsPage() {
                             </label>
                         );
                     })}
+                </div>
+
+                <div className="mt-5 rounded-2xl border border-slate-200/70 bg-white/40 p-4 dark:border-slate-700 dark:bg-slate-900/30">
+                    <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Security Policy</h3>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                        Control access restrictions, device confirmation, and password rotation for mobile users.
+                    </p>
+
+                    <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 md:col-span-2">
+                            Support Email
+                            <input
+                                value={settings.support_email}
+                                onChange={(e) => setSettings((prev) => ({ ...prev, support_email: e.target.value }))}
+                                className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
+                                placeholder="support@linkforex.com"
+                            />
+                        </label>
+
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                            Password Rotation Days
+                            <input
+                                type="number"
+                                min={30}
+                                max={365}
+                                value={settings.password_rotation_days}
+                                onChange={(e) => setSettings((prev) => ({ ...prev, password_rotation_days: Number(e.target.value || 180) }))}
+                                className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
+                            />
+                        </label>
+
+                        <div className="rounded-2xl border border-slate-200/70 bg-white/40 p-4 text-xs text-slate-500 dark:border-slate-700 dark:bg-slate-900/30 dark:text-slate-400">
+                            Users are prompted to update their password after the configured number of days. New-device verification uses an email code challenge.
+                        </div>
+
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 md:col-span-2">
+                            Blacklisted Countries
+                            <textarea
+                                value={settings.blacklisted_countries}
+                                onChange={(e) => setSettings((prev) => ({ ...prev, blacklisted_countries: e.target.value }))}
+                                className="input-glass mt-1.5 min-h-28 w-full py-2.5 text-sm normal-case"
+                                placeholder={'Iran\nNorth Korea\nAFG'}
+                            />
+                        </label>
+                    </div>
+                </div>
+
+                <div className="mt-5 rounded-2xl border border-slate-200/70 bg-white/40 p-4 dark:border-slate-700 dark:bg-slate-900/30">
+                    <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Trust Wallet Funding</h3>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                        Mobile transfers use one fixed trust-wallet destination. Users submit transfer requests, fund this wallet, and staff reconcile and settle manually.
+                    </p>
+
+                    <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                            Wallet Label
+                            <input
+                                value={settings.trust_wallet_label}
+                                onChange={(e) => setSettings((prev) => ({ ...prev, trust_wallet_label: e.target.value }))}
+                                className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
+                                placeholder="LinkForex Trust Wallet"
+                            />
+                        </label>
+
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                            Wallet Network
+                            <input
+                                value={settings.trust_wallet_network}
+                                onChange={(e) => setSettings((prev) => ({ ...prev, trust_wallet_network: e.target.value }))}
+                                className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
+                                placeholder="TRON (TRC20)"
+                            />
+                        </label>
+
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 md:col-span-2">
+                            Wallet Address
+                            <textarea
+                                value={settings.trust_wallet_address}
+                                onChange={(e) => setSettings((prev) => ({ ...prev, trust_wallet_address: e.target.value }))}
+                                className="input-glass mt-1.5 min-h-24 w-full py-2.5 text-sm normal-case"
+                                placeholder="Paste the fixed wallet address used for all mobile transfers"
+                            />
+                        </label>
+
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 md:col-span-2">
+                            Funding Instructions
+                            <textarea
+                                value={settings.trust_wallet_instructions}
+                                onChange={(e) => setSettings((prev) => ({ ...prev, trust_wallet_instructions: e.target.value }))}
+                                className="input-glass mt-1.5 min-h-28 w-full py-2.5 text-sm normal-case"
+                                placeholder="Example: Send the exact amount to the wallet address, keep your transaction hash, and tap 'I have sent funds' in the app."
+                            />
+                        </label>
+                    </div>
                 </div>
 
                 <div className="mt-5 rounded-2xl border border-slate-200/70 bg-white/40 p-4 dark:border-slate-700 dark:bg-slate-900/30">

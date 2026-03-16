@@ -9,6 +9,7 @@ import { ArrowLeft, Download, History, Search, RotateCcw } from 'lucide-react';
 type Transfer = {
     id: string | number;
     code?: string | null;
+    type?: string | null;
     remitter_id?: string | number | null;
     beneficiary_id?: string | number | null;
     branch_id?: string | null;
@@ -99,6 +100,36 @@ const formatStatus = (value: string): string => {
         .split('_')
         .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
         .join(' ');
+};
+
+const normalizeStatusKey = (value: unknown): string => (
+    asString(value).trim().toLowerCase().replace(/\s+/g, '_')
+);
+
+const isMobileWalletTransfer = (transfer: Transfer | null, meta: Record<string, unknown>): boolean => {
+    if (!transfer) return false;
+    return normalizeStatusKey(transfer.type) === 'mobile_app'
+        || normalizeStatusKey(meta.channel) === 'mobile_app'
+        || normalizeStatusKey(transfer.payment_mode) === 'trust_wallet';
+};
+
+const statusBadgeClass = (value: unknown): string => {
+    switch (normalizeStatusKey(value)) {
+        case 'awaiting_funds':
+            return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
+        case 'funds_received':
+            return 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300';
+        case 'processing':
+            return 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300';
+        case 'approved':
+        case 'completed':
+            return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300';
+        case 'cancelled':
+        case 'rejected':
+            return 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300';
+        default:
+            return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+    }
 };
 
 const normalizeAction = (value: unknown): string => {
@@ -352,6 +383,7 @@ export default function TransferDetailsPage() {
     }, [transfer, id, auditAction, auditUser, auditDateFrom, auditDateTo, auditPage, auditPageSize]);
 
     const meta = useMemo(() => parseTransferMeta(transfer), [transfer]);
+    const mobileWalletTransfer = useMemo(() => isMobileWalletTransfer(transfer, meta), [transfer, meta]);
 
     if (loading) {
         return <div className="max-w-7xl mx-auto p-10 text-center text-slate-500 animate-pulse">Loading transfer details...</div>;
@@ -375,6 +407,10 @@ export default function TransferDetailsPage() {
     const cancelDate = ['cancelled', 'rejected'].includes(asString(transfer.status).toLowerCase())
         ? fieldValue(meta.cancel_date, meta.status_cancelled_at, transfer.updated_at)
         : fieldValue(meta.cancel_date, meta.status_cancelled_at, '');
+    const walletStatusHistory = Array.isArray(meta.wallet_status_history) ? meta.wallet_status_history : [];
+    const latestWalletEvent = walletStatusHistory.length > 0
+        ? walletStatusHistory[walletStatusHistory.length - 1] as Record<string, unknown>
+        : null;
 
     const overviewRows: FieldRow[] = [
         { field: 'To Branch', value: fieldValue(meta.branch_name, transfer.branch_id) },
@@ -388,7 +424,11 @@ export default function TransferDetailsPage() {
         { field: 'Payout Currency', value: fieldValue(meta.payout_currency) },
         { field: 'Customer Rate', value: asNumber(meta.customer_rate_for_gbp || transfer.rate).toLocaleString(undefined, { maximumFractionDigits: 4 }) },
         { field: 'Receive Amount (£)', value: asNumber(transfer.source_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) },
-        { field: 'FC Transfer Amount', value: asNumber(transfer.dest_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
+        { field: 'FC Transfer Amount', value: asNumber(transfer.dest_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) },
+        ...(mobileWalletTransfer ? [{
+            field: 'Funding Channel',
+            value: 'Mobile Wallet',
+        }] : []),
     ];
 
     const senderRows: FieldRow[] = [
@@ -410,6 +450,21 @@ export default function TransferDetailsPage() {
         { field: 'Entry Type', value: fieldValue(meta.entry_type, transfer.collection_method) },
         { field: 'Payment Mode', value: fieldValue(meta.payment_mode, paymentModeLabel(transfer.payment_mode)) }
     ];
+
+    const walletRows: FieldRow[] = mobileWalletTransfer ? [
+        { field: 'Funding Channel', value: formatStatus(fieldValue(meta.channel, 'mobile_app')) },
+        { field: 'Funding Model', value: 'Shared Trust Wallet' },
+        { field: 'Wallet Status', value: formatStatus(fieldValue(transfer.status, 'awaiting_funds')) },
+        { field: 'Payment Reference', value: fieldValue(meta.payment_reference, meta.transaction_id, transfer.code) },
+        { field: 'Wallet Transaction Hash', value: fieldValue(meta.wallet_tx_hash) },
+        { field: 'Payment Mode', value: fieldValue(meta.payment_mode, paymentModeLabel(transfer.payment_mode), 'Trust Wallet') },
+        { field: 'Collection Method', value: fieldValue(transfer.collection_method, 'manual_settlement') },
+        { field: 'Wallet Funds Received At', value: formatDateTime(meta.wallet_received_at) },
+        { field: 'Processing Started At', value: formatDateTime(meta.processing_started_at) },
+        { field: 'Completed At', value: formatDateTime(meta.completed_at) },
+        { field: 'Rejected At', value: formatDateTime(meta.rejected_at) },
+        { field: 'Latest Wallet Note', value: fieldValue(meta.wallet_status_note, latestWalletEvent?.note) },
+    ] : [];
 
     const receiverRows: FieldRow[] = [
         { field: 'Receiver Verified', value: yesNo(meta.receiver_verified ?? beneficiary?.status) },
@@ -456,7 +511,11 @@ export default function TransferDetailsPage() {
         {
             field: 'Customer Rate',
             value: asNumber(meta.customer_rate_for_gbp || transfer.rate).toLocaleString(undefined, { maximumFractionDigits: 4 })
-        }
+        },
+        ...(mobileWalletTransfer ? [{
+            field: 'Funding',
+            value: 'Mobile Wallet',
+        }] : [])
     ];
 
     const normalizedAuditLogs = auditLogs.map((log) => {
@@ -493,9 +552,22 @@ export default function TransferDetailsPage() {
                 </Link>
                 <div className="flex flex-wrap items-center gap-3">
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Transfer Details</h1>
-                    <span className="px-3 py-1 rounded-full bg-teal-500/15 text-teal-700 dark:text-teal-300 text-xs font-bold uppercase tracking-wider">
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${statusBadgeClass(transfer.status)}`}>
                         {formatStatus(fieldValue(transfer.status, 'Pending'))}
                     </span>
+                    {mobileWalletTransfer && (
+                        <>
+                            <span className="px-3 py-1 rounded-full bg-teal-500/15 text-teal-700 dark:text-teal-300 text-xs font-bold uppercase tracking-wider">
+                                Mobile Wallet
+                            </span>
+                            <Link
+                                href="/admin/mobile-users/control/wallet-transfers"
+                                className="px-3 py-1 rounded-full bg-white/70 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-200 hover:text-teal-600"
+                            >
+                                Wallet Queue
+                            </Link>
+                        </>
+                    )}
                 </div>
                 <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">
                     Overview, sender, receiver and document details for transfer #{transfer.id}
@@ -514,9 +586,49 @@ export default function TransferDetailsPage() {
             </div>
 
             <DetailCard title="Transfer Overview" rows={overviewRows} />
+            {mobileWalletTransfer && <DetailCard title="Wallet Funding" rows={walletRows} />}
             <DetailCard title="Sender Details" rows={senderRows} />
             <DetailCard title="Receiver Details" rows={receiverRows} />
             <DetailCard title="Documents" rows={documentRows} />
+
+            {mobileWalletTransfer && (
+                <div className="card-glass p-6 md:p-8">
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-5">Wallet Status History</h2>
+                    {walletStatusHistory.length === 0 ? (
+                        <p className="text-sm font-medium text-slate-500 dark:text-slate-300">No wallet status updates recorded yet.</p>
+                    ) : (
+                        <div className="space-y-3">
+                            {walletStatusHistory.map((event, index) => {
+                                const item = isRecord(event) ? event : {};
+                                const status = fieldValue(item.status, 'awaiting_funds');
+                                return (
+                                    <div
+                                        key={`${status}-${index}-${fieldValue(item.updated_at, index)}`}
+                                        className="rounded-2xl bg-white/50 dark:bg-slate-800/40 border border-slate-100/70 dark:border-slate-700/60 px-4 py-3"
+                                    >
+                                        <div className="flex flex-wrap items-center gap-2 justify-between">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider ${statusBadgeClass(status)}`}>
+                                                    {formatStatus(status)}
+                                                </span>
+                                                <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                                                    {fieldValue(item.updated_by, 'System')}
+                                                </span>
+                                            </div>
+                                            <span className="text-xs text-slate-500 dark:text-slate-400">
+                                                {formatDateTime(item.updated_at)}
+                                            </span>
+                                        </div>
+                                        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                                            {fieldValue(item.note, 'No note added.')}
+                                        </p>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+            )}
 
             <div className="card-glass p-6 md:p-8">
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-5 flex items-center gap-2">
