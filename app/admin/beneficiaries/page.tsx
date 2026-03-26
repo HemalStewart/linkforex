@@ -84,11 +84,20 @@ export default function BeneficiariesPage() {
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Name</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Bank Details</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Customer ID</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Contact</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Payment Mode</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Location</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Date Added</th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
                                 {filteredBeneficiaries.map((b) => (
+                                    (() => {
+                                        const statusValue = (b.status ?? '').toString().toLowerCase();
+                                        const isActive = statusValue === 'active' || statusValue === 'verified';
+                                        const statusLabel = isActive ? 'Verified' : statusValue ? 'Pending' : '-';
+                                        return (
                                     <tr key={b.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
                                         <td className="px-8 py-5">
                                             <div className="flex items-center space-x-3">
@@ -113,13 +122,35 @@ export default function BeneficiariesPage() {
                                             {b.customer_id}
                                         </td>
                                         <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-400">
+                                            {b.mobile_number || '-'}
+                                        </td>
+                                        <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-400">
+                                            {b.payment_mode || '-'}
+                                        </td>
+                                        <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-400">
+                                            {[b.country, b.city].filter(Boolean).join(', ') || '-'}
+                                        </td>
+                                        <td className="px-8 py-5">
+                                            <span
+                                                className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
+                                                    isActive
+                                                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300'
+                                                        : 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300'
+                                                }`}
+                                            >
+                                                {statusLabel}
+                                            </span>
+                                        </td>
+                                        <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-400">
                                             <div className="flex items-center space-x-2">
                                                 <Calendar className="w-4 h-4 text-slate-400" />
                                                 <span>{new Date(b.created_at).toLocaleDateString()}</span>
                                             </div>
                                         </td>
                                     </tr>
-                                ))}
+                                        );
+                                    })()
+                                )}
                             </tbody>
                         </table>
                     )}
