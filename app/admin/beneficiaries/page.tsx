@@ -92,13 +92,12 @@ export default function BeneficiariesPage() {
                                 </tr>
                             </thead>
                             <tbody className="table-body">
-                                {filteredBeneficiaries.map((b) => (
-                                    (() => {
-                                        const statusValue = (b.status ?? '').toString().toLowerCase();
-                                        const isActive = statusValue === 'active' || statusValue === 'verified';
-                                        const statusLabel = isActive ? 'Verified' : statusValue ? 'Pending' : '-';
-                                        return (
-                                    <tr key={b.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
+                                {filteredBeneficiaries.map((b) => {
+                                    const statusValue = (b.status ?? '').toString().toLowerCase();
+                                    const isActive = statusValue === 'active' || statusValue === 'verified';
+                                    const statusLabel = isActive ? 'Verified' : statusValue ? 'Pending' : '-';
+                                    return (
+                                        <tr key={b.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
                                         <td className="px-8 py-5">
                                             <div className="flex items-center space-x-3">
                                                 <div className="avatar-circle avatar-circle-sm">
@@ -147,10 +146,9 @@ export default function BeneficiariesPage() {
                                                 <span>{new Date(b.created_at).toLocaleDateString()}</span>
                                             </div>
                                         </td>
-                                    </tr>
-                                        );
-                                    })()
-                                )}
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     )}
