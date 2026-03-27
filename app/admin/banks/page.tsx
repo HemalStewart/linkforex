@@ -55,6 +55,8 @@ export default function BanksPage() {
     const [countryFilter, setCountryFilter] = useState('all');
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [page, setPage] = useState(1);
+    const [rowsPerPage, setRowsPerPage] = useState(25);
 
     React.useEffect(() => {
         fetchBanks();
@@ -101,6 +103,23 @@ export default function BanksPage() {
             return matchesQuery && matchesCountry && matchesCategory && matchesStatus;
         });
     }, [banks, searchQuery, countryFilter, categoryFilter, statusFilter]);
+
+    const totalRows = filteredBanks.length;
+    const totalPages = Math.max(1, Math.ceil(totalRows / rowsPerPage));
+    const currentPage = Math.min(page, totalPages);
+    const startIndex = totalRows === 0 ? 0 : (currentPage - 1) * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, totalRows);
+    const pagedBanks = filteredBanks.slice(startIndex, endIndex);
+
+    React.useEffect(() => {
+        setPage(1);
+    }, [searchQuery, countryFilter, categoryFilter, statusFilter, rowsPerPage]);
+
+    React.useEffect(() => {
+        if (page !== currentPage) {
+            setPage(currentPage);
+        }
+    }, [page, currentPage]);
 
     const handleEdit = (bank: any) => {
         setEditingId(bank.id);
@@ -271,6 +290,7 @@ export default function BanksPage() {
                         <table className="table-shell">
                             <thead className="table-head">
                                 <tr>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">#</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Bank</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Country</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Category</th>
@@ -280,8 +300,11 @@ export default function BanksPage() {
                                 </tr>
                             </thead>
                             <tbody className="table-body">
-                                {filteredBanks.map((bank) => (
+                                {pagedBanks.map((bank, idx) => (
                                     <tr key={bank.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
+                                        <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 font-medium">
+                                            {startIndex + idx + 1}
+                                        </td>
                                         <td className="px-8 py-5 font-bold text-slate-900 dark:text-white">
                                             {editingId === bank.id ? (
                                                 <input className="input-glass py-1 px-3 w-full" value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} autoFocus />
@@ -361,6 +384,40 @@ export default function BanksPage() {
                             </tbody>
                         </table>
                     )}
+                </div>
+                <div className="px-6 py-4 border-t border-slate-100/70 dark:border-slate-700/60">
+                    <div className="flex flex-wrap items-center gap-3 text-sm">
+                        <span className="text-slate-400 dark:text-slate-300">Rows per page</span>
+                        <div className="relative input-icon">
+                            <select
+                                className="input-glass px-3 py-1.5 text-sm pr-8"
+                                value={rowsPerPage}
+                                onChange={(e) => {
+                                    setRowsPerPage(Number(e.target.value));
+                                    setPage(1);
+                                }}
+                            >
+                                <option value={25}>25</option>
+                                <option value={50}>50</option>
+                                <option value={100}>100</option>
+                            </select>
+                        </div>
+                        <button
+                            onClick={() => setPage(Math.max(1, currentPage - 1))}
+                            disabled={currentPage === 1}
+                            className="px-3 py-1.5 rounded-full glass-effect text-slate-600 dark:text-slate-200 disabled:opacity-40"
+                        >
+                            Prev
+                        </button>
+                        <span className="text-slate-400 dark:text-slate-300">Page {currentPage} of {totalPages}</span>
+                        <button
+                            onClick={() => setPage(Math.min(totalPages, currentPage + 1))}
+                            disabled={currentPage === totalPages}
+                            className="px-3 py-1.5 rounded-full glass-effect text-slate-600 dark:text-slate-200 disabled:opacity-40"
+                        >
+                            Next
+                        </button>
+                    </div>
                 </div>
             </div>
 
