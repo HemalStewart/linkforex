@@ -50,6 +50,17 @@ type Currency = {
     rate?: string;
 };
 
+type Bank = {
+    id: string | number;
+    name: string;
+    country?: string | null;
+    category?: string | null;
+    bank_code?: string | null;
+    swift_code?: string | null;
+    status?: string | null;
+    is_default?: string | number | null;
+};
+
 type Remitter = {
     id: string | number;
     name: string;

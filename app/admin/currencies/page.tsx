@@ -151,22 +151,6 @@ export default function CurrenciesPage() {
                 </div>
             </div>
 
-            {/* Alert Banner */}
-            <div className="glass-effect-strong rounded-[2rem] p-6 border border-teal-100 dark:border-teal-800/30 shadow-lg relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-teal-400/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none group-hover:bg-teal-400/20 transition-colors duration-500"></div>
-                <div className="flex items-start space-x-5 relative z-10">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-400 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-teal-500/20">
-                        <Info className="w-6 h-6" />
-                    </div>
-                    <div className="flex-1">
-                        <h3 className="font-bold text-slate-900 dark:text-white mb-1 text-lg">Auto-Update Enabled</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 font-medium leading-relaxed">
-                            Exchange rates are automatically updated every 30 minutes from our trusted financial data providers. Last sync: 11:30 AM
-                        </p>
-                    </div>
-                </div>
-            </div>
-
             {/* Rates Table */}
             <div className="card-glass overflow-hidden shadow-xl">
                 <div className="px-8 py-6 border-b border-gray-100 dark:border-slate-700/50 flex items-center space-x-3">

@@ -222,20 +222,6 @@ export default function ExchangeRatesPage() {
                 </div>
             </div>
 
-            <div className="bg-teal-50/70 dark:bg-teal-900/10 p-6 rounded-[2rem] border border-teal-100/80 dark:border-teal-800/30 flex items-start space-x-4">
-                <div className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-teal-500 flex-shrink-0">
-                    <Info className="w-6 h-6" />
-                </div>
-                <div>
-                    <h3 className="font-bold text-teal-900 dark:text-teal-100 mb-1 text-lg">Auto-Update Enabled</h3>
-                    <p className="text-teal-700 dark:text-teal-300 font-medium leading-relaxed">
-                        Exchange rates are automatically updated every 30 minutes from our trusted financial data providers.
-                        <br />
-                        Last sync was successful at 11:30 AM.
-                    </p>
-                </div>
-            </div>
-
             <Modal
                 isOpen={addModalOpen}
                 onClose={() => setAddModalOpen(false)}
