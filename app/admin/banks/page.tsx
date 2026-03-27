@@ -333,6 +333,7 @@ export default function BanksPage() {
                 message={confirmModal.message}
                 type={confirmModal.type}
                 isAlert={confirmModal.isAlert}
+                onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
                 onConfirm={() => setConfirmModal({ ...confirmModal, isOpen: false })}
             />
         </div>
