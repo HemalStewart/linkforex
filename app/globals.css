@@ -568,6 +568,12 @@ html {
   padding-left: 1rem;
 }
 
+/* Support icon + input even when wrapper class is missing */
+.input-icon-left + :is(input, select, textarea).input-glass,
+.input-icon-left ~ :is(input, select, textarea).input-glass {
+  padding-left: 2.75rem;
+}
+
 .input-icon select.input-glass:not([class*='pr-']) {
   padding-right: 2.75rem;
 }
@@ -647,6 +653,7 @@ html {
   max-height: clamp(320px, 62vh, 760px);
   overscroll-behavior: contain;
   max-width: 100%;
+  width: 100%;
 }
 
 .table-scroll > table {
