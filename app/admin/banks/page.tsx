@@ -174,7 +174,6 @@ export default function BanksPage() {
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Bank</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Country</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Category</th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Code</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
                                     <th className="px-8 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Default</th>
                                     <th className="px-8 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
@@ -208,11 +207,6 @@ export default function BanksPage() {
                                                     ))}
                                                 </select>
                                             ) : toLabel(bank.category)}
-                                        </td>
-                                        <td className="px-8 py-5 text-sm font-mono text-slate-500">
-                                            {editingId === bank.id ? (
-                                                <input className="input-glass py-1 px-3 w-32" value={editForm.bank_code} onChange={e => setEditForm({ ...editForm, bank_code: e.target.value })} />
-                                            ) : (bank.bank_code || '—')}
                                         </td>
                                         <td className="px-8 py-5 text-sm text-slate-500">
                                             {editingId === bank.id ? (
@@ -288,16 +282,6 @@ export default function BanksPage() {
                                     <option key={option.value} value={option.value}>{option.label}</option>
                                 ))}
                             </select>
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Bank code</label>
-                            <input className="input-glass w-full" value={newBank.bank_code} onChange={(e) => setNewBank({ ...newBank, bank_code: e.target.value })} placeholder="Branch code" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Swift code</label>
-                            <input className="input-glass w-full" value={newBank.swift_code} onChange={(e) => setNewBank({ ...newBank, swift_code: e.target.value })} placeholder="SWIFT" />
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">

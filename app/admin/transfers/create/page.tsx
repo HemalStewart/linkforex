@@ -975,6 +975,22 @@ export default function CreateTransferPage() {
         if (!formData.receiverAddress.trim()) return 'Receiver Address is required.';
         if (!formData.receiverCountry.trim()) return 'Receiver Country is required.';
         if (!formData.receiverDateOfBirth.trim()) return 'Receiver Date Of Birth is required.';
+        if (!formData.receiverPaymentMode.trim()) return 'Receiver Payment Mode is required.';
+        const receiverMode = formData.receiverPaymentMode.toLowerCase();
+        const receiverIsCash = receiverMode.includes('cash') || receiverMode.includes('pickup');
+        if (receiverIsCash) {
+            if (!formData.receiverBank.trim()) return 'Pickup Bank is required for cash pickup.';
+            if (!formData.receiverIdType.trim()) return 'Receiver ID Type is required for cash pickup.';
+            if (!formData.receiverIdNumber.trim()) return 'Receiver ID Number is required for cash pickup.';
+        } else {
+            if (!formData.receiverBank.trim()) return 'Receiver Bank is required.';
+            if (!formData.receiverAccountNo.trim() && !formData.receiverIban.trim()) {
+                return 'Receiver Account Number or IBAN is required.';
+            }
+            if (!formData.receiverBranchName.trim() && !formData.receiverBranchCode.trim()) {
+                return 'Receiver Branch Name or Branch Code is required.';
+            }
+        }
         if (!formData.entryType.trim()) return 'Entry Type is required.';
         if (!formData.paymentMode.trim()) return 'Payment Mode is required.';
         return null;
