@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
-import { ArrowLeft, User, Building, CreditCard, Save, Loader2, ChevronRight, Search } from 'lucide-react';
+import { ArrowLeft, User, Building, CreditCard, Save, Loader2, ChevronRight, Search, MapPin, Phone, ShieldCheck, Landmark } from 'lucide-react';
 import ConfirmModal from '../../components/ConfirmModal';
 
 type RemitterOption = {
@@ -20,13 +20,58 @@ export default function CreateReceiverPage() {
     const preselectedCustomerId = searchParams.get('customer_id') || '';
     const [loading, setLoading] = useState(false);
     const [remitters, setRemitters] = useState<RemitterOption[]>([]);
+    const [banks, setBanks] = useState<any[]>([]);
+    const [banksLoading, setBanksLoading] = useState(true);
+
+    const paymentModes = [
+        'Direct deposit to Allied Bank',
+        'Direct deposit to another bank',
+        'Cash over the counter or cash pickup'
+    ];
+    const bankCategories = {
+        allied: 'allied',
+        other: 'bank',
+        cash: 'cash_pickup'
+    };
+    const idTypes = ['Passport', 'CNIC', 'Driving license', 'Other'];
+    const countries = ['Pakistan', 'United Kingdom', 'Sri Lanka', 'UAE'];
+    const relations = ['Family', 'Friend', 'Business Partner', 'Self', 'Other'];
 
     const [formData, setFormData] = useState({
         customer_id: preselectedCustomerId,
         name: '',
-        bank_name: '',
+        country: countries[0],
+        address: '',
+        city: '',
+        date_of_birth: '',
+        place_of_birth: '',
+        payment_mode: paymentModes[0],
+        bank_name: 'Allied Bank',
+        branch_name: '',
         account_number: '',
+        iban: '',
+        branch_code: '',
+        receiver_id_type: '',
+        receiver_id_number: '',
+        relation: relations[0],
+        mobile_number: '',
+        status: 'active',
     });
+
+    const isAllied = formData.payment_mode === 'Direct deposit to Allied Bank';
+    const isCashPickup = formData.payment_mode.toLowerCase().includes('cash') || formData.payment_mode.toLowerCase().includes('pickup');
+    const paymentCategory = isAllied
+        ? bankCategories.allied
+        : isCashPickup
+            ? bankCategories.cash
+            : bankCategories.other;
+    const availableBanks = banks.filter((bank) => {
+        const status = String(bank.status || 'active').toLowerCase();
+        if (status !== 'active') return false;
+        if (bank.country && bank.country !== formData.country) return false;
+        return String(bank.category || '').toLowerCase() === paymentCategory;
+    });
+    const alliedBank = availableBanks.find((bank) => Number(bank.is_default) === 1) || availableBanks[0];
 
     const [confirmModal, setConfirmModal] = useState({
         isOpen: false,
@@ -54,8 +99,62 @@ export default function CreateReceiverPage() {
         fetchRemitters();
     }, []);
 
+    useEffect(() => {
+        const fetchBanks = async () => {
+            try {
+                const res = await fetch(ENDPOINTS.BANKS.LIST);
+                if (res.ok) {
+                    const data = await res.json();
+                    setBanks(data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch banks:', error);
+            } finally {
+                setBanksLoading(false);
+            }
+        };
+        fetchBanks();
+    }, []);
+
+    useEffect(() => {
+        if (!banks.length) return;
+
+        if (isAllied) {
+            const nextName = alliedBank?.name || 'Allied Bank';
+            setFormData((prev) => ({
+                ...prev,
+                bank_name: nextName,
+            }));
+            return;
+        }
+
+        if (!availableBanks.find((bank) => bank.name === formData.bank_name)) {
+            setFormData((prev) => ({ ...prev, bank_name: '' }));
+        }
+    }, [banks, formData.country, formData.payment_mode]);
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        const errors: string[] = [];
+        if (!formData.customer_id) errors.push('Linked remitter is required.');
+        if (!formData.name.trim()) errors.push('Receiver name is required.');
+        if (!formData.bank_name.trim()) errors.push('Bank name is required.');
+        if (!isCashPickup && !formData.account_number.trim()) errors.push('Account number is required.');
+        if (isCashPickup) {
+            if (!formData.receiver_id_type.trim()) errors.push('Receiver ID type is required for cash pickup.');
+            if (!formData.receiver_id_number.trim()) errors.push('Receiver ID number is required for cash pickup.');
+        }
+        if (errors.length) {
+            setConfirmModal({
+                isOpen: true,
+                title: 'Missing Information',
+                message: errors.join('\n'),
+                type: 'warning',
+                isAlert: true,
+                shouldRedirect: false,
+                redirectUrl: '/admin/receivers'
+            });
+            return;
+        }
         setLoading(true);
 
         try {
@@ -148,10 +247,10 @@ export default function CreateReceiverPage() {
                     {/* Search/Select Remitter */}
                     <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Linked Remitter <span className="text-red-500">*</span></label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left">
-                                <Search className="w-5 h-5" />
-                            </span>
+                    <div className="relative input-icon">
+                        <span className="input-icon-left">
+                            <Search className="w-5 h-5" />
+                        </span>
                             <select
                                 required
                                 value={formData.customer_id}
@@ -170,7 +269,7 @@ export default function CreateReceiverPage() {
             <p className="text-xs text-slate-400 mt-2 ml-1">Select the person sending money to this receiver.</p>
                     </div>
 
-          <div className="grid grid-cols-1 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
               <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Full Legal Name <span className="text-red-500">*</span></label>
                         <div className="relative input-icon">
@@ -189,35 +288,263 @@ export default function CreateReceiverPage() {
                         </div>
 
                         <div>
-              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Bank Name <span className="text-red-500">*</span></label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left">
-                                <Building className="w-5 h-5" />
-                            </span>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Mobile Number</label>
+                            <div className="relative input-icon">
+                                <span className="input-icon-left">
+                                    <Phone className="w-5 h-5" />
+                                </span>
                                 <input
                                     type="text"
-                                    required
-                                    value={formData.bank_name}
-                                    onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })}
+                                    value={formData.mobile_number}
+                                    onChange={(e) => setFormData({ ...formData, mobile_number: e.target.value })}
                                     className="input-glass w-full"
-                                    placeholder="Bank name"
+                                    placeholder="Receiver mobile number"
                                 />
                             </div>
                         </div>
 
                         <div>
-              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Account Number / IBAN <span className="text-red-500">*</span></label>
-              <div className="relative input-icon">
-                <span className="input-icon-left">
-                    <CreditCard className="w-5 h-5" />
-                </span>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Country</label>
+                            <select
+                                className="input-glass w-full"
+                                value={formData.country}
+                                onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                            >
+                                {countries.map((country) => (
+                                    <option key={country} value={country}>{country}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">City</label>
+                            <div className="relative input-icon">
+                                <span className="input-icon-left">
+                                    <MapPin className="w-5 h-5" />
+                                </span>
                                 <input
                                     type="text"
-                                    required
+                                    value={formData.city}
+                                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                                    className="input-glass w-full"
+                                    placeholder="City"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Address</label>
+                            <div className="relative input-icon">
+                                <span className="input-icon-left">
+                                    <MapPin className="w-5 h-5" />
+                                </span>
+                                <input
+                                    type="text"
+                                    value={formData.address}
+                                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                    className="input-glass w-full"
+                                    placeholder="Street address"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Date Of Birth</label>
+                            <input
+                                type="date"
+                                value={formData.date_of_birth}
+                                onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                                className="input-glass w-full"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Place Of Birth</label>
+                            <input
+                                type="text"
+                                value={formData.place_of_birth}
+                                onChange={(e) => setFormData({ ...formData, place_of_birth: e.target.value })}
+                                className="input-glass w-full"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Relationship</label>
+                            <select
+                                className="input-glass w-full"
+                                value={formData.relation}
+                                onChange={(e) => setFormData({ ...formData, relation: e.target.value })}
+                            >
+                                {relations.map((relation) => (
+                                    <option key={relation} value={relation}>{relation}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Status</label>
+                            <select
+                                className="input-glass w-full"
+                                value={formData.status}
+                                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                            >
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Payment Mode</label>
+                            <select
+                                className="input-glass w-full"
+                                value={formData.payment_mode}
+                                onChange={(e) => {
+                                    const nextMode = e.target.value;
+                                    const nextBank = nextMode === 'Direct deposit to Allied Bank'
+                                        ? 'Allied Bank'
+                                        : (formData.bank_name === 'Allied Bank' ? '' : formData.bank_name);
+                                    setFormData({
+                                        ...formData,
+                                        payment_mode: nextMode,
+                                        bank_name: nextBank,
+                                    });
+                                }}
+                            >
+                                {paymentModes.map((mode) => (
+                                    <option key={mode} value={mode}>{mode}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Bank Name <span className="text-red-500">*</span></label>
+                            <div className="relative input-icon">
+                                <span className="input-icon-left">
+                                    <Building className="w-5 h-5" />
+                                </span>
+                                {isAllied ? (
+                                    <input
+                                        type="text"
+                                        value="Allied Bank"
+                                        readOnly
+                                        className="input-glass w-full bg-slate-50 dark:bg-slate-800/40"
+                                    />
+                                ) : (
+                                    <select
+                                        required
+                                        className="input-glass w-full"
+                                        value={formData.bank_name}
+                                        onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })}
+                                    >
+                                        <option value="">{isCashPickup ? 'Select pickup bank' : 'Select bank'}</option>
+                                        {banksLoading ? (
+                                            <option value="">Loading banks...</option>
+                                        ) : (
+                                            availableBanks.map((bank) => (
+                                                <option key={bank.id || bank.name} value={bank.name}>{bank.name}</option>
+                                            ))
+                                        )}
+                                    </select>
+                                )}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Account Number <span className="text-red-500">*</span></label>
+                            <div className="relative input-icon">
+                                <span className="input-icon-left">
+                                    <CreditCard className="w-5 h-5" />
+                                </span>
+                                <input
+                                    type="text"
+                                    required={!isCashPickup}
                                     value={formData.account_number}
                                     onChange={(e) => setFormData({ ...formData, account_number: e.target.value })}
                                     className="input-glass w-full"
-                                    placeholder="Account number or IBAN"
+                                    placeholder="Account number"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">IBAN</label>
+                            <div className="relative input-icon">
+                                <span className="input-icon-left">
+                                    <CreditCard className="w-5 h-5" />
+                                </span>
+                                <input
+                                    type="text"
+                                    value={formData.iban}
+                                    onChange={(e) => setFormData({ ...formData, iban: e.target.value })}
+                                    className="input-glass w-full"
+                                    placeholder="IBAN"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Branch Name</label>
+                            <div className="relative input-icon">
+                                <span className="input-icon-left">
+                                    <Landmark className="w-5 h-5" />
+                                </span>
+                                <input
+                                    type="text"
+                                    value={formData.branch_name}
+                                    onChange={(e) => setFormData({ ...formData, branch_name: e.target.value })}
+                                    className="input-glass w-full"
+                                    placeholder="Branch name"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Branch Code</label>
+                            <div className="relative input-icon">
+                                <span className="input-icon-left">
+                                    <Landmark className="w-5 h-5" />
+                                </span>
+                                <input
+                                    type="text"
+                                    value={formData.branch_code}
+                                    onChange={(e) => setFormData({ ...formData, branch_code: e.target.value })}
+                                    className="input-glass w-full"
+                                    placeholder="Branch code"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Receiver ID Type</label>
+                            <div className="relative input-icon">
+                                <span className="input-icon-left">
+                                    <ShieldCheck className="w-5 h-5" />
+                                </span>
+                                <select
+                                    className="input-glass w-full"
+                                    value={formData.receiver_id_type}
+                                    onChange={(e) => setFormData({ ...formData, receiver_id_type: e.target.value })}
+                                >
+                                    <option value="">Select ID type</option>
+                                    {idTypes.map((idType) => (
+                                        <option key={idType} value={idType}>{idType}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Receiver ID Number</label>
+                            <div className="relative input-icon">
+                                <span className="input-icon-left">
+                                    <ShieldCheck className="w-5 h-5" />
+                                </span>
+                                <input
+                                    type="text"
+                                    value={formData.receiver_id_number}
+                                    onChange={(e) => setFormData({ ...formData, receiver_id_number: e.target.value })}
+                                    className="input-glass w-full"
+                                    placeholder="ID number"
                                 />
                             </div>
                         </div>

@@ -83,7 +83,17 @@ type Beneficiary = {
     name: string;
     bank_name?: string;
     branch_name?: string;
+    branch_code?: string;
     account_number?: string;
+    iban?: string;
+    payment_mode?: string;
+    receiver_id_type?: string;
+    receiver_id_number?: string;
+    country?: string;
+    city?: string;
+    address?: string;
+    date_of_birth?: string;
+    place_of_birth?: string;
     relation?: string;
     mobile_number?: string;
     status?: string;
@@ -141,10 +151,15 @@ type TransferForm = {
     receiverDateOfBirth: string;
     receiverPlaceOfBirth: string;
     cnicNo: string;
+    receiverPaymentMode: string;
     receiverBank: string;
+    receiverBranchName: string;
     receiverBranchCode: string;
     receiverAccountNo: string;
     receiverAccountOtherDetails: string;
+    receiverIban: string;
+    receiverIdType: string;
+    receiverIdNumber: string;
     remarks: string;
     otherReference: string;
 };
@@ -285,10 +300,15 @@ export default function CreateTransferPage() {
         receiverDateOfBirth: toDateLocal(now),
         receiverPlaceOfBirth: '',
         cnicNo: '1111111111111',
+        receiverPaymentMode: '',
         receiverBank: 'NONE - (N)',
+        receiverBranchName: '',
         receiverBranchCode: '',
         receiverAccountNo: '',
         receiverAccountOtherDetails: '',
+        receiverIban: '',
+        receiverIdType: '',
+        receiverIdNumber: '',
         remarks: '',
         otherReference: ''
     });
@@ -794,9 +814,19 @@ export default function CreateTransferPage() {
             receiverRecordId: String(receiver.id),
             receiverName: receiver.name || '',
             receiverContacts: receiver.mobile_number || '',
+            receiverAddress: receiver.address || prev.receiverAddress,
+            receiverCity: receiver.city || prev.receiverCity,
+            receiverCountry: receiver.country || prev.receiverCountry,
+            receiverDateOfBirth: receiver.date_of_birth || prev.receiverDateOfBirth,
+            receiverPlaceOfBirth: receiver.place_of_birth || prev.receiverPlaceOfBirth,
+            receiverPaymentMode: receiver.payment_mode || prev.receiverPaymentMode,
             receiverBank: receiver.bank_name || prev.receiverBank,
-            receiverBranchCode: receiver.branch_name || prev.receiverBranchCode,
+            receiverBranchName: receiver.branch_name || prev.receiverBranchName,
+            receiverBranchCode: receiver.branch_code || prev.receiverBranchCode,
             receiverAccountNo: receiver.account_number || '',
+            receiverIban: receiver.iban || prev.receiverIban,
+            receiverIdType: receiver.receiver_id_type || prev.receiverIdType,
+            receiverIdNumber: receiver.receiver_id_number || prev.receiverIdNumber,
             relationship: receiver.relation || prev.relationship,
             receiverVerified: receiver.status === 'active' ? 'yes' : prev.receiverVerified
         }));
@@ -1044,10 +1074,15 @@ export default function CreateTransferPage() {
                 receiver_dob: formData.receiverDateOfBirth,
                 receiver_place_of_birth: formData.receiverPlaceOfBirth,
                 cnic_no: formData.cnicNo,
+                receiver_payment_mode: formData.receiverPaymentMode,
                 receiver_bank: formData.receiverBank,
+                receiver_branch_name: formData.receiverBranchName,
                 receiver_branch_code: formData.receiverBranchCode,
                 receiver_account_no: formData.receiverAccountNo,
                 receiver_account_other_details: formData.receiverAccountOtherDetails,
+                receiver_iban: formData.receiverIban,
+                receiver_id_type: formData.receiverIdType,
+                receiver_id_number: formData.receiverIdNumber,
                 remarks: formData.remarks,
                 other_reference: formData.otherReference
             }
@@ -1733,6 +1768,16 @@ export default function CreateTransferPage() {
                     </div>
 
                     <div>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Receiver Payment Mode</label>
+                        <input
+                            className="input-glass w-full"
+                            value={formData.receiverPaymentMode}
+                            onChange={(event) => setFormData((prev) => ({ ...prev, receiverPaymentMode: event.target.value }))}
+                            placeholder="Direct deposit to Allied Bank / Cash pickup"
+                        />
+                    </div>
+
+                    <div>
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Bank</label>
                         <input
                             className="input-glass w-full"
@@ -1742,7 +1787,17 @@ export default function CreateTransferPage() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Branch (Branch Code)</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Branch Name</label>
+                        <input
+                            className="input-glass w-full"
+                            value={formData.receiverBranchName}
+                            onChange={(event) => setFormData((prev) => ({ ...prev, receiverBranchName: event.target.value }))}
+                            placeholder="Branch name"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Branch Code</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Building2 className="w-5 h-5" /></span>
                             <select
@@ -1770,6 +1825,34 @@ export default function CreateTransferPage() {
                             className="input-glass w-full"
                             value={formData.receiverAccountNo}
                             onChange={(event) => setFormData((prev) => ({ ...prev, receiverAccountNo: event.target.value }))}
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">IBAN</label>
+                        <input
+                            className="input-glass w-full"
+                            value={formData.receiverIban}
+                            onChange={(event) => setFormData((prev) => ({ ...prev, receiverIban: event.target.value }))}
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Receiver ID Type</label>
+                        <input
+                            className="input-glass w-full"
+                            value={formData.receiverIdType}
+                            onChange={(event) => setFormData((prev) => ({ ...prev, receiverIdType: event.target.value }))}
+                            placeholder="Passport / CNIC"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Receiver ID Number</label>
+                        <input
+                            className="input-glass w-full"
+                            value={formData.receiverIdNumber}
+                            onChange={(event) => setFormData((prev) => ({ ...prev, receiverIdNumber: event.target.value }))}
                         />
                     </div>
 

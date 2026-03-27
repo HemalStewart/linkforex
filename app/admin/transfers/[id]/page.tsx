@@ -50,7 +50,17 @@ type Beneficiary = {
     mobile_number?: string | null;
     bank_name?: string | null;
     branch_name?: string | null;
+    branch_code?: string | null;
     account_number?: string | null;
+    iban?: string | null;
+    payment_mode?: string | null;
+    receiver_id_type?: string | null;
+    receiver_id_number?: string | null;
+    country?: string | null;
+    city?: string | null;
+    address?: string | null;
+    date_of_birth?: string | null;
+    place_of_birth?: string | null;
 };
 
 type AuditLog = {
@@ -470,15 +480,20 @@ export default function TransferDetailsPage() {
         { field: 'Receiver Verified', value: yesNo(meta.receiver_verified ?? beneficiary?.status) },
         { field: 'Receiver Name', value: fieldValue(meta.receiver_name, beneficiary?.name) },
         { field: 'Receiver Contacts', value: fieldValue(meta.receiver_contacts, beneficiary?.mobile_number) },
-        { field: 'Receiver Address', value: fieldValue(meta.receiver_address) },
-        { field: 'Receiver City', value: fieldValue(meta.receiver_city) },
-        { field: 'Receiver Country', value: fieldValue(meta.receiver_country) },
-        { field: 'Receiver Date Of Birth', value: fieldValue(meta.receiver_dob) },
-        { field: 'Receiver Place of Birth', value: fieldValue(meta.receiver_place_of_birth) },
+        { field: 'Receiver Address', value: fieldValue(meta.receiver_address, beneficiary?.address) },
+        { field: 'Receiver City', value: fieldValue(meta.receiver_city, beneficiary?.city) },
+        { field: 'Receiver Country', value: fieldValue(meta.receiver_country, beneficiary?.country) },
+        { field: 'Receiver Date Of Birth', value: fieldValue(meta.receiver_dob, beneficiary?.date_of_birth) },
+        { field: 'Receiver Place of Birth', value: fieldValue(meta.receiver_place_of_birth, beneficiary?.place_of_birth) },
         { field: 'CNIC No', value: fieldValue(meta.cnic_no) },
+        { field: 'Receiver Payment Mode', value: fieldValue(meta.receiver_payment_mode, beneficiary?.payment_mode) },
         { field: 'Bank', value: fieldValue(meta.receiver_bank, beneficiary?.bank_name) },
-        { field: 'Branch (Branch Code)', value: fieldValue(meta.receiver_branch_code, beneficiary?.branch_name) },
+        { field: 'Branch Name', value: fieldValue(meta.receiver_branch_name, beneficiary?.branch_name) },
+        { field: 'Branch Code', value: fieldValue(meta.receiver_branch_code, beneficiary?.branch_code) },
         { field: 'Account No', value: fieldValue(meta.receiver_account_no, beneficiary?.account_number) },
+        { field: 'IBAN', value: fieldValue(meta.receiver_iban, beneficiary?.iban) },
+        { field: 'Receiver ID Type', value: fieldValue(meta.receiver_id_type, beneficiary?.receiver_id_type) },
+        { field: 'Receiver ID Number', value: fieldValue(meta.receiver_id_number, beneficiary?.receiver_id_number) },
         { field: 'Account Other Details', value: fieldValue(meta.receiver_account_other_details) },
         { field: 'Beneficiary Branch Name', value: fieldValue(meta.beneficiary_branch_name) },
         { field: 'Beneficiary Branch Address', value: fieldValue(meta.beneficiary_branch_address) },

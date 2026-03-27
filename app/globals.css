@@ -78,6 +78,10 @@
   --chart-grid: #1f2f2f;
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
@@ -87,6 +91,7 @@ body {
   font-feature-settings: "kern" 1;
   text-rendering: optimizeLegibility;
   letter-spacing: -0.011em;
+  overflow-x: hidden;
 }
 
 input,
@@ -559,6 +564,14 @@ html {
   padding-left: 2.75rem;
 }
 
+.input-icon.no-icon :is(input, select, textarea).input-glass {
+  padding-left: 1rem;
+}
+
+.input-icon select.input-glass:not([class*='pr-']) {
+  padding-right: 2.75rem;
+}
+
 .input-icon-left {
   position: absolute;
   left: 0.9rem;
@@ -566,6 +579,7 @@ html {
   transform: translateY(-50%);
   color: rgba(100, 116, 139, 0.9);
   pointer-events: none;
+  z-index: 2;
 }
 
 .dark .input-icon-left {
@@ -632,6 +646,7 @@ html {
   overflow: auto;
   max-height: clamp(320px, 62vh, 760px);
   overscroll-behavior: contain;
+  max-width: 100%;
 }
 
 .table-scroll > table {

@@ -568,6 +568,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 { name: 'Role Permissions', href: '/admin/permission-groups', badge: counts.permissionGroups > 0 ? counts.permissionGroups.toString() : undefined, icon: <ShieldCheck className="w-4 h-4" />, sections: ['SYSGROUPS_PERMISSION', 'PERMISSION_GROUPS'] },
                 { name: 'Branches', href: '/admin/branches', badge: counts.branches > 0 ? counts.branches.toString() : undefined, icon: <Building2 className="w-4 h-4" />, sections: ['BRANCH', 'BRANCHES'] },
                 { name: 'Branch Currency Rates', href: '/admin/branch-currency-rates', badge: counts.branchCurrencyRates > 0 ? counts.branchCurrencyRates.toString() : undefined, icon: <Coins className="w-4 h-4" />, sections: ['BRANCH_CURRENCY_RATE', 'BRANCH_CURRENCY_RATES'] },
+                { name: 'Banks', href: '/admin/banks', icon: <Building2 className="w-4 h-4" />, sections: ['BANKS'] },
                 { name: 'Countries', href: '/admin/rates', icon: <Globe className="w-4 h-4" /> },
             ]
         },
