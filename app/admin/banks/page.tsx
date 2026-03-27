@@ -1,15 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
-import { Building2, PlusCircle, Edit2, Trash2, Save, X, BadgeCheck } from 'lucide-react';
+import { Building2, PlusCircle, Edit2, Trash2, Save, X, BadgeCheck, RefreshCw } from 'lucide-react';
 
 const CATEGORY_OPTIONS = [
-    { value: 'allied', label: 'Allied Bank' },
-    { value: 'bank', label: 'Other Bank' },
-    { value: 'cash_pickup', label: 'Cash Pickup' },
+    { value: 'bank', label: 'Bank' },
+    { value: 'cash', label: 'Cash Pickup' },
+    { value: 'allied', label: 'Allied Bank (legacy)' },
+    { value: 'cash_pickup', label: 'Cash Pickup (legacy)' },
 ];
 
 const STATUS_OPTIONS = ['active', 'inactive'];
@@ -50,6 +51,10 @@ export default function BanksPage() {
         type: 'info' as 'info' | 'danger' | 'warning',
         isAlert: true,
     });
+    const [searchQuery, setSearchQuery] = useState('');
+    const [countryFilter, setCountryFilter] = useState('all');
+    const [categoryFilter, setCategoryFilter] = useState('all');
+    const [statusFilter, setStatusFilter] = useState('all');
 
     React.useEffect(() => {
         fetchBanks();
@@ -68,6 +73,34 @@ export default function BanksPage() {
             setLoading(false);
         }
     };
+
+    const countryOptions = useMemo(() => {
+        const unique = new Set<string>();
+        banks.forEach((bank) => {
+            if (bank.country) unique.add(bank.country);
+        });
+        return Array.from(unique).sort();
+    }, [banks]);
+
+    const filteredBanks = useMemo(() => {
+        const query = searchQuery.trim().toLowerCase();
+        return banks.filter((bank) => {
+            const matchesQuery = !query || [
+                bank.name,
+                bank.bank_code,
+                bank.country,
+                bank.category
+            ]
+                .filter(Boolean)
+                .some((value: string) => String(value).toLowerCase().includes(query));
+
+            const matchesCountry = countryFilter === 'all' || (bank.country || '') === countryFilter;
+            const matchesCategory = categoryFilter === 'all' || (bank.category || '') === categoryFilter;
+            const matchesStatus = statusFilter === 'all' || (bank.status || '') === statusFilter;
+
+            return matchesQuery && matchesCountry && matchesCategory && matchesStatus;
+        });
+    }, [banks, searchQuery, countryFilter, categoryFilter, statusFilter]);
 
     const handleEdit = (bank: any) => {
         setEditingId(bank.id);
@@ -150,19 +183,86 @@ export default function BanksPage() {
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Banks</h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Manage beneficiary banks and pickup networks</p>
                 </div>
-                <button
-                    onClick={() => setAddModalOpen(true)}
-                    className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0"
-                >
-                    <PlusCircle className="w-5 h-5" />
-                    <span>Add Bank</span>
-                </button>
+                <div className="flex items-center space-x-3">
+                    <button
+                        onClick={fetchBanks}
+                        className="px-5 py-3 rounded-2xl border-0 glass-effect text-slate-700 dark:text-slate-300 font-bold hover:shadow-lg transition-all group"
+                    >
+                        <span className="flex items-center space-x-2">
+                            <RefreshCw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
+                            <span>Refresh</span>
+                        </span>
+                    </button>
+                    <button
+                        onClick={() => setAddModalOpen(true)}
+                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0"
+                    >
+                        <PlusCircle className="w-5 h-5" />
+                        <span>Add Bank</span>
+                    </button>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2">Search</label>
+                    <input
+                        className="input-glass w-full"
+                        placeholder="Search bank, country, or code"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2">Country</label>
+                    <select
+                        className="input-glass w-full"
+                        value={countryFilter}
+                        onChange={(e) => setCountryFilter(e.target.value)}
+                    >
+                        <option value="all">All</option>
+                        {countryOptions.map((country) => (
+                            <option key={country} value={country}>{country}</option>
+                        ))}
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2">Category</label>
+                    <select
+                        className="input-glass w-full"
+                        value={categoryFilter}
+                        onChange={(e) => setCategoryFilter(e.target.value)}
+                    >
+                        <option value="all">All</option>
+                        {CATEGORY_OPTIONS.map(option => (
+                            <option key={option.value} value={option.value}>{option.label}</option>
+                        ))}
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2">Status</label>
+                    <select
+                        className="input-glass w-full"
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                    >
+                        <option value="all">All</option>
+                        {STATUS_OPTIONS.map(option => (
+                            <option key={option} value={option}>{option}</option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
             <div className="card-glass overflow-hidden shadow-xl">
                 <div className="px-8 py-6 border-b border-gray-100 dark:border-slate-700/50 flex items-center space-x-3">
                     <Building2 className="w-6 h-6 text-slate-400" />
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">Bank Directory</h2>
+                    <div>
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Bank Directory</h2>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                            Showing {filteredBanks.length} of {banks.length}
+                        </p>
+                    </div>
                 </div>
                 <div className="table-scroll">
                     {loading ? (
@@ -180,7 +280,7 @@ export default function BanksPage() {
                                 </tr>
                             </thead>
                             <tbody className="table-body">
-                                {banks.map((bank) => (
+                                {filteredBanks.map((bank) => (
                                     <tr key={bank.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
                                         <td className="px-8 py-5 font-bold text-slate-900 dark:text-white">
                                             {editingId === bank.id ? (
