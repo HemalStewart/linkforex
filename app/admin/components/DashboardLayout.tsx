@@ -35,7 +35,8 @@ import {
     FileText,
     AlertTriangle,
     Sun,
-    User
+    User,
+    MessageCircle
 } from 'lucide-react';
 
 interface DashboardLayoutProps {
@@ -580,6 +581,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             icon: <Cpu className="w-5 h-5" />,
             children: [
                 { name: 'Settings', href: '/admin/settings', icon: <Settings className="w-4 h-4" /> },
+                { name: 'Support Inbox', href: '/admin/support', icon: <MessageCircle className="w-4 h-4" /> },
                 { name: 'Logs', href: '/admin/logs', icon: <FileText className="w-4 h-4" />, sections: ['SYSUSERS_LOG', 'SYSRECORD_LOGS', 'AUDIT_LOGS'] },
             ]
         },

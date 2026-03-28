@@ -133,4 +133,10 @@ export const ENDPOINTS = {
         START_LIVENESS: `${API_BASE_URL}/auth/liveness/start`,
         SYNC_LIVENESS: `${API_BASE_URL}/auth/liveness/sync`,
     },
+    SUPPORT: {
+        LIST: `${API_BASE_URL}/support/tickets`,
+        DETAIL: (id: string | number) => `${API_BASE_URL}/support/tickets/${id}`,
+        REPLY: (id: string | number) => `${API_BASE_URL}/support/tickets/${id}/reply`,
+        MINE: `${API_BASE_URL}/support/tickets/mine`,
+    },
 };

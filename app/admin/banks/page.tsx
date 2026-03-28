@@ -21,6 +21,8 @@ const toLabel = (value: string) =>
 export default function BanksPage() {
     const [banks, setBanks] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [deleteLoading, setDeleteLoading] = useState(false);
+    const [deleteBankId, setDeleteBankId] = useState<number | null>(null);
     const [editingId, setEditingId] = useState<string | number | null>(null);
     const [editForm, setEditForm] = useState({
         name: '',
@@ -151,13 +153,41 @@ export default function BanksPage() {
         }
     };
 
-    const handleDelete = async (id: number) => {
-        if (!confirm('Are you sure you want to delete this bank?')) return;
+    const handleDelete = async () => {
+        if (deleteBankId == null) return;
+        setDeleteLoading(true);
         try {
-            const res = await fetch(ENDPOINTS.BANKS.DETAIL(id), { method: 'DELETE' });
-            if (res.ok) fetchBanks();
+            const res = await fetch(ENDPOINTS.BANKS.DETAIL(deleteBankId), { method: 'DELETE' });
+            if (res.ok) {
+                await fetchBanks();
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Deleted',
+                    message: 'Bank deleted successfully',
+                    type: 'info',
+                    isAlert: true,
+                });
+            } else {
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: 'Failed to delete bank',
+                    type: 'danger',
+                    isAlert: true,
+                });
+            }
         } catch (error) {
             console.error(error);
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'An error occurred while deleting the bank',
+                type: 'danger',
+                isAlert: true,
+            });
+        } finally {
+            setDeleteLoading(false);
+            setDeleteBankId(null);
         }
     };
 
@@ -373,7 +403,7 @@ export default function BanksPage() {
                                                     <button onClick={() => handleEdit(bank)} className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all">
                                                         <Edit2 className="w-5 h-5" />
                                                     </button>
-                                                    <button onClick={() => handleDelete(bank.id)} className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all">
+                                                    <button onClick={() => setDeleteBankId(bank.id)} className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all">
                                                         <Trash2 className="w-5 h-5" />
                                                     </button>
                                                 </div>
@@ -476,6 +506,20 @@ export default function BanksPage() {
                 isAlert={confirmModal.isAlert}
                 onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
                 onConfirm={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+            />
+
+            <ConfirmModal
+                isOpen={deleteBankId !== null}
+                title="Delete bank"
+                message="This will permanently remove the bank from the directory. Continue?"
+                type="danger"
+                confirmText="Delete"
+                loading={deleteLoading}
+                onClose={() => {
+                    if (deleteLoading) return;
+                    setDeleteBankId(null);
+                }}
+                onConfirm={handleDelete}
             />
         </div>
     );
