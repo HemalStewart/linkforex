@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
-import { Search, UserPlus, Eye, Download } from 'lucide-react';
+import ConfirmModal from '../../components/ConfirmModal';
+import { Search, UserPlus, Eye, Download, Trash2 } from 'lucide-react';
 
 type MobileRemitter = {
     id: string | number;
@@ -25,6 +26,15 @@ export default function RemittersPage() {
     const [statusFilter, setStatusFilter] = useState('all');
     const [remitters, setRemitters] = useState<MobileRemitter[]>([]);
     const [loading, setLoading] = useState(true);
+    const [deleteLoading, setDeleteLoading] = useState(false);
+    const [remitterToDelete, setRemitterToDelete] = useState<MobileRemitter | null>(null);
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info' as 'info' | 'danger' | 'warning' | 'success',
+        isAlert: false,
+    });
 
     useEffect(() => {
         const fetchRemitters = async () => {
@@ -82,8 +92,81 @@ export default function RemittersPage() {
     // No client-side filtering needed as API handles it
     const filteredRemitters = remitters;
 
+    const promptDelete = (remitter: MobileRemitter) => {
+        setRemitterToDelete(remitter);
+        setConfirmModal({
+            isOpen: true,
+            title: 'Delete Mobile User',
+            message: 'Delete this mobile user and linked profile data? This action cannot be undone.',
+            type: 'danger',
+            isAlert: false,
+        });
+    };
+
+    const handleConfirm = async () => {
+        if (confirmModal.isAlert) {
+            setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+            return;
+        }
+
+        if (!remitterToDelete) return;
+
+        setDeleteLoading(true);
+        try {
+            const res = await fetch(ENDPOINTS.REMITTERS.DETAIL(remitterToDelete.id), { method: 'DELETE' });
+            const data = await res.json().catch(() => ({}));
+
+            if (res.ok) {
+                setRemitters((prev) => prev.filter((row) => row.id !== remitterToDelete.id));
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Deleted',
+                    message: 'Mobile user deleted successfully.',
+                    type: 'success',
+                    isAlert: true,
+                });
+            } else {
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Delete Failed',
+                    message: data?.messages?.error || data?.message || 'Failed to delete mobile user.',
+                    type: 'danger',
+                    isAlert: true,
+                });
+            }
+        } catch (error) {
+            console.error('Failed to delete mobile user:', error);
+            setConfirmModal({
+                isOpen: true,
+                title: 'Delete Failed',
+                message: 'An error occurred while deleting the mobile user.',
+                type: 'danger',
+                isAlert: true,
+            });
+        } finally {
+            setDeleteLoading(false);
+            setRemitterToDelete(null);
+        }
+    };
+
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-up">
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                onClose={() => {
+                    if (deleteLoading) return;
+                    setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+                }}
+                onConfirm={handleConfirm}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                type={confirmModal.type}
+                isAlert={confirmModal.isAlert}
+                confirmText={confirmModal.isAlert ? 'OK' : 'Delete'}
+                cancelText="Cancel"
+                loading={deleteLoading}
+            />
+
             {/* Page Header */}
             <div className="flex items-center justify-between">
                 <div>
@@ -206,6 +289,14 @@ export default function RemittersPage() {
                                             >
                                                 <Eye className="w-5 h-5" />
                                             </Link>
+                                            <button
+                                                type="button"
+                                                onClick={() => promptDelete(remitter)}
+                                                className="p-2 rounded-full hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all inline-flex"
+                                                title="Delete Mobile User"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}

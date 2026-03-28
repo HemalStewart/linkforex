@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../../components/ConfirmModal';
-import { ArrowLeft, User, Mail, Phone, Calendar, MapPin, Flag, Save, Loader2, CheckCircle, AlertTriangle, Building, ChevronDown } from 'lucide-react';
+import { ArrowLeft, User, Mail, Phone, Calendar, MapPin, Flag, Save, Loader2, CheckCircle, AlertTriangle, Building, ChevronDown, Trash2 } from 'lucide-react';
 
 export default function EditRemitterPage() {
     const router = useRouter();
@@ -14,6 +14,7 @@ export default function EditRemitterPage() {
 
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+    const [deleteLoading, setDeleteLoading] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -115,17 +116,64 @@ export default function EditRemitterPage() {
         }
     };
 
+    const handleModalConfirm = async () => {
+        if (confirmModal.isAlert) {
+            handleModalClose();
+            return;
+        }
+
+        setDeleteLoading(true);
+        try {
+            const res = await fetch(ENDPOINTS.REMITTERS.DETAIL(id), { method: 'DELETE' });
+            const data = await res.json().catch(() => ({}));
+
+            if (res.ok) {
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Deleted',
+                    message: 'Mobile user deleted successfully.',
+                    type: 'success',
+                    isAlert: true,
+                    shouldRedirect: true,
+                });
+            } else {
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Delete Failed',
+                    message: data?.messages?.error || data?.message || 'Failed to delete mobile user.',
+                    type: 'danger',
+                    isAlert: true,
+                    shouldRedirect: false,
+                });
+            }
+        } catch (error) {
+            console.error('Failed to delete remitter:', error);
+            setConfirmModal({
+                isOpen: true,
+                title: 'Delete Failed',
+                message: 'An error occurred while deleting the mobile user.',
+                type: 'danger',
+                isAlert: true,
+                shouldRedirect: false,
+            });
+        } finally {
+            setDeleteLoading(false);
+        }
+    };
+
     return (
     <div className="w-full max-w-none space-y-8 pb-20 animate-fade-in-up">
             <ConfirmModal
                 isOpen={confirmModal.isOpen}
                 onClose={handleModalClose}
-                onConfirm={handleModalClose}
+                onConfirm={handleModalConfirm}
                 title={confirmModal.title}
                 message={confirmModal.message}
                 type={confirmModal.type as any}
                 isAlert={confirmModal.isAlert}
-                confirmText="OK"
+                confirmText={confirmModal.isAlert ? 'OK' : 'Delete'}
+                cancelText="Cancel"
+                loading={deleteLoading}
             />
 
             {/* Header */}
@@ -144,6 +192,21 @@ export default function EditRemitterPage() {
                         </span>
                     </div>
                 </div>
+                <button
+                    type="button"
+                    onClick={() => setConfirmModal({
+                        isOpen: true,
+                        title: 'Delete Mobile User',
+                        message: 'Delete this mobile user and linked profile data? This action cannot be undone.',
+                        type: 'danger',
+                        isAlert: false,
+                        shouldRedirect: false,
+                    })}
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-red-200 bg-red-50 px-5 py-3 text-sm font-bold text-red-700 transition hover:bg-red-100 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/30"
+                >
+                    <Trash2 className="h-4 w-4" />
+                    Delete User
+                </button>
             </div>
 
       <form onSubmit={handleSubmit} className="card-glass p-8 relative overflow-hidden">
