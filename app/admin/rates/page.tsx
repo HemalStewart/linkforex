@@ -38,10 +38,10 @@ export default function ExchangeRatesPage() {
 
     const fetchCountries = async () => {
         try {
-            const res = await fetch(ENDPOINTS.COUNTRIES.LIST);
+            const res = await fetch(`${ENDPOINTS.COUNTRIES.LIST}?status=active&sort=name&dir=asc`);
             if (res.ok) {
                 const data = await res.json();
-                setCountries(data);
+                setCountries(Array.isArray(data) ? data : []);
             }
         } catch (error) {
             console.error('Failed to fetch countries', error);

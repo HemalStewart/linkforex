@@ -7,6 +7,18 @@ import { ENDPOINTS } from '@/app/lib/api';
 import { ArrowLeft, User, Building, CreditCard, Save, Loader2, ChevronRight, Search, MapPin, Phone, ShieldCheck, Landmark } from 'lucide-react';
 import ConfirmModal from '../../components/ConfirmModal';
 
+const normalizeCountryLabel = (value: string) => {
+    const normalized = value.trim().toLowerCase();
+    switch (normalized) {
+        case 'uk':
+            return 'united kingdom';
+        case 'united arab emirates':
+            return 'uae';
+        default:
+            return normalized;
+    }
+};
+
 export default function EditReceiverPage() {
     const router = useRouter();
     const params = useParams();
@@ -17,6 +29,7 @@ export default function EditReceiverPage() {
     const [remitters, setRemitters] = useState<any[]>([]);
     const [banks, setBanks] = useState<any[]>([]);
     const [banksLoading, setBanksLoading] = useState(true);
+    const [countries, setCountries] = useState<string[]>(['United Kingdom']);
 
     const paymentModes = [
         'Direct deposit to Allied Bank',
@@ -29,7 +42,6 @@ export default function EditReceiverPage() {
         cash: 'cash_pickup'
     };
     const idTypes = ['Passport', 'CNIC', 'Driving license', 'Other'];
-    const countries = ['Pakistan', 'United Kingdom', 'Sri Lanka', 'UAE'];
     const relations = ['Family', 'Friend', 'Business Partner', 'Self', 'Other'];
 
     const [formData, setFormData] = useState({
@@ -63,7 +75,7 @@ export default function EditReceiverPage() {
     const availableBanks = banks.filter((bank) => {
         const status = String(bank.status || 'active').toLowerCase();
         if (status !== 'active') return false;
-        if (bank.country && bank.country !== formData.country) return false;
+        if (bank.country && normalizeCountryLabel(String(bank.country)) !== normalizeCountryLabel(formData.country)) return false;
         return String(bank.category || '').toLowerCase() === paymentCategory;
     });
     const alliedBank = availableBanks.find((bank) => Number(bank.is_default) === 1) || availableBanks[0];
@@ -76,6 +88,49 @@ export default function EditReceiverPage() {
         isAlert: true,
         shouldRedirect: false
     });
+
+    useEffect(() => {
+        const fetchCountries = async () => {
+            try {
+                const res = await fetch(`${ENDPOINTS.COUNTRIES.LIST}?status=active&sort=name&dir=asc`);
+                if (!res.ok) return;
+                const data = await res.json();
+                if (!Array.isArray(data)) return;
+
+                const names = Array.from(
+                    new Set(
+                        data
+                            .map((country) => String(country?.name || '').trim())
+                            .filter(Boolean)
+                    )
+                );
+
+                if (names.length === 0) return;
+                setCountries(names);
+                setFormData((prev) => {
+                    const matched = prev.country
+                        ? names.find((name) => normalizeCountryLabel(name) === normalizeCountryLabel(prev.country))
+                        : null;
+
+                    if (matched) {
+                        if (matched === prev.country) return prev;
+                        return { ...prev, country: matched };
+                    }
+
+                    if (prev.country && names.includes(prev.country)) {
+                        return prev;
+                    }
+
+                    const fallback = names.includes('United Kingdom') ? 'United Kingdom' : names[0];
+                    return { ...prev, country: prev.country || fallback };
+                });
+            } catch (error) {
+                console.error('Failed to fetch countries:', error);
+            }
+        };
+
+        void fetchCountries();
+    }, []);
 
     useEffect(() => {
         const fetchData = async () => {
