@@ -64,10 +64,26 @@ const EMPTY_FORM: CountryFormState = {
 const YES_NO_OPTIONS: YesNo[] = ['yes', 'no'];
 const STATUS_OPTIONS: Status[] = ['active', 'inactive'];
 
-const yesNoClass = (value: YesNo) =>
+const riskBadgeClass = (value: YesNo) =>
     value === 'yes'
-        ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-200'
-        : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300';
+        ? 'bg-rose-50 text-rose-700 ring-1 ring-rose-200 dark:bg-rose-900/30 dark:text-rose-200 dark:ring-rose-800'
+        : 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-200 dark:ring-emerald-800';
+
+const riskBadgeLabel = (value: YesNo) => (value === 'yes' ? 'High Risk' : 'Low Risk');
+
+const blacklistBadgeClass = (value: YesNo) =>
+    value === 'yes'
+        ? 'bg-slate-900 text-white ring-1 ring-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:ring-slate-300'
+        : 'bg-sky-50 text-sky-700 ring-1 ring-sky-200 dark:bg-sky-900/30 dark:text-sky-200 dark:ring-sky-800';
+
+const blacklistBadgeLabel = (value: YesNo) => (value === 'yes' ? 'Blacklisted' : 'Allowed');
+
+const payoutBadgeClass = (value: YesNo) =>
+    value === 'yes'
+        ? 'bg-teal-50 text-teal-700 ring-1 ring-teal-200 dark:bg-teal-900/30 dark:text-teal-200 dark:ring-teal-800'
+        : 'bg-slate-100 text-slate-500 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700';
+
+const payoutBadgeLabel = (value: YesNo) => (value === 'yes' ? 'Enabled' : 'Disabled');
 
 export default function CountriesPage() {
     const [countries, setCountries] = useState<CountryRow[]>([]);
@@ -441,13 +457,13 @@ export default function CountriesPage() {
                                             </div>
                                         </td>
                                         <td className="px-8 py-5 text-sm whitespace-nowrap">
-                                            <span className={`badge-glass ${yesNoClass(normalizeYesNo(country.high_risk_country))}`}>
-                                                {normalizeYesNo(country.high_risk_country)}
+                                            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${riskBadgeClass(normalizeYesNo(country.high_risk_country))}`}>
+                                                {riskBadgeLabel(normalizeYesNo(country.high_risk_country))}
                                             </span>
                                         </td>
                                         <td className="px-8 py-5 text-sm whitespace-nowrap">
-                                            <span className={`badge-glass ${yesNoClass(normalizeYesNo(country.black_list_country))}`}>
-                                                {normalizeYesNo(country.black_list_country)}
+                                            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${blacklistBadgeClass(normalizeYesNo(country.black_list_country))}`}>
+                                                {blacklistBadgeLabel(normalizeYesNo(country.black_list_country))}
                                             </span>
                                         </td>
                                         <td className="px-8 py-5 text-sm font-mono text-slate-500 dark:text-slate-300 whitespace-nowrap">
@@ -460,8 +476,8 @@ export default function CountriesPage() {
                                             {country.currency_name || '—'}
                                         </td>
                                         <td className="px-8 py-5 text-sm whitespace-nowrap">
-                                            <span className={`badge-glass ${yesNoClass(normalizeYesNo(country.payout_currency))}`}>
-                                                {normalizeYesNo(country.payout_currency)}
+                                            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${payoutBadgeClass(normalizeYesNo(country.payout_currency))}`}>
+                                                {payoutBadgeLabel(normalizeYesNo(country.payout_currency))}
                                             </span>
                                         </td>
                                         <td className="px-8 py-5 text-center">
