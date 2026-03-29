@@ -106,7 +106,7 @@ export default function BanksPage() {
 
     const fetchBanks = async () => {
         try {
-            const res = await fetch(ENDPOINTS.BANKS.LIST);
+            const res = await fetch(`${ENDPOINTS.BANKS.LIST}?include_blacklisted=yes`);
             if (res.ok) {
                 const data = await res.json();
                 setBanks(Array.isArray(data) ? data : []);

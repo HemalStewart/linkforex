@@ -168,7 +168,7 @@ export default function CountriesPage() {
 
     const fetchCountries = async () => {
         try {
-            const res = await fetch(ENDPOINTS.COUNTRIES.LIST);
+            const res = await fetch(`${ENDPOINTS.COUNTRIES.LIST}?include_blacklisted=yes`);
             if (res.ok) {
                 const data = await res.json();
                 setCountries(Array.isArray(data) ? data : []);
