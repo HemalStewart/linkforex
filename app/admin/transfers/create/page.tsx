@@ -197,6 +197,18 @@ const generateCode = (prefix: string): string => `${prefix}${Math.floor(10000 + 
 const getBranchValue = (branch: Branch): string =>
     String(branch.code || branch.transaction_prefix || branch.id || '').trim();
 
+const normalizeCountryLabel = (value: string): string => {
+    const normalized = value.trim().toLowerCase();
+    switch (normalized) {
+        case 'uk':
+            return 'united kingdom';
+        case 'united arab emirates':
+            return 'uae';
+        default:
+            return normalized;
+    }
+};
+
 const TRANSFER_DRAFT_KEY = 'transfer_create_draft_v1';
 const TRANSFER_SCROLL_KEY = 'transfer_create_scroll_y_v1';
 
@@ -212,6 +224,7 @@ export default function CreateTransferPage() {
     const [branches, setBranches] = useState<Branch[]>([]);
     const [currencies, setCurrencies] = useState<Currency[]>([]);
     const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>([]);
+    const [countries, setCountries] = useState<string[]>([]);
 
     const [senderSearch, setSenderSearch] = useState('');
     const [senderResults, setSenderResults] = useState<Remitter[]>([]);
@@ -432,12 +445,19 @@ export default function CreateTransferPage() {
         return `${url}${separator}acting_user_id=${encodeURIComponent(String(currentUserId))}`;
     }, [currentUserId]);
 
+    const isAllowedCountry = useCallback((value: string): boolean => {
+        if (!value.trim()) return false;
+        if (countries.length === 0) return true;
+        return countries.some((country) => normalizeCountryLabel(country) === normalizeCountryLabel(value));
+    }, [countries]);
+
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
-                const [branchesRes, currenciesRes] = await Promise.all([
+                const [branchesRes, currenciesRes, countriesRes] = await Promise.all([
                     fetch(ENDPOINTS.BRANCHES.LIST),
-                    fetch(ENDPOINTS.CURRENCIES.LIST)
+                    fetch(ENDPOINTS.CURRENCIES.LIST),
+                    fetch(`${ENDPOINTS.COUNTRIES.LIST}?status=active&sort=name&dir=asc`)
                 ]);
 
                 if (branchesRes.ok) {
@@ -460,6 +480,38 @@ export default function CreateTransferPage() {
                             payoutCurrency: prev.payoutCurrency || preferred.code,
                             customerRate: prev.customerRate || preferred.rate || '0'
                         }));
+                    }
+                }
+
+                if (countriesRes.ok) {
+                    const countryData = await countriesRes.json();
+                    if (Array.isArray(countryData)) {
+                        const countryNames = Array.from(
+                            new Set(
+                                countryData
+                                    .map((country) => String(country?.name || '').trim())
+                                    .filter(Boolean)
+                            )
+                        ).sort((a, b) => a.localeCompare(b));
+
+                        setCountries(countryNames);
+
+                        if (countryNames.length > 0) {
+                            const fallbackCountry = countryNames.find(
+                                (name) => normalizeCountryLabel(name) === 'afghanistan'
+                            ) || countryNames[0];
+
+                            setFormData((prev) => {
+                                const matchedCountry = countryNames.find(
+                                    (name) => normalizeCountryLabel(name) === normalizeCountryLabel(prev.receiverCountry)
+                                );
+
+                                return {
+                                    ...prev,
+                                    receiverCountry: matchedCountry || fallbackCountry,
+                                };
+                            });
+                        }
                     }
                 }
             } catch (error) {
@@ -820,6 +872,11 @@ export default function CreateTransferPage() {
     }, [searchParams, selectSender, processedReturnRemitterId, withActingUser]);
 
     const selectReceiver = useCallback(async (receiver: Beneficiary) => {
+        const matchedCountry = countries.find(
+            (country) => normalizeCountryLabel(country) === normalizeCountryLabel(receiver.country || '')
+        );
+        const receiverCountry = matchedCountry || '';
+
         setFormData((prev) => ({
             ...prev,
             receiverRecordId: String(receiver.id),
@@ -827,7 +884,7 @@ export default function CreateTransferPage() {
             receiverContacts: receiver.mobile_number || '',
             receiverAddress: receiver.address || prev.receiverAddress,
             receiverCity: receiver.city || prev.receiverCity,
-            receiverCountry: receiver.country || prev.receiverCountry,
+            receiverCountry: receiverCountry || prev.receiverCountry,
             receiverDateOfBirth: receiver.date_of_birth || prev.receiverDateOfBirth,
             receiverPlaceOfBirth: receiver.place_of_birth || prev.receiverPlaceOfBirth,
             receiverPaymentMode: receiver.payment_mode || prev.receiverPaymentMode,
@@ -841,6 +898,15 @@ export default function CreateTransferPage() {
             relationship: receiver.relation || prev.relationship,
             receiverVerified: receiver.status === 'active' ? 'yes' : prev.receiverVerified
         }));
+
+        if ((receiver.country || '').trim() !== '' && receiverCountry === '') {
+            setModal(
+                'Receiver Country Restricted',
+                `The receiver country "${receiver.country}" is blacklisted or unavailable in the country master. Choose an allowed country before saving this transfer.`,
+                'warning'
+            );
+        }
+
         setReceiverAmlState('idle');
 
         const receiverOwnerRemitterId = receiver.customer_id ? String(receiver.customer_id) : '';
@@ -849,7 +915,7 @@ export default function CreateTransferPage() {
         } else {
             setReceiverBranchAccessIssue({ blocked: false, message: '' });
         }
-    }, [checkBranchAccessForReceiver]);
+    }, [checkBranchAccessForReceiver, countries]);
 
     useEffect(() => {
         const newReceiverId = searchParams.get('newReceiverId');
@@ -985,6 +1051,7 @@ export default function CreateTransferPage() {
         if (!formData.receiverName.trim()) return 'Receiver Name is required.';
         if (!formData.receiverAddress.trim()) return 'Receiver Address is required.';
         if (!formData.receiverCountry.trim()) return 'Receiver Country is required.';
+        if (!isAllowedCountry(formData.receiverCountry)) return 'Receiver Country must be selected from the active countries list.';
         if (!formData.receiverDateOfBirth.trim()) return 'Receiver Date Of Birth is required.';
         if (!formData.receiverPaymentMode.trim()) return 'Receiver Payment Mode is required.';
         const receiverMode = formData.receiverPaymentMode.toLowerCase();
@@ -1756,11 +1823,21 @@ export default function CreateTransferPage() {
 
                     <div>
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Receiver Country <span className="text-red-500">*</span></label>
-                        <input
-                            className="input-glass w-full"
-                            value={formData.receiverCountry}
-                            onChange={(event) => setFormData((prev) => ({ ...prev, receiverCountry: event.target.value }))}
-                        />
+                        <div className="relative">
+                            <select
+                                className="input-glass w-full pr-10 appearance-none"
+                                value={formData.receiverCountry}
+                                onChange={(event) => setFormData((prev) => ({ ...prev, receiverCountry: event.target.value }))}
+                            >
+                                <option value="">Select country</option>
+                                {countries.map((country) => (
+                                    <option key={country} value={country}>
+                                        {country}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-500 dark:text-slate-200 pointer-events-none" />
+                        </div>
                     </div>
 
                     <div>
