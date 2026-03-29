@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import Modal from '../components/Modal';
-import { CheckCircle2, Eye, ImageUp, PenLine, PlusCircle, Printer, RotateCcw, Save, Search, XCircle } from 'lucide-react';
+import { CheckCircle2, Download, Eye, ImageUp, PenLine, PlusCircle, Printer, RotateCcw, Save, Search, XCircle } from 'lucide-react';
 
 type SortDir = 'asc' | 'desc';
 
@@ -21,6 +21,11 @@ const asString = (value: unknown): string => {
 const asNumber = (value: unknown): number => {
     const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const csvEscape = (value: unknown): string => {
+    const text = String(value ?? '').replace(/"/g, '""');
+    return `"${text}"`;
 };
 
 type Transfer = {
@@ -1013,6 +1018,31 @@ export default function TransfersPage() {
         { key: 'historyLog', label: 'History Log', sortable: true }
     ];
 
+    const handleExportCsv = () => {
+        const exportColumns = columns.filter((column) => !['print', 'sign'].includes(String(column.key)));
+        const header = exportColumns.map((column) => csvEscape(column.label)).join(',');
+        const body = sortedRows.map((row) => (
+            exportColumns
+                .map((column) => {
+                    const value = row[column.key];
+                    if (typeof value === 'number') return csvEscape(value.toString());
+                    return csvEscape(asString(value));
+                })
+                .join(',')
+        ));
+
+        const csv = [header, ...body].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = `transfers_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        URL.revokeObjectURL(url);
+    };
+
     const receivedAmountColumnIndex = columns.findIndex((column) => column.key === 'receivedAmount');
 
     if (loading) {
@@ -1093,6 +1123,14 @@ export default function TransfersPage() {
                         className="px-5 py-3 rounded-full glass-effect text-sm font-semibold text-slate-600 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300"
                     >
                         Refresh
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleExportCsv}
+                        className="px-5 py-3 rounded-full glass-effect text-sm font-semibold text-slate-600 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 inline-flex items-center gap-2"
+                    >
+                        <Download className="w-4 h-4" />
+                        Export CSV
                     </button>
                     <Link href="/admin/transfers/create" className="btn-primary flex items-center gap-2 rounded-full px-6">
                         <PlusCircle className="w-5 h-5" />

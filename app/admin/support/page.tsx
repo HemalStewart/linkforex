@@ -87,6 +87,7 @@ export default function SupportPage() {
     const [messages, setMessages] = useState<SupportMessage[]>([]);
     const [replyMessage, setReplyMessage] = useState('');
     const [sendingReply, setSendingReply] = useState(false);
+    const [updatingTicket, setUpdatingTicket] = useState(false);
 
     const fetchTickets = async () => {
         setLoading(true);
@@ -189,6 +190,31 @@ export default function SupportPage() {
             }
         } finally {
             setSendingReply(false);
+        }
+    };
+
+    const handleUpdateTicket = async () => {
+        if (!selectedTicket) return;
+        const nextStatus = String(selectedTicket.status || 'open').toLowerCase();
+        const nextPriority = String(selectedTicket.priority || 'normal').toLowerCase();
+        if (!STATUS_OPTIONS.includes(nextStatus) || !PRIORITY_OPTIONS.includes(nextPriority)) return;
+
+        setUpdatingTicket(true);
+        try {
+            const res = await fetch(ENDPOINTS.SUPPORT.UPDATE(selectedTicket.id), {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    status: nextStatus,
+                    priority: nextPriority,
+                }),
+            });
+
+            if (!res.ok) return;
+            await fetchTicketDetail(selectedTicket.id);
+            await fetchTickets();
+        } finally {
+            setUpdatingTicket(false);
         }
     };
 
@@ -384,6 +410,43 @@ export default function SupportPage() {
                                 <p className="mt-2 font-semibold text-slate-900 dark:text-white">
                                     {formatDateTime(selectedTicket.last_message_at || selectedTicket.updated_at)}
                                 </p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">Update Status</label>
+                                <select
+                                    className="input-glass w-full"
+                                    value={String(selectedTicket.status || 'open').toLowerCase()}
+                                    onChange={(e) => setSelectedTicket((prev) => prev ? { ...prev, status: e.target.value } : prev)}
+                                >
+                                    {STATUS_OPTIONS.map((status) => (
+                                        <option key={status} value={status}>{status}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">Update Priority</label>
+                                <select
+                                    className="input-glass w-full"
+                                    value={String(selectedTicket.priority || 'normal').toLowerCase()}
+                                    onChange={(e) => setSelectedTicket((prev) => prev ? { ...prev, priority: e.target.value } : prev)}
+                                >
+                                    {PRIORITY_OPTIONS.map((priority) => (
+                                        <option key={priority} value={priority}>{priority}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="flex items-end">
+                                <button
+                                    type="button"
+                                    onClick={handleUpdateTicket}
+                                    disabled={updatingTicket}
+                                    className="btn-primary w-full disabled:opacity-60"
+                                >
+                                    {updatingTicket ? 'Saving...' : 'Save Ticket'}
+                                </button>
                             </div>
                         </div>
 
