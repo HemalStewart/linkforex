@@ -39,6 +39,7 @@ type CountryFormState = {
 type SortKey =
     | 'phone_code'
     | 'name'
+    | 'risk_level'
     | 'high_risk_country'
     | 'black_list_country'
     | 'currency_code'
@@ -84,6 +85,56 @@ const payoutBadgeClass = (value: YesNo) =>
         : 'bg-slate-100 text-slate-500 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700';
 
 const payoutBadgeLabel = (value: YesNo) => (value === 'yes' ? 'Enabled' : 'Disabled');
+
+type RiskLevel = 'blacklisted' | 'high' | 'low';
+
+function getRiskLevel(country: CountryRow): RiskLevel {
+    if (normalizeYesNo(country.black_list_country) === 'yes') {
+        return 'blacklisted';
+    }
+
+    if (normalizeYesNo(country.high_risk_country) === 'yes') {
+        return 'high';
+    }
+
+    return 'low';
+}
+
+const riskLevelBadgeClass = (value: RiskLevel) => {
+    switch (value) {
+        case 'blacklisted':
+            return 'bg-slate-900 text-white ring-1 ring-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:ring-slate-300';
+        case 'high':
+            return 'bg-amber-50 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-900/30 dark:text-amber-200 dark:ring-amber-800';
+        default:
+            return 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-200 dark:ring-emerald-800';
+    }
+};
+
+const riskLevelLabel = (value: RiskLevel) => {
+    switch (value) {
+        case 'blacklisted':
+            return 'Blacklisted';
+        case 'high':
+            return 'High Risk';
+        default:
+            return 'Low Risk';
+    }
+};
+
+const rowTintClass = (country: CountryRow) => {
+    const level = getRiskLevel(country);
+
+    if (level === 'blacklisted') {
+        return 'bg-rose-50/70 dark:bg-rose-950/20 hover:bg-rose-100/80 dark:hover:bg-rose-900/30';
+    }
+
+    if (level === 'high') {
+        return 'bg-amber-50/60 dark:bg-amber-950/10 hover:bg-amber-100/70 dark:hover:bg-amber-900/20';
+    }
+
+    return 'hover:bg-teal-50/30 dark:hover:bg-slate-700/30';
+};
 
 export default function CountriesPage() {
     const [countries, setCountries] = useState<CountryRow[]>([]);
@@ -171,6 +222,12 @@ export default function CountriesPage() {
     const startIndex = totalRows === 0 ? 0 : (currentPage - 1) * rowsPerPage;
     const endIndex = Math.min(startIndex + rowsPerPage, totalRows);
     const pagedCountries = sortedCountries.slice(startIndex, endIndex);
+    const quickCounts = useMemo(() => ({
+        blacklisted: countries.filter((country) => getRiskLevel(country) === 'blacklisted').length,
+        highRisk: countries.filter((country) => getRiskLevel(country) === 'high').length,
+        payoutEnabled: countries.filter((country) => normalizeYesNo(country.payout_currency) === 'yes').length,
+        active: countries.filter((country) => normalizeStatus(country.status) === 'active').length,
+    }), [countries]);
 
     useEffect(() => {
         setPage(1);
@@ -367,6 +424,55 @@ export default function CountriesPage() {
                 </div>
             </div>
 
+            <div className="flex flex-wrap items-center gap-3">
+                <QuickFilterChip
+                    label="All Countries"
+                    count={countries.length}
+                    active={highRiskFilter === 'all' && blackListFilter === 'all' && payoutFilter === 'all' && statusFilter === 'all'}
+                    tone="neutral"
+                    onClick={() => {
+                        setHighRiskFilter('all');
+                        setBlackListFilter('all');
+                        setPayoutFilter('all');
+                        setStatusFilter('all');
+                    }}
+                />
+                <QuickFilterChip
+                    label="Blacklisted"
+                    count={quickCounts.blacklisted}
+                    active={blackListFilter === 'yes'}
+                    tone="danger"
+                    onClick={() => {
+                        setBlackListFilter('yes');
+                        setHighRiskFilter('all');
+                    }}
+                />
+                <QuickFilterChip
+                    label="High Risk"
+                    count={quickCounts.highRisk}
+                    active={highRiskFilter === 'yes' && blackListFilter !== 'yes'}
+                    tone="warning"
+                    onClick={() => {
+                        setHighRiskFilter('yes');
+                        setBlackListFilter('no');
+                    }}
+                />
+                <QuickFilterChip
+                    label="Payout Enabled"
+                    count={quickCounts.payoutEnabled}
+                    active={payoutFilter === 'yes'}
+                    tone="success"
+                    onClick={() => setPayoutFilter('yes')}
+                />
+                <QuickFilterChip
+                    label="Active"
+                    count={quickCounts.active}
+                    active={statusFilter === 'active'}
+                    tone="info"
+                    onClick={() => setStatusFilter('active')}
+                />
+            </div>
+
             <div className="card-glass overflow-hidden shadow-xl">
                 <div className="px-8 py-6 border-b border-gray-100 dark:border-slate-700/50 flex items-center space-x-3">
                     <Globe className="w-6 h-6 text-slate-400" />
@@ -395,6 +501,12 @@ export default function CountriesPage() {
                                         <button onClick={() => toggleSort('name')} className="flex items-center gap-1">
                                             <span>Country Name</span>
                                             <span>{sortIndicator('name')}</span>
+                                        </button>
+                                    </th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        <button onClick={() => toggleSort('risk_level')} className="flex items-center gap-1">
+                                            <span>Risk Level</span>
+                                            <span>{sortIndicator('risk_level')}</span>
                                         </button>
                                     </th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
@@ -438,7 +550,7 @@ export default function CountriesPage() {
                             </thead>
                             <tbody className="table-body">
                                 {pagedCountries.map((country, idx) => (
-                                    <tr key={country.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
+                                    <tr key={country.id} className={`${rowTintClass(country)} transition-colors duration-200`}>
                                         <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
                                         <td className="px-8 py-5 text-sm font-mono text-slate-500 dark:text-slate-300 whitespace-nowrap">
                                             {country.phone_code || '—'}
@@ -455,6 +567,11 @@ export default function CountriesPage() {
                                                     </div>
                                                 </div>
                                             </div>
+                                        </td>
+                                        <td className="px-8 py-5 text-sm whitespace-nowrap">
+                                            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${riskLevelBadgeClass(getRiskLevel(country))}`}>
+                                                {riskLevelLabel(getRiskLevel(country))}
+                                            </span>
                                         </td>
                                         <td className="px-8 py-5 text-sm whitespace-nowrap">
                                             <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${riskBadgeClass(normalizeYesNo(country.high_risk_country))}`}>
@@ -494,7 +611,7 @@ export default function CountriesPage() {
                                 ))}
                                 {!loading && pagedCountries.length === 0 && (
                                     <tr>
-                                        <td colSpan={10} className="px-8 py-12 text-center text-slate-500 dark:text-slate-400">
+                                        <td colSpan={11} className="px-8 py-12 text-center text-slate-500 dark:text-slate-400">
                                             No countries found for the current filters.
                                         </td>
                                     </tr>
@@ -667,6 +784,8 @@ function getSortValue(country: CountryRow, key: SortKey): string {
     switch (key) {
         case 'phone_code':
             return String(country.phone_code || '');
+        case 'risk_level':
+            return getRiskLevel(country);
         case 'high_risk_country':
             return normalizeYesNo(country.high_risk_country);
         case 'black_list_country':
@@ -695,6 +814,49 @@ async function readErrorMessage(res: Response, fallback: string): Promise<string
         // Ignore JSON parsing issues and fall back to a generic message.
     }
     return fallback;
+}
+
+function QuickFilterChip({
+    label,
+    count,
+    active,
+    tone,
+    onClick,
+}: {
+    label: string;
+    count: number;
+    active: boolean;
+    tone: 'neutral' | 'danger' | 'warning' | 'success' | 'info';
+    onClick: () => void;
+}) {
+    const toneClass = {
+        neutral: active
+            ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+            : 'bg-white/70 text-slate-600 ring-1 ring-slate-200 dark:bg-slate-800/80 dark:text-slate-200 dark:ring-slate-700',
+        danger: active
+            ? 'bg-rose-600 text-white'
+            : 'bg-rose-50 text-rose-700 ring-1 ring-rose-200 dark:bg-rose-900/20 dark:text-rose-200 dark:ring-rose-800',
+        warning: active
+            ? 'bg-amber-500 text-slate-900'
+            : 'bg-amber-50 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-900/20 dark:text-amber-200 dark:ring-amber-800',
+        success: active
+            ? 'bg-emerald-600 text-white'
+            : 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-200 dark:ring-emerald-800',
+        info: active
+            ? 'bg-sky-600 text-white'
+            : 'bg-sky-50 text-sky-700 ring-1 ring-sky-200 dark:bg-sky-900/20 dark:text-sky-200 dark:ring-sky-800',
+    }[tone];
+
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all ${toneClass}`}
+        >
+            <span>{label}</span>
+            <span className="rounded-full bg-black/10 px-2 py-0.5 text-xs dark:bg-white/10">{count}</span>
+        </button>
+    );
 }
 
 function FlagFilter({
