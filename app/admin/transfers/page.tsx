@@ -448,17 +448,17 @@ export default function TransfersPage() {
         const countByStatus = (status: string) => rows.filter((row) => row.rawStatus === status).length;
 
         return {
-            all: { label: 'All', count: rows.length },
-            awaiting_funds: { label: 'Awaiting Funds', count: countByStatus('awaiting_funds') },
-            funds_received: { label: 'Funds Received', count: countByStatus('funds_received') },
-            processing: { label: 'Processing', count: countByStatus('processing') },
-            pending: { label: 'Pending', count: countByStatus('pending') },
-            approved: { label: 'Approved', count: countByStatus('approved') },
-            cancelled: { label: 'Cancelled', count: countByStatus('cancelled') },
-            in_review: { label: 'In Review', count: countByStatus('in_review') },
-            in_transit: { label: 'In Transit', count: countByStatus('in_transit') },
-            completed: { label: 'Completed', count: countByStatus('completed') },
-            rejected: { label: 'Rejected', count: countByStatus('rejected') }
+            all: { label: 'All', shortLabel: 'All', count: rows.length },
+            awaiting_funds: { label: 'Awaiting Funds', shortLabel: 'Awaiting', count: countByStatus('awaiting_funds') },
+            funds_received: { label: 'Funds Received', shortLabel: 'Received', count: countByStatus('funds_received') },
+            processing: { label: 'Processing', shortLabel: 'Processing', count: countByStatus('processing') },
+            pending: { label: 'Pending', shortLabel: 'Pending', count: countByStatus('pending') },
+            approved: { label: 'Approved', shortLabel: 'Approved', count: countByStatus('approved') },
+            cancelled: { label: 'Cancelled', shortLabel: 'Cancelled', count: countByStatus('cancelled') },
+            in_review: { label: 'In Review', shortLabel: 'Review', count: countByStatus('in_review') },
+            in_transit: { label: 'In Transit', shortLabel: 'Transit', count: countByStatus('in_transit') },
+            completed: { label: 'Completed', shortLabel: 'Completed', count: countByStatus('completed') },
+            rejected: { label: 'Rejected', shortLabel: 'Rejected', count: countByStatus('rejected') }
         };
     }, [rows]);
 
@@ -1101,19 +1101,20 @@ export default function TransfersPage() {
                 </div>
             </div>
 
-            <div className="card-glass p-1.5 rounded-full inline-flex flex-wrap w-full md:w-auto overflow-hidden">
-                <div className="flex items-center space-x-1 overflow-x-auto no-scrollbar w-full">
+            <div className="card-glass p-1.5 rounded-3xl w-full overflow-x-auto no-scrollbar">
+                <div className="flex min-w-max items-center gap-1 md:min-w-0 md:flex-wrap">
                     {Object.entries(statusConfig).map(([key, config]) => (
                         <button
                             key={key}
                             onClick={() => setFilterStatus(key)}
-                            className={`px-5 py-3 rounded-full font-bold text-sm whitespace-nowrap transition-all duration-300 ${filterStatus === key
+                            className={`shrink-0 px-4 py-3 rounded-full font-bold text-sm whitespace-nowrap transition-all duration-300 ${filterStatus === key
                                 ? 'bg-white shadow-md text-teal-600 dark:bg-slate-700 dark:text-white'
                                 : 'text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-800/50 hover:text-teal-600'
                                 }`}
                         >
                             <span className="flex items-center space-x-2">
-                                <span>{config.label}</span>
+                                <span className="sm:hidden">{config.shortLabel}</span>
+                                <span className="hidden sm:inline">{config.label}</span>
                                 <span className={`px-1.5 py-0.5 rounded-full text-xs font-bold ${filterStatus === key ? 'bg-teal-100 text-teal-700 dark:bg-slate-600 dark:text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}`}>
                                     {config.count}
                                 </span>
