@@ -34,6 +34,14 @@ type BranchOption = {
     status?: string | null;
 };
 
+type CountryOption = {
+    id: number | string;
+    currency_code?: string | null;
+    payout_currency?: string | null;
+    black_list_country?: string | null;
+    status?: string | null;
+};
+
 type FormState = {
     currency_code: string;
     source_branch_code: string;
@@ -83,18 +91,28 @@ export default function MobileExchangeRatesPage() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [ratesRes, currenciesRes, branchesRes] = await Promise.all([
+            const [ratesRes, currenciesRes, branchesRes, countriesRes] = await Promise.all([
                 fetch(ENDPOINTS.MOBILE_ADMIN.EXCHANGE_RATES),
                 fetch(`${ENDPOINTS.CURRENCIES.LIST}?status=active`),
                 fetch(`${ENDPOINTS.BRANCHES.LIST}?status=active`),
+                fetch(`${ENDPOINTS.COUNTRIES.LIST}?status=active&payout_currency=yes&sort=name&dir=asc`),
             ]);
 
             const ratesData = ratesRes.ok ? await ratesRes.json() : [];
             const currenciesData = currenciesRes.ok ? await currenciesRes.json() : [];
             const branchesData = branchesRes.ok ? await branchesRes.json() : [];
+            const countriesData = countriesRes.ok ? await countriesRes.json() : [];
+            const payoutEnabledCodes = new Set(
+                (Array.isArray(countriesData) ? countriesData : [])
+                    .map((country: CountryOption) => String(country.currency_code || '').trim().toUpperCase())
+                    .filter(Boolean)
+            );
+            const filteredCurrencies = (Array.isArray(currenciesData) ? currenciesData : []).filter((currency: CurrencyOption) =>
+                payoutEnabledCodes.has(String(currency.code || '').trim().toUpperCase())
+            );
 
             setRows(Array.isArray(ratesData) ? ratesData : []);
-            setCurrencies(Array.isArray(currenciesData) ? currenciesData : []);
+            setCurrencies(filteredCurrencies);
             setBranches(Array.isArray(branchesData) ? branchesData : []);
         } catch (error) {
             console.error('Failed to fetch mobile exchange rates', error);
@@ -419,7 +437,7 @@ export default function MobileExchangeRatesPage() {
                     </div>
 
                     <div className="rounded-3xl bg-slate-50/80 px-4 py-3 text-sm text-slate-500 dark:bg-slate-900/50 dark:text-slate-300">
-                        Numeric app rates come from <span className="font-semibold">Branch Currency Rates</span>. This screen only controls which branch rate is shown in the app, whether it appears on the home screen, and display order.
+                        Numeric app rates come from <span className="font-semibold">Branch Currency Rates</span>. Only currencies flagged as payout-enabled in <span className="font-semibold">Countries</span> can be used here.
                     </div>
 
                     <div className="flex items-center justify-end gap-3 pt-2">

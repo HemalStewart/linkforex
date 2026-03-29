@@ -50,6 +50,13 @@ type Currency = {
     rate?: string;
 };
 
+type CountryOption = {
+    id?: string | number;
+    name?: string | null;
+    currency_code?: string | null;
+    payout_currency?: string | null;
+};
+
 type Bank = {
     id: string | number;
     name: string;
@@ -225,6 +232,7 @@ export default function CreateTransferPage() {
     const [currencies, setCurrencies] = useState<Currency[]>([]);
     const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>([]);
     const [countries, setCountries] = useState<string[]>([]);
+    const [payoutCurrencyByCountry, setPayoutCurrencyByCountry] = useState<Record<string, string>>({});
 
     const [senderSearch, setSenderSearch] = useState('');
     const [senderResults, setSenderResults] = useState<Remitter[]>([]);
@@ -438,6 +446,10 @@ export default function CreateTransferPage() {
         () => branchOptions.some((option) => option.value === formData.receiverBranchCode),
         [branchOptions, formData.receiverBranchCode]
     );
+    const allowedPayoutCurrencyCodes = useMemo(
+        () => new Set(currencies.map((currency) => String(currency.code || '').trim().toUpperCase()).filter(Boolean)),
+        [currencies]
+    );
 
     const withActingUser = useCallback((url: string): string => {
         if (!currentUserId) return url;
@@ -460,33 +472,24 @@ export default function CreateTransferPage() {
                     fetch(`${ENDPOINTS.COUNTRIES.LIST}?status=active&sort=name&dir=asc`)
                 ]);
 
+                let firstBranchCode = '';
                 if (branchesRes.ok) {
                     const branchData = (await branchesRes.json()) as Branch[];
                     setBranches(branchData);
                     if (branchData.length > 0) {
                         const first = branchData[0];
-                        const branchCode = getBranchValue(first);
-                        setFormData((prev) => ({ ...prev, toBranch: prev.toBranch || branchCode }));
+                        firstBranchCode = getBranchValue(first);
                     }
                 }
 
-                if (currenciesRes.ok) {
-                    const currencyData = (await currenciesRes.json()) as Currency[];
-                    setCurrencies(currencyData);
-                    const preferred = currencyData.find((c) => c.code === 'AFN') || currencyData[0];
-                    if (preferred) {
-                        setFormData((prev) => ({
-                            ...prev,
-                            payoutCurrency: prev.payoutCurrency || preferred.code,
-                            customerRate: prev.customerRate || preferred.rate || '0'
-                        }));
-                    }
-                }
+                let allowedCurrencies: Currency[] = [];
+                let countryNames: string[] = [];
+                let countryCurrencyMap: Record<string, string> = {};
 
                 if (countriesRes.ok) {
-                    const countryData = await countriesRes.json();
+                    const countryData = await countriesRes.json() as CountryOption[];
                     if (Array.isArray(countryData)) {
-                        const countryNames = Array.from(
+                        countryNames = Array.from(
                             new Set(
                                 countryData
                                     .map((country) => String(country?.name || '').trim())
@@ -495,25 +498,64 @@ export default function CreateTransferPage() {
                         ).sort((a, b) => a.localeCompare(b));
 
                         setCountries(countryNames);
+                        countryCurrencyMap = countryData.reduce<Record<string, string>>((acc, country) => {
+                            const name = String(country?.name || '').trim();
+                            const currencyCode = String(country?.currency_code || '').trim().toUpperCase();
+                            if (!name || !currencyCode) {
+                                return acc;
+                            }
+                            acc[normalizeCountryLabel(name)] = currencyCode;
+                            return acc;
+                        }, {});
+                        setPayoutCurrencyByCountry(countryCurrencyMap);
 
-                        if (countryNames.length > 0) {
-                            const fallbackCountry = countryNames.find(
-                                (name) => normalizeCountryLabel(name) === 'afghanistan'
-                            ) || countryNames[0];
+                        const payoutEnabledCodes = new Set(
+                            countryData
+                                .filter((country) => String(country?.payout_currency || '').trim().toLowerCase() === 'yes')
+                                .map((country) => String(country?.currency_code || '').trim().toUpperCase())
+                                .filter(Boolean)
+                        );
 
-                            setFormData((prev) => {
-                                const matchedCountry = countryNames.find(
-                                    (name) => normalizeCountryLabel(name) === normalizeCountryLabel(prev.receiverCountry)
-                                );
-
-                                return {
-                                    ...prev,
-                                    receiverCountry: matchedCountry || fallbackCountry,
-                                };
-                            });
+                        if (currenciesRes.ok) {
+                            const currencyData = (await currenciesRes.json()) as Currency[];
+                            allowedCurrencies = currencyData.filter((currency) =>
+                                payoutEnabledCodes.has(String(currency.code || '').trim().toUpperCase())
+                            );
+                            setCurrencies(allowedCurrencies);
                         }
                     }
                 }
+
+                setFormData((prev) => {
+                    const fallbackCountry = countryNames.find(
+                        (name) => normalizeCountryLabel(name) === 'afghanistan'
+                    ) || countryNames[0] || prev.receiverCountry;
+                    const matchedCountry = countryNames.find(
+                        (name) => normalizeCountryLabel(name) === normalizeCountryLabel(prev.receiverCountry)
+                    );
+                    const receiverCountry = matchedCountry || fallbackCountry;
+                    const preferredCurrencyCode = countryCurrencyMap[normalizeCountryLabel(receiverCountry)];
+                    const currentAllowed = allowedCurrencies.find((currency) => currency.code === prev.payoutCurrency);
+                    const preferredCurrency =
+                        currentAllowed ||
+                        allowedCurrencies.find((currency) => currency.code === preferredCurrencyCode) ||
+                        allowedCurrencies.find((currency) => currency.code === 'AFN') ||
+                        allowedCurrencies[0];
+
+                    const nextPayoutCurrency = preferredCurrency?.code || prev.payoutCurrency;
+                    const nextRate =
+                        !prev.customerRate || nextPayoutCurrency !== prev.payoutCurrency
+                            ? (preferredCurrency?.rate || '0')
+                            : prev.customerRate;
+
+                    return {
+                        ...prev,
+                        toBranch: prev.toBranch || firstBranchCode,
+                        receiverCountry,
+                        payoutCurrency: nextPayoutCurrency,
+                        customerRate: nextRate,
+                    };
+                });
             } catch (error) {
                 console.error('Failed to load transfer dependencies', error);
             } finally {
@@ -876,6 +918,12 @@ export default function CreateTransferPage() {
             (country) => normalizeCountryLabel(country) === normalizeCountryLabel(receiver.country || '')
         );
         const receiverCountry = matchedCountry || '';
+        const payoutCurrencyCode = receiverCountry
+            ? payoutCurrencyByCountry[normalizeCountryLabel(receiverCountry)] || ''
+            : '';
+        const matchedCurrency = payoutCurrencyCode
+            ? currencies.find((currency) => currency.code === payoutCurrencyCode)
+            : null;
 
         setFormData((prev) => ({
             ...prev,
@@ -896,7 +944,9 @@ export default function CreateTransferPage() {
             receiverIdType: receiver.receiver_id_type || prev.receiverIdType,
             receiverIdNumber: receiver.receiver_id_number || prev.receiverIdNumber,
             relationship: receiver.relation || prev.relationship,
-            receiverVerified: receiver.status === 'active' ? 'yes' : prev.receiverVerified
+            receiverVerified: receiver.status === 'active' ? 'yes' : prev.receiverVerified,
+            payoutCurrency: matchedCurrency?.code || prev.payoutCurrency,
+            customerRate: matchedCurrency?.rate || prev.customerRate,
         }));
 
         if ((receiver.country || '').trim() !== '' && receiverCountry === '') {
@@ -915,7 +965,7 @@ export default function CreateTransferPage() {
         } else {
             setReceiverBranchAccessIssue({ blocked: false, message: '' });
         }
-    }, [checkBranchAccessForReceiver, countries]);
+    }, [checkBranchAccessForReceiver, countries, currencies, payoutCurrencyByCountry]);
 
     useEffect(() => {
         const newReceiverId = searchParams.get('newReceiverId');
@@ -1043,6 +1093,9 @@ export default function CreateTransferPage() {
         if (!formData.invoiceNo) return 'Invoice No is required.';
         if (!formData.invoicingDate) return 'Invoicing Date is required.';
         if (!formData.payoutCurrency) return 'Payout Currency is required.';
+        if (!allowedPayoutCurrencyCodes.has(formData.payoutCurrency.trim().toUpperCase())) {
+            return 'Payout Currency must be selected from payout-enabled countries.';
+        }
         if (!formData.customerRate || Number(formData.customerRate) <= 0) return 'Customer Rate must be greater than 0.';
         if (!formData.receiveAmount || Number(formData.receiveAmount) <= 0) return 'Receive Amount (£) must be greater than 0.';
         if (!formData.senderRecordId) return 'Select a sender from existing records first.';
@@ -1350,9 +1403,10 @@ export default function CreateTransferPage() {
                                 onChange={(event) => applyRateByCurrency(event.target.value)}
                                 className="input-glass w-full pr-10 appearance-none"
                             >
+                                <option value="">Select payout currency</option>
                                 {currencies.map((currency) => (
                                     <option key={currency.id} value={currency.code}>
-                                        {currency.code}
+                                        {currency.code}{currency.name ? ` - ${currency.name}` : ''}
                                     </option>
                                 ))}
                             </select>
@@ -1827,7 +1881,19 @@ export default function CreateTransferPage() {
                             <select
                                 className="input-glass w-full pr-10 appearance-none"
                                 value={formData.receiverCountry}
-                                onChange={(event) => setFormData((prev) => ({ ...prev, receiverCountry: event.target.value }))}
+                                onChange={(event) => {
+                                    const nextCountry = event.target.value;
+                                    const nextCurrencyCode = payoutCurrencyByCountry[normalizeCountryLabel(nextCountry)] || '';
+                                    const nextCurrency = nextCurrencyCode
+                                        ? currencies.find((currency) => currency.code === nextCurrencyCode)
+                                        : null;
+                                    setFormData((prev) => ({
+                                        ...prev,
+                                        receiverCountry: nextCountry,
+                                        payoutCurrency: nextCurrency?.code || prev.payoutCurrency,
+                                        customerRate: nextCurrency?.rate || prev.customerRate,
+                                    }));
+                                }}
                             >
                                 <option value="">Select country</option>
                                 {countries.map((country) => (
