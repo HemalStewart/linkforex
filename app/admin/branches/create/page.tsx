@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
@@ -28,10 +28,16 @@ const normalizeBranchPrefix = (value: string): string =>
         .replace(/[^A-Z0-9]/g, '')
         .slice(0, 3);
 
+type CountryOption = {
+    id?: string | number;
+    name?: string | null;
+};
+
 export default function CreateBranchPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [enteredBy, setEnteredBy] = useState('');
+    const [countries, setCountries] = useState<string[]>([]);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -67,6 +73,35 @@ export default function CreateBranchPage() {
         const parsed = getStoredUser<{ username?: string; name?: string }>();
         setEnteredBy(parsed?.username || parsed?.name || '');
     }, []);
+
+    useEffect(() => {
+        const loadCountries = async () => {
+            try {
+                const response = await fetch(`${ENDPOINTS.COUNTRIES.LIST}?status=active&sort=name&dir=asc`);
+                if (!response.ok) {
+                    return;
+                }
+                const data = await response.json() as CountryOption[];
+                if (!Array.isArray(data)) {
+                    return;
+                }
+                const names = Array.from(
+                    new Set(
+                        data
+                            .map((country) => String(country?.name || '').trim())
+                            .filter(Boolean)
+                    )
+                ).sort((left, right) => left.localeCompare(right));
+                setCountries(names);
+            } catch (error) {
+                console.error('Failed to load countries', error);
+            }
+        };
+
+        void loadCountries();
+    }, []);
+
+    const countryOptions = useMemo(() => countries, [countries]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -296,12 +331,18 @@ export default function CreateBranchPage() {
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Country</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Flag className="w-5 h-5" /></span>
-                            <input
-                                className="input-glass w-full"
+                            <select
+                                className="input-glass w-full pr-10 appearance-none cursor-pointer"
                                 value={formData.country}
                                 onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                                placeholder="Country"
-                            />
+                            >
+                                <option value="">Select country</option>
+                                {countryOptions.map((country) => (
+                                    <option key={country} value={country}>
+                                        {country}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                     </div>
                     <div>

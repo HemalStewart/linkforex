@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
@@ -29,6 +29,11 @@ const normalizeBranchPrefix = (value: string): string =>
         .replace(/[^A-Z0-9]/g, '')
         .slice(0, 3);
 
+type CountryOption = {
+    id?: string | number;
+    name?: string | null;
+};
+
 export default function EditBranchPage() {
     const router = useRouter();
     const params = useParams();
@@ -37,6 +42,7 @@ export default function EditBranchPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [enteredBy, setEnteredBy] = useState('');
+    const [countries, setCountries] = useState<string[]>([]);
 
     const [formData, setFormData] = useState({
         id: null as number | null,
@@ -79,10 +85,44 @@ export default function EditBranchPage() {
     }, []);
 
     useEffect(() => {
+        const loadCountries = async () => {
+            try {
+                const response = await fetch(`${ENDPOINTS.COUNTRIES.LIST}?status=active&sort=name&dir=asc`);
+                if (!response.ok) {
+                    return;
+                }
+                const data = await response.json() as CountryOption[];
+                if (!Array.isArray(data)) {
+                    return;
+                }
+                const names = Array.from(
+                    new Set(
+                        data
+                            .map((country) => String(country?.name || '').trim())
+                            .filter(Boolean)
+                    )
+                ).sort((left, right) => left.localeCompare(right));
+                setCountries(names);
+            } catch (error) {
+                console.error('Failed to load countries', error);
+            }
+        };
+
+        void loadCountries();
+    }, []);
+
+    useEffect(() => {
         if (branchId) {
             fetchBranch();
         }
     }, [branchId]);
+
+    const countryOptions = useMemo(() => {
+        if (!formData.country || countries.includes(formData.country)) {
+            return countries;
+        }
+        return [formData.country, ...countries];
+    }, [countries, formData.country]);
 
     const fetchBranch = async () => {
         try {
@@ -400,11 +440,18 @@ export default function EditBranchPage() {
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Country</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Flag className="w-5 h-5" /></span>
-                            <input
-                                className="input-glass w-full"
+                            <select
+                                className="input-glass w-full pr-10 appearance-none cursor-pointer"
                                 value={formData.country}
                                 onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                            />
+                            >
+                                <option value="">Select country</option>
+                                {countryOptions.map((country) => (
+                                    <option key={country} value={country}>
+                                        {country}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                     </div>
                     <div>

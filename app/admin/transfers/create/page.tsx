@@ -55,6 +55,8 @@ type CountryOption = {
     name?: string | null;
     currency_code?: string | null;
     payout_currency?: string | null;
+    currency_name?: string | null;
+    currency_symbol?: string | null;
 };
 
 type Bank = {
@@ -468,7 +470,7 @@ export default function CreateTransferPage() {
             try {
                 const [branchesRes, currenciesRes, countriesRes] = await Promise.all([
                     fetch(ENDPOINTS.BRANCHES.LIST),
-                    fetch(ENDPOINTS.CURRENCIES.LIST),
+                    fetch(`${ENDPOINTS.CURRENCIES.LIST}?status=active`),
                     fetch(`${ENDPOINTS.COUNTRIES.LIST}?status=active&sort=name&dir=asc`)
                 ]);
 
@@ -485,6 +487,24 @@ export default function CreateTransferPage() {
                 let allowedCurrencies: Currency[] = [];
                 let countryNames: string[] = [];
                 let countryCurrencyMap: Record<string, string> = {};
+                const legacyCurrencyMap = new Map<string, Currency>();
+
+                if (currenciesRes.ok) {
+                    const currencyData = (await currenciesRes.json()) as Currency[];
+                    if (Array.isArray(currencyData)) {
+                        currencyData.forEach((currency) => {
+                            const code = String(currency.code || '').trim().toUpperCase();
+                            if (!code) {
+                                return;
+                            }
+                            legacyCurrencyMap.set(code, {
+                                ...currency,
+                                code,
+                                rate: currency.rate || '0.0000',
+                            });
+                        });
+                    }
+                }
 
                 if (countriesRes.ok) {
                     const countryData = await countriesRes.json() as CountryOption[];
@@ -509,20 +529,30 @@ export default function CreateTransferPage() {
                         }, {});
                         setPayoutCurrencyByCountry(countryCurrencyMap);
 
-                        const payoutEnabledCodes = new Set(
-                            countryData
-                                .filter((country) => String(country?.payout_currency || '').trim().toLowerCase() === 'yes')
-                                .map((country) => String(country?.currency_code || '').trim().toUpperCase())
-                                .filter(Boolean)
-                        );
+                        const payoutCurrencyOptions = new Map<string, Currency>();
+                        countryData
+                            .filter((country) => String(country?.payout_currency || '').trim().toLowerCase() === 'yes')
+                            .forEach((country) => {
+                                const code = String(country?.currency_code || '').trim().toUpperCase();
+                                if (!code || payoutCurrencyOptions.has(code)) {
+                                    return;
+                                }
 
-                        if (currenciesRes.ok) {
-                            const currencyData = (await currenciesRes.json()) as Currency[];
-                            allowedCurrencies = currencyData.filter((currency) =>
-                                payoutEnabledCodes.has(String(currency.code || '').trim().toUpperCase())
-                            );
-                            setCurrencies(allowedCurrencies);
-                        }
+                                const legacyCurrency = legacyCurrencyMap.get(code);
+                                payoutCurrencyOptions.set(code, {
+                                    id: legacyCurrency?.id || code,
+                                    code,
+                                    name: legacyCurrency?.name || String(country?.currency_name || '').trim() || code,
+                                    rate:
+                                        legacyCurrency?.rate ||
+                                        (code === 'GBP' ? '1.0000' : '0.0000'),
+                                });
+                            });
+
+                        allowedCurrencies = Array.from(payoutCurrencyOptions.values()).sort((left, right) =>
+                            `${left.code} ${left.name}`.localeCompare(`${right.code} ${right.name}`)
+                        );
+                        setCurrencies(allowedCurrencies);
                     }
                 }
 

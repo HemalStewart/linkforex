@@ -143,6 +143,7 @@ export type MobileExchangeRate = {
     visible_in_app: 'yes' | 'no';
     show_on_home: 'yes' | 'no';
     default_for_transfer: 'yes' | 'no';
+    payout_enabled?: 'yes' | 'no';
     display_order: number;
     source_branch_code: string;
     source_branch_name: string;

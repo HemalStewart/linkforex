@@ -36,7 +36,10 @@ type BranchOption = {
 
 type CountryOption = {
     id: number | string;
+    name?: string | null;
     currency_code?: string | null;
+    currency_name?: string | null;
+    currency_symbol?: string | null;
     payout_currency?: string | null;
     black_list_country?: string | null;
     status?: string | null;
@@ -102,16 +105,47 @@ export default function MobileExchangeRatesPage() {
             const currenciesData = currenciesRes.ok ? await currenciesRes.json() : [];
             const branchesData = branchesRes.ok ? await branchesRes.json() : [];
             const countriesData = countriesRes.ok ? await countriesRes.json() : [];
-            const payoutEnabledCodes = new Set(
-                (Array.isArray(countriesData) ? countriesData : [])
-                    .map((country: CountryOption) => String(country.currency_code || '').trim().toUpperCase())
-                    .filter(Boolean)
-            );
-            const filteredCurrencies = (Array.isArray(currenciesData) ? currenciesData : []).filter((currency: CurrencyOption) =>
-                payoutEnabledCodes.has(String(currency.code || '').trim().toUpperCase())
+            const legacyCurrencyMap = new Map<string, CurrencyOption>();
+            (Array.isArray(currenciesData) ? currenciesData : []).forEach((currency: CurrencyOption) => {
+                const code = String(currency.code || '').trim().toUpperCase();
+                if (!code) {
+                    return;
+                }
+                legacyCurrencyMap.set(code, {
+                    ...currency,
+                    code,
+                });
+            });
+
+            const payoutCurrencies = new Map<string, CurrencyOption>();
+            (Array.isArray(countriesData) ? countriesData : []).forEach((country: CountryOption) => {
+                if (String(country.payout_currency || '').trim().toLowerCase() !== 'yes') {
+                    return;
+                }
+
+                const code = String(country.currency_code || '').trim().toUpperCase();
+                if (!code || payoutCurrencies.has(code)) {
+                    return;
+                }
+
+                const legacyCurrency = legacyCurrencyMap.get(code);
+                payoutCurrencies.set(code, {
+                    id: legacyCurrency?.id || code,
+                    code,
+                    name: legacyCurrency?.name || String(country.currency_name || '').trim() || code,
+                    symbol: legacyCurrency?.symbol || String(country.currency_symbol || '').trim() || null,
+                    status: legacyCurrency?.status || 'active',
+                });
+            });
+            const filteredCurrencies = Array.from(payoutCurrencies.values()).sort((left, right) =>
+                `${left.code} ${left.name}`.localeCompare(`${right.code} ${right.name}`)
             );
 
-            setRows(Array.isArray(ratesData) ? ratesData : []);
+            setRows(
+                (Array.isArray(ratesData) ? ratesData : []).filter((row: MobileExchangeRate) =>
+                    String(row.payout_enabled || '').trim().toLowerCase() !== 'no'
+                )
+            );
             setCurrencies(filteredCurrencies);
             setBranches(Array.isArray(branchesData) ? branchesData : []);
         } catch (error) {
