@@ -130,6 +130,28 @@ export type MobileAd = {
     status: 'active' | 'inactive';
 };
 
+export type MobileExchangeRate = {
+    id: number;
+    currency_code: string;
+    code: string;
+    name: string;
+    currency_name: string;
+    symbol: string;
+    currency_symbol: string;
+    rate: string;
+    status: 'active' | 'inactive';
+    visible_in_app: 'yes' | 'no';
+    show_on_home: 'yes' | 'no';
+    default_for_transfer: 'yes' | 'no';
+    display_order: number;
+    source_branch_code: string;
+    source_branch_name: string;
+    customer_rate?: string | null;
+    branch_rate?: string | null;
+    has_live_rate?: boolean;
+    updated_at?: string | null;
+};
+
 export const yesNoKeys: YesNoSettingKey[] = [
     'require_email_otp',
     'require_mobile_otp',

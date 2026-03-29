@@ -132,7 +132,7 @@ export default function CurrenciesPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Currencies</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Manage supported currencies and exchange rates</p>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Manage supported currency metadata. Mobile app display rates now come from Mobile Control &gt; Exchange Rates.</p>
                 </div>
                 <div className="flex items-center space-x-4">
                     <button onClick={fetchRates} className="px-5 py-3 rounded-full border-0 glass-effect text-slate-700 dark:text-slate-300 font-bold hover:shadow-lg transition-all group">
