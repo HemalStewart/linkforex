@@ -12,7 +12,6 @@ import {
     LayoutGrid,
     Layers,
     Users,
-    Smartphone,
     UserCheck,
     ShieldCheck,
     Settings,
@@ -540,11 +539,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 { name: 'KYC Reviews', href: '/admin/kyc', badge: counts.kyc > 0 ? counts.kyc.toString() : undefined, icon: <ShieldCheck className="w-4 h-4" /> },
                 { name: 'Branch Access Flags', href: '/admin/branch-access', badge: counts.branchAccessFlags > 0 ? counts.branchAccessFlags.toString() : undefined, icon: <AlertTriangle className="w-4 h-4" /> },
             ]
-        },
-        {
-            name: 'Mobile Accounts',
-            icon: <Smartphone className="w-5 h-5" />,
-            href: '/admin/mobile-users'
         },
         {
             name: 'Mobile Profiles',
