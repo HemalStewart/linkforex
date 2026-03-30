@@ -152,7 +152,7 @@ export default function MobileExchangeRatesPage() {
             setCurrencies(filteredCurrencies);
             const branchRows = Array.isArray(branchesData) ? branchesData : [];
             const senderBranches = branchRows.filter((branch: BranchOption) => isSenderBranch(branch));
-            setBranches(senderBranches.length > 0 ? senderBranches : branchRows);
+            setBranches(senderBranches);
         } catch (error) {
             console.error('Failed to fetch mobile exchange rates', error);
             setRows([]);
@@ -497,6 +497,11 @@ export default function MobileExchangeRatesPage() {
                     <p className="mt-2 font-medium text-slate-500 dark:text-slate-300">
                         Manage which branch-backed digital rates are visible in the mobile app.
                     </p>
+                    {branches.length === 0 && (
+                        <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700 dark:border-amber-700/60 dark:bg-amber-900/20 dark:text-amber-300">
+                            No sender branches are configured. Enable sender branch flag in branch settings first.
+                        </p>
+                    )}
                 </div>
                 <div className="flex items-center gap-3">
                     <button
@@ -690,9 +695,7 @@ function isSenderBranch(branch: BranchOption): boolean {
         branch.sender_enabled,
     ];
     const hasSignal = senderSignals.some((value) => value !== undefined && value !== null && String(value).trim() !== '');
-    if (!hasSignal) {
-        return true;
-    }
+    if (!hasSignal) return false;
     return senderSignals.some((value) => normalizeFlag(value));
 }
 

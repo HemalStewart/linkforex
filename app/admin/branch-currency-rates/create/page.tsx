@@ -106,7 +106,7 @@ export default function CreateBranchCurrencyRatePage() {
                     `${left.code} ${left.name}`.localeCompare(`${right.code} ${right.name}`)
                 );
 
-                setBranches(senderBranches.length > 0 ? senderBranches : branchRows);
+                setBranches(senderBranches);
                 setCurrencies(currencyRows);
                 setExistingRows(Array.isArray(existing) ? existing : []);
 
@@ -174,6 +174,18 @@ export default function CreateBranchCurrencyRatePage() {
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
 
+        if (branches.length === 0) {
+            setConfirmModal({
+                isOpen: true,
+                title: 'Sender Branches Not Configured',
+                message: 'No sender branches are available. Please enable sender branch flag and try again.',
+                type: 'warning',
+                isAlert: true,
+                shouldRedirect: false
+            });
+            return;
+        }
+
         if (!selectedCurrency || (!formData.setAllBranches && !selectedBranch)) {
             setConfirmModal({
                 isOpen: true,
@@ -223,31 +235,11 @@ export default function CreateBranchCurrencyRatePage() {
                     modified_user: userName
                 };
 
-                let response = await fetch(ENDPOINTS.BRANCH_CURRENCY_RATES.LIST, {
+                const response = await fetch(ENDPOINTS.BRANCH_CURRENCY_RATES.LIST, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-
-                // Backward compatibility: some backend versions still require `company`.
-                if (!response.ok) {
-                    let needsCompanyFallback = false;
-                    try {
-                        const err = await response.clone().json();
-                        const text = String(err?.message || err?.messages?.company || err?.messages?.error || '').toLowerCase();
-                        needsCompanyFallback = text.includes('company');
-                    } catch {
-                        // Ignore parse issues and keep original response.
-                    }
-
-                    if (needsCompanyFallback) {
-                        response = await fetch(ENDPOINTS.BRANCH_CURRENCY_RATES.LIST, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ ...payload, company: 'Link Forex Ltd' }),
-                        });
-                    }
-                }
 
                 if (!response.ok) {
                     let message = 'Failed to add branch currency rate.';
@@ -368,6 +360,11 @@ export default function CreateBranchCurrencyRatePage() {
                 <p className="text-slate-500 dark:text-slate-300 mt-2">
                     Create a new active rate and automatically deactivate previous active rates for the same branch/currency.
                 </p>
+                {branches.length === 0 && (
+                    <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700 dark:border-amber-700/60 dark:bg-amber-900/20 dark:text-amber-300">
+                        No sender branches are configured. Enable sender branch flag in branch settings first.
+                    </p>
+                )}
             </div>
 
             <form onSubmit={handleSubmit} className="card-glass p-8 space-y-6">
@@ -510,8 +507,6 @@ function isSenderBranch(branch: Branch): boolean {
         branch.sender_enabled,
     ];
     const hasSignal = senderSignals.some((value) => value !== undefined && value !== null && String(value).trim() !== '');
-    if (!hasSignal) {
-        return true;
-    }
+    if (!hasSignal) return false;
     return senderSignals.some((value) => normalizeFlag(value));
 }
