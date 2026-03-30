@@ -6,73 +6,121 @@ import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
 import { BadgeCheck, Building2, Edit2, PlusCircle, RefreshCw, Save, Trash2, X } from 'lucide-react';
 
+type YesNo = 'yes' | 'no';
+type SortDir = 'asc' | 'desc';
+
 type BankRow = {
     id: number | string;
     name?: string | null;
-    country?: string | null;
     country_bank_code?: string | null;
-    category?: string | null;
     bank_code?: string | null;
-    swift_code?: string | null;
     status?: string | null;
     is_default?: number | string | boolean | null;
+    sender_bank?: number | string | boolean | YesNo | null;
+    receiver_bank?: number | string | boolean | YesNo | null;
+    pickup_bank?: number | string | boolean | YesNo | null;
+    category?: string | null;
 };
-
-type SortKey = 'name' | 'country_bank_code' | 'bank_code' | 'swift_code' | 'category' | 'status' | 'is_default';
-type SortDir = 'asc' | 'desc';
 
 type BankFormState = {
     name: string;
     country_bank_code: string;
-    category: string;
     bank_code: string;
-    swift_code: string;
-    status: string;
+    sender_bank: number;
+    receiver_bank: number;
+    pickup_bank: number;
     is_default: number;
 };
 
-const CATEGORY_OPTIONS = [
-    { value: 'bank', label: 'Bank' },
-    { value: 'cash', label: 'Cash Pickup' },
-    { value: 'allied', label: 'Allied Bank (legacy)' },
-    { value: 'cash_pickup', label: 'Cash Pickup (legacy)' },
-];
+type SortKey =
+    | 'name'
+    | 'country_bank_code'
+    | 'bank_code'
+    | 'sender_bank'
+    | 'receiver_bank'
+    | 'pickup_bank'
+    | 'status'
+    | 'is_default';
 
-const STATUS_OPTIONS = ['active', 'inactive'];
-
-const EMPTY_BANK_FORM: BankFormState = {
+const EMPTY_FORM: BankFormState = {
     name: '',
     country_bank_code: '',
-    category: 'bank',
     bank_code: '',
-    swift_code: '',
-    status: 'active',
+    sender_bank: 0,
+    receiver_bank: 0,
+    pickup_bank: 0,
     is_default: 0,
 };
 
-const COUNTRY_CODE_BY_NAME: Record<string, string> = {
-    pakistan: 'PK',
-    'united kingdom': 'UK',
-    uk: 'UK',
-    'great britain': 'UK',
-    england: 'UK',
-    'sri lanka': 'LK',
-    uae: 'AE',
-    'united arab emirates': 'AE',
-};
-
-const toLabel = (value: string) =>
-    CATEGORY_OPTIONS.find((option) => option.value === value)?.label || value || '—';
-
 const normalizeCode = (value: string | null | undefined) => String(value || '').trim().toUpperCase();
 
-const codeFromCountry = (country: string | null | undefined) => {
-    const normalized = String(country || '').trim().toLowerCase();
-    return COUNTRY_CODE_BY_NAME[normalized] || '';
+const normalizeFlag = (value: unknown): number => {
+    const normalized = String(value ?? '').trim().toLowerCase();
+    if (!normalized) return 0;
+    return ['1', 'true', 'yes', 'y', 'on'].includes(normalized) ? 1 : 0;
 };
 
-const getCountryBankCode = (bank: BankRow) => normalizeCode(bank.country_bank_code) || codeFromCountry(bank.country);
-const isDefaultBank = (value: BankRow['is_default']) => String(value ?? '0') === '1' || value === true;
+const isDefaultBank = (value: unknown): boolean => normalizeFlag(value) === 1;
+
+const mapLegacyCategoryFlags = (bank: BankRow) => {
+    const category = String(bank.category || '').trim().toLowerCase();
+    switch (category) {
+        case 'cash':
+        case 'cash_pickup':
+            return { sender: 0, receiver: 1, pickup: 1 };
+        case 'allied':
+            return { sender: 1, receiver: 1, pickup: 0 };
+        default:
+            return { sender: 1, receiver: 1, pickup: 0 };
+    }
+};
+
+const senderFlag = (bank: BankRow): number => {
+    const value = normalizeFlag(bank.sender_bank);
+    if (value === 1) return 1;
+    if (bank.sender_bank === 0 || bank.sender_bank === '0') return 0;
+    return mapLegacyCategoryFlags(bank).sender;
+};
+
+const receiverFlag = (bank: BankRow): number => {
+    const value = normalizeFlag(bank.receiver_bank);
+    if (value === 1) return 1;
+    if (bank.receiver_bank === 0 || bank.receiver_bank === '0') return 0;
+    return mapLegacyCategoryFlags(bank).receiver;
+};
+
+const pickupFlag = (bank: BankRow): number => {
+    const value = normalizeFlag(bank.pickup_bank);
+    if (value === 1) return 1;
+    if (bank.pickup_bank === 0 || bank.pickup_bank === '0') return 0;
+    return mapLegacyCategoryFlags(bank).pickup;
+};
+
+const normalizeForm = (form: BankFormState): BankFormState => ({
+    ...form,
+    name: form.name.trim(),
+    country_bank_code: normalizeCode(form.country_bank_code),
+    bank_code: normalizeCode(form.bank_code),
+});
+
+const getSortValue = (bank: BankRow, key: SortKey): string | number => {
+    switch (key) {
+        case 'country_bank_code':
+            return normalizeCode(bank.country_bank_code);
+        case 'bank_code':
+            return normalizeCode(bank.bank_code);
+        case 'sender_bank':
+            return senderFlag(bank);
+        case 'receiver_bank':
+            return receiverFlag(bank);
+        case 'pickup_bank':
+            return pickupFlag(bank);
+        case 'is_default':
+            return isDefaultBank(bank.is_default) ? 1 : 0;
+        default:
+            return String(bank[key] || '').toLowerCase();
+    }
+};
 
 export default function BanksPage() {
     const [banks, setBanks] = useState<BankRow[]>([]);
@@ -80,10 +128,10 @@ export default function BanksPage() {
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [deleteBankId, setDeleteBankId] = useState<number | null>(null);
     const [editingId, setEditingId] = useState<string | number | null>(null);
-    const [editForm, setEditForm] = useState<BankFormState>(EMPTY_BANK_FORM);
+    const [editForm, setEditForm] = useState<BankFormState>(EMPTY_FORM);
     const [addModalOpen, setAddModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [newBank, setNewBank] = useState<BankFormState>(EMPTY_BANK_FORM);
+    const [newBank, setNewBank] = useState<BankFormState>(EMPTY_FORM);
     const [confirmModal, setConfirmModal] = useState({
         isOpen: false,
         title: '',
@@ -92,9 +140,6 @@ export default function BanksPage() {
         isAlert: true,
     });
     const [searchQuery, setSearchQuery] = useState('');
-    const [countryBankCodeFilter, setCountryBankCodeFilter] = useState('all');
-    const [categoryFilter, setCategoryFilter] = useState('all');
-    const [statusFilter, setStatusFilter] = useState('all');
     const [sortKey, setSortKey] = useState<SortKey>('name');
     const [sortDir, setSortDir] = useState<SortDir>('asc');
     const [page, setPage] = useState(1);
@@ -110,47 +155,35 @@ export default function BanksPage() {
             if (res.ok) {
                 const data = await res.json();
                 setBanks(Array.isArray(data) ? data : []);
+                return;
             }
+            setBanks([]);
         } catch (error) {
             console.error('Failed to fetch banks', error);
+            setBanks([]);
         } finally {
             setLoading(false);
         }
     };
 
-    const countryBankCodeOptions = useMemo(() => {
-        return Array.from(
-            new Set(
-                banks
-                    .map((bank) => getCountryBankCode(bank))
-                    .filter(Boolean)
-            )
-        ).sort((a, b) => a.localeCompare(b));
-    }, [banks]);
-
     const filteredBanks = useMemo(() => {
         const query = searchQuery.trim().toLowerCase();
+        if (!query) return banks;
 
-        return banks.filter((bank) => {
-            const bankCountryCode = getCountryBankCode(bank);
-            const matchesQuery = !query || [
+        return banks.filter((bank) =>
+            [
                 bank.name,
-                bankCountryCode,
                 bank.bank_code,
-                bank.swift_code,
-                bank.category,
+                bank.country_bank_code,
+                senderFlag(bank) ? 'sender yes' : 'sender no',
+                receiverFlag(bank) ? 'receiver yes' : 'receiver no',
+                pickupFlag(bank) ? 'pickup yes' : 'pickup no',
+                bank.status,
             ]
                 .filter(Boolean)
-                .some((value) => String(value).toLowerCase().includes(query));
-
-            const matchesCountryBankCode =
-                countryBankCodeFilter === 'all' || bankCountryCode === countryBankCodeFilter;
-            const matchesCategory = categoryFilter === 'all' || String(bank.category || '') === categoryFilter;
-            const matchesStatus = statusFilter === 'all' || String(bank.status || '') === statusFilter;
-
-            return matchesQuery && matchesCountryBankCode && matchesCategory && matchesStatus;
-        });
-    }, [banks, searchQuery, countryBankCodeFilter, categoryFilter, statusFilter]);
+                .some((value) => String(value).toLowerCase().includes(query))
+        );
+    }, [banks, searchQuery]);
 
     const sortedBanks = useMemo(() => {
         const rows = [...filteredBanks];
@@ -173,7 +206,7 @@ export default function BanksPage() {
 
     useEffect(() => {
         setPage(1);
-    }, [searchQuery, countryBankCodeFilter, categoryFilter, statusFilter, rowsPerPage, sortKey, sortDir]);
+    }, [searchQuery, rowsPerPage, sortKey, sortDir]);
 
     useEffect(() => {
         if (page !== currentPage) {
@@ -185,29 +218,47 @@ export default function BanksPage() {
         setEditingId(bank.id);
         setEditForm({
             name: String(bank.name || ''),
-            country_bank_code: getCountryBankCode(bank),
-            category: String(bank.category || 'bank'),
+            country_bank_code: normalizeCode(bank.country_bank_code),
             bank_code: normalizeCode(bank.bank_code),
-            swift_code: normalizeCode(bank.swift_code),
-            status: String(bank.status || 'active'),
+            sender_bank: senderFlag(bank),
+            receiver_bank: receiverFlag(bank),
+            pickup_bank: pickupFlag(bank),
             is_default: isDefaultBank(bank.is_default) ? 1 : 0,
         });
     };
 
-    const handleSave = async (id: number) => {
+    const handleSave = async (id: number | string) => {
         try {
+            const payload = normalizeForm(editForm);
             const res = await fetch(ENDPOINTS.BANKS.DETAIL(id), {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(normalizeForm(editForm)),
+                body: JSON.stringify(payload),
             });
 
             if (res.ok) {
                 setEditingId(null);
                 await fetchBanks();
+                return;
             }
+
+            const message = await readErrorMessage(res, 'Failed to update bank.');
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message,
+                type: 'danger',
+                isAlert: true,
+            });
         } catch (error) {
             console.error('Failed to update bank', error);
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'An error occurred while updating the bank.',
+                type: 'danger',
+                isAlert: true,
+            });
         }
     };
 
@@ -221,15 +272,16 @@ export default function BanksPage() {
                 setConfirmModal({
                     isOpen: true,
                     title: 'Deleted',
-                    message: 'Bank deleted successfully',
+                    message: 'Bank deleted successfully.',
                     type: 'info',
                     isAlert: true,
                 });
             } else {
+                const message = await readErrorMessage(res, 'Failed to delete bank.');
                 setConfirmModal({
                     isOpen: true,
                     title: 'Error',
-                    message: 'Failed to delete bank',
+                    message,
                     type: 'danger',
                     isAlert: true,
                 });
@@ -239,7 +291,7 @@ export default function BanksPage() {
             setConfirmModal({
                 isOpen: true,
                 title: 'Error',
-                message: 'An error occurred while deleting the bank',
+                message: 'An error occurred while deleting the bank.',
                 type: 'danger',
                 isAlert: true,
             });
@@ -253,23 +305,44 @@ export default function BanksPage() {
         e.preventDefault();
         setIsSubmitting(true);
         try {
+            const payload = normalizeForm(newBank);
             const res = await fetch(ENDPOINTS.BANKS.LIST, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(normalizeForm(newBank)),
+                body: JSON.stringify(payload),
             });
 
             if (res.ok) {
                 setAddModalOpen(false);
-                setNewBank(EMPTY_BANK_FORM);
+                setNewBank(EMPTY_FORM);
                 await fetchBanks();
-                setConfirmModal({ isOpen: true, title: 'Success', message: 'Bank added successfully', type: 'info', isAlert: true });
-            } else {
-                setConfirmModal({ isOpen: true, title: 'Error', message: 'Failed to add bank', type: 'danger', isAlert: true });
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Success',
+                    message: 'Bank added successfully.',
+                    type: 'info',
+                    isAlert: true,
+                });
+                return;
             }
+
+            const message = await readErrorMessage(res, 'Failed to add bank.');
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message,
+                type: 'danger',
+                isAlert: true,
+            });
         } catch (error) {
             console.error(error);
-            setConfirmModal({ isOpen: true, title: 'Error', message: 'An error occurred', type: 'danger', isAlert: true });
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'An error occurred while adding the bank.',
+                type: 'danger',
+                isAlert: true,
+            });
         } finally {
             setIsSubmitting(false);
         }
@@ -295,7 +368,9 @@ export default function BanksPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Banks</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Manage beneficiary banks and pickup networks</p>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">
+                        Manage sender, receiver, and cash pickup banks used by mobile + admin flows.
+                    </p>
                 </div>
                 <div className="flex items-center space-x-3">
                     <button
@@ -317,54 +392,15 @@ export default function BanksPage() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="md:col-span-2">
+            <div className="grid grid-cols-1 gap-4">
+                <div>
                     <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2">Search</label>
                     <input
                         className="input-glass w-full"
-                        placeholder="Search bank, country code, bank code, or SWIFT"
+                        placeholder="Search bank name, bank code, country bank code, or flags"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
-                </div>
-                <div>
-                    <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2">Country Bank Code</label>
-                    <select
-                        className="input-glass w-full"
-                        value={countryBankCodeFilter}
-                        onChange={(e) => setCountryBankCodeFilter(e.target.value)}
-                    >
-                        <option value="all">All</option>
-                        {countryBankCodeOptions.map((code) => (
-                            <option key={code} value={code}>{code}</option>
-                        ))}
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2">Category</label>
-                    <select
-                        className="input-glass w-full"
-                        value={categoryFilter}
-                        onChange={(e) => setCategoryFilter(e.target.value)}
-                    >
-                        <option value="all">All</option>
-                        {CATEGORY_OPTIONS.map((option) => (
-                            <option key={option.value} value={option.value}>{option.label}</option>
-                        ))}
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2">Status</label>
-                    <select
-                        className="input-glass w-full"
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                    >
-                        <option value="all">All</option>
-                        {STATUS_OPTIONS.map((option) => (
-                            <option key={option} value={option}>{option}</option>
-                        ))}
-                    </select>
                 </div>
             </div>
 
@@ -385,59 +421,77 @@ export default function BanksPage() {
                         <table className="table-shell">
                             <thead className="table-head">
                                 <tr>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">#</th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                        <button onClick={() => toggleSort('name')} className="flex items-center gap-1">
-                                            <span>Bank</span>
-                                            <span>{sortIndicator('name')}</span>
-                                        </button>
-                                    </th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                        <button onClick={() => toggleSort('country_bank_code')} className="flex items-center gap-1">
-                                            <span>Country Bank Code</span>
-                                            <span>{sortIndicator('country_bank_code')}</span>
-                                        </button>
-                                    </th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                    <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">#</th>
+                                    <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                         <button onClick={() => toggleSort('bank_code')} className="flex items-center gap-1">
                                             <span>Bank Code</span>
                                             <span>{sortIndicator('bank_code')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                        <button onClick={() => toggleSort('swift_code')} className="flex items-center gap-1">
-                                            <span>SWIFT</span>
-                                            <span>{sortIndicator('swift_code')}</span>
+                                    <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        <button onClick={() => toggleSort('name')} className="flex items-center gap-1">
+                                            <span>Bank Name</span>
+                                            <span>{sortIndicator('name')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                        <button onClick={() => toggleSort('category')} className="flex items-center gap-1">
-                                            <span>Category</span>
-                                            <span>{sortIndicator('category')}</span>
+                                    <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        <button onClick={() => toggleSort('country_bank_code')} className="flex items-center gap-1">
+                                            <span>Country Bank Code</span>
+                                            <span>{sortIndicator('country_bank_code')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                        <button onClick={() => toggleSort('status')} className="flex items-center gap-1">
+                                    <th className="px-6 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        <button onClick={() => toggleSort('sender_bank')} className="mx-auto flex items-center gap-1">
+                                            <span>Sender</span>
+                                            <span>{sortIndicator('sender_bank')}</span>
+                                        </button>
+                                    </th>
+                                    <th className="px-6 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        <button onClick={() => toggleSort('receiver_bank')} className="mx-auto flex items-center gap-1">
+                                            <span>Receiver</span>
+                                            <span>{sortIndicator('receiver_bank')}</span>
+                                        </button>
+                                    </th>
+                                    <th className="px-6 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        <button onClick={() => toggleSort('pickup_bank')} className="mx-auto flex items-center gap-1">
+                                            <span>Cash Pickup</span>
+                                            <span>{sortIndicator('pickup_bank')}</span>
+                                        </button>
+                                    </th>
+                                    <th className="px-6 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        <button onClick={() => toggleSort('status')} className="mx-auto flex items-center gap-1">
                                             <span>Status</span>
                                             <span>{sortIndicator('status')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-8 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                    <th className="px-6 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                         <button onClick={() => toggleSort('is_default')} className="mx-auto flex items-center gap-1">
                                             <span>Default</span>
                                             <span>{sortIndicator('is_default')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-8 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
+                                    <th className="px-6 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
                                 {pagedBanks.map((bank, idx) => (
                                     <tr key={bank.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
-                                        <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 font-medium">
+                                        <td className="px-6 py-5 text-sm text-slate-500 dark:text-slate-300 font-medium">
                                             {startIndex + idx + 1}
                                         </td>
-                                        <td className="px-8 py-5 font-bold text-slate-900 dark:text-white min-w-[240px]">
+                                        <td className="px-6 py-5 text-sm font-mono text-slate-700 dark:text-slate-200 whitespace-nowrap">
+                                            {editingId === bank.id ? (
+                                                <input
+                                                    className="input-glass py-1 px-3 w-40 uppercase"
+                                                    value={editForm.bank_code}
+                                                    maxLength={50}
+                                                    onChange={(e) => setEditForm({ ...editForm, bank_code: e.target.value.toUpperCase() })}
+                                                />
+                                            ) : (
+                                                normalizeCode(bank.bank_code) || '—'
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-5 font-bold text-slate-900 dark:text-white min-w-[240px]">
                                             {editingId === bank.id ? (
                                                 <input
                                                     className="input-glass py-1 px-3 w-full"
@@ -450,11 +504,11 @@ export default function BanksPage() {
                                                     <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 text-xs font-bold ring-2 ring-white dark:ring-slate-800">
                                                         {String(bank.name || '').substring(0, 2).toUpperCase()}
                                                     </div>
-                                                    <span>{bank.name}</span>
+                                                    <span>{bank.name || '—'}</span>
                                                 </div>
                                             )}
                                         </td>
-                                        <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">
+                                        <td className="px-6 py-5 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">
                                             {editingId === bank.id ? (
                                                 <input
                                                     className="input-glass py-1 px-3 w-24 uppercase"
@@ -463,56 +517,54 @@ export default function BanksPage() {
                                                     onChange={(e) => setEditForm({ ...editForm, country_bank_code: e.target.value.toUpperCase() })}
                                                 />
                                             ) : (
-                                                getCountryBankCode(bank) || '—'
+                                                normalizeCode(bank.country_bank_code) || '—'
                                             )}
                                         </td>
-                                        <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">
+                                        <td className="px-6 py-5 text-center">
                                             {editingId === bank.id ? (
                                                 <input
-                                                    className="input-glass py-1 px-3 w-28 uppercase"
-                                                    value={editForm.bank_code}
-                                                    maxLength={50}
-                                                    onChange={(e) => setEditForm({ ...editForm, bank_code: e.target.value.toUpperCase() })}
+                                                    type="checkbox"
+                                                    checked={Boolean(editForm.sender_bank)}
+                                                    onChange={(e) => setEditForm({ ...editForm, sender_bank: e.target.checked ? 1 : 0 })}
                                                 />
                                             ) : (
-                                                normalizeCode(bank.bank_code) || '—'
-                                            )}
-                                        </td>
-                                        <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">
-                                            {editingId === bank.id ? (
-                                                <input
-                                                    className="input-glass py-1 px-3 w-36 uppercase"
-                                                    value={editForm.swift_code}
-                                                    maxLength={50}
-                                                    onChange={(e) => setEditForm({ ...editForm, swift_code: e.target.value.toUpperCase() })}
-                                                />
-                                            ) : (
-                                                normalizeCode(bank.swift_code) || '—'
-                                            )}
-                                        </td>
-                                        <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">
-                                            {editingId === bank.id ? (
-                                                <select className="input-glass py-1 px-3 w-44" value={editForm.category} onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}>
-                                                    {CATEGORY_OPTIONS.map((option) => (
-                                                        <option key={option.value} value={option.value}>{option.label}</option>
-                                                    ))}
-                                                </select>
-                                            ) : toLabel(String(bank.category || ''))}
-                                        </td>
-                                        <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">
-                                            {editingId === bank.id ? (
-                                                <select className="input-glass py-1 px-3 w-28" value={editForm.status} onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}>
-                                                    {STATUS_OPTIONS.map((option) => (
-                                                        <option key={option} value={option}>{option}</option>
-                                                    ))}
-                                                </select>
-                                            ) : (
-                                                <span className={`badge-glass ${String(bank.status || 'inactive') === 'active' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-200' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>
-                                                    {bank.status || 'inactive'}
+                                                <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${senderFlag(bank) ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300'}`}>
+                                                    {senderFlag(bank) ? 'Yes' : 'No'}
                                                 </span>
                                             )}
                                         </td>
-                                        <td className="px-8 py-5 text-center">
+                                        <td className="px-6 py-5 text-center">
+                                            {editingId === bank.id ? (
+                                                <input
+                                                    type="checkbox"
+                                                    checked={Boolean(editForm.receiver_bank)}
+                                                    onChange={(e) => setEditForm({ ...editForm, receiver_bank: e.target.checked ? 1 : 0 })}
+                                                />
+                                            ) : (
+                                                <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${receiverFlag(bank) ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300'}`}>
+                                                    {receiverFlag(bank) ? 'Yes' : 'No'}
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-5 text-center">
+                                            {editingId === bank.id ? (
+                                                <input
+                                                    type="checkbox"
+                                                    checked={Boolean(editForm.pickup_bank)}
+                                                    onChange={(e) => setEditForm({ ...editForm, pickup_bank: e.target.checked ? 1 : 0 })}
+                                                />
+                                            ) : (
+                                                <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${pickupFlag(bank) ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300'}`}>
+                                                    {pickupFlag(bank) ? 'Yes' : 'No'}
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-5 text-center">
+                                            <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${String(bank.status || 'inactive') === 'active' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300'}`}>
+                                                {String(bank.status || 'inactive')}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-5 text-center">
                                             {editingId === bank.id ? (
                                                 <label className="inline-flex items-center gap-2 text-sm text-slate-500 dark:text-slate-300">
                                                     <input
@@ -526,10 +578,10 @@ export default function BanksPage() {
                                                 isDefaultBank(bank.is_default) ? <BadgeCheck className="w-5 h-5 text-emerald-500 inline" /> : <span className="text-slate-300">—</span>
                                             )}
                                         </td>
-                                        <td className="px-8 py-5 text-center">
+                                        <td className="px-6 py-5 text-center">
                                             {editingId === bank.id ? (
                                                 <div className="flex items-center justify-center space-x-2">
-                                                    <button onClick={() => void handleSave(Number(bank.id))} className="p-2 rounded-xl bg-teal-100 text-teal-600 hover:bg-teal-200 transition-colors">
+                                                    <button onClick={() => void handleSave(bank.id)} className="p-2 rounded-xl bg-teal-100 text-teal-600 hover:bg-teal-200 transition-colors">
                                                         <Save className="w-4 h-4" />
                                                     </button>
                                                     <button onClick={() => setEditingId(null)} className="p-2 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors">
@@ -549,6 +601,13 @@ export default function BanksPage() {
                                         </td>
                                     </tr>
                                 ))}
+                                {!loading && pagedBanks.length === 0 && (
+                                    <tr>
+                                        <td colSpan={10} className="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
+                                            No banks found.
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     )}
@@ -556,20 +615,18 @@ export default function BanksPage() {
                 <div className="px-6 py-4 border-t border-slate-100/70 dark:border-slate-700/60">
                     <div className="flex flex-wrap items-center gap-3 text-sm">
                         <span className="text-slate-400 dark:text-slate-300">Rows per page</span>
-                        <div className="relative input-icon">
-                            <select
-                                className="input-glass px-3 py-1.5 text-sm pr-8"
-                                value={rowsPerPage}
-                                onChange={(e) => {
-                                    setRowsPerPage(Number(e.target.value));
-                                    setPage(1);
-                                }}
-                            >
-                                <option value={25}>25</option>
-                                <option value={50}>50</option>
-                                <option value={100}>100</option>
-                            </select>
-                        </div>
+                        <select
+                            className="input-glass px-3 py-1.5 text-sm pr-8"
+                            value={rowsPerPage}
+                            onChange={(e) => {
+                                setRowsPerPage(Number(e.target.value));
+                                setPage(1);
+                            }}
+                        >
+                            <option value={25}>25</option>
+                            <option value={50}>50</option>
+                            <option value={100}>100</option>
+                        </select>
                         <button
                             onClick={() => setPage(Math.max(1, currentPage - 1))}
                             disabled={currentPage === 1}
@@ -590,54 +647,72 @@ export default function BanksPage() {
             </div>
 
             <Modal isOpen={addModalOpen} onClose={() => setAddModalOpen(false)} title="Add Bank">
-                <form onSubmit={handleAddSubmit} className="space-y-4">
+                <form onSubmit={handleAddSubmit} className="space-y-5">
+                    <div>
+                        <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Bank Code (Unique)</label>
+                        <input
+                            className="input-glass w-full uppercase"
+                            value={newBank.bank_code}
+                            onChange={(e) => setNewBank({ ...newBank, bank_code: e.target.value.toUpperCase() })}
+                            placeholder="PK-ABL-001"
+                            maxLength={50}
+                            required
+                        />
+                    </div>
                     <div>
                         <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Bank Name</label>
-                        <input className="input-glass w-full" value={newBank.name} onChange={(e) => setNewBank({ ...newBank, name: e.target.value })} required />
+                        <input
+                            className="input-glass w-full"
+                            value={newBank.name}
+                            onChange={(e) => setNewBank({ ...newBank, name: e.target.value })}
+                            required
+                        />
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Country Bank Code</label>
-                            <input className="input-glass w-full uppercase" value={newBank.country_bank_code} onChange={(e) => setNewBank({ ...newBank, country_bank_code: e.target.value.toUpperCase() })} placeholder="PK" maxLength={20} />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Bank Code</label>
-                            <input className="input-glass w-full uppercase" value={newBank.bank_code} onChange={(e) => setNewBank({ ...newBank, bank_code: e.target.value.toUpperCase() })} placeholder="ABLPKKAXXX" maxLength={50} />
-                        </div>
+                    <div>
+                        <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Country Bank Code</label>
+                        <input
+                            className="input-glass w-full uppercase"
+                            value={newBank.country_bank_code}
+                            onChange={(e) => setNewBank({ ...newBank, country_bank_code: e.target.value.toUpperCase() })}
+                            placeholder="PK"
+                            maxLength={20}
+                        />
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">SWIFT Code</label>
-                            <input className="input-glass w-full uppercase" value={newBank.swift_code} onChange={(e) => setNewBank({ ...newBank, swift_code: e.target.value.toUpperCase() })} placeholder="ABPAPKKA" maxLength={50} />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Category</label>
-                            <select className="input-glass w-full" value={newBank.category} onChange={(e) => setNewBank({ ...newBank, category: e.target.value })}>
-                                {CATEGORY_OPTIONS.map((option) => (
-                                    <option key={option.value} value={option.value}>{option.label}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Status</label>
-                            <select className="input-glass w-full" value={newBank.status} onChange={(e) => setNewBank({ ...newBank, status: e.target.value })}>
-                                {STATUS_OPTIONS.map((option) => (
-                                    <option key={option} value={option}>{option}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="flex items-center gap-2 pt-7">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <label className="inline-flex items-center gap-2 rounded-2xl border border-slate-200/70 dark:border-slate-700 px-3 py-2 text-sm font-medium">
                             <input
                                 type="checkbox"
-                                checked={Boolean(newBank.is_default)}
-                                onChange={(e) => setNewBank({ ...newBank, is_default: e.target.checked ? 1 : 0 })}
+                                checked={Boolean(newBank.sender_bank)}
+                                onChange={(e) => setNewBank({ ...newBank, sender_bank: e.target.checked ? 1 : 0 })}
                             />
-                            <span className="text-sm text-slate-600 dark:text-slate-300">Set as default</span>
-                        </div>
+                            Sender Bank
+                        </label>
+                        <label className="inline-flex items-center gap-2 rounded-2xl border border-slate-200/70 dark:border-slate-700 px-3 py-2 text-sm font-medium">
+                            <input
+                                type="checkbox"
+                                checked={Boolean(newBank.receiver_bank)}
+                                onChange={(e) => setNewBank({ ...newBank, receiver_bank: e.target.checked ? 1 : 0 })}
+                            />
+                            Receiver Bank
+                        </label>
+                        <label className="inline-flex items-center gap-2 rounded-2xl border border-slate-200/70 dark:border-slate-700 px-3 py-2 text-sm font-medium">
+                            <input
+                                type="checkbox"
+                                checked={Boolean(newBank.pickup_bank)}
+                                onChange={(e) => setNewBank({ ...newBank, pickup_bank: e.target.checked ? 1 : 0 })}
+                            />
+                            Pickup Bank
+                        </label>
                     </div>
-                    <div className="flex justify-end gap-3 pt-4">
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            checked={Boolean(newBank.is_default)}
+                            onChange={(e) => setNewBank({ ...newBank, is_default: e.target.checked ? 1 : 0 })}
+                        />
+                        <span className="text-sm text-slate-600 dark:text-slate-300">Set as default</span>
+                    </div>
+                    <div className="flex justify-end gap-3 pt-3">
                         <button type="button" onClick={() => setAddModalOpen(false)} className="btn-secondary">Cancel</button>
                         <button type="submit" className="btn-primary" disabled={isSubmitting}>
                             {isSubmitting ? 'Saving...' : 'Save Bank'}
@@ -673,27 +748,21 @@ export default function BanksPage() {
     );
 }
 
-function normalizeForm(form: BankFormState): BankFormState {
-    return {
-        ...form,
-        name: form.name.trim(),
-        country_bank_code: normalizeCode(form.country_bank_code),
-        bank_code: normalizeCode(form.bank_code),
-        swift_code: normalizeCode(form.swift_code),
-    };
-}
-
-function getSortValue(bank: BankRow, key: SortKey): string | number {
-    switch (key) {
-        case 'country_bank_code':
-            return getCountryBankCode(bank);
-        case 'bank_code':
-            return normalizeCode(bank.bank_code);
-        case 'swift_code':
-            return normalizeCode(bank.swift_code);
-        case 'is_default':
-            return isDefaultBank(bank.is_default) ? 1 : 0;
-        default:
-            return String(bank[key] || '').toLowerCase();
+async function readErrorMessage(res: Response, fallback: string): Promise<string> {
+    try {
+        const data = await res.json();
+        if (typeof data?.message === 'string' && data.message.trim() !== '') {
+            return data.message;
+        }
+        if (data?.messages && typeof data.messages === 'object') {
+            const joined = Object.values(data.messages)
+                .flat()
+                .filter(Boolean)
+                .join(' ');
+            if (joined) return joined;
+        }
+    } catch {
+        // Ignore parse errors.
     }
+    return fallback;
 }

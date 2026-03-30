@@ -292,15 +292,15 @@ export default function MobileExchangeRatesPage() {
                     isOpen: true,
                     title: 'Success',
                     message: editingId == null
-                        ? 'Mobile exchange rate config created.'
-                        : 'Mobile exchange rate config updated.',
+                        ? 'Customer digital rate config created.'
+                        : 'Customer digital rate config updated.',
                     type: 'info',
                     isAlert: true,
                 });
                 return;
             }
 
-            const error = await readErrorMessage(response, 'Failed to save mobile exchange rate config.');
+            const error = await readErrorMessage(response, 'Failed to save customer digital rate config.');
             setConfirmModal({
                 isOpen: true,
                 title: 'Error',
@@ -309,7 +309,7 @@ export default function MobileExchangeRatesPage() {
                 isAlert: true,
             });
         } catch (error) {
-            console.error('Failed to save mobile exchange rate config', error);
+            console.error('Failed to save customer digital rate config', error);
             setConfirmModal({
                 isOpen: true,
                 title: 'Error',
@@ -336,14 +336,14 @@ export default function MobileExchangeRatesPage() {
                 setConfirmModal({
                     isOpen: true,
                     title: 'Deleted',
-                    message: 'Mobile exchange rate config deleted.',
+                    message: 'Customer digital rate config deleted.',
                     type: 'info',
                     isAlert: true,
                 });
                 return;
             }
 
-            const error = await readErrorMessage(response, 'Failed to delete mobile exchange rate config.');
+            const error = await readErrorMessage(response, 'Failed to delete customer digital rate config.');
             setConfirmModal({
                 isOpen: true,
                 title: 'Error',
@@ -352,7 +352,7 @@ export default function MobileExchangeRatesPage() {
                 isAlert: true,
             });
         } catch (error) {
-            console.error('Failed to delete mobile exchange rate config', error);
+            console.error('Failed to delete customer digital rate config', error);
             setConfirmModal({
                 isOpen: true,
                 title: 'Error',
@@ -386,7 +386,7 @@ export default function MobileExchangeRatesPage() {
                 cancelText="Cancel"
             />
 
-            <Modal isOpen={modalOpen} onClose={closeModal} title={editingId == null ? 'Add Mobile Exchange Rate' : 'Edit Mobile Exchange Rate'}>
+            <Modal isOpen={modalOpen} onClose={closeModal} title={editingId == null ? 'Add Customer Digital Rate' : 'Edit Customer Digital Rate'}>
                 <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div>
@@ -471,7 +471,7 @@ export default function MobileExchangeRatesPage() {
                     </div>
 
                     <div className="rounded-3xl bg-slate-50/80 px-4 py-3 text-sm text-slate-500 dark:bg-slate-900/50 dark:text-slate-300">
-                        Numeric app rates come from <span className="font-semibold">Branch Currency Rates</span>. Only currencies flagged as payout-enabled in <span className="font-semibold">Countries</span> can be used here.
+                        Numeric app rates come from <span className="font-semibold">Customer Cash Rates</span>. Only currencies flagged as payout-enabled in <span className="font-semibold">Countries</span> can be used here.
                     </div>
 
                     <div className="flex items-center justify-end gap-3 pt-2">
@@ -488,9 +488,9 @@ export default function MobileExchangeRatesPage() {
 
             <div className="flex items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Mobile Exchange Rates</h1>
+                    <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Customer Digital Rates</h1>
                     <p className="mt-2 font-medium text-slate-500 dark:text-slate-300">
-                        Manage which branch-backed rates are visible in the mobile app.
+                        Manage which branch-backed digital rates are visible in the mobile app.
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -607,7 +607,7 @@ export default function MobileExchangeRatesPage() {
                                                         setDeleteTarget(row);
                                                         setConfirmModal({
                                                             isOpen: true,
-                                                            title: 'Delete Mobile Exchange Rate',
+                                                            title: 'Delete Customer Digital Rate',
                                                             message: `Delete ${row.code} from mobile app rate visibility?`,
                                                             type: 'danger',
                                                             isAlert: false,

@@ -454,8 +454,8 @@ export default function TransfersPage() {
 
         return {
             all: { label: 'All', shortLabel: 'All', count: rows.length },
-            awaiting_funds: { label: 'Awaiting Funds', shortLabel: 'Awaiting', count: countByStatus('awaiting_funds') },
-            funds_received: { label: 'Funds Received', shortLabel: 'Received', count: countByStatus('funds_received') },
+            awaiting_funds: { label: 'Awaiting', shortLabel: 'Awaiting', count: countByStatus('awaiting_funds') },
+            funds_received: { label: 'Received', shortLabel: 'Received', count: countByStatus('funds_received') },
             processing: { label: 'Processing', shortLabel: 'Processing', count: countByStatus('processing') },
             pending: { label: 'Pending', shortLabel: 'Pending', count: countByStatus('pending') },
             approved: { label: 'Approved', shortLabel: 'Approved', count: countByStatus('approved') },

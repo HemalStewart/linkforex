@@ -2,12 +2,13 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
+import { getStoredUser } from '@/app/lib/authStorage';
+import { isPrivilegedUser } from '@/app/lib/permissions';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
 import { Edit2, Globe, PlusCircle, RefreshCw, Save, ShieldAlert, Trash2, X } from 'lucide-react';
 
 type YesNo = 'yes' | 'no';
-type Status = 'active' | 'inactive';
 
 type CountryRow = {
     id: number | string;
@@ -20,7 +21,6 @@ type CountryRow = {
     high_risk_country?: YesNo | null;
     black_list_country?: YesNo | null;
     payout_currency?: YesNo | null;
-    status?: Status | null;
 };
 
 type CountryFormState = {
@@ -33,13 +33,11 @@ type CountryFormState = {
     currency_symbol: string;
     currency_name: string;
     payout_currency: YesNo;
-    status: Status;
 };
 
 type SortKey =
     | 'phone_code'
     | 'name'
-    | 'risk_level'
     | 'high_risk_country'
     | 'black_list_country'
     | 'currency_code'
@@ -59,11 +57,9 @@ const EMPTY_FORM: CountryFormState = {
     currency_symbol: '',
     currency_name: '',
     payout_currency: 'no',
-    status: 'active',
 };
 
 const YES_NO_OPTIONS: YesNo[] = ['yes', 'no'];
-const STATUS_OPTIONS: Status[] = ['active', 'inactive'];
 
 const riskBadgeClass = (value: YesNo) =>
     value === 'yes'
@@ -100,28 +96,6 @@ function getRiskLevel(country: CountryRow): RiskLevel {
     return 'low';
 }
 
-const riskLevelBadgeClass = (value: RiskLevel) => {
-    switch (value) {
-        case 'blacklisted':
-            return 'bg-slate-900 text-white ring-1 ring-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:ring-slate-300';
-        case 'high':
-            return 'bg-amber-50 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-900/30 dark:text-amber-200 dark:ring-amber-800';
-        default:
-            return 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-200 dark:ring-emerald-800';
-    }
-};
-
-const riskLevelLabel = (value: RiskLevel) => {
-    switch (value) {
-        case 'blacklisted':
-            return 'Blacklisted';
-        case 'high':
-            return 'High Risk';
-        default:
-            return 'Low Risk';
-    }
-};
-
 const rowTintClass = (country: CountryRow) => {
     const level = getRiskLevel(country);
 
@@ -143,7 +117,7 @@ export default function CountriesPage() {
     const [highRiskFilter, setHighRiskFilter] = useState<'all' | YesNo>('all');
     const [blackListFilter, setBlackListFilter] = useState<'all' | YesNo>('all');
     const [payoutFilter, setPayoutFilter] = useState<'all' | YesNo>('all');
-    const [statusFilter, setStatusFilter] = useState<'all' | Status>('all');
+    const [canDeleteCountry, setCanDeleteCountry] = useState(false);
     const [sortKey, setSortKey] = useState<SortKey>('name');
     const [sortDir, setSortDir] = useState<SortDir>('asc');
     const [page, setPage] = useState(1);
@@ -164,6 +138,61 @@ export default function CountriesPage() {
 
     useEffect(() => {
         void fetchCountries();
+    }, []);
+
+    useEffect(() => {
+        let ignore = false;
+
+        const resolveDeletePermission = async () => {
+            try {
+                const user = getStoredUser<{ role?: string | null; username?: string | null; email?: string | null; name?: string | null; system_defined?: string | null }>();
+                if (!user) {
+                    if (!ignore) setCanDeleteCountry(false);
+                    return;
+                }
+
+                if (isPrivilegedUser(user)) {
+                    if (!ignore) setCanDeleteCountry(true);
+                    return;
+                }
+
+                const roleName = String(user.role || '').trim().toLowerCase();
+                if (!roleName) {
+                    if (!ignore) setCanDeleteCountry(false);
+                    return;
+                }
+
+                const response = await fetch(ENDPOINTS.PERMISSION_GROUPS.LIST);
+                if (!response.ok) {
+                    if (!ignore) setCanDeleteCountry(false);
+                    return;
+                }
+
+                const data = await response.json();
+                const allowed = Array.isArray(data) && data.some((row) => {
+                    const role = String(row?.role_name || '').trim().toLowerCase();
+                    const section = String(row?.page_section || '').trim().toUpperCase();
+                    const operation = String(row?.operation || '').trim().toUpperCase();
+                    const active = String(row?.active || '').trim().toLowerCase();
+                    if (role !== roleName) return false;
+                    if (active !== 'yes') return false;
+                    if (operation !== 'DELETE') return false;
+                    return section === 'COUNTRY' || section === 'COUNTRIES' || section === 'COUNTRY_MASTER';
+                });
+
+                if (!ignore) {
+                    setCanDeleteCountry(allowed);
+                }
+            } catch {
+                if (!ignore) setCanDeleteCountry(false);
+            }
+        };
+
+        void resolveDeletePermission();
+
+        return () => {
+            ignore = true;
+        };
     }, []);
 
     const fetchCountries = async () => {
@@ -198,11 +227,10 @@ export default function CountriesPage() {
             const matchesHighRisk = highRiskFilter === 'all' || normalizeYesNo(country.high_risk_country) === highRiskFilter;
             const matchesBlackList = blackListFilter === 'all' || normalizeYesNo(country.black_list_country) === blackListFilter;
             const matchesPayout = payoutFilter === 'all' || normalizeYesNo(country.payout_currency) === payoutFilter;
-            const matchesStatus = statusFilter === 'all' || normalizeStatus(country.status) === statusFilter;
 
-            return matchesQuery && matchesHighRisk && matchesBlackList && matchesPayout && matchesStatus;
+            return matchesQuery && matchesHighRisk && matchesBlackList && matchesPayout;
         });
-    }, [countries, searchQuery, highRiskFilter, blackListFilter, payoutFilter, statusFilter]);
+    }, [countries, searchQuery, highRiskFilter, blackListFilter, payoutFilter]);
 
     const sortedCountries = useMemo(() => {
         const rows = [...filteredCountries];
@@ -226,12 +254,11 @@ export default function CountriesPage() {
         blacklisted: countries.filter((country) => getRiskLevel(country) === 'blacklisted').length,
         highRisk: countries.filter((country) => getRiskLevel(country) === 'high').length,
         payoutEnabled: countries.filter((country) => normalizeYesNo(country.payout_currency) === 'yes').length,
-        active: countries.filter((country) => normalizeStatus(country.status) === 'active').length,
     }), [countries]);
 
     useEffect(() => {
         setPage(1);
-    }, [searchQuery, highRiskFilter, blackListFilter, payoutFilter, statusFilter, rowsPerPage, sortKey, sortDir]);
+    }, [searchQuery, highRiskFilter, blackListFilter, payoutFilter, rowsPerPage, sortKey, sortDir]);
 
     useEffect(() => {
         if (page !== currentPage) {
@@ -257,7 +284,6 @@ export default function CountriesPage() {
             currency_symbol: String(country.currency_symbol || ''),
             currency_name: String(country.currency_name || ''),
             payout_currency: normalizeYesNo(country.payout_currency),
-            status: normalizeStatus(country.status),
         });
         setModalOpen(true);
     };
@@ -315,6 +341,17 @@ export default function CountriesPage() {
 
     const handleDelete = async () => {
         if (deleteCountryId == null) return;
+        if (!canDeleteCountry) {
+            setConfirmModal({
+                isOpen: true,
+                title: 'Permission denied',
+                message: 'You do not have permission to delete countries.',
+                type: 'warning',
+                isAlert: true,
+            });
+            setDeleteCountryId(null);
+            return;
+        }
         setDeleteLoading(true);
         try {
             const res = await fetch(ENDPOINTS.COUNTRIES.DETAIL(deleteCountryId), { method: 'DELETE' });
@@ -396,7 +433,7 @@ export default function CountriesPage() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="md:col-span-2">
                     <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2">Search</label>
                     <input
@@ -409,32 +446,18 @@ export default function CountriesPage() {
                 <FlagFilter label="High Risk" value={highRiskFilter} onChange={setHighRiskFilter} />
                 <FlagFilter label="Black List" value={blackListFilter} onChange={setBlackListFilter} />
                 <FlagFilter label="Payout Currency" value={payoutFilter} onChange={setPayoutFilter} />
-                <div>
-                    <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2">Status</label>
-                    <select
-                        className="input-glass w-full"
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value as 'all' | Status)}
-                    >
-                        <option value="all">All</option>
-                        {STATUS_OPTIONS.map((option) => (
-                            <option key={option} value={option}>{option}</option>
-                        ))}
-                    </select>
-                </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
                 <QuickFilterChip
                     label="All Countries"
                     count={countries.length}
-                    active={highRiskFilter === 'all' && blackListFilter === 'all' && payoutFilter === 'all' && statusFilter === 'all'}
+                    active={highRiskFilter === 'all' && blackListFilter === 'all' && payoutFilter === 'all'}
                     tone="neutral"
                     onClick={() => {
                         setHighRiskFilter('all');
                         setBlackListFilter('all');
                         setPayoutFilter('all');
-                        setStatusFilter('all');
                     }}
                 />
                 <QuickFilterChip
@@ -463,13 +486,6 @@ export default function CountriesPage() {
                     active={payoutFilter === 'yes'}
                     tone="success"
                     onClick={() => setPayoutFilter('yes')}
-                />
-                <QuickFilterChip
-                    label="Active"
-                    count={quickCounts.active}
-                    active={statusFilter === 'active'}
-                    tone="info"
-                    onClick={() => setStatusFilter('active')}
                 />
             </div>
 
@@ -501,12 +517,6 @@ export default function CountriesPage() {
                                         <button onClick={() => toggleSort('name')} className="flex items-center gap-1">
                                             <span>Country Name</span>
                                             <span>{sortIndicator('name')}</span>
-                                        </button>
-                                    </th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                        <button onClick={() => toggleSort('risk_level')} className="flex items-center gap-1">
-                                            <span>Risk Level</span>
-                                            <span>{sortIndicator('risk_level')}</span>
                                         </button>
                                     </th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
@@ -569,11 +579,6 @@ export default function CountriesPage() {
                                             </div>
                                         </td>
                                         <td className="px-8 py-5 text-sm whitespace-nowrap">
-                                            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${riskLevelBadgeClass(getRiskLevel(country))}`}>
-                                                {riskLevelLabel(getRiskLevel(country))}
-                                            </span>
-                                        </td>
-                                        <td className="px-8 py-5 text-sm whitespace-nowrap">
                                             <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${riskBadgeClass(normalizeYesNo(country.high_risk_country))}`}>
                                                 {riskBadgeLabel(normalizeYesNo(country.high_risk_country))}
                                             </span>
@@ -602,7 +607,12 @@ export default function CountriesPage() {
                                                 <button onClick={() => openEditModal(country)} className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all">
                                                     <Edit2 className="w-5 h-5" />
                                                 </button>
-                                                <button onClick={() => setDeleteCountryId(Number(country.id))} className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all">
+                                                <button
+                                                    onClick={() => setDeleteCountryId(Number(country.id))}
+                                                    disabled={!canDeleteCountry}
+                                                    title={canDeleteCountry ? 'Delete country' : 'Delete permission required'}
+                                                    className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:shadow-none"
+                                                >
                                                     <Trash2 className="w-5 h-5" />
                                                 </button>
                                             </div>
@@ -611,7 +621,7 @@ export default function CountriesPage() {
                                 ))}
                                 {!loading && pagedCountries.length === 0 && (
                                     <tr>
-                                        <td colSpan={11} className="px-8 py-12 text-center text-slate-500 dark:text-slate-400">
+                                        <td colSpan={10} className="px-8 py-12 text-center text-slate-500 dark:text-slate-400">
                                             No countries found for the current filters.
                                         </td>
                                     </tr>
@@ -662,22 +672,14 @@ export default function CountriesPage() {
                             <input className="input-glass w-full" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
                         </div>
                         <div>
-                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">ISO Code</label>
-                            <input className="input-glass w-full uppercase" value={form.iso_code} onChange={(e) => setForm({ ...form, iso_code: e.target.value.toUpperCase() })} maxLength={3} required />
+                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Alpha-2</label>
+                            <input className="input-glass w-full uppercase" value={form.iso_code} onChange={(e) => setForm({ ...form, iso_code: e.target.value.toUpperCase() })} maxLength={2} required />
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4">
                         <div>
-                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Country Code</label>
-                            <input className="input-glass w-full" value={form.phone_code} onChange={(e) => setForm({ ...form, phone_code: e.target.value.replace(/\D+/g, '') })} maxLength={4} placeholder="44" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Status</label>
-                            <select className="input-glass w-full" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as Status })}>
-                                {STATUS_OPTIONS.map((option) => (
-                                    <option key={option} value={option}>{option}</option>
-                                ))}
-                            </select>
+                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Country Code (2-3 digits)</label>
+                            <input className="input-glass w-full" value={form.phone_code} onChange={(e) => setForm({ ...form, phone_code: e.target.value.replace(/\D+/g, '') })} maxLength={3} placeholder="94" />
                         </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -764,15 +766,11 @@ function normalizeYesNo(value: CountryRow['high_risk_country']): YesNo {
     return String(value || '').toLowerCase() === 'yes' ? 'yes' : 'no';
 }
 
-function normalizeStatus(value: CountryRow['status']): Status {
-    return String(value || '').toLowerCase() === 'inactive' ? 'inactive' : 'active';
-}
-
 function normalizeForm(form: CountryFormState): CountryFormState {
     return {
         ...form,
         name: form.name.trim(),
-        iso_code: form.iso_code.trim().toUpperCase(),
+        iso_code: form.iso_code.trim().toUpperCase().slice(0, 2),
         phone_code: form.phone_code.replace(/\D+/g, ''),
         currency_code: form.currency_code.trim().toUpperCase(),
         currency_symbol: form.currency_symbol.trim(),
@@ -784,8 +782,6 @@ function getSortValue(country: CountryRow, key: SortKey): string {
     switch (key) {
         case 'phone_code':
             return String(country.phone_code || '');
-        case 'risk_level':
-            return getRiskLevel(country);
         case 'high_risk_country':
             return normalizeYesNo(country.high_risk_country);
         case 'black_list_country':

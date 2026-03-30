@@ -164,8 +164,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     fetch(`${ENDPOINTS.BRANCH_ACCESS_REQUESTS.LIST}?status=pending&_t=${timestamp}`).then(r => r.ok ? r.json() : [])
                 ]);
 
-                const getCount = (res: PromiseSettledResult<unknown>) =>
-                    res.status === 'fulfilled' && Array.isArray(res.value) ? res.value.length : 0;
+                const getCount = (res: PromiseSettledResult<unknown>) => {
+                    if (res.status !== 'fulfilled') return 0;
+                    const value = res.value as unknown;
+                    if (Array.isArray(value)) return value.length;
+                    if (value && typeof value === 'object') {
+                        const rows = (value as { data?: unknown }).data;
+                        if (Array.isArray(rows)) return rows.length;
+                        const count = (value as { count?: unknown }).count;
+                        if (typeof count === 'number' && Number.isFinite(count)) return count;
+                    }
+                    return 0;
+                };
 
                 // For KYC, we need to filter remitters
                 let kycCount = 0;
@@ -554,7 +564,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             children: [
                 { name: 'Overview', href: '/admin/mobile-users/control/overview' },
                 { name: 'App Flow Settings', href: '/admin/mobile-users/control/app-flow-settings', sections: ['MOBILE_APP_FLOW_SETTINGS'] },
-                { name: 'Exchange Rates', href: '/admin/mobile-users/control/exchange-rates' },
+                { name: 'Customer Digital Rates', href: '/admin/mobile-users/control/exchange-rates' },
                 { name: 'Wallet Funding Queue', href: '/admin/mobile-users/control/wallet-transfers' },
                 { name: 'Profile Review Queue', href: '/admin/mobile-users/control/profile-review-queue', sections: ['MOBILE_PROFILE_REVIEW_QUEUE'] },
                 { name: 'Campaigns', href: '/admin/mobile-users/control/campaigns', sections: ['MOBILE_CAMPAIGNS'] },
@@ -569,7 +579,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 { name: 'Roles', href: '/admin/roles', badge: counts.roles > 0 ? counts.roles.toString() : undefined, icon: <Shield className="w-4 h-4" />, sections: ['SYSGROUPS', 'ROLES'] },
                 { name: 'Role Permissions', href: '/admin/permission-groups', badge: counts.permissionGroups > 0 ? counts.permissionGroups.toString() : undefined, icon: <ShieldCheck className="w-4 h-4" />, sections: ['SYSGROUPS_PERMISSION', 'PERMISSION_GROUPS'] },
                 { name: 'Branches', href: '/admin/branches', badge: counts.branches > 0 ? counts.branches.toString() : undefined, icon: <Building2 className="w-4 h-4" />, sections: ['BRANCH', 'BRANCHES'] },
-                { name: 'Branch Currency Rates', href: '/admin/branch-currency-rates', badge: counts.branchCurrencyRates > 0 ? counts.branchCurrencyRates.toString() : undefined, icon: <Coins className="w-4 h-4" />, sections: ['BRANCH_CURRENCY_RATE', 'BRANCH_CURRENCY_RATES'] },
+                { name: 'Customer Cash Rates', href: '/admin/branch-currency-rates', badge: counts.branchCurrencyRates > 0 ? counts.branchCurrencyRates.toString() : undefined, icon: <Coins className="w-4 h-4" />, sections: ['BRANCH_CURRENCY_RATE', 'BRANCH_CURRENCY_RATES'] },
                 { name: 'Banks', href: '/admin/banks', badge: counts.banks > 0 ? counts.banks.toString() : undefined, icon: <Building2 className="w-4 h-4" /> },
                 { name: 'Countries', href: '/admin/countries', badge: counts.countries > 0 ? counts.countries.toString() : undefined, icon: <Globe className="w-4 h-4" /> },
             ]

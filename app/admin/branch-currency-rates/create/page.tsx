@@ -8,7 +8,6 @@ import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../../components/ConfirmModal';
 import {
     ArrowLeft,
-    Building2,
     Landmark,
     Coins,
     BadgePoundSterling,
@@ -30,13 +29,22 @@ type Currency = {
     symbol?: string;
 };
 
+type Country = {
+    id: string | number;
+    currency_code?: string | null;
+    currency_name?: string | null;
+    currency_symbol?: string | null;
+    payout_currency?: string | null;
+    black_list_country?: string | null;
+    status?: string | null;
+};
+
 type FormState = {
-    company: string;
     branchCode: string;
     currencyCode: string;
     customerRate: string;
     branchRate: string;
-    active: 'yes' | 'no';
+    setAllBranches: boolean;
 };
 
 export default function CreateBranchCurrencyRatePage() {
@@ -45,14 +53,14 @@ export default function CreateBranchCurrencyRatePage() {
     const [submitting, setSubmitting] = useState(false);
     const [branches, setBranches] = useState<Branch[]>([]);
     const [currencies, setCurrencies] = useState<Currency[]>([]);
+    const [existingRows, setExistingRows] = useState<any[]>([]);
 
     const [formData, setFormData] = useState<FormState>({
-        company: 'Link Forex Ltd',
         branchCode: '',
         currencyCode: '',
         customerRate: '',
         branchRate: '',
-        active: 'yes'
+        setAllBranches: false,
     });
 
     const [confirmModal, setConfirmModal] = useState({
@@ -68,21 +76,40 @@ export default function CreateBranchCurrencyRatePage() {
         const fetchSetup = async () => {
             setLoading(true);
             try {
-                const [branchesRes, currenciesRes] = await Promise.all([
-                    fetch(ENDPOINTS.BRANCHES.LIST),
-                    fetch(ENDPOINTS.CURRENCIES.LIST)
+                const [branchesRes, countriesRes, existingRowsRes] = await Promise.all([
+                    fetch(`${ENDPOINTS.BRANCHES.LIST}?status=active`),
+                    fetch(`${ENDPOINTS.COUNTRIES.LIST}?status=active&payout_currency=yes&sort=name&dir=asc`),
+                    fetch(ENDPOINTS.BRANCH_CURRENCY_RATES.LIST),
                 ]);
 
                 const branchRows = branchesRes.ok ? ((await branchesRes.json()) as Branch[]) : [];
-                const currencyRows = currenciesRes.ok ? ((await currenciesRes.json()) as Currency[]) : [];
+                const countriesRows = countriesRes.ok ? ((await countriesRes.json()) as Country[]) : [];
+                const existing = existingRowsRes.ok ? ((await existingRowsRes.json()) as any[]) : [];
+                const currencyMap = new Map<string, Currency>();
+                countriesRows.forEach((country) => {
+                    if (String(country.payout_currency || '').toLowerCase() !== 'yes') return;
+                    if (String(country.black_list_country || '').toLowerCase() === 'yes') return;
+                    const code = String(country.currency_code || '').trim().toUpperCase();
+                    if (!code || currencyMap.has(code)) return;
+                    currencyMap.set(code, {
+                        id: country.id,
+                        code,
+                        name: String(country.currency_name || '').trim() || code,
+                        symbol: String(country.currency_symbol || '').trim() || code,
+                    });
+                });
+                const currencyRows = Array.from(currencyMap.values()).sort((left, right) =>
+                    `${left.code} ${left.name}`.localeCompare(`${right.code} ${right.name}`)
+                );
 
                 setBranches(branchRows);
                 setCurrencies(currencyRows);
+                setExistingRows(Array.isArray(existing) ? existing : []);
 
                 setFormData((prev) => ({
                     ...prev,
-                    branchCode: prev.branchCode || (branchRows[0] ? String(branchRows[0].code || branchRows[0].transaction_prefix || branchRows[0].id) : ''),
-                    currencyCode: prev.currencyCode || (currencyRows[0] ? currencyRows[0].code : '')
+                    branchCode: prev.branchCode || '',
+                    currencyCode: prev.currencyCode || '',
                 }));
             } catch (error) {
                 console.error('Failed to load setup for branch currency rate', error);
@@ -104,6 +131,35 @@ export default function CreateBranchCurrencyRatePage() {
         [currencies, formData.currencyCode]
     );
 
+    const previousRate = useMemo(() => {
+        if (!formData.currencyCode) return null;
+        const filtered = existingRows.filter((row) => {
+            const code = String(row?.currency_code || '').trim().toUpperCase();
+            if (code !== formData.currencyCode.toUpperCase()) return false;
+            if (formData.setAllBranches) return true;
+            return String(row?.branch_code || '').trim() === formData.branchCode;
+        });
+        if (filtered.length === 0) return null;
+
+        return [...filtered].sort((left, right) => {
+            const leftTime = new Date(String(left?.updated_at || left?.created_at || 0)).getTime() || 0;
+            const rightTime = new Date(String(right?.updated_at || right?.created_at || 0)).getTime() || 0;
+            return rightTime - leftTime;
+        })[0];
+    }, [existingRows, formData.currencyCode, formData.branchCode, formData.setAllBranches]);
+
+    useEffect(() => {
+        if (!previousRate) return;
+        setFormData((prev) => {
+            if (prev.customerRate || prev.branchRate) return prev;
+            return {
+                ...prev,
+                customerRate: String(previousRate.customer_rate ?? ''),
+                branchRate: String(previousRate.branch_rate ?? ''),
+            };
+        });
+    }, [previousRate]);
+
     const handleModalClose = () => {
         setConfirmModal((prev) => ({ ...prev, isOpen: false }));
         if (confirmModal.shouldRedirect) {
@@ -114,11 +170,13 @@ export default function CreateBranchCurrencyRatePage() {
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
 
-        if (!selectedBranch || !selectedCurrency) {
+        if (!selectedCurrency || (!formData.setAllBranches && !selectedBranch)) {
             setConfirmModal({
                 isOpen: true,
                 title: 'Missing Information',
-                message: 'Please select branch and currency.',
+                message: formData.setAllBranches
+                    ? 'Please select a currency.'
+                    : 'Please select branch and currency.',
                 type: 'warning',
                 isAlert: true,
                 shouldRedirect: false
@@ -131,40 +189,90 @@ export default function CreateBranchCurrencyRatePage() {
         try {
             const user = getStoredUser<{ username?: string; name?: string }>();
             const userName = user?.username || user?.name || 'Admin';
+            const targetBranches = formData.setAllBranches
+                ? branches
+                    .map((branch) => ({
+                        code: String(branch.code || branch.transaction_prefix || branch.id),
+                        name: branch.name,
+                    }))
+                    .filter((branch) => branch.code && branch.name)
+                : [{ code: formData.branchCode, name: selectedBranch?.name || '' }];
 
-            const payload = {
-                company: formData.company || 'Link Forex Ltd',
-                branch_code: formData.branchCode,
-                branch_name: selectedBranch.name,
-                currency_code: selectedCurrency.code,
-                currency_name: selectedCurrency.name,
-                currency_symbol: selectedCurrency.symbol || selectedCurrency.code,
-                active: formData.active,
-                customer_rate: Number(formData.customerRate || 0),
-                branch_rate: Number(formData.branchRate || 0),
-                entered_user: userName,
-                modified_user: userName
-            };
+            if (targetBranches.length === 0) {
+                throw new Error('No valid branch found to apply this rate.');
+            }
 
-            const response = await fetch(ENDPOINTS.BRANCH_CURRENCY_RATES.LIST, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            const createdRecords: Array<{ id: string | number; branchCode: string; currencyCode: string }> = [];
+            const failures: string[] = [];
 
-            if (!response.ok) {
-                let message = 'Failed to add branch currency rate.';
-                try {
-                    const err = await response.json();
-                    message = err?.messages?.error || err?.message || message;
-                } catch {
-                    // ignore parse error
+            for (const branch of targetBranches) {
+                const payload = {
+                    company: 'Link Forex Ltd',
+                    branch_code: branch.code,
+                    branch_name: branch.name,
+                    currency_code: selectedCurrency.code,
+                    currency_name: selectedCurrency.name,
+                    currency_symbol: selectedCurrency.symbol || selectedCurrency.code,
+                    active: 'yes',
+                    customer_rate: Number(formData.customerRate || 0),
+                    branch_rate: Number(formData.branchRate || 0),
+                    entered_user: userName,
+                    modified_user: userName
+                };
+
+                const response = await fetch(ENDPOINTS.BRANCH_CURRENCY_RATES.LIST, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    let message = 'Failed to add branch currency rate.';
+                    try {
+                        const err = await response.json();
+                        message = err?.messages?.error || err?.message || message;
+                    } catch {
+                        // Ignore parse errors.
+                    }
+                    failures.push(`${branch.name}: ${message}`);
+                    continue;
                 }
 
+                const created = await response.json();
+                createdRecords.push({
+                    id: created?.id,
+                    branchCode: branch.code,
+                    currencyCode: selectedCurrency.code,
+                });
+            }
+
+            if (createdRecords.length > 0) {
+                const allRowsRes = await fetch(ENDPOINTS.BRANCH_CURRENCY_RATES.LIST);
+                const allRows = allRowsRes.ok ? await allRowsRes.json() : [];
+                if (Array.isArray(allRows)) {
+                    for (const created of createdRecords) {
+                        const duplicates = allRows
+                            .filter((row) => String(row?.branch_code || '') === created.branchCode)
+                            .filter((row) => String(row?.currency_code || '').toUpperCase() === created.currencyCode.toUpperCase())
+                            .filter((row) => String(row?.id || '') !== String(created.id || ''))
+                            .filter((row) => String(row?.active || '').toLowerCase() === 'yes');
+
+                        for (const duplicate of duplicates) {
+                            await fetch(ENDPOINTS.BRANCH_CURRENCY_RATES.DETAIL(duplicate.id), {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ active: 'no', modified_user: userName }),
+                            });
+                        }
+                    }
+                }
+            }
+
+            if (failures.length > 0 && createdRecords.length === 0) {
                 setConfirmModal({
                     isOpen: true,
                     title: 'Error',
-                    message,
+                    message: failures.join(' | '),
                     type: 'danger',
                     isAlert: true,
                     shouldRedirect: false
@@ -172,10 +280,22 @@ export default function CreateBranchCurrencyRatePage() {
                 return;
             }
 
+            if (failures.length > 0) {
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Partial Success',
+                    message: `Created ${createdRecords.length} rate(s). Some failed: ${failures.join(' | ')}`,
+                    type: 'warning',
+                    isAlert: true,
+                    shouldRedirect: true
+                });
+                return;
+            }
+
             setConfirmModal({
                 isOpen: true,
                 title: 'Success',
-                message: 'Branch currency rate added successfully.',
+                message: `Customer cash rate added for ${createdRecords.length} branch(es).`,
                 type: 'success',
                 isAlert: true,
                 shouldRedirect: true
@@ -219,35 +339,27 @@ export default function CreateBranchCurrencyRatePage() {
             <div className="mb-8">
                 <Link href="/admin/branch-currency-rates" className="inline-flex items-center text-sm font-bold text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 transition-colors mb-2 group">
                     <ArrowLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
-                    Back to Branch Currency Rates
+                    Back to Customer Cash Rates
                 </Link>
-                <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Add Branch Currency Rate</h1>
-                <p className="text-slate-500 dark:text-slate-300 mt-2">Create customer and branch rates for a branch and currency.</p>
+                <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Add Customer Cash Rate</h1>
+                <p className="text-slate-500 dark:text-slate-300 mt-2">
+                    Create a new active rate and automatically deactivate previous active rates for the same branch/currency.
+                </p>
             </div>
 
             <form onSubmit={handleSubmit} className="card-glass p-8 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Company <span className="text-red-500">*</span></label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left"><Building2 className="w-5 h-5" /></span>
-                            <input
-                                required
-                                value={formData.company}
-                                onChange={(event) => setFormData((prev) => ({ ...prev, company: event.target.value }))}
-                                className="input-glass w-full"
-                            />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Branch <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
+                            Branch {!formData.setAllBranches && <span className="text-red-500">*</span>}
+                        </label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Landmark className="w-5 h-5" /></span>
                             <select
-                                required
+                                required={!formData.setAllBranches}
                                 value={formData.branchCode}
                                 onChange={(event) => setFormData((prev) => ({ ...prev, branchCode: event.target.value }))}
+                                disabled={formData.setAllBranches}
                                 className="input-glass w-full pr-10 appearance-none"
                             >
                                 <option value="">Select branch</option>
@@ -262,6 +374,20 @@ export default function CreateBranchCurrencyRatePage() {
                             </select>
                             <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-500 dark:text-slate-200 pointer-events-none" />
                         </div>
+                        <label className="mt-3 inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                            <input
+                                type="checkbox"
+                                checked={formData.setAllBranches}
+                                onChange={(event) =>
+                                    setFormData((prev) => ({
+                                        ...prev,
+                                        setAllBranches: event.target.checked,
+                                        branchCode: event.target.checked ? '' : prev.branchCode,
+                                    }))
+                                }
+                            />
+                            Set this currency rate to all branches
+                        </label>
                     </div>
 
                     <div>
@@ -286,22 +412,7 @@ export default function CreateBranchCurrencyRatePage() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Active <span className="text-red-500">*</span></label>
-                        <div className="relative input-icon">
-                            <select
-                                value={formData.active}
-                                onChange={(event) => setFormData((prev) => ({ ...prev, active: event.target.value as 'yes' | 'no' }))}
-                                className="input-glass w-full pr-10 appearance-none"
-                            >
-                                <option value="yes">Yes</option>
-                                <option value="no">No</option>
-                            </select>
-                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-500 dark:text-slate-200 pointer-events-none" />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Customer Rate For £ <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Customer Cash Rate For £ <span className="text-red-500">*</span></label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><BadgePoundSterling className="w-5 h-5" /></span>
                             <input
@@ -333,6 +444,15 @@ export default function CreateBranchCurrencyRatePage() {
                     </div>
                 </div>
 
+                {previousRate && (
+                    <div className="rounded-2xl border border-amber-200/60 bg-amber-50/80 px-4 py-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
+                        Previous rate found:
+                        <span className="ml-2 font-semibold">Customer {Number(previousRate.customer_rate || 0).toFixed(4)}</span>
+                        <span className="mx-2">|</span>
+                        <span className="font-semibold">Branch {Number(previousRate.branch_rate || 0).toFixed(4)}</span>
+                    </div>
+                )}
+
                 <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-100/70 dark:border-slate-700/60">
                     <Link
                         href="/admin/branch-currency-rates"
@@ -346,7 +466,7 @@ export default function CreateBranchCurrencyRatePage() {
                         className="btn-primary px-6 py-2.5 rounded-full text-sm font-semibold inline-flex items-center gap-2 disabled:opacity-60"
                     >
                         <Save className="w-4 h-4" />
-                        {submitting ? 'Saving...' : 'Save Rate'}
+                        {submitting ? 'Saving...' : 'Save Customer Cash Rate'}
                     </button>
                 </div>
             </form>
