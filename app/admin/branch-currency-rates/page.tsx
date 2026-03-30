@@ -9,7 +9,6 @@ type SortDir = 'asc' | 'desc';
 
 type BranchCurrencyRate = {
     id: string | number;
-    company?: string;
     branch_code: string;
     branch_name: string;
     currency_code: string;
