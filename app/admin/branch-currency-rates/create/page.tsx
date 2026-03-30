@@ -211,7 +211,6 @@ export default function CreateBranchCurrencyRatePage() {
 
             for (const branch of targetBranches) {
                 const payload = {
-                    company: 'Link Forex Ltd',
                     branch_code: branch.code,
                     branch_name: branch.name,
                     currency_code: selectedCurrency.code,
@@ -224,11 +223,31 @@ export default function CreateBranchCurrencyRatePage() {
                     modified_user: userName
                 };
 
-                const response = await fetch(ENDPOINTS.BRANCH_CURRENCY_RATES.LIST, {
+                let response = await fetch(ENDPOINTS.BRANCH_CURRENCY_RATES.LIST, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
+
+                // Backward compatibility: some backend versions still require `company`.
+                if (!response.ok) {
+                    let needsCompanyFallback = false;
+                    try {
+                        const err = await response.clone().json();
+                        const text = String(err?.message || err?.messages?.company || err?.messages?.error || '').toLowerCase();
+                        needsCompanyFallback = text.includes('company');
+                    } catch {
+                        // Ignore parse issues and keep original response.
+                    }
+
+                    if (needsCompanyFallback) {
+                        response = await fetch(ENDPOINTS.BRANCH_CURRENCY_RATES.LIST, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ ...payload, company: 'Link Forex Ltd' }),
+                        });
+                    }
+                }
 
                 if (!response.ok) {
                     let message = 'Failed to add branch currency rate.';
