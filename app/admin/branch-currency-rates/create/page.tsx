@@ -20,6 +20,9 @@ type Branch = {
     name: string;
     code?: string;
     transaction_prefix?: string;
+    sender_branch?: string | number | boolean | null;
+    is_sender_branch?: string | number | boolean | null;
+    sender_enabled?: string | number | boolean | null;
 };
 
 type Currency = {
@@ -83,6 +86,7 @@ export default function CreateBranchCurrencyRatePage() {
                 ]);
 
                 const branchRows = branchesRes.ok ? ((await branchesRes.json()) as Branch[]) : [];
+                const senderBranches = branchRows.filter((branch) => isSenderBranch(branch));
                 const countriesRows = countriesRes.ok ? ((await countriesRes.json()) as Country[]) : [];
                 const existing = existingRowsRes.ok ? ((await existingRowsRes.json()) as any[]) : [];
                 const currencyMap = new Map<string, Currency>();
@@ -102,7 +106,7 @@ export default function CreateBranchCurrencyRatePage() {
                     `${left.code} ${left.name}`.localeCompare(`${right.code} ${right.name}`)
                 );
 
-                setBranches(branchRows);
+                setBranches(senderBranches.length > 0 ? senderBranches : branchRows);
                 setCurrencies(currencyRows);
                 setExistingRows(Array.isArray(existing) ? existing : []);
 
@@ -472,4 +476,23 @@ export default function CreateBranchCurrencyRatePage() {
             </form>
         </div>
     );
+}
+
+function normalizeFlag(value: unknown): boolean {
+    const normalized = String(value ?? '').trim().toLowerCase();
+    if (!normalized) return false;
+    return ['1', 'true', 'yes', 'y', 'on'].includes(normalized);
+}
+
+function isSenderBranch(branch: Branch): boolean {
+    const senderSignals: unknown[] = [
+        branch.sender_branch,
+        branch.is_sender_branch,
+        branch.sender_enabled,
+    ];
+    const hasSignal = senderSignals.some((value) => value !== undefined && value !== null && String(value).trim() !== '');
+    if (!hasSignal) {
+        return true;
+    }
+    return senderSignals.some((value) => normalizeFlag(value));
 }

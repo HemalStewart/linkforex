@@ -698,10 +698,10 @@ export default function CountriesPage() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">High Risk Country</label>
+                                <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">High Risk Country</label>
                             <select className="input-glass w-full" value={form.high_risk_country} onChange={(e) => setForm({ ...form, high_risk_country: e.target.value as YesNo })}>
                                 {YES_NO_OPTIONS.map((option) => (
-                                    <option key={option} value={option}>{option}</option>
+                                    <option key={option} value={option}>{toYesNoLabel(option)}</option>
                                 ))}
                             </select>
                         </div>
@@ -709,7 +709,7 @@ export default function CountriesPage() {
                             <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Black List Country</label>
                             <select className="input-glass w-full" value={form.black_list_country} onChange={(e) => setForm({ ...form, black_list_country: e.target.value as YesNo })}>
                                 {YES_NO_OPTIONS.map((option) => (
-                                    <option key={option} value={option}>{option}</option>
+                                    <option key={option} value={option}>{toYesNoLabel(option)}</option>
                                 ))}
                             </select>
                         </div>
@@ -717,7 +717,7 @@ export default function CountriesPage() {
                             <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Payout Currency</label>
                             <select className="input-glass w-full" value={form.payout_currency} onChange={(e) => setForm({ ...form, payout_currency: e.target.value as YesNo })}>
                                 {YES_NO_OPTIONS.map((option) => (
-                                    <option key={option} value={option}>{option}</option>
+                                    <option key={option} value={option}>{toYesNoLabel(option)}</option>
                                 ))}
                             </select>
                         </div>
@@ -876,10 +876,14 @@ function FlagFilter({
                 >
                     <option value="all">All</option>
                     {YES_NO_OPTIONS.map((option) => (
-                        <option key={option} value={option}>{option}</option>
+                        <option key={option} value={option}>{toYesNoLabel(option)}</option>
                     ))}
                 </select>
             </div>
         </div>
     );
+}
+
+function toYesNoLabel(value: YesNo): string {
+    return value === 'yes' ? 'Yes' : 'No';
 }

@@ -32,6 +32,9 @@ type BranchOption = {
     code: string;
     name: string;
     status?: string | null;
+    sender_branch?: string | number | boolean | null;
+    is_sender_branch?: string | number | boolean | null;
+    sender_enabled?: string | number | boolean | null;
 };
 
 type CountryOption = {
@@ -147,7 +150,9 @@ export default function MobileExchangeRatesPage() {
                 )
             );
             setCurrencies(filteredCurrencies);
-            setBranches(Array.isArray(branchesData) ? branchesData : []);
+            const branchRows = Array.isArray(branchesData) ? branchesData : [];
+            const senderBranches = branchRows.filter((branch: BranchOption) => isSenderBranch(branch));
+            setBranches(senderBranches.length > 0 ? senderBranches : branchRows);
         } catch (error) {
             console.error('Failed to fetch mobile exchange rates', error);
             setRows([]);
@@ -670,6 +675,25 @@ export default function MobileExchangeRatesPage() {
             </div>
         </div>
     );
+}
+
+function normalizeFlag(value: unknown): boolean {
+    const normalized = String(value ?? '').trim().toLowerCase();
+    if (!normalized) return false;
+    return ['1', 'true', 'yes', 'y', 'on'].includes(normalized);
+}
+
+function isSenderBranch(branch: BranchOption): boolean {
+    const senderSignals: unknown[] = [
+        branch.sender_branch,
+        branch.is_sender_branch,
+        branch.sender_enabled,
+    ];
+    const hasSignal = senderSignals.some((value) => value !== undefined && value !== null && String(value).trim() !== '');
+    if (!hasSignal) {
+        return true;
+    }
+    return senderSignals.some((value) => normalizeFlag(value));
 }
 
 function SortableHeader({
