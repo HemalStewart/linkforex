@@ -20,6 +20,8 @@ type Branch = {
     name: string;
     code?: string;
     transaction_prefix?: string;
+    default_transaction_type?: string | null;
+    branch_default_transaction_type?: string | null;
     sender_branch?: string | number | boolean | null;
     is_sender_branch?: string | number | boolean | null;
     sender_enabled?: string | number | boolean | null;
@@ -501,6 +503,15 @@ function normalizeFlag(value: unknown): boolean {
 }
 
 function isSenderBranch(branch: Branch): boolean {
+    const defaultType = String(
+        branch.default_transaction_type ?? branch.branch_default_transaction_type ?? ''
+    )
+        .trim()
+        .toLowerCase();
+    if (defaultType === 'sender') {
+        return true;
+    }
+
     const senderSignals: unknown[] = [
         branch.sender_branch,
         branch.is_sender_branch,
