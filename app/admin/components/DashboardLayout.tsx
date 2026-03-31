@@ -577,15 +577,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             ]
         },
         {
-            name: 'Basic Data',
-            icon: <Database className="w-5 h-5" />,
-            children: [
-                { name: 'Countries', href: '/admin/countries', badge: counts.countries > 0 ? counts.countries.toString() : undefined, icon: <Globe className="w-4 h-4" /> },
-                { name: 'Banks', href: '/admin/banks', badge: counts.banks > 0 ? counts.banks.toString() : undefined, icon: <Building2 className="w-4 h-4" /> },
-                { name: 'Relationships', href: '/admin/relationships', badge: counts.relationships > 0 ? counts.relationships.toString() : undefined, icon: <Users className="w-4 h-4" /> },
-            ]
-        },
-        {
             name: 'Management',
             icon: <Settings className="w-5 h-5" />,
             children: [
@@ -610,6 +601,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             icon: <BarChart3 className="w-5 h-5" />,
             href: '/admin/reports',
             sections: ['TODAY_SUMMARY', 'MC_STATISTICS', 'REPORTS']
+        },
+        {
+            name: 'Basic Data',
+            icon: <Database className="w-5 h-5" />,
+            children: [
+                { name: 'Countries', href: '/admin/countries', badge: counts.countries > 0 ? counts.countries.toString() : undefined, icon: <Globe className="w-4 h-4" /> },
+                { name: 'Banks', href: '/admin/banks', badge: counts.banks > 0 ? counts.banks.toString() : undefined, icon: <Building2 className="w-4 h-4" /> },
+                { name: 'Relationships', href: '/admin/relationships', badge: counts.relationships > 0 ? counts.relationships.toString() : undefined, icon: <Users className="w-4 h-4" /> },
+            ]
         }
     ];
 
