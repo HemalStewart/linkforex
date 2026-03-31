@@ -48,7 +48,6 @@ type FormState = {
     branchCode: string;
     currencyCode: string;
     customerRate: string;
-    branchRate: string;
     setAllBranches: boolean;
 };
 
@@ -64,7 +63,6 @@ export default function CreateBranchCurrencyRatePage() {
         branchCode: '',
         currencyCode: '',
         customerRate: '',
-        branchRate: '',
         setAllBranches: false,
     });
 
@@ -157,11 +155,10 @@ export default function CreateBranchCurrencyRatePage() {
     useEffect(() => {
         if (!previousRate) return;
         setFormData((prev) => {
-            if (prev.customerRate || prev.branchRate) return prev;
+            if (prev.customerRate) return prev;
             return {
                 ...prev,
                 customerRate: String(previousRate.customer_rate ?? ''),
-                branchRate: String(previousRate.branch_rate ?? ''),
             };
         });
     }, [previousRate]);
@@ -232,7 +229,7 @@ export default function CreateBranchCurrencyRatePage() {
                     currency_symbol: selectedCurrency.symbol || selectedCurrency.code,
                     active: 'yes',
                     customer_rate: Number(formData.customerRate || 0),
-                    branch_rate: Number(formData.branchRate || 0),
+                    branch_rate: Number(formData.customerRate || 0),
                     entered_user: userName,
                     modified_user: userName
                 };
@@ -449,29 +446,12 @@ export default function CreateBranchCurrencyRatePage() {
                         </div>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Branch Rate For £ <span className="text-red-500">*</span></label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left"><BadgePoundSterling className="w-5 h-5" /></span>
-                            <input
-                                required
-                                type="number"
-                                step="0.0001"
-                                min="0"
-                                value={formData.branchRate}
-                                onChange={(event) => setFormData((prev) => ({ ...prev, branchRate: event.target.value }))}
-                                className="input-glass w-full"
-                            />
-                        </div>
-                    </div>
                 </div>
 
                 {previousRate && (
                     <div className="rounded-2xl border border-amber-200/60 bg-amber-50/80 px-4 py-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
                         Previous rate found:
                         <span className="ml-2 font-semibold">Customer {Number(previousRate.customer_rate || 0).toFixed(4)}</span>
-                        <span className="mx-2">|</span>
-                        <span className="font-semibold">Branch {Number(previousRate.branch_rate || 0).toFixed(4)}</span>
                     </div>
                 )}
 

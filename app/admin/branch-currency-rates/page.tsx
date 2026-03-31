@@ -17,7 +17,6 @@ type BranchCurrencyRate = {
     currency_display?: string;
     active: 'yes' | 'no';
     customer_rate: string;
-    branch_rate: string;
     entered_user?: string;
     modified_user?: string;
     created_at?: string;
@@ -29,7 +28,6 @@ type SortKey =
     | 'currency_display'
     | 'active'
     | 'customer_rate'
-    | 'branch_rate'
     | 'entered_user'
     | 'created_at'
     | 'modified_user'
@@ -106,7 +104,6 @@ export default function BranchCurrencyRatesPage() {
                 row.currency_display,
                 row.active,
                 row.customer_rate,
-                row.branch_rate,
                 row.entered_user,
                 row.modified_user,
             ]
@@ -128,7 +125,6 @@ export default function BranchCurrencyRatesPage() {
                     case 'updated_at':
                         return row[sortKey] ? new Date(String(row[sortKey])).getTime() : 0;
                     case 'customer_rate':
-                    case 'branch_rate':
                         return Number(row[sortKey] || 0);
                     default:
                         return String(row[sortKey] || '');
@@ -252,7 +248,6 @@ export default function BranchCurrencyRatesPage() {
                                         ['currency_display', 'Currency'],
                                         ['active', 'Active'],
                                         ['customer_rate', 'Customer Cash Rate For £'],
-                                        ['branch_rate', 'Branch Rate For £'],
                                         ['entered_user', 'Entered User'],
                                         ['created_at', 'Entered Date'],
                                         ['modified_user', 'Modified User'],
@@ -287,7 +282,6 @@ export default function BranchCurrencyRatesPage() {
                                             </span>
                                         </td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{Number(row.customer_rate || 0).toLocaleString()}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{Number(row.branch_rate || 0).toLocaleString()}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.entered_user || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.created_at ? new Date(row.created_at).toLocaleString() : '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.modified_user || '-'}</td>
@@ -296,7 +290,7 @@ export default function BranchCurrencyRatesPage() {
                                 ))}
                                 {!loading && pagedRows.length === 0 && (
                                     <tr>
-                                        <td colSpan={10} className="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
+                                        <td colSpan={9} className="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
                                             No branch currency rates found.
                                         </td>
                                     </tr>
