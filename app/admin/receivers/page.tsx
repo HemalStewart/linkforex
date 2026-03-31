@@ -71,17 +71,27 @@ export default function ReceiversPage() {
                 </Link>
             </div>
 
-            <div className="relative group max-w-lg input-icon">
-                <div className="input-icon-left">
-                    <Search className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+            <div className="card-glass p-5">
+                <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
+                    <div className="xl:col-span-5">
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search</label>
+                        <div className="relative input-icon">
+                            <span className="input-icon-left">
+                                <Search className="w-4 h-4" />
+                            </span>
+                            <input
+                                type="search"
+                                placeholder="Receiver, bank, account number"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="input-glass w-full text-sm"
+                            />
+                        </div>
+                    </div>
+                    <div className="xl:col-span-7 flex items-end">
+                        <p className="text-xs text-slate-400 dark:text-slate-300">Search across all receiver columns.</p>
+                    </div>
                 </div>
-                <input
-                    type="search"
-                    placeholder="Search receivers by name, bank, or account number..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="input-glass w-full py-3"
-                />
             </div>
 
             <div className="card-glass overflow-hidden shadow-xl">

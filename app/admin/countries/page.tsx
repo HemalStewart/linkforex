@@ -6,7 +6,7 @@ import { getStoredUser } from '@/app/lib/authStorage';
 import { isPrivilegedUser } from '@/app/lib/permissions';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
-import { Edit2, Globe, PlusCircle, RefreshCw, Save, ShieldAlert, Trash2, X } from 'lucide-react';
+import { Edit2, Globe, PlusCircle, RefreshCw, Save, Search, ShieldAlert, Trash2, X } from 'lucide-react';
 
 type YesNo = 'yes' | 'no';
 
@@ -433,19 +433,32 @@ export default function CountriesPage() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2">Search</label>
-                    <input
-                        className="input-glass w-full"
-                        placeholder="Search country, code, currency, or symbol"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
+            <div className="card-glass p-5">
+                <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
+                    <div className="xl:col-span-5">
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search</label>
+                        <div className="relative input-icon">
+                            <span className="input-icon-left">
+                                <Search className="w-4 h-4" />
+                            </span>
+                            <input
+                                className="input-glass w-full text-sm"
+                                placeholder="Country, code, currency, symbol"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                    <div className="xl:col-span-2">
+                        <FlagFilter label="High Risk" value={highRiskFilter} onChange={setHighRiskFilter} />
+                    </div>
+                    <div className="xl:col-span-2">
+                        <FlagFilter label="Black List" value={blackListFilter} onChange={setBlackListFilter} />
+                    </div>
+                    <div className="xl:col-span-3">
+                        <FlagFilter label="Payout Currency" value={payoutFilter} onChange={setPayoutFilter} />
+                    </div>
                 </div>
-                <FlagFilter label="High Risk" value={highRiskFilter} onChange={setHighRiskFilter} />
-                <FlagFilter label="Black List" value={blackListFilter} onChange={setBlackListFilter} />
-                <FlagFilter label="Payout Currency" value={payoutFilter} onChange={setPayoutFilter} />
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
@@ -866,7 +879,7 @@ function FlagFilter({
 }) {
     return (
         <div>
-            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2">{label}</label>
+            <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">{label}</label>
             <div className="relative">
                 <ShieldAlert className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <select

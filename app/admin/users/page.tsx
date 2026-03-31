@@ -195,6 +195,8 @@ export default function UsersPage() {
     };
 
     const normalizeYesNo = (val: any) => (val === 'yes' || val === true || val === 1) ? 'yes' : 'no';
+    const toYesNoLabel = (val: any) => (normalizeYesNo(val) === 'yes' ? 'Yes' : 'No');
+    const toTitleLabel = (value: string) => value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
 
     const searchedUsers = searchQuery.trim()
         ? users.filter((u) => {
@@ -449,12 +451,12 @@ export default function UsersPage() {
                                         </td>
                                         <td className="px-4 py-4">
                                             <span className={`badge-glass px-3 py-1 rounded-full text-[10px] font-extrabold ${getYesNoBadge(user.system_defined)}`}>
-                                                {normalizeYesNo(user.system_defined)}
+                                                {toYesNoLabel(user.system_defined)}
                                             </span>
                                         </td>
                                         <td className="px-4 py-4">
                                             <span className={`badge-glass px-3 py-1 rounded-full text-[10px] font-extrabold ${getTwofaBadge(user.twofa_status)}`}>
-                                                {user.twofa_status || 'inactive'}
+                                                {toTitleLabel(String(user.twofa_status || 'inactive'))}
                                             </span>
                                         </td>
                                         <td className="px-4 py-4">

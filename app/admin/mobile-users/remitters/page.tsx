@@ -188,24 +188,26 @@ export default function RemittersPage() {
             </div>
 
             {/* Filters and Search */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                {/* Search */}
-                <div className="relative group w-full input-icon">
-                    <div className="input-icon-left">
-                        <Search className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+            <div className="card-glass p-5">
+                <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 items-end">
+                    <div className="xl:col-span-6">
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search</label>
+                        <div className="relative input-icon">
+                            <span className="input-icon-left">
+                                <Search className="w-4 h-4" />
+                            </span>
+                            <input
+                                type="search"
+                                placeholder="Profile name, email, or phone"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="input-glass w-full text-sm"
+                            />
+                        </div>
                     </div>
-                    <input
-                        type="search"
-                        placeholder="Search remitters by name, email or phone..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="input-glass w-full py-3 text-base shadow-sm hover:shadow-md transition-shadow"
-                    />
-                </div>
 
-                {/* Filter */}
-                <div className="flex justify-end">
-                    <div className="flex items-center card-glass p-1.5 rounded-full space-x-1">
+                    <div className="xl:col-span-6 flex xl:justify-end">
+                        <div className="flex items-center rounded-full border border-slate-200/70 dark:border-slate-700/60 bg-white/70 dark:bg-slate-900/50 p-1.5 space-x-1">
                         <button
                             onClick={() => setStatusFilter('all')}
                             className={`px-4 py-2 text-sm font-bold rounded-full transition-all ${statusFilter === 'all'
@@ -233,6 +235,7 @@ export default function RemittersPage() {
                         >
                             Inactive
                         </button>
+                        </div>
                     </div>
                 </div>
             </div>

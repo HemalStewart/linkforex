@@ -45,6 +45,17 @@ const normalizeDate = (value?: string | null): string => {
     return value.includes('T') ? value : value.replace(' ', 'T');
 };
 
+const toLabelCase = (value?: string | null): string => {
+    const text = String(value || '').trim();
+    if (!text) return '-';
+    return text
+        .replace(/[_-]+/g, ' ')
+        .split(' ')
+        .filter(Boolean)
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+        .join(' ');
+};
+
 const formatDateTime = (value?: string | null): string => {
     const normalized = normalizeDate(value);
     if (!normalized) return '—';
@@ -236,44 +247,48 @@ export default function SupportPage() {
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-                <div className="lg:col-span-2">
-                    <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2">Search</label>
-                    <div className="relative input-icon">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-                        <input
-                            className="input-glass w-full pl-10"
-                            placeholder="Ticket, email, phone, subject..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
+            <div className="card-glass p-5">
+                <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
+                    <div className="xl:col-span-6">
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search</label>
+                        <div className="relative input-icon">
+                            <span className="input-icon-left">
+                                <Search className="w-4 h-4" />
+                            </span>
+                            <input
+                                className="input-glass w-full text-sm"
+                                placeholder="Ticket, email, phone, subject..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
                     </div>
-                </div>
-                <div>
-                    <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2">Status</label>
-                    <select
-                        className="input-glass w-full"
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                    >
-                        <option value="all">All</option>
-                        {STATUS_OPTIONS.map((status) => (
-                            <option key={status} value={status}>{status}</option>
-                        ))}
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2">Priority</label>
-                    <select
-                        className="input-glass w-full"
-                        value={priorityFilter}
-                        onChange={(e) => setPriorityFilter(e.target.value)}
-                    >
-                        <option value="all">All</option>
-                        {PRIORITY_OPTIONS.map((priority) => (
-                            <option key={priority} value={priority}>{priority}</option>
-                        ))}
-                    </select>
+                    <div className="xl:col-span-3">
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Status</label>
+                        <select
+                            className="input-glass w-full text-sm"
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                        >
+                            <option value="all">All</option>
+                            {STATUS_OPTIONS.map((status) => (
+                                <option key={status} value={status}>{toLabelCase(status)}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="xl:col-span-3">
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Priority</label>
+                        <select
+                            className="input-glass w-full text-sm"
+                            value={priorityFilter}
+                            onChange={(e) => setPriorityFilter(e.target.value)}
+                        >
+                            <option value="all">All</option>
+                            {PRIORITY_OPTIONS.map((priority) => (
+                                <option key={priority} value={priority}>{toLabelCase(priority)}</option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -324,12 +339,12 @@ export default function SupportPage() {
                                         </td>
                                         <td className="px-8 py-5">
                                             <span className={`badge-glass ${statusStyles[String(ticket.status || 'open').toLowerCase()] || statusStyles.open}`}>
-                                                {normalizeText(ticket.status, 'open')}
+                                                {toLabelCase(normalizeText(ticket.status, 'open'))}
                                             </span>
                                         </td>
                                         <td className="px-8 py-5">
                                             <span className={`badge-glass ${priorityStyles[String(ticket.priority || 'normal').toLowerCase()] || priorityStyles.normal}`}>
-                                                {normalizeText(ticket.priority, 'normal')}
+                                                {toLabelCase(normalizeText(ticket.priority, 'normal'))}
                                             </span>
                                         </td>
                                         <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300">
@@ -422,7 +437,7 @@ export default function SupportPage() {
                                     onChange={(e) => setSelectedTicket((prev) => prev ? { ...prev, status: e.target.value } : prev)}
                                 >
                                     {STATUS_OPTIONS.map((status) => (
-                                        <option key={status} value={status}>{status}</option>
+                                        <option key={status} value={status}>{toLabelCase(status)}</option>
                                     ))}
                                 </select>
                             </div>
@@ -434,7 +449,7 @@ export default function SupportPage() {
                                     onChange={(e) => setSelectedTicket((prev) => prev ? { ...prev, priority: e.target.value } : prev)}
                                 >
                                     {PRIORITY_OPTIONS.map((priority) => (
-                                        <option key={priority} value={priority}>{priority}</option>
+                                        <option key={priority} value={priority}>{toLabelCase(priority)}</option>
                                     ))}
                                 </select>
                             </div>

@@ -46,6 +46,7 @@ export default function RolesPage() {
     }, []);
 
     const normalizeYesNo = (val: any) => (val === 'yes' || val === true || val === 1) ? 'yes' : 'no';
+    const toYesNoLabel = (value: any) => (normalizeYesNo(value) === 'yes' ? 'Yes' : 'No');
 
     const searchedRoles = searchQuery.trim()
         ? roles.filter((r) => {
@@ -398,7 +399,7 @@ export default function RolesPage() {
                                         <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{role.name || '-'}</td>
                                         <td className="px-4 py-4">
                                             <span className={`badge-glass px-3 py-1 rounded-full text-[10px] font-extrabold ${getYesNoBadge(role.system_defined)}`}>
-                                                {normalizeYesNo(role.system_defined)}
+                                                {toYesNoLabel(role.system_defined)}
                                             </span>
                                         </td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{role.created_by || '-'}</td>

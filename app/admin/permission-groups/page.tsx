@@ -37,6 +37,7 @@ const formatDateTime = (value?: string | null) => {
 };
 
 const normalizeYesNo = (value?: string | null) => (String(value || '').toLowerCase() === 'yes' ? 'yes' : 'no');
+const toYesNoLabel = (value?: string | null) => (normalizeYesNo(value) === 'yes' ? 'Yes' : 'No');
 
 export default function PermissionGroupsPage() {
     const [rows, setRows] = useState<PermissionGroupRow[]>([]);
@@ -791,7 +792,7 @@ export default function PermissionGroupsPage() {
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.operation}</td>
                                         <td className="px-4 py-4 text-sm">
                                             <span className={`px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${badgeClass(row.system_defined)}`}>
-                                                {normalizeYesNo(row.system_defined)}
+                                                {toYesNoLabel(row.system_defined)}
                                             </span>
                                         </td>
                                         <td className="px-4 py-4 text-sm text-center">
@@ -805,7 +806,7 @@ export default function PermissionGroupsPage() {
                                                 />
                                             </label>
                                             <div className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
-                                                {normalizeYesNo(row.active)}
+                                                {toYesNoLabel(row.active)}
                                             </div>
                                         </td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.created_by || '-'}</td>

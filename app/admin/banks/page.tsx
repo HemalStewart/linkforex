@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
-import { BadgeCheck, Building2, Edit2, PlusCircle, RefreshCw, Save, Trash2, X } from 'lucide-react';
+import { BadgeCheck, Building2, Edit2, PlusCircle, RefreshCw, Save, Search, Trash2, X } from 'lucide-react';
 
 type YesNo = 'yes' | 'no';
 type SortDir = 'asc' | 'desc';
@@ -53,6 +53,11 @@ const EMPTY_FORM: BankFormState = {
 };
 
 const normalizeCode = (value: string | null | undefined) => String(value || '').trim().toUpperCase();
+const toCapitalized = (value: string | null | undefined): string => {
+    const text = String(value || '').trim();
+    if (!text) return '-';
+    return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+};
 
 const normalizeFlag = (value: unknown): number => {
     const normalized = String(value ?? '').trim().toLowerCase();
@@ -392,15 +397,25 @@ export default function BanksPage() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-4">
-                <div>
-                    <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2">Search</label>
-                    <input
-                        className="input-glass w-full"
-                        placeholder="Search bank name, bank code, country bank code, or flags"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
+            <div className="card-glass p-5">
+                <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
+                    <div className="xl:col-span-5">
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search</label>
+                        <div className="relative input-icon">
+                            <span className="input-icon-left">
+                                <Search className="w-4 h-4" />
+                            </span>
+                            <input
+                                className="input-glass w-full text-sm"
+                                placeholder="Bank name, bank code, country bank code, flags"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                    <div className="xl:col-span-7 flex items-end">
+                        <p className="text-xs text-slate-400 dark:text-slate-300">Search across all bank columns.</p>
+                    </div>
                 </div>
             </div>
 
@@ -561,7 +576,7 @@ export default function BanksPage() {
                                         </td>
                                         <td className="px-6 py-5 text-center">
                                             <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${String(bank.status || 'inactive') === 'active' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300'}`}>
-                                                {String(bank.status || 'inactive')}
+                                                {toCapitalized(String(bank.status || 'inactive'))}
                                             </span>
                                         </td>
                                         <td className="px-6 py-5 text-center">
