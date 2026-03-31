@@ -574,6 +574,12 @@ html {
   padding-left: 2.75rem;
 }
 
+/* Fallback for absolute-positioned icons without helper class */
+.relative :is(svg, span).absolute + :is(input, select, textarea).input-glass,
+.relative :is(svg, span).absolute ~ :is(input, select, textarea).input-glass {
+  padding-left: 2.75rem;
+}
+
 .input-icon select.input-glass:not([class*='pr-']) {
   padding-right: 2.75rem;
 }
