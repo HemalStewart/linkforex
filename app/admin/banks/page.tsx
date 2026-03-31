@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
-import { BadgeCheck, Building2, Edit2, PlusCircle, RefreshCw, Save, Search, Trash2, X } from 'lucide-react';
+import { Building2, Edit2, PlusCircle, RefreshCw, Save, Search, Trash2, X } from 'lucide-react';
 
 type YesNo = 'yes' | 'no';
 type SortDir = 'asc' | 'desc';
@@ -24,48 +24,34 @@ type BankRow = {
 
 type BankFormState = {
     name: string;
-    country_bank_code: string;
     bank_code: string;
     sender_bank: number;
     receiver_bank: number;
     pickup_bank: number;
-    is_default: number;
 };
 
 type SortKey =
     | 'name'
-    | 'country_bank_code'
     | 'bank_code'
     | 'sender_bank'
     | 'receiver_bank'
-    | 'pickup_bank'
-    | 'status'
-    | 'is_default';
+    | 'pickup_bank';
 
 const EMPTY_FORM: BankFormState = {
     name: '',
-    country_bank_code: '',
     bank_code: '',
     sender_bank: 0,
     receiver_bank: 0,
     pickup_bank: 0,
-    is_default: 0,
 };
 
 const normalizeCode = (value: string | null | undefined) => String(value || '').trim().toUpperCase();
-const toCapitalized = (value: string | null | undefined): string => {
-    const text = String(value || '').trim();
-    if (!text) return '-';
-    return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
-};
 
 const normalizeFlag = (value: unknown): number => {
     const normalized = String(value ?? '').trim().toLowerCase();
     if (!normalized) return 0;
     return ['1', 'true', 'yes', 'y', 'on'].includes(normalized) ? 1 : 0;
 };
-
-const isDefaultBank = (value: unknown): boolean => normalizeFlag(value) === 1;
 
 const mapLegacyCategoryFlags = (bank: BankRow) => {
     const category = String(bank.category || '').trim().toLowerCase();
@@ -104,14 +90,11 @@ const pickupFlag = (bank: BankRow): number => {
 const normalizeForm = (form: BankFormState): BankFormState => ({
     ...form,
     name: form.name.trim(),
-    country_bank_code: normalizeCode(form.country_bank_code),
     bank_code: normalizeCode(form.bank_code),
 });
 
 const getSortValue = (bank: BankRow, key: SortKey): string | number => {
     switch (key) {
-        case 'country_bank_code':
-            return normalizeCode(bank.country_bank_code);
         case 'bank_code':
             return normalizeCode(bank.bank_code);
         case 'sender_bank':
@@ -120,8 +103,6 @@ const getSortValue = (bank: BankRow, key: SortKey): string | number => {
             return receiverFlag(bank);
         case 'pickup_bank':
             return pickupFlag(bank);
-        case 'is_default':
-            return isDefaultBank(bank.is_default) ? 1 : 0;
         default:
             return String(bank[key] || '').toLowerCase();
     }
@@ -179,11 +160,9 @@ export default function BanksPage() {
             [
                 bank.name,
                 bank.bank_code,
-                bank.country_bank_code,
                 senderFlag(bank) ? 'sender yes' : 'sender no',
                 receiverFlag(bank) ? 'receiver yes' : 'receiver no',
                 pickupFlag(bank) ? 'pickup yes' : 'pickup no',
-                bank.status,
             ]
                 .filter(Boolean)
                 .some((value) => String(value).toLowerCase().includes(query))
@@ -223,12 +202,10 @@ export default function BanksPage() {
         setEditingId(bank.id);
         setEditForm({
             name: String(bank.name || ''),
-            country_bank_code: normalizeCode(bank.country_bank_code),
             bank_code: normalizeCode(bank.bank_code),
             sender_bank: senderFlag(bank),
             receiver_bank: receiverFlag(bank),
             pickup_bank: pickupFlag(bank),
-            is_default: isDefaultBank(bank.is_default) ? 1 : 0,
         });
     };
 
@@ -360,7 +337,7 @@ export default function BanksPage() {
         }
 
         setSortKey(key);
-        setSortDir(key === 'is_default' ? 'desc' : 'asc');
+        setSortDir('asc');
     };
 
     const sortIndicator = (key: SortKey) => {
@@ -407,7 +384,7 @@ export default function BanksPage() {
                             </span>
                             <input
                                 className="input-glass w-full text-sm"
-                                placeholder="Bank name, bank code, country bank code, flags"
+                                placeholder="Bank name, bank code, flags"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
@@ -449,12 +426,6 @@ export default function BanksPage() {
                                             <span>{sortIndicator('name')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                        <button onClick={() => toggleSort('country_bank_code')} className="flex items-center gap-1">
-                                            <span>Country Bank Code</span>
-                                            <span>{sortIndicator('country_bank_code')}</span>
-                                        </button>
-                                    </th>
                                     <th className="px-6 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                         <button onClick={() => toggleSort('sender_bank')} className="mx-auto flex items-center gap-1">
                                             <span>Sender</span>
@@ -471,18 +442,6 @@ export default function BanksPage() {
                                         <button onClick={() => toggleSort('pickup_bank')} className="mx-auto flex items-center gap-1">
                                             <span>Cash Pickup</span>
                                             <span>{sortIndicator('pickup_bank')}</span>
-                                        </button>
-                                    </th>
-                                    <th className="px-6 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                        <button onClick={() => toggleSort('status')} className="mx-auto flex items-center gap-1">
-                                            <span>Status</span>
-                                            <span>{sortIndicator('status')}</span>
-                                        </button>
-                                    </th>
-                                    <th className="px-6 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                        <button onClick={() => toggleSort('is_default')} className="mx-auto flex items-center gap-1">
-                                            <span>Default</span>
-                                            <span>{sortIndicator('is_default')}</span>
                                         </button>
                                     </th>
                                     <th className="px-6 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
@@ -521,18 +480,6 @@ export default function BanksPage() {
                                                     </div>
                                                     <span>{bank.name || '—'}</span>
                                                 </div>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-5 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">
-                                            {editingId === bank.id ? (
-                                                <input
-                                                    className="input-glass py-1 px-3 w-24 uppercase"
-                                                    value={editForm.country_bank_code}
-                                                    maxLength={20}
-                                                    onChange={(e) => setEditForm({ ...editForm, country_bank_code: e.target.value.toUpperCase() })}
-                                                />
-                                            ) : (
-                                                normalizeCode(bank.country_bank_code) || '—'
                                             )}
                                         </td>
                                         <td className="px-6 py-5 text-center">
@@ -575,25 +522,6 @@ export default function BanksPage() {
                                             )}
                                         </td>
                                         <td className="px-6 py-5 text-center">
-                                            <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${String(bank.status || 'inactive') === 'active' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300'}`}>
-                                                {toCapitalized(String(bank.status || 'inactive'))}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-5 text-center">
-                                            {editingId === bank.id ? (
-                                                <label className="inline-flex items-center gap-2 text-sm text-slate-500 dark:text-slate-300">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={Boolean(editForm.is_default)}
-                                                        onChange={(e) => setEditForm({ ...editForm, is_default: e.target.checked ? 1 : 0 })}
-                                                    />
-                                                    Default
-                                                </label>
-                                            ) : (
-                                                isDefaultBank(bank.is_default) ? <BadgeCheck className="w-5 h-5 text-emerald-500 inline" /> : <span className="text-slate-300">—</span>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-5 text-center">
                                             {editingId === bank.id ? (
                                                 <div className="flex items-center justify-center space-x-2">
                                                     <button onClick={() => void handleSave(bank.id)} className="p-2 rounded-xl bg-teal-100 text-teal-600 hover:bg-teal-200 transition-colors">
@@ -618,7 +546,7 @@ export default function BanksPage() {
                                 ))}
                                 {!loading && pagedBanks.length === 0 && (
                                     <tr>
-                                        <td colSpan={10} className="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
+                                        <td colSpan={7} className="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
                                             No banks found.
                                         </td>
                                     </tr>
@@ -683,16 +611,6 @@ export default function BanksPage() {
                             required
                         />
                     </div>
-                    <div>
-                        <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Country Bank Code</label>
-                        <input
-                            className="input-glass w-full uppercase"
-                            value={newBank.country_bank_code}
-                            onChange={(e) => setNewBank({ ...newBank, country_bank_code: e.target.value.toUpperCase() })}
-                            placeholder="PK"
-                            maxLength={20}
-                        />
-                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <label className="inline-flex items-center gap-2 rounded-2xl border border-slate-200/70 dark:border-slate-700 px-3 py-2 text-sm font-medium">
                             <input
@@ -720,12 +638,9 @@ export default function BanksPage() {
                         </label>
                     </div>
                     <div className="flex items-center gap-2">
-                        <input
-                            type="checkbox"
-                            checked={Boolean(newBank.is_default)}
-                            onChange={(e) => setNewBank({ ...newBank, is_default: e.target.checked ? 1 : 0 })}
-                        />
-                        <span className="text-sm text-slate-600 dark:text-slate-300">Set as default</span>
+                        <span className="text-sm text-slate-500 dark:text-slate-300">
+                            `Receiver Bank` is used for beneficiary bank list in app. `Cash Pickup Bank` is used for pickup bank list.
+                        </span>
                     </div>
                     <div className="flex justify-end gap-3 pt-3">
                         <button type="button" onClick={() => setAddModalOpen(false)} className="btn-secondary">Cancel</button>
