@@ -234,6 +234,7 @@ export default function CreateTransferPage() {
     const [currencies, setCurrencies] = useState<Currency[]>([]);
     const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>([]);
     const [countries, setCountries] = useState<string[]>([]);
+    const [relationships, setRelationships] = useState<string[]>(['Family']);
     const [payoutCurrencyByCountry, setPayoutCurrencyByCountry] = useState<Record<string, string>>({});
 
     const [senderSearch, setSenderSearch] = useState('');
@@ -468,10 +469,11 @@ export default function CreateTransferPage() {
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
-                const [branchesRes, currenciesRes, countriesRes] = await Promise.all([
+                const [branchesRes, currenciesRes, countriesRes, relationshipsRes] = await Promise.all([
                     fetch(ENDPOINTS.BRANCHES.LIST),
                     fetch(`${ENDPOINTS.CURRENCIES.LIST}?status=active`),
-                    fetch(`${ENDPOINTS.COUNTRIES.LIST}?status=active&sort=name&dir=asc`)
+                    fetch(`${ENDPOINTS.COUNTRIES.LIST}?status=active&sort=name&dir=asc`),
+                    fetch(`${ENDPOINTS.RELATIONSHIPS.LIST}?status=active`)
                 ]);
 
                 let firstBranchCode = '';
@@ -487,6 +489,7 @@ export default function CreateTransferPage() {
                 let allowedCurrencies: Currency[] = [];
                 let countryNames: string[] = [];
                 let countryCurrencyMap: Record<string, string> = {};
+                let relationshipNames: string[] = relationships;
                 const legacyCurrencyMap = new Map<string, Currency>();
 
                 if (currenciesRes.ok) {
@@ -556,6 +559,17 @@ export default function CreateTransferPage() {
                     }
                 }
 
+                if (relationshipsRes.ok) {
+                    const relData = await relationshipsRes.json();
+                    if (Array.isArray(relData)) {
+                        const names = relData
+                            .map((row) => String(row?.name || '').trim())
+                            .filter(Boolean);
+                        relationshipNames = names.length ? names : relationshipNames;
+                        setRelationships(names.length ? names : ['Family']);
+                    }
+                }
+
                 setFormData((prev) => {
                     const fallbackCountry = countryNames.find(
                         (name) => normalizeCountryLabel(name) === 'afghanistan'
@@ -578,12 +592,15 @@ export default function CreateTransferPage() {
                             ? (preferredCurrency?.rate || '0')
                             : prev.customerRate;
 
+                    const nextRelationship = relationshipNames.find((name) => name === prev.relationship) || relationshipNames[0] || prev.relationship;
+
                     return {
                         ...prev,
                         toBranch: prev.toBranch || firstBranchCode,
                         receiverCountry,
                         payoutCurrency: nextPayoutCurrency,
                         customerRate: nextRate,
+                        relationship: nextRelationship,
                     };
                 });
             } catch (error) {
@@ -1730,10 +1747,9 @@ export default function CreateTransferPage() {
                     <div>
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Relationship</label>
                         <select className="input-glass w-full" value={formData.relationship} onChange={(event) => setFormData((prev) => ({ ...prev, relationship: event.target.value }))}>
-                            <option>Family</option>
-                            <option>Friend</option>
-                            <option>Business Partner</option>
-                            <option>Self</option>
+                            {relationships.map((relation) => (
+                                <option key={relation} value={relation}>{relation}</option>
+                            ))}
                         </select>
                     </div>
 

@@ -103,6 +103,7 @@ export default function CreateRemitterPage() {
     const [clientType, setClientType] = useState<'individual' | 'business'>('individual');
     const [activeTab, setActiveTab] = useState('general');
     const [branches, setBranches] = useState<any[]>([]);
+    const [relationships, setRelationships] = useState<string[]>(['Family']);
     const [loading, setLoading] = useState(false);
 
     const [confirmModal, setConfirmModal] = useState({
@@ -126,8 +127,33 @@ export default function CreateRemitterPage() {
         branchName: string;
     }
     const [receivers, setReceivers] = useState<Receiver[]>([
-        { firstName: '', lastName: '', relation: '', accountName: '', accountNumber: '', bankName: '', branchName: '' }
+        { firstName: '', lastName: '', relation: 'Family', accountName: '', accountNumber: '', bankName: '', branchName: '' }
     ]);
+
+    useEffect(() => {
+        const fetchRelationships = async () => {
+            try {
+                const res = await fetch(`${ENDPOINTS.RELATIONSHIPS.LIST}?status=active`);
+                if (!res.ok) return;
+                const data = await res.json();
+                if (!Array.isArray(data)) return;
+                const names = data
+                    .map((row) => String(row?.name || '').trim())
+                    .filter(Boolean);
+                const finalNames = names.length ? names : ['Family'];
+                setRelationships(finalNames);
+                setReceivers((prev) =>
+                    prev.map((receiver) => ({
+                        ...receiver,
+                        relation: receiver.relation || finalNames[0] || 'Family',
+                    }))
+                );
+            } catch (error) {
+                console.error('Failed to fetch relationships:', error);
+            }
+        };
+        fetchRelationships();
+    }, []);
 
     const addReceiver = () => {
         setReceivers([...receivers, { firstName: '', lastName: '', relation: '', accountName: '', accountNumber: '', bankName: '', branchName: '' }]);
@@ -720,13 +746,16 @@ export default function CreateRemitterPage() {
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Relationship *</label>
-                                            <input
-                                                type="text"
+                                            <select
                                                 required
                                                 className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm"
                                                 value={receiver.relation}
                                                 onChange={(e) => updateReceiver(index, 'relation', e.target.value)}
-                                            />
+                                            >
+                                                {relationships.map((relation) => (
+                                                    <option key={relation} value={relation}>{relation}</option>
+                                                ))}
+                                            </select>
                                         </div>
 
                                         <div className="md:col-span-3 h-px bg-slate-200 dark:bg-slate-700 my-2"></div>

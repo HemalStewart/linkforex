@@ -47,7 +47,7 @@ export default function CreateReceiverPage() {
         cash: 'cash_pickup'
     };
     const idTypes = ['Passport', 'CNIC', 'Driving license', 'Other'];
-    const relations = ['Family', 'Friend', 'Business Partner', 'Self', 'Other'];
+    const [relationships, setRelationships] = useState<string[]>(['Family']);
 
     const [formData, setFormData] = useState({
         customer_id: preselectedCustomerId,
@@ -65,7 +65,7 @@ export default function CreateReceiverPage() {
         branch_code: '',
         receiver_id_type: '',
         receiver_id_number: '',
-        relation: relations[0],
+        relation: relationships[0] || 'Family',
         mobile_number: '',
         status: 'active',
     });
@@ -152,6 +152,28 @@ export default function CreateReceiverPage() {
         };
 
         fetchCountries();
+    }, []);
+
+    useEffect(() => {
+        const fetchRelationships = async () => {
+            try {
+                const res = await fetch(`${ENDPOINTS.RELATIONSHIPS.LIST}?status=active`);
+                if (!res.ok) return;
+                const data = await res.json();
+                if (!Array.isArray(data)) return;
+                const names = data
+                    .map((row) => String(row?.name || '').trim())
+                    .filter(Boolean);
+                setRelationships(names.length ? names : ['Family']);
+                setFormData((prev) => ({
+                    ...prev,
+                    relation: names.includes(prev.relation) ? prev.relation : (names[0] || prev.relation),
+                }));
+            } catch (error) {
+                console.error('Failed to fetch relationships:', error);
+            }
+        };
+        fetchRelationships();
     }, []);
 
     useEffect(() => {
@@ -430,7 +452,7 @@ export default function CreateReceiverPage() {
                                 value={formData.relation}
                                 onChange={(e) => setFormData({ ...formData, relation: e.target.value })}
                             >
-                                {relations.map((relation) => (
+                                {relationships.map((relation) => (
                                     <option key={relation} value={relation}>{relation}</option>
                                 ))}
                             </select>

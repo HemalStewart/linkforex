@@ -17,6 +17,7 @@ import {
     Settings,
     Shield,
     Building2,
+    Database,
     Globe,
     Coins,
     Cpu,
@@ -84,6 +85,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const signOffSentRef = React.useRef(false);
     const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
         'Operations': true,
+        'Basic Data': true,
         'Management': true
     });
 
@@ -96,6 +98,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         branchCurrencyRates: 0,
         banks: 0,
         countries: 0,
+        relationships: 0,
         roles: 0,
         permissionGroups: 0,
         branchAccessFlags: 0,
@@ -150,7 +153,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             const timestamp = Date.now();
             try {
                 // Parallel fetch for dashboard counts
-                const [tRes, rRes, bRes, uRes, brRes, bcrRes, banksRes, countriesRes, roRes, pgRes, baRes] = await Promise.allSettled([
+                const [tRes, rRes, bRes, uRes, brRes, bcrRes, banksRes, countriesRes, relRes, roRes, pgRes, baRes] = await Promise.allSettled([
                     fetch(`${ENDPOINTS.TRANSFERS.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                     fetch(`${ENDPOINTS.REMITTERS.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                     fetch(`${ENDPOINTS.BENEFICIARIES.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
@@ -159,6 +162,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     fetch(`${ENDPOINTS.BRANCH_CURRENCY_RATES.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                     fetch(`${ENDPOINTS.BANKS.LIST}?include_blacklisted=yes&_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                     fetch(`${ENDPOINTS.COUNTRIES.LIST}?include_blacklisted=yes&_t=${timestamp}`).then(r => r.ok ? r.json() : []),
+                    fetch(`${ENDPOINTS.RELATIONSHIPS.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                     fetch(`${ENDPOINTS.ROLES.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                     fetch(`${ENDPOINTS.PERMISSION_GROUPS.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                     fetch(`${ENDPOINTS.BRANCH_ACCESS_REQUESTS.LIST}?status=pending&_t=${timestamp}`).then(r => r.ok ? r.json() : [])
@@ -195,6 +199,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     branchCurrencyRates: getCount(bcrRes),
                     banks: getCount(banksRes),
                     countries: getCount(countriesRes),
+                    relationships: getCount(relRes),
                     roles: getCount(roRes),
                     permissionGroups: getCount(pgRes),
                     branchAccessFlags: getCount(baRes),
@@ -572,6 +577,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             ]
         },
         {
+            name: 'Basic Data',
+            icon: <Database className="w-5 h-5" />,
+            children: [
+                { name: 'Countries', href: '/admin/countries', badge: counts.countries > 0 ? counts.countries.toString() : undefined, icon: <Globe className="w-4 h-4" /> },
+                { name: 'Banks', href: '/admin/banks', badge: counts.banks > 0 ? counts.banks.toString() : undefined, icon: <Building2 className="w-4 h-4" /> },
+                { name: 'Relationships', href: '/admin/relationships', badge: counts.relationships > 0 ? counts.relationships.toString() : undefined, icon: <Users className="w-4 h-4" /> },
+            ]
+        },
+        {
             name: 'Management',
             icon: <Settings className="w-5 h-5" />,
             children: [
@@ -580,8 +594,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 { name: 'Role Permissions', href: '/admin/permission-groups', badge: counts.permissionGroups > 0 ? counts.permissionGroups.toString() : undefined, icon: <ShieldCheck className="w-4 h-4" />, sections: ['SYSGROUPS_PERMISSION', 'PERMISSION_GROUPS'] },
                 { name: 'Branches', href: '/admin/branches', badge: counts.branches > 0 ? counts.branches.toString() : undefined, icon: <Building2 className="w-4 h-4" />, sections: ['BRANCH', 'BRANCHES'] },
                 { name: 'Branch Rates', href: '/admin/branch-rates', badge: counts.branchCurrencyRates > 0 ? counts.branchCurrencyRates.toString() : undefined, icon: <Coins className="w-4 h-4" />, sections: ['BRANCH_CURRENCY_RATE', 'BRANCH_CURRENCY_RATES', 'MOBILE_EXCHANGE_RATES', 'MOBILE_APP_FLOW_SETTINGS'] },
-                { name: 'Banks', href: '/admin/banks', badge: counts.banks > 0 ? counts.banks.toString() : undefined, icon: <Building2 className="w-4 h-4" /> },
-                { name: 'Countries', href: '/admin/countries', badge: counts.countries > 0 ? counts.countries.toString() : undefined, icon: <Globe className="w-4 h-4" /> },
             ]
         },
         {

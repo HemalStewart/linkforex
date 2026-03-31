@@ -116,6 +116,10 @@ export const ENDPOINTS = {
         LIST: `${API_BASE_URL}/banks`,
         DETAIL: (id: string | number) => `${API_BASE_URL}/banks/${id}`,
     },
+    RELATIONSHIPS: {
+        LIST: `${API_BASE_URL}/relationships`,
+        DETAIL: (id: string | number) => `${API_BASE_URL}/relationships/${id}`,
+    },
     MOBILE_ADMIN: {
         OVERVIEW: `${API_BASE_URL}/mobile-admin/overview`,
         SETTINGS: `${API_BASE_URL}/mobile-admin/settings`,
