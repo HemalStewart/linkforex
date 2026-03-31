@@ -190,7 +190,7 @@ export default function EditReceiverPage() {
                             branch_code: data.branch_code ?? '',
                             receiver_id_type: data.receiver_id_type ?? '',
                             receiver_id_number: data.receiver_id_number ?? '',
-                            relation: data.relation ?? relations[0],
+                            relation: data.relation ?? relationships[0] ?? 'Family',
                             mobile_number: data.mobile_number ?? '',
                             status: data.status ?? 'active',
                         });
