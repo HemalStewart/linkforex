@@ -579,7 +579,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 { name: 'Roles', href: '/admin/roles', badge: counts.roles > 0 ? counts.roles.toString() : undefined, icon: <Shield className="w-4 h-4" />, sections: ['SYSGROUPS', 'ROLES'] },
                 { name: 'Role Permissions', href: '/admin/permission-groups', badge: counts.permissionGroups > 0 ? counts.permissionGroups.toString() : undefined, icon: <ShieldCheck className="w-4 h-4" />, sections: ['SYSGROUPS_PERMISSION', 'PERMISSION_GROUPS'] },
                 { name: 'Branches', href: '/admin/branches', badge: counts.branches > 0 ? counts.branches.toString() : undefined, icon: <Building2 className="w-4 h-4" />, sections: ['BRANCH', 'BRANCHES'] },
-                { name: 'Customer Cash Rates', href: '/admin/branch-currency-rates', badge: counts.branchCurrencyRates > 0 ? counts.branchCurrencyRates.toString() : undefined, icon: <Coins className="w-4 h-4" />, sections: ['BRANCH_CURRENCY_RATE', 'BRANCH_CURRENCY_RATES'] },
+                { name: 'Branch Rates - Customer Cash', href: '/admin/branch-currency-rates', badge: counts.branchCurrencyRates > 0 ? counts.branchCurrencyRates.toString() : undefined, icon: <Coins className="w-4 h-4" />, sections: ['BRANCH_CURRENCY_RATE', 'BRANCH_CURRENCY_RATES'] },
+                { name: 'Branch Rates - Customer Digital', href: '/admin/mobile-users/control/exchange-rates', icon: <Coins className="w-4 h-4" />, sections: ['BRANCH_CURRENCY_RATE', 'BRANCH_CURRENCY_RATES', 'MOBILE_EXCHANGE_RATES', 'MOBILE_APP_FLOW_SETTINGS'] },
                 { name: 'Banks', href: '/admin/banks', badge: counts.banks > 0 ? counts.banks.toString() : undefined, icon: <Building2 className="w-4 h-4" /> },
                 { name: 'Countries', href: '/admin/countries', badge: counts.countries > 0 ? counts.countries.toString() : undefined, icon: <Globe className="w-4 h-4" /> },
             ]
