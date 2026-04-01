@@ -38,6 +38,7 @@ type BranchRateRow = {
     currency_name?: string;
     currency_symbol?: string;
     customer_rate: string | number;
+    branch_rate?: string | number | null;
     digital_rate?: string | number | null;
     active: YesNo;
     entered_user?: string | null;
@@ -63,6 +64,7 @@ type FormState = {
     branchCode: string;
     currencyCode: string;
     cashRate: string;
+    branchRate: string;
     digitalRate: string;
     applyToAll: boolean;
 };
@@ -71,6 +73,7 @@ const EMPTY_FORM: FormState = {
     branchCode: '',
     currencyCode: '',
     cashRate: '',
+    branchRate: '',
     digitalRate: '',
     applyToAll: false,
 };
@@ -170,6 +173,7 @@ export default function BranchRatesPage() {
                 row.currency_name,
                 row.currency_symbol,
                 row.customer_rate,
+                row.branch_rate,
                 row.digital_rate,
                 row.active,
                 row.entered_user,
@@ -193,11 +197,11 @@ export default function BranchRatesPage() {
     const handleSave = async (event: React.FormEvent) => {
         event.preventDefault();
 
-        if (!form.branchCode || !form.currencyCode || !form.cashRate || !form.digitalRate) {
+        if (!form.branchCode || !form.currencyCode || !form.cashRate || !form.branchRate || !form.digitalRate) {
             setToast({
                 isOpen: true,
                 title: 'Missing Information',
-                message: 'Branch, currency, cash rate, and digital rate are required.',
+                message: 'Branch, currency, cash rate, branch rate, and digital rate are required.',
                 type: 'warning',
             });
             return;
@@ -230,8 +234,8 @@ export default function BranchRatesPage() {
                     currency_symbol: selectedCurrency.symbol,
                     active: 'yes',
                     customer_rate: Number(form.cashRate),
+                    branch_rate: Number(form.branchRate),
                     digital_rate: Number(form.digitalRate),
-                    branch_rate: Number(form.cashRate),
                     entered_user: userName,
                     modified_user: userName,
                 };
@@ -310,7 +314,7 @@ export default function BranchRatesPage() {
 
             <Modal isOpen={modalOpen} onClose={closeModal} title="Add Branch Rate">
                 <form onSubmit={handleSave} className="space-y-5">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div>
                             <label className="mb-2 ml-1 block text-sm font-bold text-slate-700 dark:text-slate-300">Select Branch</label>
                             <select
@@ -359,6 +363,18 @@ export default function BranchRatesPage() {
                             />
                         </div>
                         <div>
+                            <label className="mb-2 ml-1 block text-sm font-bold text-slate-700 dark:text-slate-300">Branch Rate</label>
+                            <input
+                                type="number"
+                                step="0.0001"
+                                min="0"
+                                className="input-glass w-full"
+                                value={form.branchRate}
+                                onChange={(event) => setForm((prev) => ({ ...prev, branchRate: event.target.value }))}
+                                required
+                            />
+                        </div>
+                        <div>
                             <label className="mb-2 ml-1 block text-sm font-bold text-slate-700 dark:text-slate-300">Customer Digital Rate</label>
                             <input
                                 type="number"
@@ -387,6 +403,7 @@ export default function BranchRatesPage() {
                             <div className="font-semibold text-slate-800 dark:text-slate-100">Latest rate for {previousRate.branch_code} • {previousRate.currency_code}</div>
                             <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <div>Cash: {Number(previousRate.customer_rate || 0).toFixed(4)}</div>
+                                <div>Branch: {previousRate.branch_rate !== null && previousRate.branch_rate !== undefined ? Number(previousRate.branch_rate || 0).toFixed(4) : '—'}</div>
                                 <div>Digital: {previousRate.digital_rate !== null && previousRate.digital_rate !== undefined ? Number(previousRate.digital_rate || 0).toFixed(4) : '—'}</div>
                                 <div>Status: {normalizeYesNo(previousRate.active) === 'yes' ? 'Active' : 'Inactive'}</div>
                                 <div>Updated: {previousRate.updated_at ? new Date(previousRate.updated_at).toLocaleString() : '—'}</div>
@@ -463,6 +480,7 @@ export default function BranchRatesPage() {
                                     <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Branch</th>
                                     <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Currency</th>
                                     <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Customer Cash Rate</th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Branch Rate</th>
                                     <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Customer Digital Rate</th>
                                     <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Status</th>
                                     <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Updated</th>
@@ -485,6 +503,11 @@ export default function BranchRatesPage() {
                                                 {Number(row.customer_rate || 0).toFixed(4)}
                                             </td>
                                             <td className="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">
+                                                {row.branch_rate !== null && row.branch_rate !== undefined
+                                                    ? Number(row.branch_rate || 0).toFixed(4)
+                                                    : '—'}
+                                            </td>
+                                            <td className="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">
                                                 {row.digital_rate !== null && row.digital_rate !== undefined
                                                     ? Number(row.digital_rate || 0).toFixed(4)
                                                     : '—'}
@@ -499,7 +522,7 @@ export default function BranchRatesPage() {
                                 })}
                                 {!loading && filteredRows.length === 0 && (
                                     <tr>
-                                        <td colSpan={7} className="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
+                                        <td colSpan={8} className="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
                                             No branch rate rows found.
                                         </td>
                                     </tr>
