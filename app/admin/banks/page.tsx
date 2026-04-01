@@ -136,6 +136,7 @@ export default function BanksPage() {
     }, []);
 
     const fetchBanks = async () => {
+        setLoading(true);
         try {
             const res = await fetch(`${ENDPOINTS.BANKS.LIST}?include_blacklisted=yes`);
             if (res.ok) {
@@ -210,6 +211,16 @@ export default function BanksPage() {
     };
 
     const handleSave = async (id: number | string) => {
+        if (editForm.pickup_bank && !editForm.receiver_bank) {
+            setConfirmModal({
+                isOpen: true,
+                title: 'Receiver bank required',
+                message: 'Cash Pickup Bank must also be marked as Receiver Bank.',
+                type: 'warning',
+                isAlert: true,
+            });
+            return;
+        }
         try {
             const payload = normalizeForm(editForm);
             const res = await fetch(ENDPOINTS.BANKS.DETAIL(id), {
@@ -285,6 +296,26 @@ export default function BanksPage() {
 
     const handleAddSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!newBank.name.trim() || !newBank.bank_code.trim()) {
+            setConfirmModal({
+                isOpen: true,
+                title: 'Missing data',
+                message: 'Bank name and unique bank code are required.',
+                type: 'warning',
+                isAlert: true,
+            });
+            return;
+        }
+        if (newBank.pickup_bank && !newBank.receiver_bank) {
+            setConfirmModal({
+                isOpen: true,
+                title: 'Receiver bank required',
+                message: 'Cash Pickup Bank must also be marked as Receiver Bank.',
+                type: 'warning',
+                isAlert: true,
+            });
+            return;
+        }
         setIsSubmitting(true);
         try {
             const payload = normalizeForm(newBank);
@@ -440,7 +471,7 @@ export default function BanksPage() {
                                     </th>
                                     <th className="px-6 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                         <button onClick={() => toggleSort('pickup_bank')} className="mx-auto flex items-center gap-1">
-                                            <span>Cash Pickup</span>
+                                            <span>Cash Pickup Bank</span>
                                             <span>{sortIndicator('pickup_bank')}</span>
                                         </button>
                                     </th>
@@ -474,12 +505,7 @@ export default function BanksPage() {
                                                     autoFocus
                                                 />
                                             ) : (
-                                                <div className="flex items-center space-x-3">
-                                                    <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 text-xs font-bold ring-2 ring-white dark:ring-slate-800">
-                                                        {String(bank.name || '').substring(0, 2).toUpperCase()}
-                                                    </div>
-                                                    <span>{bank.name || '—'}</span>
-                                                </div>
+                                                <span>{bank.name || '—'}</span>
                                             )}
                                         </td>
                                         <td className="px-6 py-5 text-center">
@@ -597,7 +623,6 @@ export default function BanksPage() {
                             className="input-glass w-full uppercase"
                             value={newBank.bank_code}
                             onChange={(e) => setNewBank({ ...newBank, bank_code: e.target.value.toUpperCase() })}
-                            placeholder="PK-ABL-001"
                             maxLength={50}
                             required
                         />
@@ -634,7 +659,7 @@ export default function BanksPage() {
                                 checked={Boolean(newBank.pickup_bank)}
                                 onChange={(e) => setNewBank({ ...newBank, pickup_bank: e.target.checked ? 1 : 0 })}
                             />
-                            Pickup Bank
+                            Cash Pickup Bank
                         </label>
                     </div>
                     <div className="flex items-center gap-2">
@@ -644,7 +669,8 @@ export default function BanksPage() {
                     </div>
                     <div className="flex justify-end gap-3 pt-3">
                         <button type="button" onClick={() => setAddModalOpen(false)} className="btn-secondary">Cancel</button>
-                        <button type="submit" className="btn-primary" disabled={isSubmitting}>
+                        <button type="submit" className="btn-primary flex items-center gap-2" disabled={isSubmitting}>
+                            <Save className="w-4 h-4" />
                             {isSubmitting ? 'Saving...' : 'Save Bank'}
                         </button>
                     </div>
