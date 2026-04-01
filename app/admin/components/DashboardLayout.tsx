@@ -36,7 +36,8 @@ import {
     AlertTriangle,
     Sun,
     User,
-    MessageCircle
+    MessageCircle,
+    ListChecks
 } from 'lucide-react';
 
 interface DashboardLayoutProps {
@@ -99,6 +100,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         banks: 0,
         countries: 0,
         relationships: 0,
+        purposes: 0,
         roles: 0,
         permissionGroups: 0,
         branchAccessFlags: 0,
@@ -153,7 +155,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             const timestamp = Date.now();
             try {
                 // Parallel fetch for dashboard counts
-                const [tRes, rRes, bRes, uRes, brRes, bcrRes, banksRes, countriesRes, relRes, roRes, pgRes, baRes] = await Promise.allSettled([
+                const [tRes, rRes, bRes, uRes, brRes, bcrRes, banksRes, countriesRes, relRes, purposeRes, roRes, pgRes, baRes] = await Promise.allSettled([
                     fetch(`${ENDPOINTS.TRANSFERS.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                     fetch(`${ENDPOINTS.REMITTERS.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                     fetch(`${ENDPOINTS.BENEFICIARIES.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
@@ -163,6 +165,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     fetch(`${ENDPOINTS.BANKS.LIST}?include_blacklisted=yes&_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                     fetch(`${ENDPOINTS.COUNTRIES.LIST}?include_blacklisted=yes&_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                     fetch(`${ENDPOINTS.RELATIONSHIPS.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
+                    fetch(`${ENDPOINTS.PURPOSES.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                     fetch(`${ENDPOINTS.ROLES.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                     fetch(`${ENDPOINTS.PERMISSION_GROUPS.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                     fetch(`${ENDPOINTS.BRANCH_ACCESS_REQUESTS.LIST}?status=pending&_t=${timestamp}`).then(r => r.ok ? r.json() : [])
@@ -200,6 +203,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     banks: getCount(banksRes),
                     countries: getCount(countriesRes),
                     relationships: getCount(relRes),
+                    purposes: getCount(purposeRes),
                     roles: getCount(roRes),
                     permissionGroups: getCount(pgRes),
                     branchAccessFlags: getCount(baRes),
@@ -609,6 +613,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 { name: 'Countries', href: '/admin/countries', badge: counts.countries > 0 ? counts.countries.toString() : undefined, icon: <Globe className="w-4 h-4" /> },
                 { name: 'Banks', href: '/admin/banks', badge: counts.banks > 0 ? counts.banks.toString() : undefined, icon: <Building2 className="w-4 h-4" /> },
                 { name: 'Relationships', href: '/admin/relationships', badge: counts.relationships > 0 ? counts.relationships.toString() : undefined, icon: <Users className="w-4 h-4" /> },
+                { name: 'Purposes', href: '/admin/purposes', badge: counts.purposes > 0 ? counts.purposes.toString() : undefined, icon: <ListChecks className="w-4 h-4" /> },
             ]
         }
     ];
