@@ -5,7 +5,7 @@ import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import Modal from '@/app/admin/components/Modal';
 import ConfirmModal from '@/app/admin/components/ConfirmModal';
-import { Coins, Landmark, PlusCircle, RefreshCcw, Search } from 'lucide-react';
+import { PlusCircle, RefreshCcw, Search } from 'lucide-react';
 
 type YesNo = 'yes' | 'no';
 
@@ -30,7 +30,7 @@ type Country = {
     black_list_country?: string | null;
 };
 
-type CashRow = {
+type BranchRateRow = {
     id: string | number;
     branch_code: string;
     branch_name: string;
@@ -38,38 +38,19 @@ type CashRow = {
     currency_name?: string;
     currency_symbol?: string;
     customer_rate: string | number;
+    digital_rate?: string | number | null;
     active: YesNo;
-    updated_at?: string;
+    entered_user?: string | null;
+    modified_user?: string | null;
+    updated_at?: string | null;
 };
 
-type DigitalRow = {
+type MobileRateRow = {
     id: number;
-    code?: string;
     currency_code?: string;
-    currency_name?: string;
-    symbol?: string;
-    visible_in_app: YesNo;
-    show_on_home: YesNo;
-    default_for_transfer: YesNo;
+    code?: string;
     source_branch_code?: string;
-    source_branch_name?: string;
     display_order?: number;
-    updated_at?: string;
-};
-
-type CombinedRow = {
-    key: string;
-    branch_code: string;
-    branch_name: string;
-    currency_code: string;
-    currency_display: string;
-    cash_rate: number | null;
-    cash_active: YesNo | 'n/a';
-    digital_visible: YesNo | 'n/a';
-    digital_home: YesNo | 'n/a';
-    digital_default: YesNo | 'n/a';
-    digital_source: string;
-    updated_at: string;
 };
 
 type CurrencyOption = {
@@ -81,32 +62,24 @@ type CurrencyOption = {
 type FormState = {
     branchCode: string;
     currencyCode: string;
-    customerRate: string;
-    applyToMobile: boolean;
-    sourceBranchCode: string;
-    visibleInApp: YesNo;
-    showOnHome: YesNo;
-    defaultForTransfer: YesNo;
-    displayOrder: string;
+    cashRate: string;
+    digitalRate: string;
+    applyToAll: boolean;
 };
 
 const EMPTY_FORM: FormState = {
     branchCode: '',
     currencyCode: '',
-    customerRate: '',
-    applyToMobile: true,
-    sourceBranchCode: '',
-    visibleInApp: 'yes',
-    showOnHome: 'yes',
-    defaultForTransfer: 'no',
-    displayOrder: '10',
+    cashRate: '',
+    digitalRate: '',
+    applyToAll: false,
 };
 
 export default function BranchRatesPage() {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
-    const [cashRows, setCashRows] = useState<CashRow[]>([]);
-    const [digitalRows, setDigitalRows] = useState<DigitalRow[]>([]);
+    const [rows, setRows] = useState<BranchRateRow[]>([]);
+    const [mobileRows, setMobileRows] = useState<MobileRateRow[]>([]);
     const [branches, setBranches] = useState<Branch[]>([]);
     const [currencies, setCurrencies] = useState<CurrencyOption[]>([]);
     const [search, setSearch] = useState('');
@@ -123,17 +96,17 @@ export default function BranchRatesPage() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [cashRes, digitalRes, branchesRes, countriesRes] = await Promise.all([
+            const [ratesRes, branchesRes, countriesRes, mobileRes] = await Promise.all([
                 fetch(ENDPOINTS.BRANCH_CURRENCY_RATES.LIST),
-                fetch(ENDPOINTS.MOBILE_ADMIN.EXCHANGE_RATES),
                 fetch(`${ENDPOINTS.BRANCHES.LIST}?status=active`),
                 fetch(`${ENDPOINTS.COUNTRIES.LIST}?status=active&payout_currency=yes&sort=name&dir=asc`),
+                fetch(ENDPOINTS.MOBILE_ADMIN.EXCHANGE_RATES),
             ]);
 
-            const cashData = cashRes.ok ? await cashRes.json() : [];
-            const digitalData = digitalRes.ok ? await digitalRes.json() : [];
+            const ratesData = ratesRes.ok ? await ratesRes.json() : [];
             const branchData = branchesRes.ok ? await branchesRes.json() : [];
             const countryData = countriesRes.ok ? await countriesRes.json() : [];
+            const mobileData = mobileRes.ok ? await mobileRes.json() : [];
 
             const senderBranches = (Array.isArray(branchData) ? branchData : []).filter((branch: Branch) =>
                 isSenderBranch(branch)
@@ -152,16 +125,16 @@ export default function BranchRatesPage() {
                 });
             });
 
-            setCashRows(Array.isArray(cashData) ? cashData : []);
-            setDigitalRows(Array.isArray(digitalData) ? digitalData : []);
+            setRows(Array.isArray(ratesData) ? ratesData : []);
             setBranches(senderBranches);
             setCurrencies(Array.from(currencyMap.values()).sort((a, b) => a.code.localeCompare(b.code)));
+            setMobileRows(Array.isArray(mobileData) ? mobileData : []);
         } catch (error) {
             console.error('Failed to load branch rates', error);
-            setCashRows([]);
-            setDigitalRows([]);
+            setRows([]);
             setBranches([]);
             setCurrencies([]);
+            setMobileRows([]);
         } finally {
             setLoading(false);
         }
@@ -171,86 +144,41 @@ export default function BranchRatesPage() {
         void fetchData();
     }, []);
 
-    const combinedRows = useMemo(() => {
-        const digitalByCode = new Map<string, DigitalRow>();
-        digitalRows.forEach((row) => {
-            const code = String(row.code || row.currency_code || '').trim().toUpperCase();
-            if (!code) return;
-            digitalByCode.set(code, row);
-        });
-
-        const rows: CombinedRow[] = cashRows.map((cash) => {
-            const code = String(cash.currency_code || '').trim().toUpperCase();
-            const symbol = String(cash.currency_symbol || '').trim();
-            const digital = digitalByCode.get(code);
-            return {
-                key: `cash-${cash.id}`,
-                branch_code: String(cash.branch_code || ''),
-                branch_name: String(cash.branch_name || ''),
-                currency_code: code,
-                currency_display: `${code} ${symbol}`.trim(),
-                cash_rate: Number(cash.customer_rate || 0),
-                cash_active: normalizeYesNo(cash.active),
-                digital_visible: digital ? normalizeYesNo(digital.visible_in_app) : 'n/a',
-                digital_home: digital ? normalizeYesNo(digital.show_on_home) : 'n/a',
-                digital_default: digital ? normalizeYesNo(digital.default_for_transfer) : 'n/a',
-                digital_source: digital?.source_branch_code
-                    ? `${digital.source_branch_code}${digital.source_branch_name ? ` - ${digital.source_branch_name}` : ''}`
-                    : '—',
-                updated_at: String(cash.updated_at || digital?.updated_at || ''),
-            };
-        });
-
-        const hasCurrencyInCash = new Set(rows.map((row) => row.currency_code));
-        digitalRows.forEach((digital) => {
-            const code = String(digital.code || digital.currency_code || '').trim().toUpperCase();
-            if (!code || hasCurrencyInCash.has(code)) return;
-            rows.push({
-                key: `digital-${digital.id}`,
-                branch_code: String(digital.source_branch_code || ''),
-                branch_name: String(digital.source_branch_name || ''),
-                currency_code: code,
-                currency_display: `${code} ${String(digital.symbol || '').trim()}`.trim(),
-                cash_rate: null,
-                cash_active: 'n/a',
-                digital_visible: normalizeYesNo(digital.visible_in_app),
-                digital_home: normalizeYesNo(digital.show_on_home),
-                digital_default: normalizeYesNo(digital.default_for_transfer),
-                digital_source: digital.source_branch_code
-                    ? `${digital.source_branch_code}${digital.source_branch_name ? ` - ${digital.source_branch_name}` : ''}`
-                    : '—',
-                updated_at: String(digital.updated_at || ''),
+    const previousRate = useMemo(() => {
+        if (!form.branchCode || !form.currencyCode) return null;
+        const matches = rows
+            .filter((row) => String(row.branch_code || '') === form.branchCode)
+            .filter((row) => String(row.currency_code || '').toUpperCase() === form.currencyCode.toUpperCase())
+            .sort((a, b) => {
+                const aTime = a.updated_at ? new Date(a.updated_at).getTime() : 0;
+                const bTime = b.updated_at ? new Date(b.updated_at).getTime() : 0;
+                if (aTime !== bTime) return bTime - aTime;
+                return Number(b.id) - Number(a.id);
             });
-        });
-
-        return rows.sort((a, b) => {
-            const aTime = a.updated_at ? new Date(a.updated_at).getTime() : 0;
-            const bTime = b.updated_at ? new Date(b.updated_at).getTime() : 0;
-            return bTime - aTime;
-        });
-    }, [cashRows, digitalRows]);
+        return matches[0] ?? null;
+    }, [rows, form.branchCode, form.currencyCode]);
 
     const filteredRows = useMemo(() => {
         const query = search.trim().toLowerCase();
-        return combinedRows.filter((row) => {
-            if (activeFilter !== 'all' && row.cash_active !== activeFilter) return false;
+        return rows.filter((row) => {
+            if (activeFilter !== 'all' && normalizeYesNo(row.active) !== activeFilter) return false;
             if (!query) return true;
             return [
                 row.branch_name,
                 row.branch_code,
                 row.currency_code,
-                row.currency_display,
-                row.cash_rate,
-                row.cash_active,
-                row.digital_visible,
-                row.digital_home,
-                row.digital_default,
-                row.digital_source,
+                row.currency_name,
+                row.currency_symbol,
+                row.customer_rate,
+                row.digital_rate,
+                row.active,
+                row.entered_user,
+                row.modified_user,
             ]
                 .filter((value) => value !== null && value !== undefined)
                 .some((value) => String(value).toLowerCase().includes(query));
         });
-    }, [combinedRows, search, activeFilter]);
+    }, [rows, search, activeFilter]);
 
     const openModal = () => {
         setForm(EMPTY_FORM);
@@ -262,21 +190,14 @@ export default function BranchRatesPage() {
         setForm(EMPTY_FORM);
     };
 
-    const onBranchChange = (branchCode: string) => {
-        setForm((prev) => ({
-            ...prev,
-            branchCode,
-            sourceBranchCode: prev.sourceBranchCode || branchCode,
-        }));
-    };
-
-    const saveRate = async (event: React.FormEvent) => {
+    const handleSave = async (event: React.FormEvent) => {
         event.preventDefault();
-        if (!form.branchCode || !form.currencyCode || !form.customerRate) {
+
+        if (!form.branchCode || !form.currencyCode || !form.cashRate || !form.digitalRate) {
             setToast({
                 isOpen: true,
                 title: 'Missing Information',
-                message: 'Branch, currency, and cash rate are required.',
+                message: 'Branch, currency, cash rate, and digital rate are required.',
                 type: 'warning',
             });
             return;
@@ -293,93 +214,70 @@ export default function BranchRatesPage() {
                 throw new Error('Selected branch or currency is invalid.');
             }
 
-            const cashPayload = {
-                company: 'Link Forex Ltd',
-                branch_code: form.branchCode,
-                branch_name: selectedBranch.name,
-                currency_code: selectedCurrency.code,
-                currency_name: selectedCurrency.name,
-                currency_symbol: selectedCurrency.symbol,
-                active: 'yes',
-                customer_rate: Number(form.customerRate),
-                branch_rate: Number(form.customerRate),
-                entered_user: userName,
-                modified_user: userName,
-            };
-
-            const createCashResponse = await fetch(ENDPOINTS.BRANCH_CURRENCY_RATES.LIST, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(cashPayload),
-            });
-
-            if (!createCashResponse.ok) {
-                throw new Error(await readErrorMessage(createCashResponse, 'Failed to create customer cash rate.'));
+            const targetBranches = form.applyToAll ? branches : [selectedBranch];
+            if (targetBranches.length === 0) {
+                throw new Error('No sender branches are configured.');
             }
 
-            const createdCash = await createCashResponse.json();
-
-            const allCashResponse = await fetch(ENDPOINTS.BRANCH_CURRENCY_RATES.LIST);
-            const allCashRows = allCashResponse.ok ? await allCashResponse.json() : [];
-            if (Array.isArray(allCashRows)) {
-                const duplicates = allCashRows
-                    .filter((row) => String(row?.branch_code || '') === form.branchCode)
-                    .filter((row) => String(row?.currency_code || '').toUpperCase() === form.currencyCode.toUpperCase())
-                    .filter((row) => String(row?.id || '') !== String(createdCash?.id || ''))
-                    .filter((row) => normalizeYesNo(row?.active) === 'yes');
-
-                for (const duplicate of duplicates) {
-                    await fetch(ENDPOINTS.BRANCH_CURRENCY_RATES.DETAIL(duplicate.id), {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ active: 'no', modified_user: userName }),
-                    });
-                }
-            }
-
-            if (form.applyToMobile) {
-                const existingDigital = digitalRows.find(
-                    (row) => String(row.code || row.currency_code || '').trim().toUpperCase() === form.currencyCode.toUpperCase()
-                );
-                const digitalPayload = {
-                    currency_code: form.currencyCode.toUpperCase(),
-                    source_branch_code: (form.sourceBranchCode || form.branchCode).toUpperCase(),
-                    visible_in_app: form.visibleInApp,
-                    show_on_home: form.showOnHome,
-                    default_for_transfer: form.defaultForTransfer,
-                    display_order: Number(form.displayOrder || 0),
+            for (const branch of targetBranches) {
+                const branchCode = String(branch.code || branch.transaction_prefix || branch.id);
+                const payload = {
+                    company: 'Link Forex Ltd',
+                    branch_code: branchCode,
+                    branch_name: branch.name,
+                    currency_code: selectedCurrency.code,
+                    currency_name: selectedCurrency.name,
+                    currency_symbol: selectedCurrency.symbol,
+                    active: 'yes',
+                    customer_rate: Number(form.cashRate),
+                    digital_rate: Number(form.digitalRate),
+                    branch_rate: Number(form.cashRate),
+                    entered_user: userName,
+                    modified_user: userName,
                 };
 
-                const digitalResponse = existingDigital
-                    ? await fetch(ENDPOINTS.MOBILE_ADMIN.EXCHANGE_RATE_DETAIL(existingDigital.id), {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(digitalPayload),
-                    })
-                    : await fetch(ENDPOINTS.MOBILE_ADMIN.EXCHANGE_RATES, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(digitalPayload),
-                    });
+                const createResponse = await fetch(ENDPOINTS.BRANCH_CURRENCY_RATES.LIST, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
 
-                if (!digitalResponse.ok) {
-                    const message = await readErrorMessage(digitalResponse, 'Cash rate added, but failed to save digital rate config.');
-                    setToast({
-                        isOpen: true,
-                        title: 'Partial Success',
-                        message,
-                        type: 'warning',
-                    });
-                    await fetchData();
-                    closeModal();
-                    return;
+                if (!createResponse.ok) {
+                    throw new Error(await readErrorMessage(createResponse, 'Failed to create branch rate.'));
+                }
+
+                const created = await createResponse.json();
+                const duplicatesRes = await fetch(
+                    `${ENDPOINTS.BRANCH_CURRENCY_RATES.LIST}?branch_code=${encodeURIComponent(branchCode)}&currency_code=${encodeURIComponent(selectedCurrency.code)}`
+                );
+                const duplicates = duplicatesRes.ok ? await duplicatesRes.json() : [];
+                if (Array.isArray(duplicates)) {
+                    const toDisable = duplicates
+                        .filter((row) => String(row?.id || '') !== String(created?.id || ''))
+                        .filter((row) => normalizeYesNo(row?.active) === 'yes');
+
+                    for (const duplicate of toDisable) {
+                        await fetch(ENDPOINTS.BRANCH_CURRENCY_RATES.DETAIL(duplicate.id), {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ active: 'no', modified_user: userName }),
+                        });
+                    }
                 }
             }
+
+            await upsertMobileConfig({
+                currencyCode: selectedCurrency.code,
+                branchCode: form.branchCode,
+                mobileRows,
+            });
 
             setToast({
                 isOpen: true,
                 title: 'Success',
-                message: 'Branch rate saved for cash and mobile digital config.',
+                message: form.applyToAll
+                    ? 'Rates applied to all sender branches.'
+                    : 'Branch rate saved successfully.',
                 type: 'success',
             });
             await fetchData();
@@ -411,11 +309,16 @@ export default function BranchRatesPage() {
             />
 
             <Modal isOpen={modalOpen} onClose={closeModal} title="Add Branch Rate">
-                <form onSubmit={saveRate} className="space-y-5">
+                <form onSubmit={handleSave} className="space-y-5">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="mb-2 ml-1 block text-sm font-bold text-slate-700 dark:text-slate-300">Branch</label>
-                            <select className="input-glass w-full" value={form.branchCode} onChange={(event) => onBranchChange(event.target.value)} required>
+                            <label className="mb-2 ml-1 block text-sm font-bold text-slate-700 dark:text-slate-300">Select Branch</label>
+                            <select
+                                className="input-glass w-full"
+                                value={form.branchCode}
+                                onChange={(event) => setForm((prev) => ({ ...prev, branchCode: event.target.value }))}
+                                required
+                            >
                                 <option value="">Select branch</option>
                                 {branches.map((branch) => {
                                     const code = String(branch.code || branch.transaction_prefix || branch.id);
@@ -428,8 +331,13 @@ export default function BranchRatesPage() {
                             </select>
                         </div>
                         <div>
-                            <label className="mb-2 ml-1 block text-sm font-bold text-slate-700 dark:text-slate-300">Currency</label>
-                            <select className="input-glass w-full" value={form.currencyCode} onChange={(event) => setForm((prev) => ({ ...prev, currencyCode: event.target.value }))} required>
+                            <label className="mb-2 ml-1 block text-sm font-bold text-slate-700 dark:text-slate-300">Select Currency</label>
+                            <select
+                                className="input-glass w-full"
+                                value={form.currencyCode}
+                                onChange={(event) => setForm((prev) => ({ ...prev, currencyCode: event.target.value }))}
+                                required
+                            >
                                 <option value="">Select currency</option>
                                 {currencies.map((currency) => (
                                     <option key={currency.code} value={currency.code}>
@@ -439,80 +347,49 @@ export default function BranchRatesPage() {
                             </select>
                         </div>
                         <div>
-                            <label className="mb-2 ml-1 block text-sm font-bold text-slate-700 dark:text-slate-300">Customer Cash Rate For £</label>
+                            <label className="mb-2 ml-1 block text-sm font-bold text-slate-700 dark:text-slate-300">Customer Cash Rate</label>
                             <input
                                 type="number"
                                 step="0.0001"
                                 min="0"
                                 className="input-glass w-full"
-                                value={form.customerRate}
-                                onChange={(event) => setForm((prev) => ({ ...prev, customerRate: event.target.value }))}
+                                value={form.cashRate}
+                                onChange={(event) => setForm((prev) => ({ ...prev, cashRate: event.target.value }))}
                                 required
                             />
                         </div>
                         <div>
-                            <label className="mb-2 ml-1 block text-sm font-bold text-slate-700 dark:text-slate-300">Apply To Mobile Digital</label>
-                            <select
+                            <label className="mb-2 ml-1 block text-sm font-bold text-slate-700 dark:text-slate-300">Customer Digital Rate</label>
+                            <input
+                                type="number"
+                                step="0.0001"
+                                min="0"
                                 className="input-glass w-full"
-                                value={form.applyToMobile ? 'yes' : 'no'}
-                                onChange={(event) => setForm((prev) => ({ ...prev, applyToMobile: event.target.value === 'yes' }))}
-                            >
-                                <option value="yes">Yes</option>
-                                <option value="no">No</option>
-                            </select>
+                                value={form.digitalRate}
+                                onChange={(event) => setForm((prev) => ({ ...prev, digitalRate: event.target.value }))}
+                                required
+                            />
                         </div>
                     </div>
 
-                    {form.applyToMobile && (
-                        <div className="rounded-2xl border border-slate-200/70 dark:border-slate-700/70 p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="mb-2 ml-1 block text-sm font-bold text-slate-700 dark:text-slate-300">Mobile Source Branch</label>
-                                <select
-                                    className="input-glass w-full"
-                                    value={form.sourceBranchCode}
-                                    onChange={(event) => setForm((prev) => ({ ...prev, sourceBranchCode: event.target.value }))}
-                                >
-                                    <option value="">Use selected branch</option>
-                                    {branches.map((branch) => {
-                                        const code = String(branch.code || branch.transaction_prefix || branch.id);
-                                        return (
-                                            <option key={`source-${code}`} value={code}>
-                                                {branch.name}
-                                            </option>
-                                        );
-                                    })}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="mb-2 ml-1 block text-sm font-bold text-slate-700 dark:text-slate-300">Display Order</label>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    className="input-glass w-full"
-                                    value={form.displayOrder}
-                                    onChange={(event) => setForm((prev) => ({ ...prev, displayOrder: event.target.value }))}
-                                />
-                            </div>
-                            <div>
-                                <label className="mb-2 ml-1 block text-sm font-bold text-slate-700 dark:text-slate-300">Visible In App</label>
-                                <select className="input-glass w-full" value={form.visibleInApp} onChange={(event) => setForm((prev) => ({ ...prev, visibleInApp: event.target.value as YesNo }))}>
-                                    <option value="yes">Yes</option>
-                                    <option value="no">No</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="mb-2 ml-1 block text-sm font-bold text-slate-700 dark:text-slate-300">Show On Home</label>
-                                <select className="input-glass w-full" value={form.showOnHome} onChange={(event) => setForm((prev) => ({ ...prev, showOnHome: event.target.value as YesNo }))}>
-                                    <option value="yes">Yes</option>
-                                    <option value="no">No</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="mb-2 ml-1 block text-sm font-bold text-slate-700 dark:text-slate-300">Default For Transfer</label>
-                                <select className="input-glass w-full" value={form.defaultForTransfer} onChange={(event) => setForm((prev) => ({ ...prev, defaultForTransfer: event.target.value as YesNo }))}>
-                                    <option value="no">No</option>
-                                    <option value="yes">Yes</option>
-                                </select>
+                    <label className="flex items-center gap-3 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                        <input
+                            type="checkbox"
+                            checked={form.applyToAll}
+                            onChange={(event) => setForm((prev) => ({ ...prev, applyToAll: event.target.checked }))}
+                            className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                        />
+                        Apply to all sender branches
+                    </label>
+
+                    {previousRate && (
+                        <div className="rounded-2xl border border-slate-200/70 dark:border-slate-700/70 p-4 text-sm text-slate-600 dark:text-slate-300">
+                            <div className="font-semibold text-slate-800 dark:text-slate-100">Latest rate for {previousRate.branch_code} • {previousRate.currency_code}</div>
+                            <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <div>Cash: {Number(previousRate.customer_rate || 0).toFixed(4)}</div>
+                                <div>Digital: {previousRate.digital_rate !== null && previousRate.digital_rate !== undefined ? Number(previousRate.digital_rate || 0).toFixed(4) : '—'}</div>
+                                <div>Status: {normalizeYesNo(previousRate.active) === 'yes' ? 'Active' : 'Inactive'}</div>
+                                <div>Updated: {previousRate.updated_at ? new Date(previousRate.updated_at).toLocaleString() : '—'}</div>
                             </div>
                         </div>
                     )}
@@ -533,7 +410,7 @@ export default function BranchRatesPage() {
                 <div>
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Branch Rates</h1>
                     <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">
-                        One table for customer cash rates and customer digital settings.
+                        Customer cash + digital rates managed per sender branch.
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -559,7 +436,7 @@ export default function BranchRatesPage() {
                             <span className="input-icon-left"><Search className="w-4 h-4" /></span>
                             <input
                                 className="input-glass w-full text-sm"
-                                placeholder="Search branch, currency, rate, digital flags"
+                                placeholder="Search branch, currency, rate, user"
                                 value={search}
                                 onChange={(event) => setSearch(event.target.value)}
                             />
@@ -569,9 +446,9 @@ export default function BranchRatesPage() {
                             value={activeFilter}
                             onChange={(event) => setActiveFilter(event.target.value as 'all' | YesNo)}
                         >
-                            <option value="all">All Cash Active States</option>
-                            <option value="yes">Cash Active: Yes</option>
-                            <option value="no">Cash Active: No</option>
+                            <option value="all">All Status</option>
+                            <option value="yes">Active</option>
+                            <option value="no">Inactive</option>
                         </select>
                     </div>
                 </div>
@@ -585,39 +462,44 @@ export default function BranchRatesPage() {
                                 <tr>
                                     <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Branch</th>
                                     <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Currency</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Customer Cash Rate For £</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Cash Active</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Digital Visible</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Digital Home</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Digital Default</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Digital Source Branch</th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Customer Cash Rate</th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Customer Digital Rate</th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Status</th>
                                     <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Updated</th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Updated User</th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
-                                {filteredRows.map((row) => (
-                                    <tr key={row.key}>
-                                        <td className="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">
-                                            <div className="font-semibold">{row.branch_name || '-'}</div>
-                                            <div className="text-xs text-slate-500 dark:text-slate-400">{row.branch_code || '-'}</div>
-                                        </td>
-                                        <td className="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">{row.currency_display}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">
-                                            {row.cash_rate === null ? '—' : Number(row.cash_rate).toFixed(4)}
-                                        </td>
-                                        <td className="px-4 py-4 text-sm">{renderFlag(row.cash_active)}</td>
-                                        <td className="px-4 py-4 text-sm">{renderFlag(row.digital_visible)}</td>
-                                        <td className="px-4 py-4 text-sm">{renderFlag(row.digital_home)}</td>
-                                        <td className="px-4 py-4 text-sm">{renderFlag(row.digital_default)}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">{row.digital_source}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">
-                                            {row.updated_at ? new Date(row.updated_at).toLocaleString() : '-'}
-                                        </td>
-                                    </tr>
-                                ))}
+                                {filteredRows.map((row) => {
+                                    const updatedUser = row.modified_user || row.entered_user || '-';
+                                    return (
+                                        <tr key={row.id}>
+                                            <td className="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">
+                                                <div className="font-semibold">{row.branch_name || '-'}</div>
+                                                <div className="text-xs text-slate-500 dark:text-slate-400">{row.branch_code || '-'}</div>
+                                            </td>
+                                            <td className="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">
+                                                {row.currency_code} {row.currency_symbol ? row.currency_symbol : ''}
+                                            </td>
+                                            <td className="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">
+                                                {Number(row.customer_rate || 0).toFixed(4)}
+                                            </td>
+                                            <td className="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">
+                                                {row.digital_rate !== null && row.digital_rate !== undefined
+                                                    ? Number(row.digital_rate || 0).toFixed(4)
+                                                    : '—'}
+                                            </td>
+                                            <td className="px-4 py-4 text-sm">{renderStatus(row.active)}</td>
+                                            <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">
+                                                {row.updated_at ? new Date(row.updated_at).toLocaleString() : '-'}
+                                            </td>
+                                            <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{updatedUser}</td>
+                                        </tr>
+                                    );
+                                })}
                                 {!loading && filteredRows.length === 0 && (
                                     <tr>
-                                        <td colSpan={9} className="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
+                                        <td colSpan={7} className="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
                                             No branch rate rows found.
                                         </td>
                                     </tr>
@@ -631,14 +513,9 @@ export default function BranchRatesPage() {
     );
 }
 
-function normalizeFlag(value: unknown): boolean {
-    const normalized = String(value ?? '').trim().toLowerCase();
-    if (!normalized) return false;
-    return ['1', 'true', 'yes', 'y', 'on'].includes(normalized);
-}
-
 function normalizeYesNo(value: unknown): YesNo {
-    return normalizeFlag(value) ? 'yes' : 'no';
+    const normalized = String(value ?? '').trim().toLowerCase();
+    return normalized === 'no' ? 'no' : 'yes';
 }
 
 function isSenderBranch(branch: Branch): boolean {
@@ -658,17 +535,53 @@ function isSenderBranch(branch: Branch): boolean {
     ];
     const hasSignal = senderSignals.some((value) => value !== undefined && value !== null && String(value).trim() !== '');
     if (!hasSignal) return false;
-    return senderSignals.some((value) => normalizeFlag(value));
+    return senderSignals.some((value) => normalizeYesNo(value) === 'yes' || String(value).trim() === '1');
 }
 
-function renderFlag(value: YesNo | 'n/a') {
-    if (value === 'n/a') {
-        return <span className="inline-flex rounded-full px-3 py-1 text-xs font-bold bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300">N/A</span>;
-    }
+function renderStatus(value: YesNo) {
     const className = value === 'yes'
         ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
         : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300';
-    return <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${className}`}>{value === 'yes' ? 'Yes' : 'No'}</span>;
+    return <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${className}`}>{value === 'yes' ? 'Active' : 'Inactive'}</span>;
+}
+
+async function upsertMobileConfig({
+    currencyCode,
+    branchCode,
+    mobileRows,
+}: {
+    currencyCode: string;
+    branchCode: string;
+    mobileRows: MobileRateRow[];
+}) {
+    const existing = mobileRows.find((row) =>
+        String(row.code || row.currency_code || '').trim().toUpperCase() === currencyCode.toUpperCase()
+    );
+
+    const payload = {
+        currency_code: currencyCode.toUpperCase(),
+        source_branch_code: branchCode.toUpperCase(),
+        visible_in_app: 'yes',
+        show_on_home: 'yes',
+        default_for_transfer: 'no',
+        display_order: Number(existing?.display_order ?? 10),
+    };
+
+    const response = existing
+        ? await fetch(ENDPOINTS.MOBILE_ADMIN.EXCHANGE_RATE_DETAIL(existing.id), {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        })
+        : await fetch(ENDPOINTS.MOBILE_ADMIN.EXCHANGE_RATES, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+
+    if (!response.ok) {
+        throw new Error(await readErrorMessage(response, 'Failed to update mobile digital rate config.'));
+    }
 }
 
 async function readErrorMessage(response: Response, fallback: string): Promise<string> {
@@ -688,4 +601,3 @@ async function readErrorMessage(response: Response, fallback: string): Promise<s
     }
     return fallback;
 }
-
