@@ -21,7 +21,7 @@ type PurposeFormState = {
     active: YesNo;
 };
 
-type SortKey = 'name' | 'active' | 'updated_at';
+type SortKey = 'name' | 'active';
 
 type SortDir = 'asc' | 'desc';
 
@@ -35,7 +35,6 @@ const YES_NO_OPTIONS: YesNo[] = ['yes', 'no'];
 const normalizeYesNo = (value?: string | null): YesNo =>
     String(value || '').toLowerCase() === 'yes' ? 'yes' : 'no';
 
-const formatDate = (value?: string | null) => (value ? new Date(value).toLocaleString() : '—');
 
 export default function PurposesPage() {
     const [rows, setRows] = useState<PurposeRow[]>([]);
@@ -328,15 +327,12 @@ export default function PurposesPage() {
                                 <th className="px-5 py-4 text-xs font-semibold uppercase tracking-widest text-slate-500 cursor-pointer" onClick={() => toggleSort('active')}>
                                     Active {sortIndicator('active')}
                                 </th>
-                                <th className="px-5 py-4 text-xs font-semibold uppercase tracking-widest text-slate-500 cursor-pointer" onClick={() => toggleSort('updated_at')}>
-                                    Updated {sortIndicator('updated_at')}
-                                </th>
                                 <th className="px-5 py-4 text-xs font-semibold uppercase tracking-widest text-slate-500 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading && (
-                                <tr><td colSpan={5} className="px-5 py-10 text-center text-slate-500">Loading…</td></tr>
+                                <tr><td colSpan={4} className="px-5 py-10 text-center text-slate-500">Loading…</td></tr>
                             )}
                             {!loading && pagedRows.map((row, idx) => (
                                 <tr key={row.id} className="border-t border-slate-200/60 dark:border-slate-700/60 hover:bg-white/40 dark:hover:bg-slate-900/40 transition">
@@ -350,7 +346,6 @@ export default function PurposesPage() {
                                             {normalizeYesNo(row.active) === 'yes' ? 'Yes' : 'No'}
                                         </span>
                                     </td>
-                                    <td className="px-5 py-4 text-slate-500">{formatDate(row.updated_at)}</td>
                                     <td className="px-5 py-4 text-right">
                                         <div className="inline-flex items-center gap-2">
                                             <button
@@ -370,7 +365,7 @@ export default function PurposesPage() {
                                 </tr>
                             ))}
                             {!loading && pagedRows.length === 0 && (
-                                <tr><td colSpan={5} className="px-5 py-10 text-center text-slate-500">No purposes found.</td></tr>
+                                <tr><td colSpan={4} className="px-5 py-10 text-center text-slate-500">No purposes found.</td></tr>
                             )}
                         </tbody>
                     </table>
@@ -470,8 +465,6 @@ function getSortValue(row: PurposeRow, key: SortKey) {
             return String(row.name || '').toLowerCase();
         case 'active':
             return normalizeYesNo(row.active);
-        case 'updated_at':
-            return row.updated_at || '';
         default:
             return '';
     }
