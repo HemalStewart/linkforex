@@ -14,7 +14,6 @@ type CountryRow = {
     id: number | string;
     name?: string | null;
     iso_code?: string | null;
-    phone_code?: string | null;
     currency_code?: string | null;
     currency_symbol?: string | null;
     currency_name?: string | null;
@@ -26,7 +25,6 @@ type CountryRow = {
 type CountryFormState = {
     name: string;
     iso_code: string;
-    phone_code: string;
     high_risk_country: YesNo;
     black_list_country: YesNo;
     currency_code: string;
@@ -36,7 +34,6 @@ type CountryFormState = {
 };
 
 type SortKey =
-    | 'phone_code'
     | 'name'
     | 'high_risk_country'
     | 'black_list_country'
@@ -50,7 +47,6 @@ type SortDir = 'asc' | 'desc';
 const EMPTY_FORM: CountryFormState = {
     name: '',
     iso_code: '',
-    phone_code: '',
     high_risk_country: 'no',
     black_list_country: 'no',
     currency_code: '',
@@ -186,7 +182,6 @@ export default function CountriesPage() {
             const matchesQuery = !query || [
                 country.name,
                 country.iso_code,
-                country.phone_code,
                 country.currency_code,
                 country.currency_symbol,
                 country.currency_name,
@@ -242,7 +237,6 @@ export default function CountriesPage() {
         setForm({
             name: String(country.name || ''),
             iso_code: String(country.iso_code || ''),
-            phone_code: String(country.phone_code || ''),
             high_risk_country: normalizeYesNo(country.high_risk_country),
             black_list_country: normalizeYesNo(country.black_list_country),
             currency_code: String(country.currency_code || ''),
@@ -445,13 +439,7 @@ export default function CountriesPage() {
                                 <tr>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">#</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                        <button onClick={() => toggleSort('phone_code')} className="flex items-center gap-1">
-                                            <span>Country Code</span>
-                                            <span>{sortIndicator('phone_code')}</span>
-                                        </button>
-                                    </th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                        <span>Alpha-2</span>
+                                        <span>Country Code (Alpha-2)</span>
                                     </th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                         <button onClick={() => toggleSort('name')} className="flex items-center gap-1">
@@ -502,9 +490,6 @@ export default function CountriesPage() {
                                 {pagedCountries.map((country, idx) => (
                                     <tr key={country.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
                                         <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
-                                        <td className="px-8 py-5 text-sm font-mono text-slate-500 dark:text-slate-300 whitespace-nowrap">
-                                            {normalizePhoneCode(country.phone_code) || '—'}
-                                        </td>
                                         <td className="px-8 py-5 text-sm font-mono text-slate-500 dark:text-slate-300 whitespace-nowrap">
                                             {String(country.iso_code || '').toUpperCase() || '—'}
                                         </td>
@@ -605,14 +590,8 @@ export default function CountriesPage() {
                             <input className="input-glass w-full" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
                         </div>
                         <div>
-                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Alpha-2</label>
+                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Country Code (Alpha-2)</label>
                             <input className="input-glass w-full uppercase" value={form.iso_code} onChange={(e) => setForm({ ...form, iso_code: e.target.value.toUpperCase() })} maxLength={2} required />
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-1 gap-4">
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Country Code (2-3 digits)</label>
-                            <input className="input-glass w-full" value={form.phone_code} onChange={(e) => setForm({ ...form, phone_code: e.target.value.replace(/\D+/g, '') })} maxLength={3} placeholder="94" />
                         </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -704,7 +683,6 @@ function normalizeForm(form: CountryFormState): CountryFormState {
         ...form,
         name: form.name.trim(),
         iso_code: form.iso_code.trim().toUpperCase().slice(0, 2),
-        phone_code: form.phone_code.replace(/\D+/g, ''),
         currency_code: form.currency_code.trim().toUpperCase(),
         currency_symbol: form.currency_symbol.trim(),
         currency_name: form.currency_name.trim(),
@@ -713,8 +691,6 @@ function normalizeForm(form: CountryFormState): CountryFormState {
 
 function getSortValue(country: CountryRow, key: SortKey): string {
     switch (key) {
-        case 'phone_code':
-            return normalizePhoneCode(country.phone_code);
         case 'high_risk_country':
             return normalizeYesNo(country.high_risk_country);
         case 'black_list_country':
@@ -776,8 +752,4 @@ function FlagFilter({
 
 function toYesNoLabel(value: YesNo): string {
     return value === 'yes' ? 'Yes' : 'No';
-}
-
-function normalizePhoneCode(value: string | null | undefined): string {
-    return String(value || '').replace(/\D+/g, '');
 }
