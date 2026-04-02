@@ -761,8 +761,8 @@ html {
   appearance: none;
 
   /* Size */
-  width: 1.125rem;
-  height: 1.125rem;
+  width: 1.1rem;
+  height: 1.1rem;
   flex-shrink: 0;
 
   /* Glassmorphic base */
@@ -770,7 +770,7 @@ html {
   backdrop-filter: blur(10px) saturate(120%);
   -webkit-backdrop-filter: blur(10px) saturate(120%);
   border: 1.5px solid rgba(15, 23, 42, 0.16);
-  border-radius: 5px;
+  border-radius: 999px;
   box-shadow:
     0 1px 4px -2px rgba(15, 23, 42, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.5);
@@ -786,7 +786,7 @@ html {
   background-image: none;
   background-repeat: no-repeat;
   background-position: center;
-  background-size: 65%;
+  background-size: 62%;
   position: relative;
   display: inline-grid;
   place-items: center;
@@ -814,7 +814,7 @@ html {
     0 2px 8px -4px rgba(13, 148, 136, 0.45),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
   /* SVG checkmark — white, bold */
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 12 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 5L4.5 8.5L11 1' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 12 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 5L4.5 8.5L11 1' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 
 :where(.checkbox-glass, input[type="checkbox"]:not(.native-checkbox)):checked:hover {
@@ -827,7 +827,7 @@ html {
 :where(.checkbox-glass, input[type="checkbox"]:not(.native-checkbox)):indeterminate {
   background: linear-gradient(135deg, #2dd4bf 0%, #14b8a6 60%, #0d9488 100%);
   border-color: transparent;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 12 4' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 2H11' stroke='white' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 12 4' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 2H11' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E");
 }
 
 :where(.checkbox-glass, input[type="checkbox"]:not(.native-checkbox)):disabled {
