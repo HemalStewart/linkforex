@@ -815,6 +815,9 @@ html {
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
   /* SVG checkmark — white, bold */
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 12 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 5L4.5 8.5L11 1' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 62%;
 }
 
 :where(.checkbox-glass, input[type="checkbox"]:not(.native-checkbox)):checked:hover {
@@ -828,6 +831,9 @@ html {
   background: linear-gradient(135deg, #2dd4bf 0%, #14b8a6 60%, #0d9488 100%);
   border-color: transparent;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 12 4' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 2H11' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 62%;
 }
 
 :where(.checkbox-glass, input[type="checkbox"]:not(.native-checkbox)):disabled {
