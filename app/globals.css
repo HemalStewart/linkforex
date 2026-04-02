@@ -782,14 +782,20 @@ html {
     box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
     transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 
-  /* Custom checkmark via background-image (SVG) */
-  background-image: none;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 62%;
   position: relative;
   display: inline-grid;
   place-items: center;
+}
+
+:where(.checkbox-glass, input[type="checkbox"]:not(.native-checkbox))::after {
+  content: '';
+  width: 0.32rem;
+  height: 0.6rem;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  transform: rotate(45deg) scale(0.9);
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
 :where(.checkbox-glass, input[type="checkbox"]:not(.native-checkbox)):hover {
@@ -813,11 +819,11 @@ html {
     0 0 0 1px rgba(13, 148, 136, 0.35),
     0 2px 8px -4px rgba(13, 148, 136, 0.45),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  /* SVG checkmark — white, bold */
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 12 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 5L4.5 8.5L11 1' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 62%;
+}
+
+:where(.checkbox-glass, input[type="checkbox"]:not(.native-checkbox)):checked::after {
+  opacity: 1;
+  transform: rotate(45deg) scale(1);
 }
 
 :where(.checkbox-glass, input[type="checkbox"]:not(.native-checkbox)):checked:hover {
@@ -830,10 +836,15 @@ html {
 :where(.checkbox-glass, input[type="checkbox"]:not(.native-checkbox)):indeterminate {
   background: linear-gradient(135deg, #2dd4bf 0%, #14b8a6 60%, #0d9488 100%);
   border-color: transparent;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 12 4' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 2H11' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 62%;
+}
+
+:where(.checkbox-glass, input[type="checkbox"]:not(.native-checkbox)):indeterminate::after {
+  width: 0.65rem;
+  height: 0;
+  border-right: 0;
+  border-bottom: 2px solid #ffffff;
+  transform: none;
+  opacity: 1;
 }
 
 :where(.checkbox-glass, input[type="checkbox"]:not(.native-checkbox)):disabled {
