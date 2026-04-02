@@ -551,21 +551,23 @@ export default function BranchRatesPage() {
                     <button
                         type="button"
                         onClick={() => void fetchData()}
-                        className="glass-effect inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-slate-600 transition hover:text-teal-600 dark:text-slate-200 dark:hover:text-teal-300"
+                        className="px-5 py-3 rounded-full border-0 glass-effect bg-teal-50/60 dark:bg-teal-900/10 text-slate-700 dark:text-slate-300 font-bold hover:bg-teal-100/70 dark:hover:bg-teal-900/20 hover:shadow-lg transition-all group"
                     >
-                        <RefreshCcw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                        Refresh
+                        <span className="flex items-center space-x-2">
+                            <RefreshCcw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
+                            <span>Refresh</span>
+                        </span>
                     </button>
-                    <button type="button" onClick={openModal} className="btn-primary inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold">
-                        <PlusCircle className="h-4 w-4" />
+                    <button type="button" onClick={openModal} className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 rounded-full px-6">
+                        <PlusCircle className="w-5 h-5" />
                         Add Rate
                     </button>
                 </div>
             </div>
 
-            <div className="card-glass p-5">
-                <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
-                    <div className="xl:col-span-6">
+            <div className="card-glass p-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="md:col-span-2">
                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Search className="w-4 h-4" /></span>
@@ -580,7 +582,7 @@ export default function BranchRatesPage() {
                             />
                         </div>
                     </div>
-                    <div className="xl:col-span-3">
+                    <div>
                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Status</label>
                         <select
                             className="input-glass w-full text-sm"
@@ -594,11 +596,6 @@ export default function BranchRatesPage() {
                             <option value="yes">Active</option>
                             <option value="no">Inactive</option>
                         </select>
-                    </div>
-                    <div className="xl:col-span-3 flex items-end">
-                        <p className="text-xs text-slate-400 dark:text-slate-300">
-                            Search across all branch rate columns.
-                        </p>
                     </div>
                 </div>
             </div>
