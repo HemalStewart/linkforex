@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import Modal from '@/app/admin/components/Modal';
@@ -96,6 +96,7 @@ export default function BranchRatesPage() {
         message: '',
         type: 'info' as 'info' | 'warning' | 'danger' | 'success',
     });
+    const lastSelectionRef = useRef<string>('');
 
     const fetchData = async () => {
         setLoading(true);
@@ -161,6 +162,32 @@ export default function BranchRatesPage() {
             });
         return matches[0] ?? null;
     }, [rows, form.branchCode, form.currencyCode]);
+
+    useEffect(() => {
+        const key = `${form.branchCode}::${form.currencyCode}`;
+        if (!form.branchCode || !form.currencyCode) {
+            lastSelectionRef.current = key;
+            return;
+        }
+        if (lastSelectionRef.current !== key) {
+            lastSelectionRef.current = key;
+            if (previousRate) {
+                setForm((prev) => ({
+                    ...prev,
+                    cashRate: previousRate.customer_rate != null ? String(previousRate.customer_rate) : '',
+                    branchRate: previousRate.branch_rate != null ? String(previousRate.branch_rate) : '',
+                    digitalRate: previousRate.digital_rate != null ? String(previousRate.digital_rate) : '',
+                }));
+            } else {
+                setForm((prev) => ({
+                    ...prev,
+                    cashRate: '',
+                    branchRate: '',
+                    digitalRate: '',
+                }));
+            }
+        }
+    }, [form.branchCode, form.currencyCode, previousRate]);
 
     const filteredRows = useMemo(() => {
         const query = search.trim().toLowerCase();
@@ -315,7 +342,7 @@ export default function BranchRatesPage() {
 
             <Modal isOpen={modalOpen} onClose={closeModal} title="Add Branch Rate">
                 <form onSubmit={handleSave} className="space-y-5">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="mb-2 ml-1 block text-sm font-bold text-slate-700 dark:text-slate-300">Select Branch</label>
                             <select
@@ -351,6 +378,8 @@ export default function BranchRatesPage() {
                                 ))}
                             </select>
                         </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label className="mb-2 ml-1 block text-sm font-bold text-slate-700 dark:text-slate-300">Customer Cash Rate</label>
                             <input
@@ -449,25 +478,31 @@ export default function BranchRatesPage() {
 
             <div className="card-glass overflow-hidden shadow-xl">
                 <div className="px-6 py-4 border-b border-slate-100/70 dark:border-slate-700/60">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div className="relative input-icon md:col-span-2">
-                            <span className="input-icon-left"><Search className="w-4 h-4" /></span>
-                            <input
-                                className="input-glass w-full text-sm"
-                                placeholder="Search branch, currency, rate, user"
-                                value={search}
-                                onChange={(event) => setSearch(event.target.value)}
-                            />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="md:col-span-2">
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search</label>
+                            <div className="relative input-icon">
+                                <span className="input-icon-left"><Search className="w-4 h-4" /></span>
+                                <input
+                                    className="input-glass w-full text-sm"
+                                    placeholder="Search branch, currency, rate, user"
+                                    value={search}
+                                    onChange={(event) => setSearch(event.target.value)}
+                                />
+                            </div>
                         </div>
-                        <select
-                            className="input-glass w-full text-sm"
-                            value={activeFilter}
-                            onChange={(event) => setActiveFilter(event.target.value as 'all' | YesNo)}
-                        >
-                            <option value="all">All Status</option>
-                            <option value="yes">Active</option>
-                            <option value="no">Inactive</option>
-                        </select>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Status</label>
+                            <select
+                                className="input-glass w-full text-sm"
+                                value={activeFilter}
+                                onChange={(event) => setActiveFilter(event.target.value as 'all' | YesNo)}
+                            >
+                                <option value="all">All Status</option>
+                                <option value="yes">Active</option>
+                                <option value="no">Inactive</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
