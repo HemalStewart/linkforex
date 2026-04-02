@@ -99,7 +99,9 @@ export default function BranchRatesPage() {
     const [branches, setBranches] = useState<Branch[]>([]);
     const [currencies, setCurrencies] = useState<CurrencyOption[]>([]);
     const [search, setSearch] = useState('');
-    const [activeFilter, setActiveFilter] = useState<'all' | YesNo>('yes');
+    const [activeFilter, setActiveFilter] = useState<'all' | YesNo>('all');
+    const [branchFilter, setBranchFilter] = useState('all');
+    const [currencyFilter, setCurrencyFilter] = useState('all');
     const [modalOpen, setModalOpen] = useState(false);
     const [form, setForm] = useState<FormState>(EMPTY_FORM);
     const [page, setPage] = useState(1);
@@ -209,6 +211,8 @@ export default function BranchRatesPage() {
         const query = search.trim().toLowerCase();
         return rows.filter((row) => {
             if (activeFilter !== 'all' && normalizeYesNo(row.active) !== activeFilter) return false;
+            if (branchFilter !== 'all' && String(row.branch_code || '') !== branchFilter) return false;
+            if (currencyFilter !== 'all' && String(row.currency_code || '').toUpperCase() !== currencyFilter) return false;
             if (!query) return true;
             return [
                 row.branch_name,
@@ -226,7 +230,7 @@ export default function BranchRatesPage() {
                 .filter((value) => value !== null && value !== undefined)
                 .some((value) => String(value).toLowerCase().includes(query));
         });
-    }, [rows, search, activeFilter]);
+    }, [rows, search, activeFilter, branchFilter, currencyFilter]);
 
     const sortedRows = useMemo(() => {
         const data = [...filteredRows];
@@ -566,7 +570,7 @@ export default function BranchRatesPage() {
             </div>
 
             <div className="card-glass p-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="md:col-span-2">
                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search</label>
                         <div className="relative input-icon">
@@ -595,6 +599,45 @@ export default function BranchRatesPage() {
                             <option value="all">All Status</option>
                             <option value="yes">Active</option>
                             <option value="no">Inactive</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Branch</label>
+                        <select
+                            className="input-glass w-full text-sm"
+                            value={branchFilter}
+                            onChange={(event) => {
+                                setBranchFilter(event.target.value);
+                                setPage(1);
+                            }}
+                        >
+                            <option value="all">All Branches</option>
+                            {branches.map((branch) => {
+                                const code = String(branch.code || branch.transaction_prefix || branch.id);
+                                return (
+                                    <option key={code} value={code}>
+                                        {branch.name}
+                                    </option>
+                                );
+                            })}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Currency</label>
+                        <select
+                            className="input-glass w-full text-sm"
+                            value={currencyFilter}
+                            onChange={(event) => {
+                                setCurrencyFilter(event.target.value);
+                                setPage(1);
+                            }}
+                        >
+                            <option value="all">All Currencies</option>
+                            {currencies.map((currency) => (
+                                <option key={currency.code} value={currency.code}>
+                                    {currency.code} - {currency.name}
+                                </option>
+                            ))}
                         </select>
                     </div>
                 </div>
