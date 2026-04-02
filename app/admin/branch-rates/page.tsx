@@ -6,6 +6,7 @@ import { getStoredUser } from '@/app/lib/authStorage';
 import Modal from '@/app/admin/components/Modal';
 import ConfirmModal from '@/app/admin/components/ConfirmModal';
 import Badge from '../components/ui/Badge';
+import Pagination from '../components/ui/Pagination';
 import { PlusCircle, RefreshCcw, Search } from 'lucide-react';
 
 type YesNo = 'yes' | 'no';
@@ -90,6 +91,8 @@ export default function BranchRatesPage() {
     const [activeFilter, setActiveFilter] = useState<'all' | YesNo>('yes');
     const [modalOpen, setModalOpen] = useState(false);
     const [form, setForm] = useState<FormState>(EMPTY_FORM);
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
     const [toast, setToast] = useState({
         isOpen: false,
         title: '',
@@ -211,6 +214,13 @@ export default function BranchRatesPage() {
                 .some((value) => String(value).toLowerCase().includes(query));
         });
     }, [rows, search, activeFilter]);
+
+    const totalRows = filteredRows.length;
+    const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
+    const safePage = Math.min(page, totalPages);
+    const startIndex = (safePage - 1) * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, totalRows);
+    const pagedRows = filteredRows.slice(startIndex, endIndex);
 
     const openModal = () => {
         setForm(EMPTY_FORM);
@@ -476,33 +486,53 @@ export default function BranchRatesPage() {
                 </div>
             </div>
 
+            <div className="card-glass p-5">
+                <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
+                    <div className="xl:col-span-6">
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search</label>
+                        <div className="relative input-icon">
+                            <span className="input-icon-left"><Search className="w-4 h-4" /></span>
+                            <input
+                                className="input-glass w-full text-sm"
+                                placeholder="Search branch, currency, rate, user"
+                                value={search}
+                                onChange={(event) => {
+                                    setSearch(event.target.value);
+                                    setPage(1);
+                                }}
+                            />
+                        </div>
+                    </div>
+                    <div className="xl:col-span-3">
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Status</label>
+                        <select
+                            className="input-glass w-full text-sm"
+                            value={activeFilter}
+                            onChange={(event) => {
+                                setActiveFilter(event.target.value as 'all' | YesNo);
+                                setPage(1);
+                            }}
+                        >
+                            <option value="all">All Status</option>
+                            <option value="yes">Active</option>
+                            <option value="no">Inactive</option>
+                        </select>
+                    </div>
+                    <div className="xl:col-span-3 flex items-end">
+                        <p className="text-xs text-slate-400 dark:text-slate-300">
+                            Search across all branch rate columns.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
             <div className="card-glass overflow-hidden shadow-xl">
                 <div className="px-6 py-4 border-b border-slate-100/70 dark:border-slate-700/60">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="md:col-span-2">
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search</label>
-                            <div className="relative input-icon">
-                                <span className="input-icon-left"><Search className="w-4 h-4" /></span>
-                                <input
-                                    className="input-glass w-full text-sm"
-                                    placeholder="Search branch, currency, rate, user"
-                                    value={search}
-                                    onChange={(event) => setSearch(event.target.value)}
-                                />
-                            </div>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Status</label>
-                            <select
-                                className="input-glass w-full text-sm"
-                                value={activeFilter}
-                                onChange={(event) => setActiveFilter(event.target.value as 'all' | YesNo)}
-                            >
-                                <option value="all">All Status</option>
-                                <option value="yes">Active</option>
-                                <option value="no">Inactive</option>
-                            </select>
-                        </div>
+                    <div>
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Branch Rate Directory</h2>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                            Showing {totalRows === 0 ? 0 : startIndex + 1} to {endIndex} of {totalRows}
+                        </p>
                     </div>
                 </div>
 
@@ -524,7 +554,7 @@ export default function BranchRatesPage() {
                                 </tr>
                             </thead>
                             <tbody className="table-body">
-                                {filteredRows.map((row) => {
+                                {pagedRows.map((row) => {
                                     const updatedUser = row.modified_user || row.entered_user || '-';
                                     return (
                                         <tr key={row.id}>
@@ -560,7 +590,7 @@ export default function BranchRatesPage() {
                                         </tr>
                                     );
                                 })}
-                                {!loading && filteredRows.length === 0 && (
+                                {!loading && pagedRows.length === 0 && (
                                     <tr>
                                         <td colSpan={8} className="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
                                             No branch rate rows found.
@@ -572,6 +602,16 @@ export default function BranchRatesPage() {
                     )}
                 </div>
             </div>
+            <Pagination
+                currentPage={safePage}
+                totalPages={totalPages}
+                rowsPerPage={pageSize}
+                onPageChange={setPage}
+                onRowsPerPageChange={(rows) => {
+                    setPageSize(rows);
+                    setPage(1);
+                }}
+            />
         </div>
     );
 }
