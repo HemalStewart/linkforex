@@ -62,6 +62,17 @@ type CurrencyOption = {
     symbol: string;
 };
 
+type SortDir = 'asc' | 'desc';
+type SortKey =
+    | 'branch'
+    | 'currency'
+    | 'cash'
+    | 'branchRate'
+    | 'digital'
+    | 'status'
+    | 'updatedAt'
+    | 'updatedUser';
+
 type FormState = {
     branchCode: string;
     currencyCode: string;
@@ -93,6 +104,8 @@ export default function BranchRatesPage() {
     const [form, setForm] = useState<FormState>(EMPTY_FORM);
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
+    const [sortKey, setSortKey] = useState<SortKey>('updatedAt');
+    const [sortDir, setSortDir] = useState<SortDir>('desc');
     const [toast, setToast] = useState({
         isOpen: false,
         title: '',
@@ -215,12 +228,76 @@ export default function BranchRatesPage() {
         });
     }, [rows, search, activeFilter]);
 
+    const sortedRows = useMemo(() => {
+        const data = [...filteredRows];
+        if (!sortKey) return data;
+
+        const compareText = (a?: string | null, b?: string | null) =>
+            String(a ?? '').localeCompare(String(b ?? ''), undefined, { sensitivity: 'base' });
+
+        const compareNumber = (a?: string | number | null, b?: string | number | null) =>
+            Number(a ?? 0) - Number(b ?? 0);
+
+        const compareDate = (a?: string | null, b?: string | null) =>
+            new Date(a ?? 0).getTime() - new Date(b ?? 0).getTime();
+
+        data.sort((a, b) => {
+            let result = 0;
+            switch (sortKey) {
+                case 'branch':
+                    result = compareText(a.branch_name || a.branch_code, b.branch_name || b.branch_code);
+                    break;
+                case 'currency':
+                    result = compareText(a.currency_code, b.currency_code);
+                    break;
+                case 'cash':
+                    result = compareNumber(a.customer_rate, b.customer_rate);
+                    break;
+                case 'branchRate':
+                    result = compareNumber(a.branch_rate, b.branch_rate);
+                    break;
+                case 'digital':
+                    result = compareNumber(a.digital_rate, b.digital_rate);
+                    break;
+                case 'status':
+                    result = compareText(normalizeYesNo(a.active), normalizeYesNo(b.active));
+                    break;
+                case 'updatedUser': {
+                    const userA = a.modified_user || a.entered_user || '';
+                    const userB = b.modified_user || b.entered_user || '';
+                    result = compareText(userA, userB);
+                    break;
+                }
+                case 'updatedAt':
+                default:
+                    result = compareDate(a.updated_at, b.updated_at);
+                    break;
+            }
+            return sortDir === 'asc' ? result : -result;
+        });
+        return data;
+    }, [filteredRows, sortKey, sortDir]);
+
     const totalRows = filteredRows.length;
     const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
     const safePage = Math.min(page, totalPages);
     const startIndex = (safePage - 1) * pageSize;
     const endIndex = Math.min(startIndex + pageSize, totalRows);
-    const pagedRows = filteredRows.slice(startIndex, endIndex);
+    const pagedRows = sortedRows.slice(startIndex, endIndex);
+
+    const toggleSort = (key: SortKey) => {
+        if (sortKey === key) {
+            setSortDir((current) => (current === 'asc' ? 'desc' : 'asc'));
+            return;
+        }
+        setSortKey(key);
+        setSortDir('asc');
+    };
+
+    const sortIndicator = (key: SortKey) => {
+        if (sortKey !== key) return '↕';
+        return sortDir === 'asc' ? '↑' : '↓';
+    };
 
     const openModal = () => {
         setForm(EMPTY_FORM);
@@ -543,14 +620,46 @@ export default function BranchRatesPage() {
                         <table className="table-shell whitespace-nowrap">
                             <thead className="table-head">
                                 <tr>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Branch</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Currency</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Customer Cash Rate</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Branch Rate</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Customer Digital Rate</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Status</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Updated</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Updated User</th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                                        <button onClick={() => toggleSort('branch')} className="flex items-center gap-1">
+                                            Branch <span>{sortIndicator('branch')}</span>
+                                        </button>
+                                    </th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                                        <button onClick={() => toggleSort('currency')} className="flex items-center gap-1">
+                                            Currency <span>{sortIndicator('currency')}</span>
+                                        </button>
+                                    </th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                                        <button onClick={() => toggleSort('cash')} className="flex items-center gap-1">
+                                            Customer Cash Rate <span>{sortIndicator('cash')}</span>
+                                        </button>
+                                    </th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                                        <button onClick={() => toggleSort('branchRate')} className="flex items-center gap-1">
+                                            Branch Rate <span>{sortIndicator('branchRate')}</span>
+                                        </button>
+                                    </th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                                        <button onClick={() => toggleSort('digital')} className="flex items-center gap-1">
+                                            Customer Digital Rate <span>{sortIndicator('digital')}</span>
+                                        </button>
+                                    </th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                                        <button onClick={() => toggleSort('status')} className="flex items-center gap-1">
+                                            Status <span>{sortIndicator('status')}</span>
+                                        </button>
+                                    </th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                                        <button onClick={() => toggleSort('updatedAt')} className="flex items-center gap-1">
+                                            Updated <span>{sortIndicator('updatedAt')}</span>
+                                        </button>
+                                    </th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                                        <button onClick={() => toggleSort('updatedUser')} className="flex items-center gap-1">
+                                            Updated User <span>{sortIndicator('updatedUser')}</span>
+                                        </button>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -602,16 +711,17 @@ export default function BranchRatesPage() {
                     )}
                 </div>
             </div>
-            <Pagination
-                currentPage={safePage}
-                totalPages={totalPages}
-                rowsPerPage={pageSize}
-                onPageChange={setPage}
-                onRowsPerPageChange={(rows) => {
-                    setPageSize(rows);
-                    setPage(1);
-                }}
-            />
+                <Pagination
+                    currentPage={safePage}
+                    totalPages={totalPages}
+                    rowsPerPage={pageSize}
+                    onPageChange={setPage}
+                    onRowsPerPageChange={(rows) => {
+                        setPageSize(rows);
+                        setPage(1);
+                    }}
+                />
+            </div>
         </div>
     );
 }
