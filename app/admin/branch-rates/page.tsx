@@ -5,6 +5,7 @@ import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import Modal from '@/app/admin/components/Modal';
 import ConfirmModal from '@/app/admin/components/ConfirmModal';
+import Badge from '../components/ui/Badge';
 import { PlusCircle, RefreshCcw, Search } from 'lucide-react';
 
 type YesNo = 'yes' | 'no';
@@ -512,7 +513,11 @@ export default function BranchRatesPage() {
                                                     ? Number(row.digital_rate || 0).toFixed(4)
                                                     : '—'}
                                             </td>
-                                            <td className="px-4 py-4 text-sm">{renderStatus(row.active)}</td>
+                                            <td className="px-4 py-4 text-sm">
+                                                <Badge type={row.active === 'yes' ? 'active' : 'inactive'}>
+                                                    {row.active === 'yes' ? 'Active' : 'Inactive'}
+                                                </Badge>
+                                            </td>
                                             <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">
                                                 {row.updated_at ? new Date(row.updated_at).toLocaleString() : '-'}
                                             </td>
@@ -561,12 +566,7 @@ function isSenderBranch(branch: Branch): boolean {
     return senderSignals.some((value) => normalizeYesNo(value) === 'yes' || String(value).trim() === '1');
 }
 
-function renderStatus(value: YesNo) {
-    const className = value === 'yes'
-        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
-        : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300';
-    return <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${className}`}>{value === 'yes' ? 'Active' : 'Inactive'}</span>;
-}
+
 
 async function upsertMobileConfig({
     currencyCode,

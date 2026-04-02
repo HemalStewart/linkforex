@@ -4,7 +4,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
-import { PlusCircle, RefreshCw, Search, Trash2, Edit2 } from 'lucide-react';
+import Badge from '../components/ui/Badge';
+import Pagination from '../components/ui/Pagination';
+import { PlusCircle, RefreshCw, Search, Trash2, Edit2, ListChecks } from 'lucide-react';
 
 type YesNo = 'yes' | 'no';
 
@@ -277,12 +279,14 @@ export default function PurposesPage() {
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
                     <div className="xl:col-span-6">
                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search</label>
-                        <div className="relative">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                        <div className="relative input-icon">
+                            <span className="input-icon-left">
+                                <Search className="w-4 h-4" />
+                            </span>
                             <input
                                 value={searchQuery}
                                 onChange={(event) => setSearchQuery(event.target.value)}
-                                className="input-glass w-full pl-12"
+                                className="input-glass w-full text-sm"
                                 placeholder="Search purposes"
                             />
                         </div>
@@ -300,62 +304,54 @@ export default function PurposesPage() {
                             ))}
                         </select>
                     </div>
-                    <div className="xl:col-span-3">
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Rows</label>
-                        <select
-                            className="input-glass w-full"
-                            value={rowsPerPage}
-                            onChange={(event) => setRowsPerPage(Number(event.target.value))}
-                        >
-                            {[10, 25, 50].map((size) => (
-                                <option key={size} value={size}>{size} rows</option>
-                            ))}
-                        </select>
-                    </div>
                 </div>
             </div>
 
-            <div className="card-glass overflow-hidden">
-                <div className="table-responsive">
-                    <table className="min-w-full text-sm">
-                        <thead>
-                            <tr className="bg-white/70 dark:bg-slate-900/60 text-left">
-                                <th className="px-5 py-4 text-xs font-semibold uppercase tracking-widest text-slate-500">#</th>
-                                <th className="px-5 py-4 text-xs font-semibold uppercase tracking-widest text-slate-500 cursor-pointer" onClick={() => toggleSort('name')}>
-                                    Name {sortIndicator('name')}
+            <div className="card-glass overflow-hidden shadow-xl">
+                <div className="px-6 py-4 border-b border-slate-100/70 dark:border-slate-700/60 flex items-center space-x-3">
+                    <ListChecks className="w-6 h-6 text-slate-400" />
+                    <div>
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Purposes Directory</h2>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Showing {totalRows === 0 ? 0 : startIndex + 1} to {Math.min(endIndex, totalRows)} of {totalRows}</p>
+                    </div>
+                </div>
+                <div className="table-scroll">
+                    <table className="table-shell">
+                        <thead className="table-head">
+                            <tr>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">#</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                    <button onClick={() => toggleSort('name')} className="flex items-center gap-1">Name <span>{sortIndicator('name')}</span></button>
                                 </th>
-                                <th className="px-5 py-4 text-xs font-semibold uppercase tracking-widest text-slate-500 cursor-pointer" onClick={() => toggleSort('active')}>
-                                    Active {sortIndicator('active')}
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                    <button onClick={() => toggleSort('active')} className="flex items-center gap-1">Active <span>{sortIndicator('active')}</span></button>
                                 </th>
-                                <th className="px-5 py-4 text-xs font-semibold uppercase tracking-widest text-slate-500 text-right">Actions</th>
+                                <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="table-body">
                             {loading && (
-                                <tr><td colSpan={4} className="px-5 py-10 text-center text-slate-500">Loading…</td></tr>
+                                <tr><td colSpan={4} className="px-6 py-10 text-center text-slate-500 animate-pulse">Loading…</td></tr>
                             )}
                             {!loading && pagedRows.map((row, idx) => (
-                                <tr key={row.id} className="border-t border-slate-200/60 dark:border-slate-700/60 hover:bg-white/40 dark:hover:bg-slate-900/40 transition">
-                                    <td className="px-5 py-4 text-slate-500">{startIndex + idx + 1}</td>
-                                    <td className="px-5 py-4 font-semibold text-slate-800 dark:text-slate-100">{row.name || '—'}</td>
-                                    <td className="px-5 py-4">
-                                        <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${normalizeYesNo(row.active) === 'yes'
-                                            ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-200 dark:ring-emerald-800'
-                                            : 'bg-rose-50 text-rose-700 ring-1 ring-rose-200 dark:bg-rose-900/30 dark:text-rose-200 dark:ring-rose-800'}
-                                        `}>
+                                <tr key={row.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
+                                    <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
+                                    <td className="px-6 py-4 font-semibold text-slate-800 dark:text-slate-100">{row.name || '—'}</td>
+                                    <td className="px-6 py-4">
+                                        <Badge type={normalizeYesNo(row.active) === 'yes' ? 'active' : 'danger'}>
                                             {normalizeYesNo(row.active) === 'yes' ? 'Yes' : 'No'}
-                                        </span>
+                                        </Badge>
                                     </td>
-                                    <td className="px-5 py-4 text-right">
+                                    <td className="px-6 py-4 text-right">
                                         <div className="inline-flex items-center gap-2">
                                             <button
-                                                className="px-3 py-2 rounded-xl bg-white/70 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-700/60 hover:shadow transition"
+                                                className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all"
                                                 onClick={() => openEditModal(row)}
                                             >
                                                 <Edit2 className="w-4 h-4" />
                                             </button>
                                             <button
-                                                className="px-3 py-2 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 hover:shadow transition"
+                                                className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all"
                                                 onClick={() => setDeleteId(Number(row.id))}
                                             >
                                                 <Trash2 className="w-4 h-4" />
@@ -365,34 +361,18 @@ export default function PurposesPage() {
                                 </tr>
                             ))}
                             {!loading && pagedRows.length === 0 && (
-                                <tr><td colSpan={4} className="px-5 py-10 text-center text-slate-500">No purposes found.</td></tr>
+                                <tr><td colSpan={4} className="px-6 py-10 text-center text-slate-500">No purposes found.</td></tr>
                             )}
                         </tbody>
                     </table>
                 </div>
-
-                <div className="flex flex-col md:flex-row items-center justify-between px-5 py-4 border-t border-slate-200/60 dark:border-slate-700/60 text-sm text-slate-500">
-                    <div>
-                        Showing {totalRows === 0 ? 0 : startIndex + 1}–{Math.min(endIndex, totalRows)} of {totalRows}
-                    </div>
-                    <div className="flex items-center gap-2 mt-3 md:mt-0">
-                        <button
-                            className="btn-secondary"
-                            onClick={() => setPage((current) => Math.max(1, current - 1))}
-                            disabled={currentPage === 1}
-                        >
-                            Prev
-                        </button>
-                        <span>{currentPage} / {totalPages}</span>
-                        <button
-                            className="btn-secondary"
-                            onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-                            disabled={currentPage === totalPages}
-                        >
-                            Next
-                        </button>
-                    </div>
-                </div>
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    rowsPerPage={rowsPerPage}
+                    onPageChange={setPage}
+                    onRowsPerPageChange={(rows) => { setRowsPerPage(rows); setPage(1); }}
+                />
             </div>
 
             <Modal

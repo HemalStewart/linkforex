@@ -5,6 +5,7 @@ import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import { isPrivilegedUser as getIsPrivilegedUser } from '@/app/lib/permissions';
 import ConfirmModal from '../components/ConfirmModal';
+import Badge from '../components/ui/Badge';
 import { CheckCircle2, XCircle, RefreshCcw, AlertTriangle } from 'lucide-react';
 
 type BranchAccessRow = {
@@ -204,9 +205,9 @@ export default function BranchAccessPage() {
                                         <td className="px-4 py-3 text-slate-700 dark:text-slate-200">{row.origin_branch_name || row.origin_branch_code}</td>
                                         <td className="px-4 py-3 text-slate-700 dark:text-slate-200">{row.requested_branch_name || row.requested_branch_code}</td>
                                         <td className="px-4 py-3">
-                                            <span className="inline-flex rounded-full px-2 py-1 text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">
+                                            <Badge type="warning">
                                                 {row.status}
-                                            </span>
+                                            </Badge>
                                         </td>
                                         <td className="px-4 py-3 text-slate-500 dark:text-slate-300">{row.requested_by_username || '-'}</td>
                                         <td className="px-4 py-3 text-slate-500 dark:text-slate-300">

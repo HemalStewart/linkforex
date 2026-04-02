@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Activity, AlertCircle, Clock3, Download, FilterX, RefreshCw, Search, ShieldAlert, UserCheck } from 'lucide-react';
 import { ENDPOINTS } from '@/app/lib/api';
+import Pagination from '../components/ui/Pagination';
 
 type LogRow = {
     id: number;
@@ -705,8 +706,9 @@ export default function LogsPage() {
 
             <div className="card-glass overflow-hidden shadow-xl">
                 <div className="px-6 py-4 border-b border-slate-100/70 dark:border-slate-700/60 flex items-center justify-between gap-3">
-                    <div className="text-sm text-slate-500 dark:text-slate-300">
-                        Results: {sorted.length === 0 ? 0 : startIndex + 1} - {endIndex} of {sorted.length}
+                    <div>
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Session Logs</h2>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Showing {sorted.length === 0 ? 0 : startIndex + 1} to {endIndex} of {sorted.length}</p>
                     </div>
                     <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                         Sorted by {sortKey} ({sortDir.toUpperCase()})
@@ -871,39 +873,13 @@ export default function LogsPage() {
                     </table>
                 </div>
 
-                <div className="px-6 py-4 border-t border-slate-100/70 dark:border-slate-700/60 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-300">
-                        <span className="font-semibold">Rows per page</span>
-                        <select
-                            value={pageSize}
-                            onChange={(e) => setPageSize(Number(e.target.value))}
-                            className="input-glass h-9 text-sm px-3"
-                        >
-                            {[25, 50, 100, 250].map((size) => (
-                                <option key={size} value={size}>{size}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => setPage((current) => Math.max(1, current - 1))}
-                            disabled={page <= 1}
-                            className="px-4 py-2 rounded-full text-xs font-bold glass-effect border border-slate-200/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            Prev
-                        </button>
-                        <span className="text-xs font-semibold text-slate-500 dark:text-slate-300">
-                            Page {page} of {totalPages}
-                        </span>
-                        <button
-                            onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-                            disabled={page >= totalPages}
-                            className="px-4 py-2 rounded-full text-xs font-bold glass-effect border border-slate-200/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            Next
-                        </button>
-                    </div>
-                </div>
+                <Pagination
+                    currentPage={page}
+                    totalPages={totalPages}
+                    rowsPerPage={pageSize}
+                    onPageChange={setPage}
+                    onRowsPerPageChange={(rows) => { setPageSize(rows); setPage(1); }}
+                />
             </div>
         </div>
     );

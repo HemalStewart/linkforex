@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { PlusCircle, Search } from 'lucide-react';
+import { PlusCircle, Search, Key } from 'lucide-react';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../components/ConfirmModal';
+import Badge from '../components/ui/Badge';
+import Pagination from '../components/ui/Pagination';
 
 type PermissionGroupRow = {
     id: number;
@@ -727,9 +729,11 @@ export default function PermissionGroupsPage() {
             </div>
 
             <div className="card-glass overflow-hidden shadow-xl">
-                <div className="px-6 py-4 border-b border-slate-100/70 dark:border-slate-700/60">
-                    <div className="text-sm text-slate-500 dark:text-slate-300">
-                        Results: {sorted.length === 0 ? 0 : startIndex + 1} - {endIndex} of {sorted.length}
+                <div className="px-6 py-4 border-b border-slate-100/70 dark:border-slate-700/60 flex items-center space-x-3">
+                    <Key className="w-6 h-6 text-slate-400" />
+                    <div>
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Permission Groups</h2>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Showing {sorted.length === 0 ? 0 : startIndex + 1} to {endIndex} of {sorted.length}</p>
                     </div>
                 </div>
                 <div className="table-scroll">
@@ -819,39 +823,13 @@ export default function PermissionGroupsPage() {
                         </tbody>
                     </table>
                 </div>
-                <div className="px-6 py-4 border-t border-slate-100/70 dark:border-slate-700/60 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-300">
-                        <span className="font-semibold">Rows per page</span>
-                        <select
-                            value={pageSize}
-                            onChange={(e) => setPageSize(Number(e.target.value))}
-                            className="input-glass h-9 text-sm px-3"
-                        >
-                            {[25, 50, 100, 250].map((size) => (
-                                <option key={size} value={size}>{size}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => setPage((p) => Math.max(1, p - 1))}
-                            disabled={page <= 1}
-                            className="px-4 py-2 rounded-full text-xs font-bold glass-effect border border-slate-200/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            Prev
-                        </button>
-                        <span className="text-xs font-semibold text-slate-500 dark:text-slate-300">
-                            Page {page} of {totalPages}
-                        </span>
-                        <button
-                            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                            disabled={page >= totalPages}
-                            className="px-4 py-2 rounded-full text-xs font-bold glass-effect border border-slate-200/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            Next
-                        </button>
-                    </div>
-                </div>
+                <Pagination
+                    currentPage={page}
+                    totalPages={totalPages}
+                    rowsPerPage={pageSize}
+                    onPageChange={setPage}
+                    onRowsPerPageChange={(rows) => { setPageSize(rows); setPage(1); }}
+                />
             </div>
         </div>
     );

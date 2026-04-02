@@ -4,6 +4,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
+import Badge from '../components/ui/Badge';
+import Pagination from '../components/ui/Pagination';
 import { Building2, Edit2, PlusCircle, RefreshCw, Save, Search, Trash2, X } from 'lucide-react';
 
 type YesNo = 'yes' | 'no';
@@ -428,12 +430,12 @@ export default function BanksPage() {
             </div>
 
             <div className="card-glass overflow-hidden shadow-xl">
-                <div className="px-8 py-6 border-b border-gray-100 dark:border-slate-700/50 flex items-center space-x-3">
+                <div className="px-6 py-4 border-b border-slate-100/70 dark:border-slate-700/60 flex items-center space-x-3">
                     <Building2 className="w-6 h-6 text-slate-400" />
                     <div>
                         <h2 className="text-xl font-bold text-slate-900 dark:text-white">Bank Directory</h2>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                            Showing {totalRows} of {banks.length}
+                            Showing {totalRows === 0 ? 0 : startIndex + 1} to {endIndex} of {totalRows}
                         </p>
                     </div>
                 </div>
@@ -516,9 +518,9 @@ export default function BanksPage() {
                                                     onChange={(e) => setEditForm({ ...editForm, sender_bank: e.target.checked ? 1 : 0 })}
                                                 />
                                             ) : (
-                                                <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${senderFlag(bank) ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300'}`}>
+                                                <Badge type={senderFlag(bank) ? 'yes' : 'no'}>
                                                     {senderFlag(bank) ? 'Yes' : 'No'}
-                                                </span>
+                                                </Badge>
                                             )}
                                         </td>
                                         <td className="px-6 py-5 text-center">
@@ -529,9 +531,9 @@ export default function BanksPage() {
                                                     onChange={(e) => setEditForm({ ...editForm, receiver_bank: e.target.checked ? 1 : 0 })}
                                                 />
                                             ) : (
-                                                <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${receiverFlag(bank) ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300'}`}>
+                                                <Badge type={receiverFlag(bank) ? 'yes' : 'no'}>
                                                     {receiverFlag(bank) ? 'Yes' : 'No'}
-                                                </span>
+                                                </Badge>
                                             )}
                                         </td>
                                         <td className="px-6 py-5 text-center">
@@ -542,9 +544,9 @@ export default function BanksPage() {
                                                     onChange={(e) => setEditForm({ ...editForm, pickup_bank: e.target.checked ? 1 : 0 })}
                                                 />
                                             ) : (
-                                                <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${pickupFlag(bank) ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300'}`}>
+                                                <Badge type={pickupFlag(bank) ? 'yes' : 'no'}>
                                                     {pickupFlag(bank) ? 'Yes' : 'No'}
-                                                </span>
+                                                </Badge>
                                             )}
                                         </td>
                                         <td className="px-6 py-5 text-center">
@@ -581,38 +583,13 @@ export default function BanksPage() {
                         </table>
                     )}
                 </div>
-                <div className="px-6 py-4 border-t border-slate-100/70 dark:border-slate-700/60">
-                    <div className="flex flex-wrap items-center gap-3 text-sm">
-                        <span className="text-slate-400 dark:text-slate-300">Rows per page</span>
-                        <select
-                            className="input-glass px-3 py-1.5 text-sm pr-8"
-                            value={rowsPerPage}
-                            onChange={(e) => {
-                                setRowsPerPage(Number(e.target.value));
-                                setPage(1);
-                            }}
-                        >
-                            <option value={25}>25</option>
-                            <option value={50}>50</option>
-                            <option value={100}>100</option>
-                        </select>
-                        <button
-                            onClick={() => setPage(Math.max(1, currentPage - 1))}
-                            disabled={currentPage === 1}
-                            className="px-3 py-1.5 rounded-full glass-effect text-slate-600 dark:text-slate-200 disabled:opacity-40"
-                        >
-                            Prev
-                        </button>
-                        <span className="text-slate-400 dark:text-slate-300">Page {currentPage} of {totalPages}</span>
-                        <button
-                            onClick={() => setPage(Math.min(totalPages, currentPage + 1))}
-                            disabled={currentPage === totalPages}
-                            className="px-3 py-1.5 rounded-full glass-effect text-slate-600 dark:text-slate-200 disabled:opacity-40"
-                        >
-                            Next
-                        </button>
-                    </div>
-                </div>
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    rowsPerPage={rowsPerPage}
+                    onPageChange={setPage}
+                    onRowsPerPageChange={(rows) => { setRowsPerPage(rows); setPage(1); }}
+                />
             </div>
 
             <Modal isOpen={addModalOpen} onClose={() => setAddModalOpen(false)} title="Add Bank">

@@ -6,6 +6,8 @@ import { getStoredUser } from '@/app/lib/authStorage';
 import { isPrivilegedUser } from '@/app/lib/permissions';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
+import Badge from '../components/ui/Badge';
+import Pagination from '../components/ui/Pagination';
 import { Edit2, Globe, PlusCircle, RefreshCw, Save, Search, ShieldAlert, Trash2 } from 'lucide-react';
 
 type YesNo = 'yes' | 'no';
@@ -56,25 +58,6 @@ const EMPTY_FORM: CountryFormState = {
 };
 
 const YES_NO_OPTIONS: YesNo[] = ['yes', 'no'];
-
-const riskBadgeClass = (value: YesNo) =>
-    value === 'yes'
-        ? 'bg-rose-50 text-rose-700 ring-1 ring-rose-200 dark:bg-rose-900/30 dark:text-rose-200 dark:ring-rose-800'
-        : 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-200 dark:ring-emerald-800';
-
-const blacklistBadgeClass = (value: YesNo) =>
-    value === 'yes'
-        ? 'bg-slate-900 text-white ring-1 ring-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:ring-slate-300'
-        : 'bg-sky-50 text-sky-700 ring-1 ring-sky-200 dark:bg-sky-900/30 dark:text-sky-200 dark:ring-sky-800';
-
-const blacklistBadgeLabel = (value: YesNo) => (value === 'yes' ? 'Yes' : 'No');
-
-const payoutBadgeClass = (value: YesNo) =>
-    value === 'yes'
-        ? 'bg-teal-50 text-teal-700 ring-1 ring-teal-200 dark:bg-teal-900/30 dark:text-teal-200 dark:ring-teal-800'
-        : 'bg-slate-100 text-slate-500 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700';
-
-const payoutBadgeLabel = (value: YesNo) => (value === 'yes' ? 'Yes' : 'No');
 
 export default function CountriesPage() {
     const [countries, setCountries] = useState<CountryRow[]>([]);
@@ -497,14 +480,14 @@ export default function CountriesPage() {
                                             {country.name || '—'}
                                         </td>
                                         <td className="px-8 py-5 text-sm whitespace-nowrap">
-                                            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${riskBadgeClass(normalizeYesNo(country.high_risk_country))}`}>
+                                            <Badge type={normalizeYesNo(country.high_risk_country) === 'yes' ? 'danger' : 'neutral'}>
                                                 {toYesNoLabel(normalizeYesNo(country.high_risk_country))}
-                                            </span>
+                                            </Badge>
                                         </td>
                                         <td className="px-8 py-5 text-sm whitespace-nowrap">
-                                            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${blacklistBadgeClass(normalizeYesNo(country.black_list_country))}`}>
-                                                {blacklistBadgeLabel(normalizeYesNo(country.black_list_country))}
-                                            </span>
+                                            <Badge type={normalizeYesNo(country.black_list_country) === 'yes' ? 'dark' : 'neutral'}>
+                                                {toYesNoLabel(normalizeYesNo(country.black_list_country))}
+                                            </Badge>
                                         </td>
                                         <td className="px-8 py-5 text-sm font-mono text-slate-500 dark:text-slate-300 whitespace-nowrap">
                                             {country.currency_code || '—'}
@@ -516,9 +499,9 @@ export default function CountriesPage() {
                                             {country.currency_name || '—'}
                                         </td>
                                         <td className="px-8 py-5 text-sm whitespace-nowrap">
-                                            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${payoutBadgeClass(normalizeYesNo(country.payout_currency))}`}>
-                                                {payoutBadgeLabel(normalizeYesNo(country.payout_currency))}
-                                            </span>
+                                            <Badge type={normalizeYesNo(country.payout_currency) === 'yes' ? 'yes' : 'no'}>
+                                                {toYesNoLabel(normalizeYesNo(country.payout_currency))}
+                                            </Badge>
                                         </td>
                                         <td className="px-8 py-5 text-center">
                                             <div className="flex items-center justify-center space-x-2">
@@ -548,38 +531,16 @@ export default function CountriesPage() {
                         </table>
                     )}
                 </div>
-                <div className="px-6 py-4 border-t border-slate-100/70 dark:border-slate-700/60">
-                    <div className="flex flex-wrap items-center gap-3 text-sm">
-                        <span className="text-slate-400 dark:text-slate-300">Rows per page</span>
-                        <select
-                            className="input-glass px-3 py-1.5 text-sm pr-8"
-                            value={rowsPerPage}
-                            onChange={(e) => {
-                                setRowsPerPage(Number(e.target.value));
-                                setPage(1);
-                            }}
-                        >
-                            <option value={25}>25</option>
-                            <option value={50}>50</option>
-                            <option value={100}>100</option>
-                        </select>
-                        <button
-                            onClick={() => setPage(Math.max(1, currentPage - 1))}
-                            disabled={currentPage === 1}
-                            className="px-3 py-1.5 rounded-full glass-effect text-slate-600 dark:text-slate-200 disabled:opacity-40"
-                        >
-                            Prev
-                        </button>
-                        <span className="text-slate-400 dark:text-slate-300">Page {currentPage} of {totalPages}</span>
-                        <button
-                            onClick={() => setPage(Math.min(totalPages, currentPage + 1))}
-                            disabled={currentPage === totalPages}
-                            className="px-3 py-1.5 rounded-full glass-effect text-slate-600 dark:text-slate-200 disabled:opacity-40"
-                        >
-                            Next
-                        </button>
-                    </div>
-                </div>
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    rowsPerPage={rowsPerPage}
+                    onPageChange={setPage}
+                    onRowsPerPageChange={(rows) => {
+                        setRowsPerPage(rows);
+                        setPage(1);
+                    }}
+                />
             </div>
 
             <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editingId == null ? 'Add Country' : 'Edit Country'}>

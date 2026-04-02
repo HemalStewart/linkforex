@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
+import Badge from '@/app/admin/components/ui/Badge';
 import { RefreshCcw, Search } from 'lucide-react';
 
 type MobileExchangeRate = {
@@ -131,9 +132,6 @@ export default function MobileExchangeRatesPage() {
                                     const symbol = row.symbol || row.currency_symbol || '';
                                     const rate = Number(row.rate || 0).toFixed(4);
                                     const status = String(row.status || 'active').toLowerCase() === 'inactive' ? 'Inactive' : 'Active';
-                                    const statusClass = status === 'Active'
-                                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
-                                        : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300';
                                     const branchLabel = row.source_branch_code
                                         ? `${row.source_branch_code}${row.source_branch_name ? ` - ${row.source_branch_name}` : ''}`
                                         : '-';
@@ -145,7 +143,7 @@ export default function MobileExchangeRatesPage() {
                                             </td>
                                             <td className="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">{rate}</td>
                                             <td className="px-4 py-4 text-sm">
-                                                <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${statusClass}`}>{status}</span>
+                                                <Badge type={status === 'Active' ? 'active' : 'inactive'}>{status}</Badge>
                                             </td>
                                             <td className="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">{branchLabel}</td>
                                             <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">

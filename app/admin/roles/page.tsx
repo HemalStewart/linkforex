@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../components/ConfirmModal';
+import Badge from '../components/ui/Badge';
+import Pagination from '../components/ui/Pagination';
 import { Search, PlusCircle, Trash2, Eye, Shield, ChevronRight } from 'lucide-react';
 
 export default function RolesPage() {
@@ -13,6 +15,8 @@ export default function RolesPage() {
     const [systemDefinedFilter, setSystemDefinedFilter] = useState('any');
     const [sortKey, setSortKey] = useState<string>('created_at');
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+    const [page, setPage] = useState(1);
+    const [rowsPerPage, setRowsPerPage] = useState(25);
 
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [roleToDelete, setRoleToDelete] = useState<any | null>(null);
@@ -100,6 +104,15 @@ export default function RolesPage() {
         return sortDir === 'asc' ? result : -result;
     });
 
+    const totalRows = sortedRoles.length;
+    const totalPages = Math.max(1, Math.ceil(totalRows / rowsPerPage));
+    const currentPage = Math.min(page, totalPages);
+    const startIndex = totalRows === 0 ? 0 : (currentPage - 1) * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, totalRows);
+    const pagedRoles = sortedRoles.slice(startIndex, endIndex);
+
+    useEffect(() => { setPage(1); }, [searchQuery, systemDefinedFilter, sortKey, sortDir, rowsPerPage]);
+
     const toggleSort = (key: string) => {
         if (sortKey === key) {
             setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
@@ -114,12 +127,7 @@ export default function RolesPage() {
         return sortDir === 'asc' ? '↑' : '↓';
     };
 
-    const getYesNoBadge = (val: any) => {
-        const isYes = normalizeYesNo(val) === 'yes';
-        return isYes
-            ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300'
-            : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300';
-    };
+
 
     const promptDelete = (role: any) => {
         setRoleToDelete(role);
@@ -306,9 +314,13 @@ export default function RolesPage() {
 
             {/* Table */}
             <div className="card-glass overflow-hidden shadow-xl">
-                <div className="px-6 py-4 border-b border-slate-100/70 dark:border-slate-700/60 flex flex-col gap-3">
-                    <div className="text-sm text-slate-500 dark:text-slate-300">
-                        Results: {sortedRoles.length === 0 ? 0 : 1} - {sortedRoles.length} of {sortedRoles.length}
+                <div className="px-6 py-4 border-b border-slate-100/70 dark:border-slate-700/60 flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                        <Shield className="w-6 h-6 text-slate-400" />
+                        <div>
+                            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Roles Directory</h2>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Showing {totalRows === 0 ? 0 : startIndex + 1} to {endIndex} of {totalRows}</p>
+                        </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-3 text-sm">
                         <button
@@ -377,7 +389,7 @@ export default function RolesPage() {
                             </tr>
                         </thead>
                         <tbody className="table-body">
-                            {sortedRoles.map((role, idx) => {
+                            {pagedRoles.map((role, idx) => {
                                 const systemDefined = normalizeYesNo(role.system_defined) === 'yes';
                                 return (
                                     <tr key={role.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
@@ -395,12 +407,12 @@ export default function RolesPage() {
                                                 className="w-4 h-4 accent-teal-500"
                                             />
                                         </td>
-                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{idx + 1}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
                                         <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{role.name || '-'}</td>
                                         <td className="px-4 py-4">
-                                            <span className={`badge-glass px-3 py-1 rounded-full text-[10px] font-extrabold ${getYesNoBadge(role.system_defined)}`}>
+                                            <Badge type={normalizeYesNo(role.system_defined)}>
                                                 {toYesNoLabel(role.system_defined)}
-                                            </span>
+                                            </Badge>
                                         </td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{role.created_by || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{role.created_at ? new Date(role.created_at).toLocaleString() : '-'}</td>
@@ -434,6 +446,13 @@ export default function RolesPage() {
                         </tbody>
                     </table>
                 </div>
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    rowsPerPage={rowsPerPage}
+                    onPageChange={setPage}
+                    onRowsPerPageChange={(rows) => { setRowsPerPage(rows); setPage(1); }}
+                />
             </div>
         </div>
     );

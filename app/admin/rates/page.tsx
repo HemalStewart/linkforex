@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
+import Badge from '../components/ui/Badge';
 import { RefreshCw, PlusCircle, Globe, Coins, DollarSign } from 'lucide-react';
 
 export default function ExchangeRatesPage() {
@@ -194,12 +195,9 @@ export default function ExchangeRatesPage() {
                                             </span>
                                         </td>
                                         <td className="px-8 py-5 text-sm font-semibold">
-                                            <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${String(currency.status || 'active').toLowerCase() === 'active'
-                                                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
-                                                : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300'
-                                                }`}>
+                                            <Badge type={String(currency.status || 'active').toLowerCase() === 'active' ? 'active' : 'inactive'}>
                                                 {String(currency.status || 'active').toLowerCase() === 'active' ? 'Active' : 'Inactive'}
-                                            </span>
+                                            </Badge>
                                         </td>
                                         <td className="px-8 py-5 text-sm font-medium text-slate-400">
                                             {new Date(currency.updated_at).toLocaleString()}

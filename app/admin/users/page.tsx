@@ -5,12 +5,16 @@ import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../components/ConfirmModal';
+import Badge from '../components/ui/Badge';
+import Pagination from '../components/ui/Pagination';
 import { Search, UserPlus, Download, Trash2, Users, UserCheck, User, Shield, QrCode, Eye, RotateCcw, ChevronRight } from 'lucide-react';
 
 export default function UsersPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [sortKey, setSortKey] = useState<string>('created_at');
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+    const [page, setPage] = useState(1);
+    const [rowsPerPage, setRowsPerPage] = useState(25);
 
     const [users, setUsers] = useState<any[]>([]);
     const [currentUserName, setCurrentUserName] = useState('');
@@ -170,30 +174,6 @@ export default function UsersPage() {
         }
     };
 
-
-    const getStatusBadge = (status: string) => {
-        const styles = {
-            active: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-400',
-            inactive: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
-            suspended: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
-        };
-        return styles[status as keyof typeof styles] || styles.inactive;
-    };
-    const getYesNoBadge = (val: any) => {
-        const isYes = val === 'yes' || val === true || val === 1;
-        return isYes
-            ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300'
-            : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
-    };
-
-    const getTwofaBadge = (status: string) => {
-        const styles = {
-            active: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300',
-            inactive: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
-        };
-        return styles[status as keyof typeof styles] || styles.inactive;
-    };
-
     const normalizeYesNo = (val: any) => (val === 'yes' || val === true || val === 1) ? 'yes' : 'no';
     const toYesNoLabel = (val: any) => (normalizeYesNo(val) === 'yes' ? 'Yes' : 'No');
     const toTitleLabel = (value: string) => value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
@@ -262,6 +242,23 @@ export default function UsersPage() {
         const result = collator.compare(String(aVal), String(bVal));
         return sortDir === 'asc' ? result : -result;
     });
+
+    const totalRows = filteredUsers.length;
+    const totalPages = Math.max(1, Math.ceil(totalRows / rowsPerPage));
+    const currentPage = Math.min(page, totalPages);
+    const startIndex = totalRows === 0 ? 0 : (currentPage - 1) * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, totalRows);
+    const pagedUsers = filteredUsers.slice(startIndex, endIndex);
+
+    useEffect(() => {
+        setPage(1);
+    }, [searchQuery, sortKey, sortDir, rowsPerPage]);
+
+    useEffect(() => {
+        if (page !== currentPage) {
+            setPage(currentPage);
+        }
+    }, [page, currentPage]);
 
     const toggleSort = (key: string) => {
         if (sortKey === key) {
@@ -356,9 +353,13 @@ export default function UsersPage() {
 
             {/* Users Table */}
             <div className="card-glass overflow-hidden shadow-xl">
-                <div className="px-6 py-4 border-b border-slate-100/70 dark:border-slate-700/60 flex flex-col gap-3">
-                    <div className="text-sm text-slate-500 dark:text-slate-300">
-                        Results: {filteredUsers.length === 0 ? 0 : 1} - {filteredUsers.length} of {filteredUsers.length}
+                <div className="px-6 py-4 border-b border-slate-100/70 dark:border-slate-700/60 flex items-center space-x-3">
+                    <Users className="w-6 h-6 text-slate-400" />
+                    <div>
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">User Directory</h2>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                            Showing {totalRows === 0 ? 0 : startIndex + 1} to {endIndex} of {totalRows}
+                        </p>
                     </div>
                 </div>
 
@@ -429,35 +430,35 @@ export default function UsersPage() {
                             </tr>
                         </thead>
                         <tbody className="table-body">
-                            {filteredUsers.map((user, idx) => {
+                            {pagedUsers.map((user, idx) => {
                                 const systemDefined = normalizeYesNo(user.system_defined) === 'yes';
                                 return (
                                     <tr
                                         key={user.id}
                                         className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200"
                                     >
-                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{idx + 1}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
                                         <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{user.username || '-'}</td>
                                         <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{user.name || '-'}</td>
                                         <td className="px-4 py-4">
-                                            <span className={`badge-glass px-3 py-1 rounded-full uppercase tracking-wider text-[10px] font-extrabold ${getStatusBadge(user.status)}`}>
+                                            <Badge type={(user.status || 'inactive').toLowerCase()}>
                                                 {user.status || '-'}
-                                            </span>
+                                            </Badge>
                                         </td>
                                         <td className="px-4 py-4">
-                                            <span className={`badge-glass px-3 py-1 rounded-full text-[10px] font-extrabold ${user.signature ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300'}`}>
+                                            <Badge type={user.signature ? 'yes' : 'no'}>
                                                 {user.signature ? 'Yes' : 'No'}
-                                            </span>
+                                            </Badge>
                                         </td>
                                         <td className="px-4 py-4">
-                                            <span className={`badge-glass px-3 py-1 rounded-full text-[10px] font-extrabold ${getYesNoBadge(user.system_defined)}`}>
+                                            <Badge type={normalizeYesNo(user.system_defined)}>
                                                 {toYesNoLabel(user.system_defined)}
-                                            </span>
+                                            </Badge>
                                         </td>
                                         <td className="px-4 py-4">
-                                            <span className={`badge-glass px-3 py-1 rounded-full text-[10px] font-extrabold ${getTwofaBadge(user.twofa_status)}`}>
+                                            <Badge type={(user.twofa_status || 'inactive').toLowerCase()}>
                                                 {toTitleLabel(String(user.twofa_status || 'inactive'))}
-                                            </span>
+                                            </Badge>
                                         </td>
                                         <td className="px-4 py-4">
                                             <button className="px-3 py-1.5 rounded-full glass-effect text-xs font-semibold text-slate-600 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors flex items-center gap-1">
@@ -512,6 +513,17 @@ export default function UsersPage() {
                         </tbody>
                     </table>
                 </div>
+                
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    rowsPerPage={rowsPerPage}
+                    onPageChange={setPage}
+                    onRowsPerPageChange={(rows) => {
+                        setRowsPerPage(rows);
+                        setPage(1);
+                    }}
+                />
             </div>
         </div>
     );
