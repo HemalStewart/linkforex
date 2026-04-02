@@ -707,7 +707,6 @@ export default function BranchRatesPage() {
                         </table>
                     )}
                 </div>
-            </div>
                 <Pagination
                     currentPage={safePage}
                     totalPages={totalPages}
