@@ -514,6 +514,7 @@ export default function BanksPage() {
                                             {editingId === bank.id ? (
                                                 <input
                                                     type="checkbox"
+                                                    className="checkbox-glass"
                                                     checked={Boolean(editForm.sender_bank)}
                                                     onChange={(e) => setEditForm({ ...editForm, sender_bank: e.target.checked ? 1 : 0 })}
                                                 />
@@ -527,6 +528,7 @@ export default function BanksPage() {
                                             {editingId === bank.id ? (
                                                 <input
                                                     type="checkbox"
+                                                    className="checkbox-glass"
                                                     checked={Boolean(editForm.receiver_bank)}
                                                     onChange={(e) => setEditForm({ ...editForm, receiver_bank: e.target.checked ? 1 : 0 })}
                                                 />
