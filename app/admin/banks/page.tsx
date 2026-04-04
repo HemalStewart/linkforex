@@ -55,6 +55,11 @@ const normalizeFlag = (value: unknown): number => {
     return ['1', 'true', 'yes', 'y', 'on'].includes(normalized) ? 1 : 0;
 };
 
+const hasExplicitFlag = (bank: BankRow, key: 'sender_bank' | 'receiver_bank' | 'pickup_bank'): boolean => {
+    const value = bank[key];
+    return value !== undefined && value !== null && String(value).trim() !== '';
+};
+
 const mapLegacyCategoryFlags = (bank: BankRow) => {
     const category = String(bank.category || '').trim().toLowerCase();
     switch (category) {
@@ -69,23 +74,23 @@ const mapLegacyCategoryFlags = (bank: BankRow) => {
 };
 
 const senderFlag = (bank: BankRow): number => {
-    const value = normalizeFlag(bank.sender_bank);
-    if (value === 1) return 1;
-    if (bank.sender_bank === 0 || bank.sender_bank === '0') return 0;
+    if (hasExplicitFlag(bank, 'sender_bank')) {
+        return normalizeFlag(bank.sender_bank);
+    }
     return mapLegacyCategoryFlags(bank).sender;
 };
 
 const receiverFlag = (bank: BankRow): number => {
-    const value = normalizeFlag(bank.receiver_bank);
-    if (value === 1) return 1;
-    if (bank.receiver_bank === 0 || bank.receiver_bank === '0') return 0;
+    if (hasExplicitFlag(bank, 'receiver_bank')) {
+        return normalizeFlag(bank.receiver_bank);
+    }
     return mapLegacyCategoryFlags(bank).receiver;
 };
 
 const pickupFlag = (bank: BankRow): number => {
-    const value = normalizeFlag(bank.pickup_bank);
-    if (value === 1) return 1;
-    if (bank.pickup_bank === 0 || bank.pickup_bank === '0') return 0;
+    if (hasExplicitFlag(bank, 'pickup_bank')) {
+        return normalizeFlag(bank.pickup_bank);
+    }
     return mapLegacyCategoryFlags(bank).pickup;
 };
 
@@ -140,7 +145,9 @@ export default function BanksPage() {
     const fetchBanks = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`${ENDPOINTS.BANKS.LIST}?include_blacklisted=yes`);
+            const res = await fetch(`${ENDPOINTS.BANKS.LIST}?include_blacklisted=yes&_t=${Date.now()}`, {
+                cache: 'no-store',
+            });
             if (res.ok) {
                 const data = await res.json();
                 setBanks(Array.isArray(data) ? data : []);
@@ -232,6 +239,10 @@ export default function BanksPage() {
             });
 
             if (res.ok) {
+                const updated = await res.json().catch(() => null);
+                if (updated && typeof updated === 'object') {
+                    setBanks((current) => current.map((bank) => (String(bank.id) === String(id) ? { ...bank, ...(updated as BankRow) } : bank)));
+                }
                 setEditingId(null);
                 await fetchBanks();
                 return;
@@ -461,13 +472,13 @@ export default function BanksPage() {
                                     </th>
                                     <th className="px-6 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                         <button onClick={() => toggleSort('sender_bank')} className="mx-auto flex items-center gap-1">
-                                            <span>Sender</span>
+                                            <span>Sender Bank</span>
                                             <span>{sortIndicator('sender_bank')}</span>
                                         </button>
                                     </th>
                                     <th className="px-6 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                         <button onClick={() => toggleSort('receiver_bank')} className="mx-auto flex items-center gap-1">
-                                            <span>Receiver</span>
+                                            <span>Receiver Bank</span>
                                             <span>{sortIndicator('receiver_bank')}</span>
                                         </button>
                                     </th>
@@ -542,6 +553,7 @@ export default function BanksPage() {
                                             {editingId === bank.id ? (
                                                 <input
                                                     type="checkbox"
+                                                    className="checkbox-glass"
                                                     checked={Boolean(editForm.pickup_bank)}
                                                     onChange={(e) => setEditForm({ ...editForm, pickup_bank: e.target.checked ? 1 : 0 })}
                                                 />
@@ -554,10 +566,10 @@ export default function BanksPage() {
                                         <td className="px-6 py-5 text-center">
                                             {editingId === bank.id ? (
                                                 <div className="flex items-center justify-center space-x-2">
-                                                    <button onClick={() => void handleSave(bank.id)} className="p-2 rounded-xl bg-teal-100 text-teal-600 hover:bg-teal-200 transition-colors">
+                                                    <button type="button" onClick={() => void handleSave(bank.id)} className="p-2 rounded-xl bg-teal-100 text-teal-600 hover:bg-teal-200 transition-colors">
                                                         <Save className="w-4 h-4" />
                                                     </button>
-                                                    <button onClick={() => setEditingId(null)} className="p-2 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors">
+                                                    <button type="button" onClick={() => setEditingId(null)} className="p-2 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors">
                                                         <X className="w-4 h-4" />
                                                     </button>
                                                 </div>
@@ -646,11 +658,11 @@ export default function BanksPage() {
                             `Receiver Bank` is used for beneficiary bank list in app. `Cash Pickup Bank` is used for pickup bank list.
                         </span>
                     </div>
-                    <div className="flex justify-end gap-3 pt-3">
-                        <button type="button" onClick={() => setAddModalOpen(false)} className="btn-secondary">Cancel</button>
-                        <button type="submit" className="btn-primary flex items-center gap-2" disabled={isSubmitting}>
+                    <div className="dialog-actions pt-3">
+                        <button type="button" onClick={() => setAddModalOpen(false)} className="btn-secondary text-sm">Cancel</button>
+                        <button type="submit" className="btn-primary flex items-center gap-2 text-sm disabled:opacity-60" disabled={isSubmitting}>
                             <Save className="w-4 h-4" />
-                            {isSubmitting ? 'Saving...' : 'Save Bank'}
+                            {isSubmitting ? 'Saving...' : 'Save'}
                         </button>
                     </div>
                 </form>

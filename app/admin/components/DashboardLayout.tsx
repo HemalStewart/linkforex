@@ -555,9 +555,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             name: 'Operations',
             icon: <Layers className="w-5 h-5" />,
             children: [
-                { name: 'Transfers', href: '/admin/transfers', badge: counts.transfers > 0 ? counts.transfers.toString() : undefined, icon: <ArrowRightLeft className="w-4 h-4" />, sections: ['MONEY_CHANGER', 'TELEX_TRANSFER', 'ACCOUNT_TRANSACTIONS', 'TRANSFERS'] },
-                { name: 'Remitters', href: '/admin/remitters', badge: counts.remitters > 0 ? counts.remitters.toString() : undefined, icon: <Users className="w-4 h-4" />, sections: ['SENDER_DETAILS', 'CUSTOMER', 'REMITTERS'] },
-                { name: 'Receivers', href: '/admin/receivers', badge: counts.receivers > 0 ? counts.receivers.toString() : undefined, icon: <UserCheck className="w-4 h-4" />, sections: ['RECEIVER_DETAILS', 'BENEFICIARIES', 'CUSTOMER', 'RECEIVERS'] },
+                { name: 'Transfers', href: '/admin/transfers', icon: <ArrowRightLeft className="w-4 h-4" />, sections: ['MONEY_CHANGER', 'TELEX_TRANSFER', 'ACCOUNT_TRANSACTIONS', 'TRANSFERS'] },
+                { name: 'Remitters', href: '/admin/remitters', icon: <Users className="w-4 h-4" />, sections: ['SENDER_DETAILS', 'CUSTOMER', 'REMITTERS'] },
+                { name: 'Receivers', href: '/admin/receivers', icon: <UserCheck className="w-4 h-4" />, sections: ['RECEIVER_DETAILS', 'BENEFICIARIES', 'CUSTOMER', 'RECEIVERS'] },
                 { name: 'KYC Reviews', href: '/admin/kyc', badge: counts.kyc > 0 ? counts.kyc.toString() : undefined, icon: <ShieldCheck className="w-4 h-4" /> },
                 { name: 'Branch Access Flags', href: '/admin/branch-access', badge: counts.branchAccessFlags > 0 ? counts.branchAccessFlags.toString() : undefined, icon: <AlertTriangle className="w-4 h-4" /> },
             ]
@@ -584,11 +584,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             name: 'Management',
             icon: <Settings className="w-5 h-5" />,
             children: [
-                { name: 'System Users', href: '/admin/users', badge: counts.users > 0 ? counts.users.toString() : undefined, icon: <Users className="w-4 h-4" />, sections: ['SYSUSERS', 'SYSTEM_USERS'] },
-                { name: 'Roles', href: '/admin/roles', badge: counts.roles > 0 ? counts.roles.toString() : undefined, icon: <Shield className="w-4 h-4" />, sections: ['SYSGROUPS', 'ROLES'] },
-                { name: 'Role Permissions', href: '/admin/permission-groups', badge: counts.permissionGroups > 0 ? counts.permissionGroups.toString() : undefined, icon: <ShieldCheck className="w-4 h-4" />, sections: ['SYSGROUPS_PERMISSION', 'PERMISSION_GROUPS'] },
-                { name: 'Branches', href: '/admin/branches', badge: counts.branches > 0 ? counts.branches.toString() : undefined, icon: <Building2 className="w-4 h-4" />, sections: ['BRANCH', 'BRANCHES'] },
-                { name: 'Branch Rates', href: '/admin/branch-rates', badge: counts.branchCurrencyRates > 0 ? counts.branchCurrencyRates.toString() : undefined, icon: <Coins className="w-4 h-4" />, sections: ['BRANCH_CURRENCY_RATE', 'BRANCH_CURRENCY_RATES', 'MOBILE_EXCHANGE_RATES', 'MOBILE_APP_FLOW_SETTINGS'] },
+                { name: 'System Users', href: '/admin/users', icon: <Users className="w-4 h-4" />, sections: ['SYSUSERS', 'SYSTEM_USERS'] },
+                { name: 'Roles', href: '/admin/roles', icon: <Shield className="w-4 h-4" />, sections: ['SYSGROUPS', 'ROLES'] },
+                { name: 'Role Permissions', href: '/admin/permission-groups', icon: <ShieldCheck className="w-4 h-4" />, sections: ['SYSGROUPS_PERMISSION', 'PERMISSION_GROUPS'] },
+                { name: 'Branches', href: '/admin/branches', icon: <Building2 className="w-4 h-4" />, sections: ['BRANCH', 'BRANCHES'] },
+                { name: 'Branch Rates', href: '/admin/branch-rates', icon: <Coins className="w-4 h-4" />, sections: ['BRANCH_CURRENCY_RATE', 'BRANCH_CURRENCY_RATES', 'MOBILE_EXCHANGE_RATES', 'MOBILE_APP_FLOW_SETTINGS'] },
             ]
         },
         {
@@ -610,10 +610,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             name: 'Basic Data',
             icon: <Database className="w-5 h-5" />,
             children: [
-                { name: 'Countries', href: '/admin/countries', badge: counts.countries > 0 ? counts.countries.toString() : undefined, icon: <Globe className="w-4 h-4" /> },
-                { name: 'Banks', href: '/admin/banks', badge: counts.banks > 0 ? counts.banks.toString() : undefined, icon: <Building2 className="w-4 h-4" /> },
-                { name: 'Relationships', href: '/admin/relationships', badge: counts.relationships > 0 ? counts.relationships.toString() : undefined, icon: <Users className="w-4 h-4" /> },
-                { name: 'Purposes', href: '/admin/purposes', badge: counts.purposes > 0 ? counts.purposes.toString() : undefined, icon: <ListChecks className="w-4 h-4" /> },
+                { name: 'Countries', href: '/admin/countries', icon: <Globe className="w-4 h-4" /> },
+                { name: 'Banks', href: '/admin/banks', icon: <Building2 className="w-4 h-4" /> },
+                { name: 'Relationships', href: '/admin/relationships', icon: <Users className="w-4 h-4" /> },
+                { name: 'Purposes', href: '/admin/purposes', icon: <ListChecks className="w-4 h-4" /> },
             ]
         }
     ];

@@ -435,6 +435,55 @@ html {
   transform: scale(0.98);
 }
 
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.62);
+  color: #475569;
+  font-weight: 600;
+  padding: 0.65rem 1.25rem;
+  border-radius: 9999px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 4px 12px -8px rgba(15, 23, 42, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  cursor: pointer;
+  letter-spacing: -0.011em;
+  backdrop-filter: blur(12px) saturate(120%);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+}
+
+.btn-secondary:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 10px 20px -12px rgba(15, 23, 42, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  color: #0f172a;
+}
+
+.btn-secondary:active {
+  transform: scale(0.98);
+}
+
+.dark .btn-secondary {
+  background: rgba(15, 23, 42, 0.58);
+  color: rgb(226 232 240);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 4px 12px -8px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.dark .btn-secondary:hover {
+  color: white;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 1rem;
+}
+
 /* Input Styles */
 .input-glass {
   background: rgba(255, 255, 255, 0.7);

@@ -431,14 +431,9 @@ export default function SupportPage() {
                                 </select>
                             </div>
                             <div className="flex items-end">
-                                <button
-                                    type="button"
-                                    onClick={handleUpdateTicket}
-                                    disabled={updatingTicket}
-                                    className="btn-primary w-full disabled:opacity-60"
-                                >
-                                    {updatingTicket ? 'Saving...' : 'Save Ticket'}
-                                </button>
+                                <div className="w-full rounded-2xl border border-dashed border-slate-200/70 dark:border-slate-700/70 p-4 text-xs text-slate-400 dark:text-slate-300">
+                                    Update ticket status and priority before sending a reply if needed.
+                                </div>
                             </div>
                         </div>
 
@@ -486,6 +481,24 @@ export default function SupportPage() {
                                     {sendingReply ? 'Sending...' : 'Send Reply'}
                                 </button>
                             </div>
+                        </div>
+
+                        <div className="dialog-actions border-t border-slate-100 pt-4 dark:border-slate-700/50">
+                            <button
+                                type="button"
+                                onClick={() => setDetailOpen(false)}
+                                className="btn-secondary text-sm"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleUpdateTicket}
+                                disabled={updatingTicket}
+                                className="btn-primary text-sm disabled:opacity-60"
+                            >
+                                {updatingTicket ? 'Saving...' : 'Save'}
+                            </button>
                         </div>
                     </div>
                 )}

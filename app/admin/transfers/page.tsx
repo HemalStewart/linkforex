@@ -636,9 +636,9 @@ export default function TransfersPage() {
     <tr><th>To Branch</th><td>${row.toBranch}</td></tr>
     <tr><th>Payout Currency</th><td>${row.payoutCurrency}</td></tr>
     <tr><th>Received Amount (£)</th><td>${row.receivedAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
-    <tr><th>Customer Rate</th><td>${row.customerRate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td></tr>
+    <tr><th>Customer Rate</th><td>${row.customerRate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
     <tr><th>FC Amount</th><td>${row.fcAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
-    <tr><th>Branch Rate</th><td>${row.branchRate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td></tr>
+    <tr><th>Branch Rate</th><td>${row.branchRate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
     <tr><th>Branch Pay Amount</th><td>${row.branchPayAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
     <tr><th>Transaction Id</th><td>${row.transactionId}</td></tr>
     <tr><th>Other Transaction Id</th><td>${row.otherTransactionId}</td></tr>
@@ -966,7 +966,7 @@ export default function TransfersPage() {
         },
         { key: 'payoutCurrency', label: 'Payout Currency', sortable: true },
         { key: 'receivedAmount', label: 'Received Amount (£)', sortable: true, render: (row) => row.receivedAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) },
-        { key: 'customerRate', label: 'Customer Rate', sortable: true, render: (row) => row.customerRate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }) },
+        { key: 'customerRate', label: 'Customer Rate', sortable: true, render: (row) => row.customerRate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) },
         { key: 'fcAmount', label: 'FC Amount', sortable: true, render: (row) => row.fcAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) },
         { key: 'transactionId', label: 'Transaction Id', sortable: true },
         { key: 'otherTransactionId', label: 'Other Transaction Id', sortable: true },
@@ -984,7 +984,7 @@ export default function TransfersPage() {
                 </div>
             )
         },
-        { key: 'branchRate', label: 'Branch Rate', sortable: true, render: (row) => row.branchRate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }) },
+        { key: 'branchRate', label: 'Branch Rate', sortable: true, render: (row) => row.branchRate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) },
         { key: 'branchPayAmount', label: 'Branch Pay Amount', sortable: true, render: (row) => row.branchPayAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) },
         { key: 'senderVerified', label: 'Sender Verified', sortable: true },
         { key: 'senderId', label: 'Sender Id', sortable: true },
@@ -1081,32 +1081,43 @@ export default function TransfersPage() {
                     {signError && (
                         <p className="text-sm font-semibold text-red-600 dark:text-red-300">{signError}</p>
                     )}
-                    <div className="flex flex-wrap justify-end gap-2">
-                        <button
-                            type="button"
-                            onClick={handleSignatureUploadClick}
-                            className="px-4 py-2 rounded-full glass-effect text-sm font-semibold text-slate-600 dark:text-slate-200 inline-flex items-center gap-2"
-                        >
-                            <ImageUp className="w-4 h-4" />
-                            Upload
-                        </button>
-                        <button
-                            type="button"
-                            onClick={clearSignature}
-                            className="px-4 py-2 rounded-full glass-effect text-sm font-semibold text-slate-600 dark:text-slate-200 inline-flex items-center gap-2"
-                        >
-                            <RotateCcw className="w-4 h-4" />
-                            Clear
-                        </button>
-                        <button
-                            type="button"
-                            onClick={saveSignature}
-                            disabled={signingBusy}
-                            className="btn-primary px-4 py-2 rounded-full text-sm font-semibold inline-flex items-center gap-2 disabled:opacity-60"
-                        >
-                            <Save className="w-4 h-4" />
-                            {signingBusy ? 'Saving...' : 'Save Signature'}
-                        </button>
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={handleSignatureUploadClick}
+                                className="btn-secondary inline-flex items-center gap-2 text-sm"
+                            >
+                                <ImageUp className="w-4 h-4" />
+                                Upload
+                            </button>
+                            <button
+                                type="button"
+                                onClick={clearSignature}
+                                className="btn-secondary inline-flex items-center gap-2 text-sm"
+                            >
+                                <RotateCcw className="w-4 h-4" />
+                                Clear
+                            </button>
+                        </div>
+                        <div className="dialog-actions !mt-0 !justify-end">
+                            <button
+                                type="button"
+                                onClick={closeSignatureModal}
+                                className="btn-secondary text-sm"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={saveSignature}
+                                disabled={signingBusy}
+                                className="btn-primary inline-flex items-center gap-2 text-sm disabled:opacity-60"
+                            >
+                                <Save className="w-4 h-4" />
+                                {signingBusy ? 'Saving...' : 'Save'}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </Modal>

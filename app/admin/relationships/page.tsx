@@ -403,9 +403,9 @@ export default function RelationshipsPage() {
                             ))}
                         </select>
                     </div>
-                    <div className="flex justify-end gap-3">
-                        <button type="button" className="btn-secondary" onClick={() => setModalOpen(false)}>Cancel</button>
-                        <button type="submit" className="btn-primary" disabled={submitting}>
+                    <div className="dialog-actions">
+                        <button type="button" className="btn-secondary text-sm" onClick={() => setModalOpen(false)}>Cancel</button>
+                        <button type="submit" className="btn-primary text-sm disabled:opacity-60" disabled={submitting}>
                             {submitting ? 'Saving…' : 'Save'}
                         </button>
                     </div>

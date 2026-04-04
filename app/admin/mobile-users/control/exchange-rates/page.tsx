@@ -130,7 +130,7 @@ export default function MobileExchangeRatesPage() {
                                     const code = String(row.code || row.currency_code || '').toUpperCase();
                                     const name = row.name || row.currency_name || '';
                                     const symbol = row.symbol || row.currency_symbol || '';
-                                    const rate = Number(row.rate || 0).toFixed(4);
+                                    const rate = Number(row.rate || 0).toFixed(2);
                                     const status = String(row.status || 'active').toLowerCase() === 'inactive' ? 'Inactive' : 'Active';
                                     const branchLabel = row.source_branch_code
                                         ? `${row.source_branch_code}${row.source_branch_name ? ` - ${row.source_branch_name}` : ''}`

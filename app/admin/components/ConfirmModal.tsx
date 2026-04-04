@@ -122,13 +122,13 @@ export default function ConfirmModal({
                 <p className="text-base font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
                     {message}
                 </p>
-                <div className="flex justify-end gap-3 mt-6">
+                <div className="dialog-actions mt-6">
                     {!isAlert && (
                         <button
                             type="button"
                             onClick={onClose}
                             disabled={loading}
-                            className="px-5 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300 glass-effect hover:bg-white/70 dark:hover:bg-white/5 border border-transparent rounded-[12px] transition-all duration-300"
+                            className="btn-secondary text-sm disabled:opacity-60"
                         >
                             {cancelText}
                         </button>
@@ -137,7 +137,7 @@ export default function ConfirmModal({
                         type="button"
                         onClick={onConfirm}
                         disabled={loading}
-                        className={`inline-flex justify-center px-5 py-2.5 text-sm font-semibold border-0 rounded-[12px] focus:outline-none shadow-sm transition-all duration-300 ${buttonStyles[type as keyof typeof buttonStyles] || buttonStyles.info} ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                        className={`btn-primary inline-flex justify-center text-sm ${buttonStyles[type as keyof typeof buttonStyles] || buttonStyles.info} ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
                     >
                         {loading ? (
                             <>

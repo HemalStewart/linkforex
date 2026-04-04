@@ -296,20 +296,20 @@ export default function ExchangeRatesPage() {
                             />
                         </div>
                     </div>
-                    <div className="flex justify-end pt-6 space-x-3">
+                    <div className="dialog-actions pt-6">
                         <button
                             type="button"
                             onClick={() => setAddModalOpen(false)}
-                            className="px-6 py-3 rounded-xl font-bold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors"
+                            className="btn-secondary text-sm"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="btn-primary flex items-center space-x-2"
+                            className="btn-primary flex items-center space-x-2 text-sm disabled:opacity-60"
                         >
-                            {isSubmitting ? 'Adding...' : 'Add Rate'}
+                            {isSubmitting ? 'Saving...' : 'Save'}
                         </button>
                     </div>
                 </form>

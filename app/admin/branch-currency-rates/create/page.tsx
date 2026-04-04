@@ -451,7 +451,7 @@ export default function CreateBranchCurrencyRatePage() {
                 {previousRate && (
                     <div className="rounded-2xl border border-amber-200/60 bg-amber-50/80 px-4 py-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
                         Previous rate found:
-                        <span className="ml-2 font-semibold">Customer {Number(previousRate.customer_rate || 0).toFixed(4)}</span>
+                        <span className="ml-2 font-semibold">Customer {Number(previousRate.customer_rate || 0).toFixed(2)}</span>
                     </div>
                 )}
 

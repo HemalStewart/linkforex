@@ -595,13 +595,13 @@ export default function CountriesPage() {
                             </select>
                         </div>
                     </div>
-                    <div className="flex justify-end gap-3 pt-4">
-                        <button type="button" onClick={() => setModalOpen(false)} className="btn-secondary">Cancel</button>
-                        <button type="submit" className="btn-primary" disabled={submitting}>
+                    <div className="dialog-actions pt-4">
+                        <button type="button" onClick={() => setModalOpen(false)} className="btn-secondary text-sm">Cancel</button>
+                        <button type="submit" className="btn-primary text-sm disabled:opacity-60" disabled={submitting}>
                             {submitting ? (
                                 <span className="flex items-center gap-2"><Save className="w-4 h-4" /> Saving...</span>
                             ) : (
-                                <span className="flex items-center gap-2"><Save className="w-4 h-4" /> Save Country</span>
+                                <span className="flex items-center gap-2"><Save className="w-4 h-4" /> Save</span>
                             )}
                         </button>
                     </div>

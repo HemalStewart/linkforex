@@ -432,7 +432,7 @@ export default function TransferDetailsPage() {
             value: `Pending Date - ${pendingDate} Complete Date - ${completeDate === '-' ? '' : completeDate} Cancel Date - ${cancelDate === '-' ? '' : cancelDate}`
         },
         { field: 'Payout Currency', value: fieldValue(meta.payout_currency) },
-        { field: 'Customer Rate', value: asNumber(meta.customer_rate_for_gbp || transfer.rate).toLocaleString(undefined, { maximumFractionDigits: 4 }) },
+        { field: 'Customer Rate', value: asNumber(meta.customer_rate_for_gbp || transfer.rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) },
         { field: 'Receive Amount (£)', value: asNumber(transfer.source_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) },
         { field: 'FC Transfer Amount', value: asNumber(transfer.dest_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) },
         ...(mobileWalletTransfer ? [{
@@ -525,7 +525,7 @@ export default function TransferDetailsPage() {
         },
         {
             field: 'Customer Rate',
-            value: asNumber(meta.customer_rate_for_gbp || transfer.rate).toLocaleString(undefined, { maximumFractionDigits: 4 })
+            value: asNumber(meta.customer_rate_for_gbp || transfer.rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
         },
         ...(mobileWalletTransfer ? [{
             field: 'Funding',

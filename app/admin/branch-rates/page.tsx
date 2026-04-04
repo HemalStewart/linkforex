@@ -7,7 +7,7 @@ import Modal from '@/app/admin/components/Modal';
 import ConfirmModal from '@/app/admin/components/ConfirmModal';
 import Badge from '../components/ui/Badge';
 import Pagination from '../components/ui/Pagination';
-import { PlusCircle, RefreshCcw, Search } from 'lucide-react';
+import { ArrowRightLeft, GitBranch, PlusCircle, RefreshCcw, Search, Tag } from 'lucide-react';
 
 type YesNo = 'yes' | 'no';
 
@@ -245,7 +245,17 @@ export default function BranchRatesPage() {
         const compareDate = (a?: string | null, b?: string | null) =>
             new Date(a ?? 0).getTime() - new Date(b ?? 0).getTime();
 
+        const compareActiveFirst = (a: BranchRateRow, b: BranchRateRow) => {
+            const rank = (value?: string | null) => normalizeYesNo(value) === 'yes' ? 0 : 1;
+            return rank(a.active) - rank(b.active);
+        };
+
         data.sort((a, b) => {
+            const activeFirst = compareActiveFirst(a, b);
+            if (activeFirst !== 0) {
+                return activeFirst;
+            }
+
             let result = 0;
             switch (sortKey) {
                 case 'branch':
@@ -523,22 +533,22 @@ export default function BranchRatesPage() {
                         <div className="rounded-2xl border border-slate-200/70 dark:border-slate-700/70 p-4 text-sm text-slate-600 dark:text-slate-300">
                             <div className="font-semibold text-slate-800 dark:text-slate-100">Latest rate for {previousRate.branch_code} • {previousRate.currency_code}</div>
                             <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                <div>Cash: {Number(previousRate.customer_rate || 0).toFixed(4)}</div>
-                                <div>Branch: {previousRate.branch_rate !== null && previousRate.branch_rate !== undefined ? Number(previousRate.branch_rate || 0).toFixed(4) : '—'}</div>
-                                <div>Digital: {previousRate.digital_rate !== null && previousRate.digital_rate !== undefined ? Number(previousRate.digital_rate || 0).toFixed(4) : '—'}</div>
+                                <div>Cash: {Number(previousRate.customer_rate || 0).toFixed(2)}</div>
+                                <div>Branch: {previousRate.branch_rate !== null && previousRate.branch_rate !== undefined ? Number(previousRate.branch_rate || 0).toFixed(2) : '—'}</div>
+                                <div>Digital: {previousRate.digital_rate !== null && previousRate.digital_rate !== undefined ? Number(previousRate.digital_rate || 0).toFixed(2) : '—'}</div>
                                 <div>Status: {normalizeYesNo(previousRate.active) === 'yes' ? 'Active' : 'Inactive'}</div>
                                 <div>Updated: {previousRate.updated_at ? new Date(previousRate.updated_at).toLocaleString() : '—'}</div>
                             </div>
                         </div>
                     )}
 
-                    <div className="flex items-center justify-end gap-3 pt-2">
-                        <button type="button" onClick={closeModal} className="rounded-full border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-600 dark:border-slate-700 dark:text-slate-200">
+                    <div className="dialog-actions pt-2">
+                        <button type="button" onClick={closeModal} className="btn-secondary text-sm">
                             Cancel
                         </button>
-                        <button type="submit" disabled={submitting} className="btn-primary inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold">
+                        <button type="submit" disabled={submitting} className="btn-primary inline-flex items-center gap-2 text-sm font-semibold disabled:opacity-60">
                             {submitting ? <RefreshCcw className="h-4 w-4 animate-spin" /> : <PlusCircle className="h-4 w-4" />}
-                            {submitting ? 'Saving...' : 'Save Branch Rate'}
+                            {submitting ? 'Saving...' : 'Save'}
                         </button>
                     </div>
                 </form>
@@ -601,6 +611,8 @@ export default function BranchRatesPage() {
                             <option value="no">Inactive</option>
                         </select>
                     </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
                     <div>
                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Branch</label>
                         <select
@@ -640,11 +652,17 @@ export default function BranchRatesPage() {
                             ))}
                         </select>
                     </div>
+                    <div className="md:col-span-2 flex items-end">
+                        <div className="text-xs text-slate-400 dark:text-slate-300">
+                            Search across all columns and narrow by status, branch, or currency.
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div className="card-glass overflow-hidden shadow-xl">
-                <div className="px-6 py-4 border-b border-slate-100/70 dark:border-slate-700/60">
+                <div className="px-6 py-4 border-b border-slate-100/70 dark:border-slate-700/60 flex items-center space-x-3">
+                    <GitBranch className="w-6 h-6 text-slate-400" />
                     <div>
                         <h2 className="text-xl font-bold text-slate-900 dark:text-white">Branch Rate Directory</h2>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -657,74 +675,84 @@ export default function BranchRatesPage() {
                     {loading ? (
                         <div className="p-12 text-center text-slate-500">Loading branch rates...</div>
                     ) : (
-                        <table className="table-shell whitespace-nowrap">
+                        <table className="table-shell">
                             <thead className="table-head">
                                 <tr>
+                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">No.</th>
                                     <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('branch')} className="flex items-center gap-1">
-                                            Branch <span>{sortIndicator('branch')}</span>
+                                            Branch <span className="text-slate-400 dark:text-slate-300">{sortIndicator('branch')}</span>
                                         </button>
                                     </th>
                                     <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('currency')} className="flex items-center gap-1">
-                                            Currency <span>{sortIndicator('currency')}</span>
+                                            Currency <span className="text-slate-400 dark:text-slate-300">{sortIndicator('currency')}</span>
                                         </button>
                                     </th>
                                     <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('cash')} className="flex items-center gap-1">
-                                            Customer Cash Rate <span>{sortIndicator('cash')}</span>
+                                            Customer Cash Rate <span className="text-slate-400 dark:text-slate-300">{sortIndicator('cash')}</span>
                                         </button>
                                     </th>
                                     <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('branchRate')} className="flex items-center gap-1">
-                                            Branch Rate <span>{sortIndicator('branchRate')}</span>
+                                            Branch Rate <span className="text-slate-400 dark:text-slate-300">{sortIndicator('branchRate')}</span>
                                         </button>
                                     </th>
                                     <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('digital')} className="flex items-center gap-1">
-                                            Customer Digital Rate <span>{sortIndicator('digital')}</span>
+                                            Customer Digital Rate <span className="text-slate-400 dark:text-slate-300">{sortIndicator('digital')}</span>
                                         </button>
                                     </th>
                                     <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('status')} className="flex items-center gap-1">
-                                            Status <span>{sortIndicator('status')}</span>
+                                            Status <span className="text-slate-400 dark:text-slate-300">{sortIndicator('status')}</span>
                                         </button>
                                     </th>
                                     <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('updatedAt')} className="flex items-center gap-1">
-                                            Updated <span>{sortIndicator('updatedAt')}</span>
+                                            Modified Date <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updatedAt')}</span>
                                         </button>
                                     </th>
                                     <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('updatedUser')} className="flex items-center gap-1">
-                                            Updated User <span>{sortIndicator('updatedUser')}</span>
+                                            Entered User <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updatedUser')}</span>
                                         </button>
                                     </th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
-                                {pagedRows.map((row) => {
+                                {pagedRows.map((row, idx) => {
                                     const updatedUser = row.modified_user || row.entered_user || '-';
                                     return (
-                                        <tr key={row.id}>
-                                            <td className="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">
-                                                <div className="font-semibold">{row.branch_name || '-'}</div>
-                                                <div className="text-xs text-slate-500 dark:text-slate-400">{row.branch_code || '-'}</div>
+                                        <tr key={row.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
+                                            <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">
+                                                {startIndex + idx + 1}
                                             </td>
-                                            <td className="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">
-                                                {row.currency_code} {row.currency_symbol ? row.currency_symbol : ''}
+                                            <td className="px-4 py-4">
+                                                <div className="text-sm font-semibold text-slate-700 dark:text-slate-200">{row.branch_name || '-'}</div>
+                                                <div className="mt-1 inline-flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                                                    <Tag className="w-3.5 h-3.5 text-teal-500" />
+                                                    {row.branch_code || '-'}
+                                                </div>
                                             </td>
-                                            <td className="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">
-                                                {Number(row.customer_rate || 0).toFixed(4)}
+                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
+                                                <span className="inline-flex items-center gap-2 whitespace-nowrap">
+                                                    <ArrowRightLeft className="w-3.5 h-3.5 text-teal-500" />
+                                                    {row.currency_code} {row.currency_symbol ? row.currency_symbol : ''}
+                                                </span>
                                             </td>
-                                            <td className="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">
+                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
+                                                {Number(row.customer_rate || 0).toFixed(2)}
+                                            </td>
+                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
                                                 {row.branch_rate !== null && row.branch_rate !== undefined
-                                                    ? Number(row.branch_rate || 0).toFixed(4)
+                                                    ? Number(row.branch_rate || 0).toFixed(2)
                                                     : '—'}
                                             </td>
-                                            <td className="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">
+                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
                                                 {row.digital_rate !== null && row.digital_rate !== undefined
-                                                    ? Number(row.digital_rate || 0).toFixed(4)
+                                                    ? Number(row.digital_rate || 0).toFixed(2)
                                                     : '—'}
                                             </td>
                                             <td className="px-4 py-4 text-sm">
@@ -732,7 +760,7 @@ export default function BranchRatesPage() {
                                                     {row.active === 'yes' ? 'Active' : 'Inactive'}
                                                 </Badge>
                                             </td>
-                                            <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">
+                                            <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">
                                                 {row.updated_at ? new Date(row.updated_at).toLocaleString() : '-'}
                                             </td>
                                             <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{updatedUser}</td>

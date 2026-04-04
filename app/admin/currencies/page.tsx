@@ -194,7 +194,7 @@ export default function CurrenciesPage() {
                                                 </div>
                                             ) : (
                                                 <span className="badge-glass bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-400 font-bold border-0">
-                                                    {parseFloat(currency.rate).toFixed(4)}
+                                                    {parseFloat(currency.rate).toFixed(2)}
                                                 </span>
                                             )}
                                         </td>
@@ -309,20 +309,20 @@ export default function CurrenciesPage() {
                             onChange={e => setNewCurrency({ ...newCurrency, rate: e.target.value })}
                         />
                     </div>
-                    <div className="flex justify-end pt-4 space-x-3 border-t border-slate-100 dark:border-slate-700/50">
+                    <div className="dialog-actions pt-4 border-t border-slate-100 dark:border-slate-700/50">
                         <button
                             type="button"
                             onClick={() => setAddModalOpen(false)}
-                            className="px-6 py-3 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+                            className="btn-secondary text-sm"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="btn-primary rounded-full px-8"
+                            className="btn-primary text-sm disabled:opacity-60"
                         >
-                            {isSubmitting ? 'Adding...' : 'Add Currency'}
+                            {isSubmitting ? 'Saving...' : 'Save'}
                         </button>
                     </div>
                 </form>
