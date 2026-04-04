@@ -597,7 +597,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             children: [
                 { name: 'Settings', href: '/admin/settings', icon: <Settings className="w-4 h-4" /> },
                 { name: 'Support Inbox', href: '/admin/support', icon: <MessageCircle className="w-4 h-4" /> },
-                { name: 'Logs', href: '/admin/logs', icon: <FileText className="w-4 h-4" />, sections: ['SYSUSERS_LOG', 'SYSRECORD_LOGS', 'AUDIT_LOGS'] },
+                { name: 'User Logs', href: '/admin/logs', icon: <FileText className="w-4 h-4" />, sections: ['SYSUSERS_LOG', 'SYSRECORD_LOGS', 'AUDIT_LOGS'] },
             ]
         },
         {

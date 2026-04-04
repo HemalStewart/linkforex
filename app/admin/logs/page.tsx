@@ -535,7 +535,7 @@ export default function LogsPage() {
         <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-up pb-20">
             <div className="flex items-start justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Session & Activity Logs</h1>
+                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">User Logs</h1>
                     <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">
                         Track operator sessions, transfer touches, approvals, and sign-off reasons.
                     </p>
@@ -707,7 +707,7 @@ export default function LogsPage() {
             <div className="card-glass overflow-hidden shadow-xl">
                 <div className="px-6 py-4 border-b border-slate-100/70 dark:border-slate-700/60 flex items-center justify-between gap-3">
                     <div>
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Session Logs</h2>
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">User Logs</h2>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Showing {sorted.length === 0 ? 0 : startIndex + 1} to {endIndex} of {sorted.length}</p>
                     </div>
                     <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
