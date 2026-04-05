@@ -41,6 +41,7 @@ export const isApiRequestUrl = (rawUrl: string, origin = 'http://localhost'): bo
 export const ENDPOINTS = {
     AUTH: {
         LOGIN: `${API_BASE_URL}/login`,
+        CHANGE_PASSWORD: `${API_BASE_URL}/auth/change-password`,
     },
     REMITTERS: {
         LIST: `${API_BASE_URL}/remitters`,
@@ -147,6 +148,7 @@ export const ENDPOINTS = {
         LIST: `${API_BASE_URL}/support/tickets`,
         DETAIL: (id: string | number) => `${API_BASE_URL}/support/tickets/${id}`,
         UPDATE: (id: string | number) => `${API_BASE_URL}/support/tickets/${id}`,
+        DELETE: (id: string | number) => `${API_BASE_URL}/support/tickets/${id}`,
         REPLY: (id: string | number) => `${API_BASE_URL}/support/tickets/${id}/reply`,
         MINE: `${API_BASE_URL}/support/tickets/mine`,
     },

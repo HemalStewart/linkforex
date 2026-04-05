@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { ENDPOINTS, isApiRequestUrl } from '@/app/lib/api';
+import { ENDPOINTS, UPLOADS_BASE_URL, isApiRequestUrl } from '@/app/lib/api';
 import { clearStoredUser, getStoredUserRaw } from '@/app/lib/authStorage';
 import { isPrivilegedUser as getIsPrivilegedUser } from '@/app/lib/permissions';
 import { applyThemePreference, getStoredThemePreference, resolveTheme, type ThemePreference, type ResolvedTheme } from '@/app/lib/theme';
@@ -51,6 +51,8 @@ interface CurrentUser {
     username?: string;
     role?: string;
     system_defined?: string;
+    profile_photo?: string;
+    profile_photo_url?: string;
 }
 
 interface NavChild {
@@ -104,8 +106,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         roles: 0,
         permissionGroups: 0,
         branchAccessFlags: 0,
-        kyc: 0
+        kyc: 0,
+        supportOpen: 0
     });
+    const [countsRefreshNonce, setCountsRefreshNonce] = useState(0);
     const [isPrivilegedUser, setIsPrivilegedUser] = useState(false);
     const [viewSections, setViewSections] = useState<Set<string>>(new Set());
 
@@ -155,7 +159,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             const timestamp = Date.now();
             try {
                 // Parallel fetch for dashboard counts
-                const [tRes, rRes, bRes, uRes, brRes, bcrRes, banksRes, countriesRes, relRes, purposeRes, roRes, pgRes, baRes] = await Promise.allSettled([
+                const [tRes, rRes, bRes, uRes, brRes, bcrRes, banksRes, countriesRes, relRes, purposeRes, roRes, pgRes, baRes, supportOpenRes] = await Promise.allSettled([
                     fetch(`${ENDPOINTS.TRANSFERS.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                     fetch(`${ENDPOINTS.REMITTERS.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                     fetch(`${ENDPOINTS.BENEFICIARIES.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
@@ -168,7 +172,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     fetch(`${ENDPOINTS.PURPOSES.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                     fetch(`${ENDPOINTS.ROLES.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                     fetch(`${ENDPOINTS.PERMISSION_GROUPS.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
-                    fetch(`${ENDPOINTS.BRANCH_ACCESS_REQUESTS.LIST}?status=pending&_t=${timestamp}`).then(r => r.ok ? r.json() : [])
+                    fetch(`${ENDPOINTS.BRANCH_ACCESS_REQUESTS.LIST}?status=pending&_t=${timestamp}`).then(r => r.ok ? r.json() : []),
+                    fetch(`${ENDPOINTS.SUPPORT.LIST}?status=open&_t=${timestamp}`).then(r => r.ok ? r.json() : []),
                 ]);
 
                 const getCount = (res: PromiseSettledResult<unknown>) => {
@@ -207,7 +212,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     roles: getCount(roRes),
                     permissionGroups: getCount(pgRes),
                     branchAccessFlags: getCount(baRes),
-                    kyc: kycCount
+                    kyc: kycCount,
+                    supportOpen: getCount(supportOpenRes),
                 });
 
             } catch {
@@ -218,7 +224,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         if (!isLoginPage && currentUser?.id) {
             fetchCounts();
         }
-    }, [pathname, isLoginPage, currentUser?.id]);
+    }, [pathname, isLoginPage, currentUser?.id, countsRefreshNonce]);
+
+    React.useEffect(() => {
+        const handleRefresh = () => setCountsRefreshNonce((value) => value + 1);
+        window.addEventListener('admin-counts-refresh', handleRefresh);
+        return () => window.removeEventListener('admin-counts-refresh', handleRefresh);
+    }, []);
 
     React.useEffect(() => {
         if (!currentUser?.id) {
@@ -534,6 +546,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     };
 
     const notifications: Array<{ id: string; text: string }> = [];
+    const resolveProfilePhotoUrl = (user: CurrentUser | null): string | null => {
+        const absolute = String(user?.profile_photo_url || '').trim();
+        if (absolute) return absolute;
+
+        const relative = String(user?.profile_photo || '').trim();
+        if (!relative) return null;
+
+        if (/^https?:\/\//i.test(relative)) return relative;
+        const normalized = relative.replace(/^\/+/, '').replace(/^uploads\//, '');
+        return `${UPLOADS_BASE_URL}/${normalized}`;
+    };
     const toTitleCase = (value?: string, fallback = ''): string => {
         const text = String(value || '').trim();
         if (!text) return fallback;
@@ -544,6 +567,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     };
     const displayName = String(currentUser?.name || '').trim() || 'User';
     const displayRole = toTitleCase(currentUser?.role, 'Guest');
+    const profilePhotoUrl = resolveProfilePhotoUrl(currentUser);
 
     const navigation: NavItem[] = [
         {
@@ -596,7 +620,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             icon: <Cpu className="w-5 h-5" />,
             children: [
                 { name: 'Settings', href: '/admin/settings', icon: <Settings className="w-4 h-4" /> },
-                { name: 'Support Inbox', href: '/admin/support', icon: <MessageCircle className="w-4 h-4" /> },
+                { name: 'Support Inbox', href: '/admin/support', icon: <MessageCircle className="w-4 h-4" />, badge: counts.supportOpen > 0 ? counts.supportOpen.toString() : undefined },
                 { name: 'User Logs', href: '/admin/logs', icon: <FileText className="w-4 h-4" />, sections: ['SYSUSERS_LOG', 'SYSRECORD_LOGS', 'AUDIT_LOGS'] },
             ]
         },
@@ -880,8 +904,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                 onClick={() => setHeaderUserMenuOpen((prev) => !prev)}
                                 className="glass-effect rounded-full pl-2 pr-3 py-1.5 text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 flex items-center space-x-2 hover:shadow-lg"
                             >
-                                <div className="avatar-circle avatar-circle-sm shrink-0">
-                                    {displayName.charAt(0).toUpperCase()}
+                                <div className="avatar-circle avatar-circle-sm shrink-0 overflow-hidden">
+                                    {profilePhotoUrl ? (
+                                        <img
+                                            src={profilePhotoUrl}
+                                            alt={displayName}
+                                            className="h-full w-full object-cover"
+                                        />
+                                    ) : (
+                                        displayName.charAt(0).toUpperCase()
+                                    )}
                                 </div>
                                 <div className="hidden md:block text-left max-w-[180px]">
                                     <p className="text-xs font-bold text-slate-900 dark:text-white truncate">

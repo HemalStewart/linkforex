@@ -3,8 +3,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
 import Modal from '../components/Modal';
+import ConfirmModal from '../components/ConfirmModal';
 import Pagination from '../components/ui/Pagination';
-import { Mail, MessageCircle, Phone, RefreshCw, Search, Send, User } from 'lucide-react';
+import { Mail, MessageCircle, Phone, RefreshCw, Search, Send, Trash2, User } from 'lucide-react';
 
 type SupportTicket = {
     id: number;
@@ -33,7 +34,7 @@ type TicketDetail = {
     messages: SupportMessage[];
 };
 
-const STATUS_OPTIONS = ['open', 'replied', 'closed'];
+const STATUS_OPTIONS = ['open', 'waiting_for_user', 'closed'];
 const PRIORITY_OPTIONS = ['low', 'normal', 'high'];
 
 const normalizeText = (value?: string | null, fallback = '—'): string => {
@@ -74,7 +75,7 @@ const formatDateTime = (value?: string | null): string => {
 
 const statusStyles: Record<string, string> = {
     open: 'bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200',
-    replied: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200',
+    waiting_for_user: 'bg-sky-50 text-sky-700 dark:bg-sky-900/40 dark:text-sky-200',
     closed: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
 };
 
@@ -100,6 +101,17 @@ export default function SupportPage() {
     const [replyMessage, setReplyMessage] = useState('');
     const [sendingReply, setSendingReply] = useState(false);
     const [updatingTicket, setUpdatingTicket] = useState(false);
+    const [deleteState, setDeleteState] = useState<{ open: boolean; ticket: SupportTicket | null; loading: boolean }>({
+        open: false,
+        ticket: null,
+        loading: false,
+    });
+
+    const refreshSidebarCounts = () => {
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(new Event('admin-counts-refresh'));
+        }
+    };
 
     const fetchTickets = async () => {
         setLoading(true);
@@ -198,7 +210,8 @@ export default function SupportPage() {
             if (res.ok) {
                 setReplyMessage('');
                 await fetchTicketDetail(selectedTicket.id);
-                fetchTickets();
+                await fetchTickets();
+                refreshSidebarCounts();
             }
         } finally {
             setSendingReply(false);
@@ -225,8 +238,34 @@ export default function SupportPage() {
             if (!res.ok) return;
             await fetchTicketDetail(selectedTicket.id);
             await fetchTickets();
+            refreshSidebarCounts();
         } finally {
             setUpdatingTicket(false);
+        }
+    };
+
+    const handleDeleteTicket = async () => {
+        if (!deleteState.ticket) return;
+        setDeleteState((prev) => ({ ...prev, loading: true }));
+        try {
+            const res = await fetch(ENDPOINTS.SUPPORT.DELETE(deleteState.ticket.id), {
+                method: 'DELETE',
+            });
+            if (!res.ok) return;
+
+            const deletingSelected = selectedTicket?.id === deleteState.ticket.id;
+            await fetchTickets();
+            refreshSidebarCounts();
+
+            if (deletingSelected) {
+                setDetailOpen(false);
+                setSelectedTicket(null);
+                setMessages([]);
+            }
+
+            setDeleteState({ open: false, ticket: null, loading: false });
+        } finally {
+            setDeleteState((prev) => ({ ...prev, loading: false }));
         }
     };
 
@@ -234,7 +273,7 @@ export default function SupportPage() {
         <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-up">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Support Inbox</h1>
+                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Help & Support</h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Review and respond to mobile help requests.</p>
                 </div>
                 <button
@@ -297,7 +336,7 @@ export default function SupportPage() {
                 <div className="px-8 py-6 border-b border-gray-100 dark:border-slate-700/50 flex items-center space-x-3">
                     <MessageCircle className="w-6 h-6 text-slate-400" />
                     <div>
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Support Tickets</h2>
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Support Messages</h2>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                             Showing {filteredTickets.length} of {tickets.length}
                         </p>
@@ -358,6 +397,13 @@ export default function SupportPage() {
                                             >
                                                 View
                                             </button>
+                                            <button
+                                                onClick={() => setDeleteState({ open: true, ticket, loading: false })}
+                                                className="ml-2 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-300 font-semibold hover:bg-rose-500/20 transition-colors"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                                Delete
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}
@@ -388,13 +434,13 @@ export default function SupportPage() {
                             <div className="p-4 rounded-2xl glass-effect border border-white/20">
                                 <p className="text-xs uppercase text-slate-400">Status</p>
                                 <p className="mt-2 font-semibold text-slate-900 dark:text-white">
-                                    {normalizeText(selectedTicket.status, 'open')}
+                                    {toLabelCase(normalizeText(selectedTicket.status, 'open'))}
                                 </p>
                             </div>
                             <div className="p-4 rounded-2xl glass-effect border border-white/20">
                                 <p className="text-xs uppercase text-slate-400">Priority</p>
                                 <p className="mt-2 font-semibold text-slate-900 dark:text-white">
-                                    {normalizeText(selectedTicket.priority, 'normal')}
+                                    {toLabelCase(normalizeText(selectedTicket.priority, 'normal'))}
                                 </p>
                             </div>
                             <div className="p-4 rounded-2xl glass-effect border border-white/20">
@@ -486,6 +532,13 @@ export default function SupportPage() {
                         <div className="dialog-actions border-t border-slate-100 pt-4 dark:border-slate-700/50">
                             <button
                                 type="button"
+                                onClick={() => setDeleteState({ open: true, ticket: selectedTicket, loading: false })}
+                                className="btn-secondary text-sm text-rose-600 dark:text-rose-300"
+                            >
+                                Delete Chat
+                            </button>
+                            <button
+                                type="button"
                                 onClick={() => setDetailOpen(false)}
                                 className="btn-secondary text-sm"
                             >
@@ -503,6 +556,16 @@ export default function SupportPage() {
                     </div>
                 )}
             </Modal>
+            <ConfirmModal
+                isOpen={deleteState.open}
+                onClose={() => setDeleteState({ open: false, ticket: null, loading: false })}
+                onConfirm={handleDeleteTicket}
+                title="Delete Support Chat"
+                message={`Delete support chat #${deleteState.ticket?.id ?? ''}? This will remove the full conversation.`}
+                confirmText="Delete"
+                type="danger"
+                loading={deleteState.loading}
+            />
         </div>
     );
 }
