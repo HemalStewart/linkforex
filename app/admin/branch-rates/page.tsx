@@ -529,19 +529,6 @@ export default function BranchRatesPage() {
                         Apply to all sender branches
                     </label>
 
-                    {previousRate && (
-                        <div className="rounded-2xl border border-slate-200/70 dark:border-slate-700/70 p-4 text-sm text-slate-600 dark:text-slate-300">
-                            <div className="font-semibold text-slate-800 dark:text-slate-100">Latest rate for {previousRate.branch_code} • {previousRate.currency_code}</div>
-                            <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                <div>Cash: {Number(previousRate.customer_rate || 0).toFixed(2)}</div>
-                                <div>Branch: {previousRate.branch_rate !== null && previousRate.branch_rate !== undefined ? Number(previousRate.branch_rate || 0).toFixed(2) : '—'}</div>
-                                <div>Digital: {previousRate.digital_rate !== null && previousRate.digital_rate !== undefined ? Number(previousRate.digital_rate || 0).toFixed(2) : '—'}</div>
-                                <div>Status: {normalizeYesNo(previousRate.active) === 'yes' ? 'Active' : 'Inactive'}</div>
-                                <div>Updated: {previousRate.updated_at ? new Date(previousRate.updated_at).toLocaleString() : '—'}</div>
-                            </div>
-                        </div>
-                    )}
-
                     <div className="dialog-actions pt-2">
                         <button type="button" onClick={closeModal} className="btn-secondary text-sm">
                             Cancel
