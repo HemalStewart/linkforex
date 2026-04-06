@@ -9,6 +9,7 @@ import { Mail, MessageCircle, Phone, RefreshCw, Search, Send, Trash2, User } fro
 
 type SupportTicket = {
     id: number;
+    ticket_number?: string | null;
     remitter_id?: number | null;
     email?: string | null;
     phone?: string | null;
@@ -142,6 +143,7 @@ export default function SupportPage() {
         return tickets.filter((ticket) => {
             const matchesQuery = !query || [
                 ticket.subject,
+                ticket.ticket_number,
                 ticket.email,
                 ticket.phone,
                 ticket.status,
@@ -297,7 +299,7 @@ export default function SupportPage() {
                             </span>
                             <input
                                 className="input-glass w-full text-sm"
-                                placeholder="Ticket, email, phone, subject..."
+                                placeholder="Ticket number, email, phone, topic..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
@@ -349,9 +351,9 @@ export default function SupportPage() {
                         <table className="table-shell">
                             <thead className="table-head">
                                 <tr>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Ticket</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Ticket Number</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Customer</th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Subject</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Topic</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Priority</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Last Message</th>
@@ -361,7 +363,9 @@ export default function SupportPage() {
                             <tbody className="table-body">
                                 {pagedTickets.map((ticket) => (
                                     <tr key={ticket.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
-                                        <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 font-medium">#{ticket.id}</td>
+                                        <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 font-medium">
+                                            {normalizeText(ticket.ticket_number, `#${ticket.id}`)}
+                                        </td>
                                         <td className="px-8 py-5 text-sm text-slate-600 dark:text-slate-300">
                                             <div className="flex flex-col gap-1">
                                                 <span className="flex items-center gap-2 text-slate-700 dark:text-slate-200 font-semibold">
@@ -423,7 +427,7 @@ export default function SupportPage() {
             <Modal
                 isOpen={detailOpen}
                 onClose={() => setDetailOpen(false)}
-                title={selectedTicket ? `Ticket #${selectedTicket.id}` : 'Ticket'}
+                title={selectedTicket ? normalizeText(selectedTicket.ticket_number, `Ticket #${selectedTicket.id}`) : 'Ticket'}
                 size="lg"
             >
                 {detailLoading || !selectedTicket ? (
@@ -561,7 +565,7 @@ export default function SupportPage() {
                 onClose={() => setDeleteState({ open: false, ticket: null, loading: false })}
                 onConfirm={handleDeleteTicket}
                 title="Delete Support Chat"
-                message={`Delete support chat #${deleteState.ticket?.id ?? ''}? This will remove the full conversation.`}
+                message={`Delete support chat ${normalizeText(deleteState.ticket?.ticket_number, `#${deleteState.ticket?.id ?? ''}`)}? This will remove the full conversation.`}
                 confirmText="Delete"
                 type="danger"
                 loading={deleteState.loading}
