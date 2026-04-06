@@ -422,7 +422,7 @@ export default function CountriesPage() {
                                 <tr>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">#</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                        <span>Country Code (Alpha-2)</span>
+                                        <span>Country Code</span>
                                     </th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                         <button onClick={() => toggleSort('name')} className="flex items-center gap-1">
@@ -551,7 +551,7 @@ export default function CountriesPage() {
                             <input className="input-glass w-full" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
                         </div>
                         <div>
-                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Country Code (Alpha-2)</label>
+                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Country Code</label>
                             <input className="input-glass w-full uppercase" value={form.iso_code} onChange={(e) => setForm({ ...form, iso_code: e.target.value.toUpperCase() })} maxLength={2} required />
                         </div>
                     </div>

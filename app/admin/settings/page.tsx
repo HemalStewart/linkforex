@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ENDPOINTS, UPLOADS_BASE_URL } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import { applyUiSettings, getStoredUiSettings } from '@/app/lib/uiPreferences';
+import Modal from '@/app/admin/components/Modal';
 import {
     Building2,
     Camera,
     Check,
+    Crop,
     Loader2,
     Lock,
     Mail,
@@ -75,6 +77,34 @@ const persistStoredUser = (nextUser: StoredUser) => {
         sessionStorage.setItem('user', serialized);
     }
     window.dispatchEvent(new StorageEvent('storage', { key: 'user', newValue: serialized }));
+    window.dispatchEvent(new CustomEvent('admin-user-updated', { detail: nextUser }));
+};
+
+const CROP_SIZE = 280;
+
+type CropState = {
+    zoom: number;
+    offsetX: number;
+    offsetY: number;
+};
+
+const clamp = (value: number, min: number, max: number): number => Math.min(Math.max(value, min), max);
+
+const getDisplayMetrics = (imageWidth: number, imageHeight: number, zoom: number) => {
+    const baseScale = Math.max(CROP_SIZE / imageWidth, CROP_SIZE / imageHeight);
+    const displayWidth = imageWidth * baseScale * zoom;
+    const displayHeight = imageHeight * baseScale * zoom;
+    return { displayWidth, displayHeight };
+};
+
+const clampOffsets = (imageWidth: number, imageHeight: number, zoom: number, offsetX: number, offsetY: number) => {
+    const { displayWidth, displayHeight } = getDisplayMetrics(imageWidth, imageHeight, zoom);
+    const maxOffsetX = Math.max(0, (displayWidth - CROP_SIZE) / 2);
+    const maxOffsetY = Math.max(0, (displayHeight - CROP_SIZE) / 2);
+    return {
+        offsetX: clamp(offsetX, -maxOffsetX, maxOffsetX),
+        offsetY: clamp(offsetY, -maxOffsetY, maxOffsetY),
+    };
 };
 
 export default function SettingsPage() {
@@ -99,6 +129,18 @@ export default function SettingsPage() {
     const [profile, setProfile] = useState<ProfileData | null>(null);
     const [photoFile, setPhotoFile] = useState<File | null>(null);
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+    const [cropModalOpen, setCropModalOpen] = useState(false);
+    const [cropSourceUrl, setCropSourceUrl] = useState<string | null>(null);
+    const [cropState, setCropState] = useState<CropState>({ zoom: 1, offsetX: 0, offsetY: 0 });
+    const [cropImageSize, setCropImageSize] = useState({ width: 0, height: 0 });
+    const imageRef = useRef<HTMLImageElement | null>(null);
+    const dragStateRef = useRef<{ startX: number; startY: number; originX: number; originY: number; active: boolean }>({
+        startX: 0,
+        startY: 0,
+        originX: 0,
+        originY: 0,
+        active: false,
+    });
     const [passwordForm, setPasswordForm] = useState({
         currentPassword: '',
         newPassword: '',
@@ -199,14 +241,121 @@ export default function SettingsPage() {
 
     const handlePhotoSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0] || null;
-        setPhotoFile(file);
         if (!file) {
+            setPhotoFile(null);
             setPhotoPreview(resolvePhotoUrl(profile?.profile_photo, profile?.profile_photo_url));
             return;
         }
 
         const objectUrl = URL.createObjectURL(file);
-        setPhotoPreview(objectUrl);
+        setCropSourceUrl(objectUrl);
+        setCropState({ zoom: 1, offsetX: 0, offsetY: 0 });
+        setCropImageSize({ width: 0, height: 0 });
+        setCropModalOpen(true);
+    };
+
+    const closeCropModal = () => {
+        if (cropSourceUrl?.startsWith('blob:')) {
+            URL.revokeObjectURL(cropSourceUrl);
+        }
+        setCropModalOpen(false);
+        setCropSourceUrl(null);
+        setCropState({ zoom: 1, offsetX: 0, offsetY: 0 });
+        dragStateRef.current.active = false;
+    };
+
+    const handleCropImageLoad = () => {
+        const image = imageRef.current;
+        if (!image) return;
+        setCropImageSize({
+            width: image.naturalWidth,
+            height: image.naturalHeight,
+        });
+    };
+
+    const beginDrag = (clientX: number, clientY: number) => {
+        dragStateRef.current = {
+            startX: clientX,
+            startY: clientY,
+            originX: cropState.offsetX,
+            originY: cropState.offsetY,
+            active: true,
+        };
+    };
+
+    const updateDrag = (clientX: number, clientY: number) => {
+        if (!dragStateRef.current.active || !cropImageSize.width || !cropImageSize.height) return;
+        const nextX = dragStateRef.current.originX + (clientX - dragStateRef.current.startX);
+        const nextY = dragStateRef.current.originY + (clientY - dragStateRef.current.startY);
+        const clamped = clampOffsets(cropImageSize.width, cropImageSize.height, cropState.zoom, nextX, nextY);
+        setCropState((prev) => ({ ...prev, ...clamped }));
+    };
+
+    const endDrag = () => {
+        dragStateRef.current.active = false;
+    };
+
+    useEffect(() => {
+        if (!cropModalOpen) return;
+
+        const handleMouseMove = (event: MouseEvent) => updateDrag(event.clientX, event.clientY);
+        const handleTouchMove = (event: TouchEvent) => {
+            const touch = event.touches[0];
+            if (touch) updateDrag(touch.clientX, touch.clientY);
+        };
+
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', endDrag);
+        window.addEventListener('touchmove', handleTouchMove, { passive: true });
+        window.addEventListener('touchend', endDrag);
+
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', endDrag);
+            window.removeEventListener('touchmove', handleTouchMove);
+            window.removeEventListener('touchend', endDrag);
+        };
+    }, [cropModalOpen, cropState.zoom, cropImageSize.width, cropImageSize.height]);
+
+    const handleCropConfirm = async () => {
+        const image = imageRef.current;
+        if (!image || !cropImageSize.width || !cropImageSize.height) return;
+
+        const { displayWidth, displayHeight } = getDisplayMetrics(cropImageSize.width, cropImageSize.height, cropState.zoom);
+        const left = (CROP_SIZE - displayWidth) / 2 + cropState.offsetX;
+        const top = (CROP_SIZE - displayHeight) / 2 + cropState.offsetY;
+        const sx = clamp(((0 - left) / displayWidth) * cropImageSize.width, 0, cropImageSize.width);
+        const sy = clamp(((0 - top) / displayHeight) * cropImageSize.height, 0, cropImageSize.height);
+        const sw = clamp((CROP_SIZE / displayWidth) * cropImageSize.width, 1, cropImageSize.width - sx);
+        const sh = clamp((CROP_SIZE / displayHeight) * cropImageSize.height, 1, cropImageSize.height - sy);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const context = canvas.getContext('2d');
+        if (!context) return;
+
+        context.imageSmoothingEnabled = true;
+        context.imageSmoothingQuality = 'high';
+        context.drawImage(image, sx, sy, sw, sh, 0, 0, 512, 512);
+
+        const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((result) => resolve(result), 'image/jpeg', 0.92));
+        if (!blob) {
+            setMessage({ text: 'Failed to crop image.', tone: 'error' });
+            return;
+        }
+
+        const croppedFile = new File([blob], `profile-${Date.now()}.jpg`, { type: 'image/jpeg' });
+        const previewUrl = URL.createObjectURL(blob);
+
+        setPhotoFile(croppedFile);
+        setPhotoPreview((prev) => {
+            if (prev?.startsWith('blob:')) {
+                URL.revokeObjectURL(prev);
+            }
+            return previewUrl;
+        });
+        closeCropModal();
     };
 
     const handlePhotoUpload = async () => {
@@ -297,6 +446,69 @@ export default function SettingsPage() {
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-up pb-20">
+            <Modal isOpen={cropModalOpen} onClose={closeCropModal} title="Crop Profile Picture" size="lg">
+                <div className="space-y-6">
+                    <div className="flex flex-col items-center gap-4">
+                        <div
+                            className="relative overflow-hidden rounded-[32px] border border-slate-200/70 dark:border-slate-700/70 bg-slate-100/70 dark:bg-slate-900/40 shadow-inner select-none"
+                            style={{ width: CROP_SIZE, height: CROP_SIZE }}
+                            onMouseDown={(event) => beginDrag(event.clientX, event.clientY)}
+                            onTouchStart={(event) => {
+                                const touch = event.touches[0];
+                                if (touch) beginDrag(touch.clientX, touch.clientY);
+                            }}
+                        >
+                            {cropSourceUrl && (
+                                <img
+                                    ref={imageRef}
+                                    src={cropSourceUrl}
+                                    alt="Crop preview"
+                                    onLoad={handleCropImageLoad}
+                                    draggable={false}
+                                    className="absolute top-1/2 left-1/2 max-w-none pointer-events-none"
+                                    style={{
+                                        width: cropImageSize.width ? getDisplayMetrics(cropImageSize.width, cropImageSize.height, cropState.zoom).displayWidth : 'auto',
+                                        height: cropImageSize.height ? getDisplayMetrics(cropImageSize.width, cropImageSize.height, cropState.zoom).displayHeight : 'auto',
+                                        transform: `translate(calc(-50% + ${cropState.offsetX}px), calc(-50% + ${cropState.offsetY}px))`,
+                                    }}
+                                />
+                            )}
+                            <div className="pointer-events-none absolute inset-0 rounded-[32px] ring-2 ring-white/80 dark:ring-teal-300/70" />
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Drag to position. Use zoom for a tighter crop.</p>
+                    </div>
+
+                    <div>
+                        <label className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-300">
+                            Zoom ({cropState.zoom.toFixed(1)}x)
+                        </label>
+                        <input
+                            type="range"
+                            min={1}
+                            max={3}
+                            step={0.1}
+                            value={cropState.zoom}
+                            onChange={(event) => {
+                                const zoom = Number(event.target.value);
+                                const clamped = clampOffsets(cropImageSize.width, cropImageSize.height, zoom, cropState.offsetX, cropState.offsetY);
+                                setCropState((prev) => ({ ...prev, zoom, ...clamped }));
+                            }}
+                            className="w-full accent-teal-500"
+                        />
+                    </div>
+
+                    <div className="dialog-actions">
+                        <button type="button" onClick={closeCropModal} className="btn-secondary">
+                            Cancel
+                        </button>
+                        <button type="button" onClick={() => void handleCropConfirm()} className="btn-primary inline-flex items-center gap-2">
+                            <Crop className="h-4 w-4" />
+                            Crop & Use
+                        </button>
+                    </div>
+                </div>
+            </Modal>
+
             <div>
                 <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Settings</h1>
                 <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Manage profile, security, and workspace preferences.</p>

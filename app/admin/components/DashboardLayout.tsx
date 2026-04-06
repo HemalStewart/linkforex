@@ -390,8 +390,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             }
         };
 
+        const onUserUpdated = (event: Event) => {
+            const customEvent = event as CustomEvent<CurrentUser>;
+            if (!customEvent.detail) return;
+            setCurrentUser(customEvent.detail);
+        };
+
         window.addEventListener('storage', onStorage);
-        return () => window.removeEventListener('storage', onStorage);
+        window.addEventListener('admin-user-updated', onUserUpdated as EventListener);
+        return () => {
+            window.removeEventListener('storage', onStorage);
+            window.removeEventListener('admin-user-updated', onUserUpdated as EventListener);
+        };
     }, []);
 
     React.useEffect(() => {
