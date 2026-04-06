@@ -219,7 +219,7 @@ export default function DashboardPage() {
                     },
                     {
                         label: 'Total Revenue',
-                        value: `£${stats.totalRevenue.toLocaleString()}`,
+                        value: `£${stats.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
                         change: '+18.3%',
                         trend: 'up',
                         icon: <Coins className="w-6 h-6" />
@@ -382,7 +382,9 @@ export default function DashboardPage() {
                                     </div>
                                     <div>
                                         <p className="text-sm font-bold text-slate-900 dark:text-white">{activity.customerName}</p>
-                                        <p className="text-xs text-slate-500 font-medium mt-0.5">Sent £{parseFloat(activity.source_amount || 0).toLocaleString()}</p>
+                                        <p className="text-xs text-slate-500 font-medium mt-0.5">
+                                            Sent £{parseFloat(activity.source_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        </p>
                                     </div>
                                 </div>
                                 <span className={`badge-glass px-3 py-1 rounded-full uppercase tracking-wider text-[10px] font-extrabold ${activity.status === 'completed' ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300' :

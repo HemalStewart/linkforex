@@ -280,7 +280,9 @@ export default function BranchCurrencyRatesPage() {
                                                 {row.active === 'yes' ? 'Yes' : 'No'}
                                             </Badge>
                                         </td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{Number(row.customer_rate || 0).toLocaleString()}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
+                                            {Number(row.customer_rate || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        </td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.entered_user || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.created_at ? new Date(row.created_at).toLocaleString() : '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.modified_user || '-'}</td>

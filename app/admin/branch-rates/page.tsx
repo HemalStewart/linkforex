@@ -91,6 +91,19 @@ const EMPTY_FORM: FormState = {
     applyToAll: false,
 };
 
+function formatRateInput(value?: string | number | null): string {
+    if (value === null || value === undefined || String(value).trim() === '') {
+        return '';
+    }
+
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) {
+        return '';
+    }
+
+    return numeric.toFixed(2);
+}
+
 export default function BranchRatesPage() {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -192,9 +205,9 @@ export default function BranchRatesPage() {
             if (previousRate) {
                 setForm((prev) => ({
                     ...prev,
-                    cashRate: previousRate.customer_rate != null ? String(previousRate.customer_rate) : '',
-                    branchRate: previousRate.branch_rate != null ? String(previousRate.branch_rate) : '',
-                    digitalRate: previousRate.digital_rate != null ? String(previousRate.digital_rate) : '',
+                    cashRate: formatRateInput(previousRate.customer_rate),
+                    branchRate: formatRateInput(previousRate.branch_rate),
+                    digitalRate: formatRateInput(previousRate.digital_rate),
                 }));
             } else {
                 setForm((prev) => ({
@@ -829,7 +842,7 @@ async function upsertMobileConfig({
         display_order: Number(existing?.display_order ?? 10),
     };
 
-    const response = existing
+    let response = existing
         ? await fetch(ENDPOINTS.MOBILE_ADMIN.EXCHANGE_RATE_DETAIL(existing.id), {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -840,6 +853,24 @@ async function upsertMobileConfig({
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
         });
+
+    if (!existing && response.status === 409) {
+        const freshRes = await fetch(ENDPOINTS.MOBILE_ADMIN.EXCHANGE_RATES, { cache: 'no-store' });
+        const freshRows = freshRes.ok ? await freshRes.json() : [];
+        const matched = Array.isArray(freshRows)
+            ? freshRows.find((row: MobileRateRow) =>
+                String(row.code || row.currency_code || '').trim().toUpperCase() === currencyCode.toUpperCase()
+            )
+            : null;
+
+        if (matched?.id) {
+            response = await fetch(ENDPOINTS.MOBILE_ADMIN.EXCHANGE_RATE_DETAIL(matched.id), {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+        }
+    }
 
     if (!response.ok) {
         throw new Error(await readErrorMessage(response, 'Failed to update mobile digital rate config.'));

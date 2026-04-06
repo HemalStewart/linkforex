@@ -70,7 +70,8 @@ const dateRangeToDays: Record<string, number> = {
     year: 180
 };
 
-const formatGbp = (value: number): string => `£${Number(value || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+const formatGbp = (value: number): string =>
+    `£${Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 export default function ReportsPage() {
     const [summary, setSummary] = useState<SummaryResponse>(EMPTY_SUMMARY);
