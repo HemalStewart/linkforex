@@ -5,7 +5,7 @@ import { ENDPOINTS } from '@/app/lib/api';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
 import Pagination from '../components/ui/Pagination';
-import { Mail, MessageCircle, Phone, RefreshCw, Search, Send, Trash2, User } from 'lucide-react';
+import { Eye, Mail, MessageCircle, Phone, RefreshCw, Search, Send, Trash2, User } from 'lucide-react';
 
 type SupportTicket = {
     id: number;
@@ -403,16 +403,19 @@ export default function SupportPage() {
                                         <td className="px-8 py-5 text-center">
                                             <button
                                                 onClick={() => openTicket(ticket)}
-                                                className="px-4 py-2 rounded-full bg-gradient-to-r from-teal-500 to-teal-600 text-white font-semibold shadow-md hover:shadow-lg"
+                                                title="View"
+                                                aria-label="View support ticket"
+                                                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-teal-200/70 bg-teal-500/10 text-teal-600 transition-colors hover:bg-teal-500/20 dark:border-teal-500/30 dark:text-teal-300"
                                             >
-                                                View
+                                                <Eye className="w-4 h-4" />
                                             </button>
                                             <button
                                                 onClick={() => setDeleteState({ open: true, ticket, loading: false })}
-                                                className="ml-2 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-300 font-semibold hover:bg-rose-500/20 transition-colors"
+                                                title="Delete"
+                                                aria-label="Delete support ticket"
+                                                className="ml-2 inline-flex h-10 w-10 items-center justify-center rounded-full border border-rose-200/70 bg-rose-500/10 text-rose-600 transition-colors hover:bg-rose-500/20 dark:border-rose-500/30 dark:text-rose-300"
                                             >
                                                 <Trash2 className="w-4 h-4" />
-                                                Delete
                                             </button>
                                         </td>
                                     </tr>
