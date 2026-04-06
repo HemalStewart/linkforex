@@ -200,6 +200,9 @@ export default function BranchRatesPage() {
             .filter((row) => String(row.branch_code || '') === form.branchCode)
             .filter((row) => String(row.currency_code || '').toUpperCase() === form.currencyCode.toUpperCase())
             .sort((a, b) => {
+                const aActiveRank = normalizeYesNo(a.active) === 'yes' ? 0 : 1;
+                const bActiveRank = normalizeYesNo(b.active) === 'yes' ? 0 : 1;
+                if (aActiveRank !== bActiveRank) return aActiveRank - bActiveRank;
                 const aTime = a.updated_at ? new Date(a.updated_at).getTime() : 0;
                 const bTime = b.updated_at ? new Date(b.updated_at).getTime() : 0;
                 if (aTime !== bTime) return bTime - aTime;
