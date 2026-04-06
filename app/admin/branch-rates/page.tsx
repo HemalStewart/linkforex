@@ -104,6 +104,20 @@ function formatRateInput(value?: string | number | null): string {
     return numeric.toFixed(2);
 }
 
+function normalizeRateDraft(value: string): string {
+    const trimmed = value.trim();
+    if (trimmed === '') {
+        return '';
+    }
+
+    const numeric = Number(trimmed);
+    if (!Number.isFinite(numeric)) {
+        return '';
+    }
+
+    return numeric.toFixed(2);
+}
+
 export default function BranchRatesPage() {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -498,11 +512,12 @@ export default function BranchRatesPage() {
                             <label className="mb-2 ml-1 block text-sm font-bold text-slate-700 dark:text-slate-300">Customer Cash Rate</label>
                             <input
                                 type="number"
-                                step="0.0001"
+                                step="0.01"
                                 min="0"
                                 className="input-glass w-full"
                                 value={form.cashRate}
                                 onChange={(event) => setForm((prev) => ({ ...prev, cashRate: event.target.value }))}
+                                onBlur={(event) => setForm((prev) => ({ ...prev, cashRate: normalizeRateDraft(event.target.value) }))}
                                 required
                             />
                         </div>
@@ -510,11 +525,12 @@ export default function BranchRatesPage() {
                             <label className="mb-2 ml-1 block text-sm font-bold text-slate-700 dark:text-slate-300">Branch Rate</label>
                             <input
                                 type="number"
-                                step="0.0001"
+                                step="0.01"
                                 min="0"
                                 className="input-glass w-full"
                                 value={form.branchRate}
                                 onChange={(event) => setForm((prev) => ({ ...prev, branchRate: event.target.value }))}
+                                onBlur={(event) => setForm((prev) => ({ ...prev, branchRate: normalizeRateDraft(event.target.value) }))}
                                 required
                             />
                         </div>
@@ -522,11 +538,12 @@ export default function BranchRatesPage() {
                             <label className="mb-2 ml-1 block text-sm font-bold text-slate-700 dark:text-slate-300">Customer Digital Rate</label>
                             <input
                                 type="number"
-                                step="0.0001"
+                                step="0.01"
                                 min="0"
                                 className="input-glass w-full"
                                 value={form.digitalRate}
                                 onChange={(event) => setForm((prev) => ({ ...prev, digitalRate: event.target.value }))}
+                                onBlur={(event) => setForm((prev) => ({ ...prev, digitalRate: normalizeRateDraft(event.target.value) }))}
                                 required
                             />
                         </div>
