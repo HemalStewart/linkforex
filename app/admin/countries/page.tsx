@@ -551,7 +551,7 @@ export default function CountriesPage() {
                             <input className="input-glass w-full" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
                         </div>
                         <div>
-                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Country Code</label>
+                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Country Code (Alpha-2)</label>
                             <input className="input-glass w-full uppercase" value={form.iso_code} onChange={(e) => setForm({ ...form, iso_code: e.target.value.toUpperCase() })} maxLength={2} required />
                         </div>
                     </div>
