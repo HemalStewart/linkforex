@@ -14,6 +14,7 @@ type SupportTicket = {
     email?: string | null;
     phone?: string | null;
     subject?: string | null;
+    message_type?: string | null;
     status?: string | null;
     priority?: string | null;
     last_message_at?: string | null;
@@ -143,6 +144,7 @@ export default function SupportPage() {
         return tickets.filter((ticket) => {
             const matchesQuery = !query || [
                 ticket.subject,
+                ticket.message_type,
                 ticket.ticket_number,
                 ticket.email,
                 ticket.phone,
@@ -299,7 +301,7 @@ export default function SupportPage() {
                             </span>
                             <input
                                 className="input-glass w-full text-sm"
-                                placeholder="Ticket number, email, phone, topic..."
+                                placeholder="Ticket number, email, phone, topic, message type..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
@@ -354,6 +356,7 @@ export default function SupportPage() {
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Ticket Number</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Customer</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Topic</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Message Type</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Priority</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Last Message</th>
@@ -380,6 +383,9 @@ export default function SupportPage() {
                                         </td>
                                         <td className="px-8 py-5 text-sm text-slate-600 dark:text-slate-300 font-medium">
                                             {normalizeText(ticket.subject, 'Support Request')}
+                                        </td>
+                                        <td className="px-8 py-5 text-sm text-slate-600 dark:text-slate-300 font-medium">
+                                            {normalizeText(ticket.message_type)}
                                         </td>
                                         <td className="px-8 py-5">
                                             <span className={`badge-glass ${statusStyles[String(ticket.status || 'open').toLowerCase()] || statusStyles.open}`}>
@@ -445,6 +451,12 @@ export default function SupportPage() {
                                 <p className="text-xs uppercase text-slate-400">Priority</p>
                                 <p className="mt-2 font-semibold text-slate-900 dark:text-white">
                                     {toLabelCase(normalizeText(selectedTicket.priority, 'normal'))}
+                                </p>
+                            </div>
+                            <div className="p-4 rounded-2xl glass-effect border border-white/20">
+                                <p className="text-xs uppercase text-slate-400">Message Type</p>
+                                <p className="mt-2 font-semibold text-slate-900 dark:text-white">
+                                    {normalizeText(selectedTicket.message_type)}
                                 </p>
                             </div>
                             <div className="p-4 rounded-2xl glass-effect border border-white/20">
