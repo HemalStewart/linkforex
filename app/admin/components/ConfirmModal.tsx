@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { getStoredUiSettings } from '@/app/lib/uiPreferences';
 import Modal from './Modal';
 import { AlertCircle, CheckCircle2, Info, TriangleAlert, X } from 'lucide-react';
 
@@ -29,8 +30,23 @@ export default function ConfirmModal({
     type = 'info',
     loading = false,
     isAlert = false,
-    autoCloseMs = 3000
+    autoCloseMs
 }: ConfirmModalProps) {
+    const [defaultAutoCloseMs, setDefaultAutoCloseMs] = React.useState(3000);
+
+    React.useEffect(() => {
+        const syncUiSettings = () => {
+            const settings = getStoredUiSettings();
+            setDefaultAutoCloseMs(settings.toastMessageTimerMs);
+        };
+
+        syncUiSettings();
+        window.addEventListener('ui-settings-change', syncUiSettings);
+        return () => window.removeEventListener('ui-settings-change', syncUiSettings);
+    }, []);
+
+    const resolvedAutoCloseMs = autoCloseMs ?? defaultAutoCloseMs;
+
     const buttonStyles = {
         danger: 'bg-red-500/90 hover:bg-red-500 text-white shadow-sm shadow-red-500/20 transition-all duration-300',
         warning: 'bg-amber-500/90 hover:bg-amber-500 text-white shadow-sm shadow-amber-500/20 transition-all duration-300',
@@ -39,12 +55,12 @@ export default function ConfirmModal({
     };
 
     React.useEffect(() => {
-        if (!isOpen || !isAlert || autoCloseMs <= 0) return;
+        if (!isOpen || !isAlert || resolvedAutoCloseMs <= 0) return;
         const timer = window.setTimeout(() => {
             onConfirm();
-        }, autoCloseMs);
+        }, resolvedAutoCloseMs);
         return () => window.clearTimeout(timer);
-    }, [isOpen, isAlert, autoCloseMs, onConfirm]);
+    }, [isOpen, isAlert, resolvedAutoCloseMs, onConfirm]);
 
     if (isAlert && isOpen) {
         const toastStyles = {
@@ -108,7 +124,7 @@ export default function ConfirmModal({
                     <div className="h-1 bg-white/30 dark:bg-slate-800/60">
                         <div
                             className={`h-full ${toastStyles.progress} animate-toast-progress`}
-                            style={{ animationDuration: `${autoCloseMs}ms` }}
+                            style={{ animationDuration: `${resolvedAutoCloseMs}ms` }}
                         />
                     </div>
                 </div>

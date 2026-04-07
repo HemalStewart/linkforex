@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ENDPOINTS, UPLOADS_BASE_URL } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
-import { applyUiSettings, getStoredUiSettings } from '@/app/lib/uiPreferences';
+import { applyUiSettings, getStoredUiSettings, type UiSettings } from '@/app/lib/uiPreferences';
 import Modal from '@/app/admin/components/Modal';
 import {
     Building2,
@@ -120,11 +120,10 @@ export default function SettingsPage() {
     });
     const [securitySettings, setSecuritySettings] = useState({
         twoFactor: true,
-        sessionTimeout: '30',
-        passwordExpiry: '90',
     });
-    const [uiSettings, setUiSettings] = useState<{ tableFontSizePx: number }>({
+    const [uiSettings, setUiSettings] = useState<UiSettings>({
         tableFontSizePx: 14,
+        toastMessageTimerMs: 3000,
     });
     const [profile, setProfile] = useState<ProfileData | null>(null);
     const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -168,8 +167,6 @@ export default function SettingsPage() {
                 const parsed = JSON.parse(savedSecurity);
                 setSecuritySettings({
                     twoFactor: parsed?.twoFactor !== false,
-                    sessionTimeout: String(parsed?.sessionTimeout ?? '30'),
-                    passwordExpiry: String(parsed?.passwordExpiry ?? '90'),
                 });
             } catch {
                 // Keep defaults
@@ -219,6 +216,14 @@ export default function SettingsPage() {
         const parsed = Number(rawValue);
         const nextSize = Number.isFinite(parsed) ? Math.max(10, Math.min(20, Math.round(parsed))) : 14;
         const next = { ...uiSettings, tableFontSizePx: nextSize };
+        setUiSettings(next);
+        applyUiSettings(next);
+    };
+
+    const updateToastTimer = (rawValue: string) => {
+        const parsed = Number(rawValue);
+        const nextTimer = Number.isFinite(parsed) ? Math.max(1000, Math.min(10000, Math.round(parsed / 500) * 500)) : 3000;
+        const next = { ...uiSettings, toastMessageTimerMs: nextTimer };
         setUiSettings(next);
         applyUiSettings(next);
     };
@@ -667,29 +672,58 @@ export default function SettingsPage() {
                                     </div>
 
                                     <div className="rounded-3xl border border-slate-200/70 dark:border-slate-700/70 p-6 bg-white/50 dark:bg-slate-900/20">
-                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Table Font Size</h3>
-                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
-                                            Table Font Size ({uiSettings.tableFontSizePx}px)
-                                        </label>
-                                        <div className="space-y-3">
-                                            <input
-                                                type="range"
-                                                min={10}
-                                                max={20}
-                                                step={1}
-                                                value={uiSettings.tableFontSizePx}
-                                                onChange={(e) => updateTableFontSize(e.target.value)}
-                                                className="w-full accent-teal-500"
-                                            />
-                                            <input
-                                                type="number"
-                                                min={10}
-                                                max={20}
-                                                step={1}
-                                                value={uiSettings.tableFontSizePx}
-                                                onChange={(e) => updateTableFontSize(e.target.value)}
-                                                className="input-glass w-full"
-                                            />
+                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Profile Display Settings</h3>
+                                        <div className="space-y-6">
+                                            <div>
+                                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                                                    Table Font Size ({uiSettings.tableFontSizePx}px)
+                                                </label>
+                                                <div className="space-y-3">
+                                                    <input
+                                                        type="range"
+                                                        min={10}
+                                                        max={20}
+                                                        step={1}
+                                                        value={uiSettings.tableFontSizePx}
+                                                        onChange={(e) => updateTableFontSize(e.target.value)}
+                                                        className="w-full accent-teal-500"
+                                                    />
+                                                    <input
+                                                        type="number"
+                                                        min={10}
+                                                        max={20}
+                                                        step={1}
+                                                        value={uiSettings.tableFontSizePx}
+                                                        onChange={(e) => updateTableFontSize(e.target.value)}
+                                                        className="input-glass w-full"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                                                    Toast Message Timer ({(uiSettings.toastMessageTimerMs / 1000).toFixed(1)}s)
+                                                </label>
+                                                <div className="space-y-3">
+                                                    <input
+                                                        type="range"
+                                                        min={1000}
+                                                        max={10000}
+                                                        step={500}
+                                                        value={uiSettings.toastMessageTimerMs}
+                                                        onChange={(e) => updateToastTimer(e.target.value)}
+                                                        className="w-full accent-teal-500"
+                                                    />
+                                                    <input
+                                                        type="number"
+                                                        min={1000}
+                                                        max={10000}
+                                                        step={500}
+                                                        value={uiSettings.toastMessageTimerMs}
+                                                        onChange={(e) => updateToastTimer(e.target.value)}
+                                                        className="input-glass w-full"
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -749,7 +783,7 @@ export default function SettingsPage() {
                                 </div>
                                 <div>
                                     <h2 className="text-xl font-bold text-slate-900 dark:text-white">Security Preferences</h2>
-                                    <p className="text-sm text-slate-500 font-medium">Control session and password rotation preferences.</p>
+                                    <p className="text-sm text-slate-500 font-medium">Control account protection preferences.</p>
                                 </div>
                             </div>
 
@@ -777,26 +811,6 @@ export default function SettingsPage() {
                                     </p>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Session Timeout (minutes)</label>
-                                        <input
-                                            type="number"
-                                            value={securitySettings.sessionTimeout}
-                                            onChange={(e) => setSecuritySettings((prev) => ({ ...prev, sessionTimeout: e.target.value }))}
-                                            className="input-glass w-full"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Password Expiry (days)</label>
-                                        <input
-                                            type="number"
-                                            value={securitySettings.passwordExpiry}
-                                            onChange={(e) => setSecuritySettings((prev) => ({ ...prev, passwordExpiry: e.target.value }))}
-                                            className="input-glass w-full"
-                                        />
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     )}

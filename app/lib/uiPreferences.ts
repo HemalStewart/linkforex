@@ -2,12 +2,14 @@
 
 export type UiSettings = {
     tableFontSizePx: number;
+    toastMessageTimerMs: number;
 };
 
 const UI_SETTINGS_KEY = 'uiSettings';
 
 const defaultSettings: UiSettings = {
     tableFontSizePx: 14,
+    toastMessageTimerMs: 3000,
 };
 
 const LEGACY_PRESET_TO_PX: Record<string, number> = {
@@ -16,6 +18,12 @@ const LEGACY_PRESET_TO_PX: Record<string, number> = {
     large: 17,
 };
 
+
+const normalizeToastTimerMs = (value: unknown): number => {
+    const num = typeof value === 'number' ? value : Number(value);
+    if (!Number.isFinite(num)) return defaultSettings.toastMessageTimerMs;
+    return Math.max(1000, Math.min(10000, Math.round(num / 500) * 500));
+};
 const normalizeTableFontPx = (value: unknown): number => {
     if (typeof value === 'string' && value in LEGACY_PRESET_TO_PX) {
         return LEGACY_PRESET_TO_PX[value];
@@ -34,6 +42,7 @@ export const getStoredUiSettings = (): UiSettings => {
         const parsed = JSON.parse(raw) as Partial<UiSettings>;
         return {
             tableFontSizePx: normalizeTableFontPx((parsed as Record<string, unknown>)?.tableFontSizePx ?? (parsed as Record<string, unknown>)?.tableFontSize),
+            toastMessageTimerMs: normalizeToastTimerMs((parsed as Record<string, unknown>)?.toastMessageTimerMs ?? (parsed as Record<string, unknown>)?.toastTimerMs),
         };
     } catch {
         return defaultSettings;
@@ -45,6 +54,7 @@ export const applyUiSettings = (settings: UiSettings): void => {
 
     const normalized: UiSettings = {
         tableFontSizePx: normalizeTableFontPx(settings.tableFontSizePx),
+        toastMessageTimerMs: normalizeToastTimerMs(settings.toastMessageTimerMs),
     };
 
     const root = document.documentElement;

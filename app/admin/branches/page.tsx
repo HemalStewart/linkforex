@@ -3,9 +3,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
+import { getStoredUser } from '@/app/lib/authStorage';
+import { isPrivilegedUser } from '@/app/lib/permissions';
 import ConfirmModal from '../components/ConfirmModal';
 import Pagination from '../components/ui/Pagination';
-import { Search, PlusCircle, Trash2, Eye, RefreshCw, Tag, Phone, ArrowRightLeft, GitBranch } from 'lucide-react';
+import { Search, PlusCircle, Trash2, Eye, RefreshCw, Tag, Phone, ArrowRightLeft, GitBranch, Edit2 } from 'lucide-react';
 
 export default function BranchesPage() {
     const [branches, setBranches] = useState<any[]>([]);
@@ -15,6 +17,8 @@ export default function BranchesPage() {
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
     const [page, setPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(50);
+    const [canEditBranch, setCanEditBranch] = useState(false);
+    const [canDeleteBranch, setCanDeleteBranch] = useState(false);
 
     const [confirmModal, setConfirmModal] = useState({
         isOpen: false,
@@ -32,6 +36,78 @@ export default function BranchesPage() {
     useEffect(() => {
         setPage(1);
     }, [searchQuery]);
+
+    useEffect(() => {
+        let ignore = false;
+
+        const resolvePermissions = async () => {
+            try {
+                const user = getStoredUser<{ role?: string | null; username?: string | null; email?: string | null; name?: string | null; system_defined?: string | null }>();
+                if (!user) {
+                    if (!ignore) {
+                        setCanEditBranch(false);
+                        setCanDeleteBranch(false);
+                    }
+                    return;
+                }
+
+                if (isPrivilegedUser(user)) {
+                    if (!ignore) {
+                        setCanEditBranch(true);
+                        setCanDeleteBranch(true);
+                    }
+                    return;
+                }
+
+                const roleName = String(user.role || '').trim().toLowerCase();
+                if (!roleName) {
+                    if (!ignore) {
+                        setCanEditBranch(false);
+                        setCanDeleteBranch(false);
+                    }
+                    return;
+                }
+
+                const response = await fetch(ENDPOINTS.PERMISSION_GROUPS.LIST);
+                if (!response.ok) {
+                    if (!ignore) {
+                        setCanEditBranch(false);
+                        setCanDeleteBranch(false);
+                    }
+                    return;
+                }
+
+                const data = await response.json();
+                const rows = Array.isArray(data) ? data : [];
+                const hasPermission = (operationName: 'EDIT' | 'DELETE') => rows.some((row) => {
+                    const role = String(row?.role_name || '').trim().toLowerCase();
+                    const section = String(row?.page_section || '').trim().toUpperCase();
+                    const operation = String(row?.operation || '').trim().toUpperCase();
+                    const active = String(row?.active || '').trim().toLowerCase();
+                    if (role !== roleName) return false;
+                    if (active !== 'yes') return false;
+                    if (operation !== operationName) return false;
+                    return section === 'BRANCH' || section === 'BRANCHES';
+                });
+
+                if (!ignore) {
+                    setCanEditBranch(hasPermission('EDIT'));
+                    setCanDeleteBranch(hasPermission('DELETE'));
+                }
+            } catch {
+                if (!ignore) {
+                    setCanEditBranch(false);
+                    setCanDeleteBranch(false);
+                }
+            }
+        };
+
+        void resolvePermissions();
+
+        return () => {
+            ignore = true;
+        };
+    }, []);
 
     const fetchBranches = async () => {
         setLoading(true);
@@ -327,8 +403,7 @@ export default function BranchesPage() {
                                         Modified Date <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_at')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">View</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Delete</th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="table-body">
@@ -366,22 +441,35 @@ export default function BranchesPage() {
                                     <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{branch.updated_by || '-'}</td>
                                     <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{branch.updated_at ? new Date(branch.updated_at).toLocaleString() : '-'}</td>
                                     <td className="px-4 py-4">
-                                        <Link
-                                            href={`/admin/branches/${branch.id}`}
-                                            className="px-3 py-1.5 rounded-full glass-effect text-xs font-semibold text-slate-600 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors flex items-center gap-1"
-                                        >
-                                            <Eye className="w-3.5 h-3.5" />
-                                            View
-                                        </Link>
-                                    </td>
-                                    <td className="px-4 py-4">
-                                        <button
-                                            onClick={() => promptDelete(branch)}
-                                            className="px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 transition-colors glass-effect text-slate-600 dark:text-slate-200 hover:text-red-600"
-                                        >
-                                            <Trash2 className="w-3.5 h-3.5" />
-                                            Delete
-                                        </button>
+                                        <div className="flex items-center gap-2">
+                                            <Link
+                                                href={`/admin/branches/${branch.id}?mode=view`}
+                                                className="inline-flex h-9 w-9 items-center justify-center rounded-full glass-effect text-slate-600 transition-colors hover:text-teal-600 dark:text-slate-200 dark:hover:text-teal-300"
+                                                title="View branch"
+                                                aria-label="View branch"
+                                            >
+                                                <Eye className="h-4 w-4" />
+                                            </Link>
+                                            <Link
+                                                href={`/admin/branches/${branch.id}`}
+                                                className={`inline-flex h-9 w-9 items-center justify-center rounded-full glass-effect transition-colors ${canEditBranch ? 'text-slate-600 hover:text-teal-600 dark:text-slate-200 dark:hover:text-teal-300' : 'cursor-not-allowed opacity-50 text-slate-400 dark:text-slate-500 pointer-events-none'}`}
+                                                title={canEditBranch ? 'Edit branch' : 'Edit permission required'}
+                                                aria-label="Edit branch"
+                                                aria-disabled={!canEditBranch}
+                                            >
+                                                <Edit2 className="h-4 w-4" />
+                                            </Link>
+                                            <button
+                                                type="button"
+                                                onClick={() => promptDelete(branch)}
+                                                disabled={!canDeleteBranch}
+                                                className={`inline-flex h-9 w-9 items-center justify-center rounded-full glass-effect transition-colors ${canDeleteBranch ? 'text-slate-600 hover:text-red-600 dark:text-slate-200 dark:hover:text-red-400' : 'cursor-not-allowed opacity-50 text-slate-400 dark:text-slate-500'}`}
+                                                title={canDeleteBranch ? 'Delete branch' : 'Delete permission required'}
+                                                aria-label="Delete branch"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

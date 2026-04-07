@@ -2,9 +2,10 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
+import { isPrivilegedUser } from '@/app/lib/permissions';
 import ConfirmModal from '../../components/ConfirmModal';
 import {
     ArrowLeft,
@@ -37,12 +38,16 @@ type CountryOption = {
 export default function EditBranchPage() {
     const router = useRouter();
     const params = useParams();
+    const searchParams = useSearchParams();
     const branchId = Array.isArray(params?.id) ? params.id[0] : params?.id;
+    const isViewMode = searchParams.get('mode') === 'view';
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [enteredBy, setEnteredBy] = useState('');
     const [countries, setCountries] = useState<string[]>([]);
+    const [canEditBranch, setCanEditBranch] = useState(false);
+    const [canDeleteBranch, setCanDeleteBranch] = useState(false);
 
     const [formData, setFormData] = useState({
         id: null as number | null,
@@ -80,8 +85,77 @@ export default function EditBranchPage() {
     });
 
     useEffect(() => {
-        const parsed = getStoredUser<{ username?: string; name?: string }>();
-        setEnteredBy(parsed?.username || parsed?.name || '');
+        let ignore = false;
+
+        const resolvePermissions = async () => {
+            const parsed = getStoredUser<{ role?: string | null; username?: string | null; email?: string | null; name?: string | null; system_defined?: string | null }>();
+            setEnteredBy(parsed?.username || parsed?.name || '');
+
+            if (!parsed) {
+                if (!ignore) {
+                    setCanEditBranch(false);
+                    setCanDeleteBranch(false);
+                }
+                return;
+            }
+
+            if (isPrivilegedUser(parsed)) {
+                if (!ignore) {
+                    setCanEditBranch(true);
+                    setCanDeleteBranch(true);
+                }
+                return;
+            }
+
+            const roleName = String(parsed.role || '').trim().toLowerCase();
+            if (!roleName) {
+                if (!ignore) {
+                    setCanEditBranch(false);
+                    setCanDeleteBranch(false);
+                }
+                return;
+            }
+
+            try {
+                const response = await fetch(ENDPOINTS.PERMISSION_GROUPS.LIST);
+                if (!response.ok) {
+                    if (!ignore) {
+                        setCanEditBranch(false);
+                        setCanDeleteBranch(false);
+                    }
+                    return;
+                }
+
+                const data = await response.json();
+                const rows = Array.isArray(data) ? data : [];
+                const hasPermission = (operationName: 'EDIT' | 'DELETE') => rows.some((row) => {
+                    const role = String(row?.role_name || '').trim().toLowerCase();
+                    const section = String(row?.page_section || '').trim().toUpperCase();
+                    const operation = String(row?.operation || '').trim().toUpperCase();
+                    const active = String(row?.active || '').trim().toLowerCase();
+                    if (role !== roleName) return false;
+                    if (active !== 'yes') return false;
+                    if (operation !== operationName) return false;
+                    return section === 'BRANCH' || section === 'BRANCHES';
+                });
+
+                if (!ignore) {
+                    setCanEditBranch(hasPermission('EDIT'));
+                    setCanDeleteBranch(hasPermission('DELETE'));
+                }
+            } catch {
+                if (!ignore) {
+                    setCanEditBranch(false);
+                    setCanDeleteBranch(false);
+                }
+            }
+        };
+
+        void resolvePermissions();
+
+        return () => {
+            ignore = true;
+        };
     }, []);
 
     useEffect(() => {
@@ -116,6 +190,8 @@ export default function EditBranchPage() {
             fetchBranch();
         }
     }, [branchId]);
+
+    const isReadOnly = isViewMode || !canEditBranch;
 
     const countryOptions = useMemo(() => {
         if (!formData.country || countries.includes(formData.country)) {
@@ -164,7 +240,7 @@ export default function EditBranchPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!branchId) return;
+        if (!branchId || isReadOnly) return;
         setSaving(true);
 
         const normalizedPrefix = normalizeBranchPrefix(formData.transaction_prefix);
@@ -241,7 +317,7 @@ export default function EditBranchPage() {
     };
 
     const handleDelete = async () => {
-        if (!branchId) return;
+        if (!branchId || !canDeleteBranch || isViewMode) return;
         const res = await fetch(ENDPOINTS.BRANCHES.DETAIL(branchId as string), { method: 'DELETE' });
         if (res.ok) {
             router.push('/admin/branches');
@@ -287,16 +363,21 @@ export default function EditBranchPage() {
                         <ArrowLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
                         Back to Branches
                     </Link>
-                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Edit Branch</h1>
-                    <p className="text-slate-500 dark:text-slate-300 mt-2">Update branch details and transfer settings.</p>
+                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">{isViewMode ? 'View Branch' : 'Edit Branch'}</h1>
+                    <p className="text-slate-500 dark:text-slate-300 mt-2">{isViewMode ? 'Review branch details and transfer settings.' : 'Update branch details and transfer settings.'}</p>
                 </div>
-                <button
-                    onClick={handleDelete}
-                    className="px-5 py-3 rounded-full text-sm font-bold transition-colors flex items-center space-x-2 glass-effect text-slate-600 dark:text-slate-300 hover:text-red-600"
-                >
-                    <Trash2 className="w-4 h-4" />
-                    <span>Delete</span>
-                </button>
+                {!isViewMode && (
+                    <button
+                        type="button"
+                        onClick={handleDelete}
+                        disabled={!canDeleteBranch}
+                        className={`px-5 py-3 rounded-full text-sm font-bold transition-colors flex items-center space-x-2 glass-effect ${canDeleteBranch ? 'text-slate-600 dark:text-slate-300 hover:text-red-600' : 'cursor-not-allowed opacity-50 text-slate-400 dark:text-slate-500'}`}
+                        title={canDeleteBranch ? 'Delete branch' : 'Delete permission required'}
+                    >
+                        <Trash2 className="w-4 h-4" />
+                        <span>Delete</span>
+                    </button>
+                )}
             </div>
 
             <div className="card-glass p-6 mb-8">
@@ -330,6 +411,7 @@ export default function EditBranchPage() {
             <form onSubmit={handleSubmit} className="card-glass p-8 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
+                <fieldset disabled={isReadOnly} className="contents">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Branch Name <span className="text-red-500">*</span></label>
@@ -541,17 +623,20 @@ export default function EditBranchPage() {
                         href="/admin/branches"
                         className="px-6 py-3 rounded-full glass-effect text-slate-600 dark:text-slate-300 font-bold text-sm transition-colors"
                     >
-                        Cancel
+                        {isViewMode ? 'Back' : 'Cancel'}
                     </Link>
-                    <button
-                        type="submit"
-                        disabled={saving}
-                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40"
-                    >
-                        <Save className="w-4 h-4" />
-                        <span>{saving ? 'Saving...' : 'Update Branch'}</span>
-                    </button>
+                    {!isReadOnly && (
+                        <button
+                            type="submit"
+                            disabled={saving}
+                            className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40"
+                        >
+                            <Save className="w-4 h-4" />
+                            <span>{saving ? 'Saving...' : 'Update Branch'}</span>
+                        </button>
+                    )}
                 </div>
+                </fieldset>
             </form>
         </div>
     );
