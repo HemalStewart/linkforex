@@ -8,18 +8,18 @@ import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../../components/ConfirmModal';
 import {
     ArrowLeft,
-    Store,
-    Tag,
     ArrowRightLeft,
-    Coins,
-    MapPin,
     Building,
+    Coins,
     Flag,
+    Mail,
+    MapPin,
+    MessageSquare,
     Phone,
     Printer,
-    Mail,
-    MessageSquare,
-    Save
+    Save,
+    Store,
+    Tag,
 } from 'lucide-react';
 
 const normalizeBranchPrefix = (value: string): string =>
@@ -33,40 +33,151 @@ type CountryOption = {
     name?: string | null;
 };
 
+type BranchFormData = {
+    name: string;
+    building_number: string;
+    address_line_1: string;
+    city: string;
+    postcode: string;
+    country: string;
+    telephone_1: string;
+    telephone_2: string;
+    fax_1: string;
+    fax_2: string;
+    email_1: string;
+    email_2: string;
+    transaction_prefix: string;
+    default_transaction_type: string;
+    day_transfer_limit: string;
+    branch_ownership_type: 'Own' | 'Agent';
+    remarks: string;
+    status: string;
+};
+
+const INITIAL_FORM: BranchFormData = {
+    name: '',
+    building_number: '',
+    address_line_1: '',
+    city: '',
+    postcode: '',
+    country: '',
+    telephone_1: '',
+    telephone_2: '',
+    fax_1: '',
+    fax_2: '',
+    email_1: '',
+    email_2: '',
+    transaction_prefix: '',
+    default_transaction_type: '',
+    day_transfer_limit: '100000',
+    branch_ownership_type: 'Own',
+    remarks: '',
+    status: 'active',
+};
+
+function SectionCard({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
+    return (
+        <section className="rounded-[28px] border border-white/8 bg-slate-950/20 p-6 md:p-7">
+            <div className="mb-5">
+                <h2 className="text-base font-bold text-slate-900 dark:text-white">{title}</h2>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-300">{description}</p>
+            </div>
+            {children}
+        </section>
+    );
+}
+
+function TextField({
+    label,
+    value,
+    onChange,
+    placeholder,
+    icon,
+    type = 'text',
+    required = false,
+    maxLength,
+}: {
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    placeholder: string;
+    icon: React.ReactNode;
+    type?: string;
+    required?: boolean;
+    maxLength?: number;
+}) {
+    return (
+        <div>
+            <label className="mb-2 ml-1 block text-sm font-bold text-slate-700 dark:text-slate-300">
+                {label}
+                {required && <span className="text-red-500"> *</span>}
+            </label>
+            <div className="relative input-icon">
+                <span className="input-icon-left">{icon}</span>
+                <input
+                    type={type}
+                    required={required}
+                    maxLength={maxLength}
+                    className="input-glass w-full"
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                    placeholder={placeholder}
+                />
+            </div>
+        </div>
+    );
+}
+
+function SelectField({
+    label,
+    value,
+    onChange,
+    icon,
+    children,
+    required = false,
+}: {
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    icon: React.ReactNode;
+    children: React.ReactNode;
+    required?: boolean;
+}) {
+    return (
+        <div>
+            <label className="mb-2 ml-1 block text-sm font-bold text-slate-700 dark:text-slate-300">
+                {label}
+                {required && <span className="text-red-500"> *</span>}
+            </label>
+            <div className="relative input-icon">
+                <span className="input-icon-left">{icon}</span>
+                <select
+                    required={required}
+                    className="input-glass w-full cursor-pointer appearance-none pr-10"
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                >
+                    {children}
+                </select>
+                <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-200">⌄</span>
+            </div>
+        </div>
+    );
+}
+
 export default function CreateBranchPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [enteredBy, setEnteredBy] = useState('');
     const [countries, setCountries] = useState<string[]>([]);
-
-    const [formData, setFormData] = useState({
-        name: '',
-        transaction_prefix: '',
-        default_transaction_type: 'Receiver',
-        day_transfer_limit: '',
-        theme_1: '',
-        theme_2: '',
-        address_line_1: '',
-        address_line_2: '',
-        city: '',
-        country: '',
-        telephone_1: '',
-        telephone_2: '',
-        fax_1: '',
-        fax_2: '',
-        email_1: '',
-        email_2: '',
-        remarks: '',
-        status: 'active'
-    });
-
+    const [formData, setFormData] = useState<BranchFormData>(INITIAL_FORM);
     const [confirmModal, setConfirmModal] = useState({
         isOpen: false,
         title: '',
         message: '',
         type: 'info' as 'info' | 'danger' | 'warning' | 'success',
         isAlert: true,
-        shouldRedirect: false
+        shouldRedirect: false,
     });
 
     useEffect(() => {
@@ -78,19 +189,16 @@ export default function CreateBranchPage() {
         const loadCountries = async () => {
             try {
                 const response = await fetch(`${ENDPOINTS.COUNTRIES.LIST}?status=active&sort=name&dir=asc`);
-                if (!response.ok) {
-                    return;
-                }
-                const data = await response.json() as CountryOption[];
-                if (!Array.isArray(data)) {
-                    return;
-                }
+                if (!response.ok) return;
+                const data = (await response.json()) as CountryOption[];
+                if (!Array.isArray(data)) return;
+
                 const names = Array.from(
                     new Set(
                         data
                             .map((country) => String(country?.name || '').trim())
-                            .filter(Boolean)
-                    )
+                            .filter(Boolean),
+                    ),
                 ).sort((left, right) => left.localeCompare(right));
                 setCountries(names);
             } catch (error) {
@@ -103,6 +211,10 @@ export default function CreateBranchPage() {
 
     const countryOptions = useMemo(() => countries, [countries]);
 
+    const updateField = <K extends keyof BranchFormData>(key: K, value: BranchFormData[K]) => {
+        setFormData((current) => ({ ...current, [key]: value }));
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -112,58 +224,72 @@ export default function CreateBranchPage() {
             setConfirmModal({
                 isOpen: true,
                 title: 'Validation Error',
-                message: 'Branch prefix is required and must be up to 3 letters/numbers.',
+                message: 'Transaction prefix is required and must be up to 3 letters or numbers.',
                 type: 'warning',
                 isAlert: true,
-                shouldRedirect: false
+                shouldRedirect: false,
+            });
+            setLoading(false);
+            return;
+        }
+
+        if (!formData.default_transaction_type) {
+            setConfirmModal({
+                isOpen: true,
+                title: 'Validation Error',
+                message: 'Please select a default transaction type.',
+                type: 'warning',
+                isAlert: true,
+                shouldRedirect: false,
             });
             setLoading(false);
             return;
         }
 
         const addressParts = [
+            formData.building_number,
             formData.address_line_1,
-            formData.address_line_2,
             formData.city,
-            formData.country
+            formData.postcode,
+            formData.country,
         ].filter(Boolean);
 
         const payload = {
             ...formData,
             transaction_prefix: normalizedPrefix,
-            code: normalizedPrefix || undefined,
+            code: normalizedPrefix,
             phone: formData.telephone_1 || undefined,
             address: addressParts.length ? addressParts.join(', ') : undefined,
-            day_transfer_limit: formData.day_transfer_limit ? Number(formData.day_transfer_limit) : 0,
+            day_transfer_limit: formData.day_transfer_limit ? Number(formData.day_transfer_limit) : 100000,
             created_by: enteredBy || undefined,
-            updated_by: enteredBy || undefined
+            updated_by: enteredBy || undefined,
         };
 
         try {
             const res = await fetch(ENDPOINTS.BRANCHES.LIST, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(payload),
             });
 
             if (res.ok) {
                 setConfirmModal({
                     isOpen: true,
                     title: 'Success',
-                    message: 'Branch created successfully',
+                    message: 'Branch created successfully.',
                     type: 'success',
                     isAlert: true,
-                    shouldRedirect: true
+                    shouldRedirect: true,
                 });
             } else {
                 const err = await res.text();
                 setConfirmModal({
                     isOpen: true,
                     title: 'Error',
-                    message: err || 'Failed to create branch',
+                    message: err || 'Failed to create branch.',
                     type: 'danger',
                     isAlert: true,
-                    shouldRedirect: false
+                    shouldRedirect: false,
                 });
             }
         } catch (error) {
@@ -171,10 +297,10 @@ export default function CreateBranchPage() {
             setConfirmModal({
                 isOpen: true,
                 title: 'Error',
-                message: 'Failed to create branch',
+                message: 'Failed to create branch.',
                 type: 'danger',
                 isAlert: true,
-                shouldRedirect: false
+                shouldRedirect: false,
             });
         } finally {
             setLoading(false);
@@ -182,271 +308,119 @@ export default function CreateBranchPage() {
     };
 
     const handleModalClose = () => {
-        setConfirmModal({ ...confirmModal, isOpen: false });
+        setConfirmModal((current) => ({ ...current, isOpen: false }));
         if (confirmModal.shouldRedirect) {
             router.push('/admin/branches');
         }
     };
 
     return (
-        <div className="max-w-7xl mx-auto pb-20 animate-fade-in-up">
+        <div className="mx-auto max-w-7xl animate-fade-in-up pb-20">
             <ConfirmModal
                 isOpen={confirmModal.isOpen}
                 onClose={handleModalClose}
                 onConfirm={handleModalClose}
                 title={confirmModal.title}
                 message={confirmModal.message}
-                type={confirmModal.type as any}
+                type={confirmModal.type as never}
                 isAlert={confirmModal.isAlert}
                 confirmText="OK"
             />
 
             <div className="mb-8">
-                <Link href="/admin/branches" className="inline-flex items-center text-sm font-bold text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 transition-colors mb-2 group">
-                    <ArrowLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
+                <Link href="/admin/branches" className="group mb-2 inline-flex items-center text-sm font-bold text-slate-500 transition-colors hover:text-teal-600 dark:hover:text-teal-400">
+                    <ArrowLeft className="mr-1 h-4 w-4 transition-transform group-hover:-translate-x-1" />
                     Back to Branches
                 </Link>
-                <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Add Branch</h1>
-                <p className="text-slate-500 dark:text-slate-300 mt-2">Create a new branch with transfer settings.</p>
+                <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Add Branch</h1>
+                <p className="mt-2 text-slate-500 dark:text-slate-300">Create a branch using the same branch, contact, and settings structure used across the admin panel.</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="card-glass p-8 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+            <form onSubmit={handleSubmit} className="card-glass relative space-y-6 overflow-hidden p-8">
+                <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-teal-500/5 blur-3xl"></div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Branch Name <span className="text-red-500">*</span></label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left"><Store className="w-5 h-5" /></span>
-                            <input
-                                required
-                                className="input-glass w-full"
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                placeholder="Branch name"
-                            />
+                <SectionCard title="Branch Details" description="Core location and branch identity information.">
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <TextField label="Branch Name" value={formData.name} onChange={(value) => updateField('name', value)} placeholder="Enter branch name" icon={<Store className="h-5 w-5" />} required />
+                        <TextField label="Building Number" value={formData.building_number} onChange={(value) => updateField('building_number', value)} placeholder="Enter building number" icon={<Building className="h-5 w-5" />} />
+                        <TextField label="Address" value={formData.address_line_1} onChange={(value) => updateField('address_line_1', value)} placeholder="Enter branch address" icon={<MapPin className="h-5 w-5" />} />
+                        <TextField label="City" value={formData.city} onChange={(value) => updateField('city', value)} placeholder="Enter city" icon={<Building className="h-5 w-5" />} />
+                        <TextField label="Post Code" value={formData.postcode} onChange={(value) => updateField('postcode', value)} placeholder="Enter post code" icon={<MapPin className="h-5 w-5" />} />
+                        <SelectField label="Country" value={formData.country} onChange={(value) => updateField('country', value)} icon={<Flag className="h-5 w-5" />}>
+                            <option value="">Select country</option>
+                            {countryOptions.map((country) => (
+                                <option key={country} value={country}>
+                                    {country}
+                                </option>
+                            ))}
+                        </SelectField>
+                    </div>
+                </SectionCard>
+
+                <SectionCard title="Contact Section" description="Primary and secondary contact details for this branch.">
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <TextField label="Primary Contact" value={formData.telephone_1} onChange={(value) => updateField('telephone_1', value)} placeholder="Enter primary contact number" icon={<Phone className="h-5 w-5" />} />
+                        <TextField label="Secondary Contact" value={formData.telephone_2} onChange={(value) => updateField('telephone_2', value)} placeholder="Enter secondary contact number" icon={<Phone className="h-5 w-5" />} />
+                        <TextField label="Primary Fax" value={formData.fax_1} onChange={(value) => updateField('fax_1', value)} placeholder="Enter primary fax" icon={<Printer className="h-5 w-5" />} />
+                        <TextField label="Secondary Fax" value={formData.fax_2} onChange={(value) => updateField('fax_2', value)} placeholder="Enter secondary fax" icon={<Printer className="h-5 w-5" />} />
+                        <TextField label="Primary Email" type="email" value={formData.email_1} onChange={(value) => updateField('email_1', value)} placeholder="Enter primary email" icon={<Mail className="h-5 w-5" />} />
+                        <TextField label="Secondary Email" type="email" value={formData.email_2} onChange={(value) => updateField('email_2', value)} placeholder="Enter secondary email" icon={<Mail className="h-5 w-5" />} />
+                    </div>
+                </SectionCard>
+
+                <SectionCard title="Branch Settings" description="Prefix, transaction defaults, limits, and ownership setup.">
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div>
+                            <label className="mb-2 ml-1 block text-sm font-bold text-slate-700 dark:text-slate-300">Transaction Prefix <span className="text-red-500">*</span></label>
+                            <div className="relative input-icon">
+                                <span className="input-icon-left"><Tag className="h-5 w-5" /></span>
+                                <input
+                                    required
+                                    maxLength={3}
+                                    className="input-glass w-full uppercase"
+                                    value={formData.transaction_prefix}
+                                    onChange={(e) => updateField('transaction_prefix', normalizeBranchPrefix(e.target.value))}
+                                    placeholder="e.g. LON"
+                                />
+                            </div>
+                            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Max 3 letters or numbers.</p>
                         </div>
+                        <SelectField label="Default Transaction Type" value={formData.default_transaction_type} onChange={(value) => updateField('default_transaction_type', value)} icon={<ArrowRightLeft className="h-5 w-5" />} required>
+                            <option value="">Select transaction type</option>
+                            <option value="Receiver">Receiver</option>
+                            <option value="Sender">Sender</option>
+                            <option value="Both">Both</option>
+                        </SelectField>
+                        <TextField label="Daily Transfer Limit" type="number" value={formData.day_transfer_limit} onChange={(value) => updateField('day_transfer_limit', value)} placeholder="100000" icon={<Coins className="h-5 w-5" />} />
+                        <SelectField label="Branch Ownership Type" value={formData.branch_ownership_type} onChange={(value) => updateField('branch_ownership_type', value as 'Own' | 'Agent')} icon={<Store className="h-5 w-5" />}>
+                            <option value="Own">Own</option>
+                            <option value="Agent">Agent</option>
+                        </SelectField>
                     </div>
+                </SectionCard>
+
+                <SectionCard title="Remarks" description="Internal notes for the branch record.">
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Transaction Prefix <span className="text-red-500">*</span></label>
+                        <label className="mb-2 ml-1 block text-sm font-bold text-slate-700 dark:text-slate-300">Remarks</label>
                         <div className="relative input-icon">
-                            <span className="input-icon-left"><Tag className="w-5 h-5" /></span>
-                            <input
-                                required
-                                className="input-glass w-full uppercase"
-                                value={formData.transaction_prefix}
-                                maxLength={3}
-                                onChange={(e) => setFormData({ ...formData, transaction_prefix: normalizeBranchPrefix(e.target.value) })}
-                                placeholder="e.g. LON"
-                            />
-                        </div>
-                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Max 3 characters.</p>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Default Transaction Type <span className="text-red-500">*</span></label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left"><ArrowRightLeft className="w-5 h-5" /></span>
-                            <select
-                                className="input-glass w-full pr-10 appearance-none cursor-pointer"
-                                value={formData.default_transaction_type}
-                                onChange={(e) => setFormData({ ...formData, default_transaction_type: e.target.value })}
-                            >
-                                <option value="Receiver">Receiver</option>
-                                <option value="Sender">Sender</option>
-                                <option value="Both">Both</option>
-                            </select>
-                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-200 pointer-events-none">⌄</span>
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Daily Transfer Limit (£)</label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left"><Coins className="w-5 h-5" /></span>
-                            <input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                className="input-glass w-full"
-                                value={formData.day_transfer_limit}
-                                onChange={(e) => setFormData({ ...formData, day_transfer_limit: e.target.value })}
-                                placeholder="Daily limit amount"
-                            />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Theme Option 1</label>
-                        <input
-                            className="input-glass w-full"
-                            value={formData.theme_1}
-                            onChange={(e) => setFormData({ ...formData, theme_1: e.target.value })}
-                            placeholder="Theme option 1"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Theme Option 2</label>
-                        <input
-                            className="input-glass w-full"
-                            value={formData.theme_2}
-                            onChange={(e) => setFormData({ ...formData, theme_2: e.target.value })}
-                            placeholder="Theme option 2"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Address Line 1</label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left"><MapPin className="w-5 h-5" /></span>
-                            <input
-                                className="input-glass w-full"
-                                value={formData.address_line_1}
-                                onChange={(e) => setFormData({ ...formData, address_line_1: e.target.value })}
-                                placeholder="Address line 1"
-                            />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Address Line 2</label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left"><MapPin className="w-5 h-5" /></span>
-                            <input
-                                className="input-glass w-full"
-                                value={formData.address_line_2}
-                                onChange={(e) => setFormData({ ...formData, address_line_2: e.target.value })}
-                                placeholder="Address line 2"
-                            />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">City</label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left"><Building className="w-5 h-5" /></span>
-                            <input
-                                className="input-glass w-full"
-                                value={formData.city}
-                                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                                placeholder="City"
-                            />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Country</label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left"><Flag className="w-5 h-5" /></span>
-                            <select
-                                className="input-glass w-full pr-10 appearance-none cursor-pointer"
-                                value={formData.country}
-                                onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                            >
-                                <option value="">Select country</option>
-                                {countryOptions.map((country) => (
-                                    <option key={country} value={country}>
-                                        {country}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Primary Telephone</label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left"><Phone className="w-5 h-5" /></span>
-                            <input
-                                className="input-glass w-full"
-                                value={formData.telephone_1}
-                                onChange={(e) => setFormData({ ...formData, telephone_1: e.target.value })}
-                                placeholder="Telephone 1"
-                            />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Secondary Telephone</label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left"><Phone className="w-5 h-5" /></span>
-                            <input
-                                className="input-glass w-full"
-                                value={formData.telephone_2}
-                                onChange={(e) => setFormData({ ...formData, telephone_2: e.target.value })}
-                                placeholder="Telephone 2"
-                            />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Primary Fax</label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left"><Printer className="w-5 h-5" /></span>
-                            <input
-                                className="input-glass w-full"
-                                value={formData.fax_1}
-                                onChange={(e) => setFormData({ ...formData, fax_1: e.target.value })}
-                                placeholder="Fax number"
-                            />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Secondary Fax</label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left"><Printer className="w-5 h-5" /></span>
-                            <input
-                                className="input-glass w-full"
-                                value={formData.fax_2}
-                                onChange={(e) => setFormData({ ...formData, fax_2: e.target.value })}
-                                placeholder="Alternate fax number"
-                            />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Primary Email</label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left"><Mail className="w-5 h-5" /></span>
-                            <input
-                                type="email"
-                                className="input-glass w-full"
-                                value={formData.email_1}
-                                onChange={(e) => setFormData({ ...formData, email_1: e.target.value })}
-                                placeholder="Email address"
-                            />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Secondary Email</label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left"><Mail className="w-5 h-5" /></span>
-                            <input
-                                type="email"
-                                className="input-glass w-full"
-                                value={formData.email_2}
-                                onChange={(e) => setFormData({ ...formData, email_2: e.target.value })}
-                                placeholder="Alternate email address"
-                            />
-                        </div>
-                    </div>
-                    <div className="md:col-span-2">
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Remarks</label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left"><MessageSquare className="w-5 h-5" /></span>
+                            <span className="input-icon-left"><MessageSquare className="h-5 w-5" /></span>
                             <textarea
-                                rows={3}
+                                rows={4}
                                 className="input-glass w-full resize-none"
                                 value={formData.remarks}
-                                onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
-                                placeholder="Additional notes"
+                                onChange={(e) => updateField('remarks', e.target.value)}
+                                placeholder="Add branch remarks"
                             />
                         </div>
                     </div>
-                </div>
+                </SectionCard>
 
-                <div className="flex justify-end space-x-4 pt-8 mt-8 border-t border-slate-100 dark:border-slate-700/50">
-                    <Link
-                        href="/admin/branches"
-                        className="px-6 py-3 rounded-full glass-effect text-slate-600 dark:text-slate-300 font-bold text-sm transition-colors"
-                    >
+                <div className="mt-8 flex justify-end space-x-4 border-t border-slate-100 pt-8 dark:border-slate-700/50">
+                    <Link href="/admin/branches" className="glass-effect rounded-full px-6 py-3 text-sm font-bold text-slate-600 transition-colors dark:text-slate-300">
                         Cancel
                     </Link>
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40"
-                    >
-                        <Save className="w-4 h-4" />
+                    <button type="submit" disabled={loading} className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40">
+                        <Save className="h-4 w-4" />
                         <span>{loading ? 'Saving...' : 'Create Branch'}</span>
                     </button>
                 </div>

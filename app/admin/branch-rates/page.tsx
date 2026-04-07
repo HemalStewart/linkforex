@@ -165,7 +165,6 @@ export default function BranchRatesPage() {
             const currencyMap = new Map<string, CurrencyOption>();
             (Array.isArray(countryData) ? countryData : []).forEach((country: Country) => {
                 if (String(country.payout_currency || '').toLowerCase() !== 'yes') return;
-                if (String(country.black_list_country || '').toLowerCase() === 'yes') return;
                 const code = String(country.currency_code || '').trim().toUpperCase();
                 if (!code || currencyMap.has(code)) return;
                 currencyMap.set(code, {

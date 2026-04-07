@@ -92,7 +92,6 @@ export default function CreateBranchCurrencyRatePage() {
                 const currencyMap = new Map<string, Currency>();
                 countriesRows.forEach((country) => {
                     if (String(country.payout_currency || '').toLowerCase() !== 'yes') return;
-                    if (String(country.black_list_country || '').toLowerCase() === 'yes') return;
                     const code = String(country.currency_code || '').trim().toUpperCase();
                     if (!code || currencyMap.has(code)) return;
                     currencyMap.set(code, {

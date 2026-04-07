@@ -352,7 +352,7 @@ export default function CountriesPage() {
                 <div>
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Countries</h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">
-                        Maintain the master country directory used by currency and payout flows.
+                        Maintain the master country directory. Currency fields are controlled independently, while payout availability is driven only by the payout currency flag.
                     </p>
                 </div>
                 <div className="flex items-center space-x-3">
@@ -421,6 +421,7 @@ export default function CountriesPage() {
                             <thead className="table-head">
                                 <tr>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide">#</th>
+                                    <th className="px-8 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide">Actions</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide">
                                         <span>Country Code</span>
                                     </th>
@@ -466,13 +467,27 @@ export default function CountriesPage() {
                                             <span>{sortIndicator('payout_currency')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-8 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
                                 {pagedCountries.map((country, idx) => (
                                     <tr key={country.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
                                         <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
+                                        <td className="px-8 py-5 text-center">
+                                            <div className="flex items-center justify-center space-x-2">
+                                                <button onClick={() => openEditModal(country)} className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all" title="Edit country">
+                                                    <Edit2 className="w-5 h-5" />
+                                                </button>
+                                                <button
+                                                    onClick={() => setDeleteCountryId(Number(country.id))}
+                                                    disabled={!canDeleteCountry}
+                                                    title={canDeleteCountry ? 'Delete country' : 'Delete permission required'}
+                                                    className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:shadow-none"
+                                                >
+                                                    <Trash2 className="w-5 h-5" />
+                                                </button>
+                                            </div>
+                                        </td>
                                         <td className="px-8 py-5 text-sm font-mono text-slate-500 dark:text-slate-300 whitespace-nowrap">
                                             {String(country.iso_code || '').toUpperCase() || '—'}
                                         </td>
@@ -480,12 +495,12 @@ export default function CountriesPage() {
                                             {country.name || '—'}
                                         </td>
                                         <td className="px-8 py-5 text-sm whitespace-nowrap">
-                                            <Badge type={normalizeYesNo(country.high_risk_country) === 'yes' ? 'danger' : 'neutral'}>
+                                            <Badge type={normalizeYesNo(country.high_risk_country) === 'yes' ? 'danger' : 'neutral'} className="min-w-[58px] justify-center">
                                                 {toYesNoLabel(normalizeYesNo(country.high_risk_country))}
                                             </Badge>
                                         </td>
                                         <td className="px-8 py-5 text-sm whitespace-nowrap">
-                                            <Badge type={normalizeYesNo(country.black_list_country) === 'yes' ? 'dark' : 'neutral'}>
+                                            <Badge type={normalizeYesNo(country.black_list_country) === 'yes' ? 'dark' : 'neutral'} className="min-w-[58px] justify-center">
                                                 {toYesNoLabel(normalizeYesNo(country.black_list_country))}
                                             </Badge>
                                         </td>
@@ -499,24 +514,9 @@ export default function CountriesPage() {
                                             {country.currency_name || '—'}
                                         </td>
                                         <td className="px-8 py-5 text-sm whitespace-nowrap">
-                                            <Badge type={normalizeYesNo(country.payout_currency) === 'yes' ? 'yes' : 'no'}>
+                                            <Badge type={normalizeYesNo(country.payout_currency) === 'yes' ? 'yes' : 'no'} className="min-w-[58px] justify-center">
                                                 {toYesNoLabel(normalizeYesNo(country.payout_currency))}
                                             </Badge>
-                                        </td>
-                                        <td className="px-8 py-5 text-center">
-                                            <div className="flex items-center justify-center space-x-2">
-                                                <button onClick={() => openEditModal(country)} className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all">
-                                                    <Edit2 className="w-5 h-5" />
-                                                </button>
-                                                <button
-                                                    onClick={() => setDeleteCountryId(Number(country.id))}
-                                                    disabled={!canDeleteCountry}
-                                                    title={canDeleteCountry ? 'Delete country' : 'Delete permission required'}
-                                                    className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:shadow-none"
-                                                >
-                                                    <Trash2 className="w-5 h-5" />
-                                                </button>
-                                            </div>
                                         </td>
                                     </tr>
                                 ))}
