@@ -7,6 +7,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import Badge from '../components/ui/Badge';
 import Pagination from '../components/ui/Pagination';
 import { Building2, Edit2, PlusCircle, RefreshCw, Save, Search, Trash2, X } from 'lucide-react';
+import ToggleSwitch from '../components/ToggleSwitch';
 
 type YesNo = 'yes' | 'no';
 type SortDir = 'asc' | 'desc';
@@ -523,11 +524,21 @@ export default function BanksPage() {
                                         </td>
                                         <td className="px-6 py-5 text-center">
                                             {editingId === bank.id ? (
-                                                <input
-                                                    type="checkbox"
-                                                    className="checkbox-glass"
-                                                    checked={Boolean(editForm.sender_bank)}
-                                                    onChange={(e) => setEditForm({ ...editForm, sender_bank: e.target.checked ? 1 : 0 })}
+                                                // <input
+                                                //     type="checkbox"
+                                                //     className="checkbox-glass"
+                                                //     checked={Boolean(editForm.sender_bank)}
+                                                //     onChange={(e) => setEditForm({ ...editForm, sender_bank: e.target.checked ? 1 : 0 })}
+                                                // />
+                                                <ToggleSwitch
+                                                    label=""
+                                                    value={editForm.sender_bank ? 'yes' : 'no'}
+                                                    onChange={(value) =>
+                                                        setEditForm({
+                                                            ...editForm,
+                                                            sender_bank: value === 'yes' ? 1 : 0,
+                                                        })
+                                                    }
                                                 />
                                             ) : (
                                                 <Badge type={senderFlag(bank) ? 'yes' : 'no'}>
@@ -537,11 +548,21 @@ export default function BanksPage() {
                                         </td>
                                         <td className="px-6 py-5 text-center">
                                             {editingId === bank.id ? (
-                                                <input
-                                                    type="checkbox"
-                                                    className="checkbox-glass"
-                                                    checked={Boolean(editForm.receiver_bank)}
-                                                    onChange={(e) => setEditForm({ ...editForm, receiver_bank: e.target.checked ? 1 : 0 })}
+                                                // <input
+                                                //     type="checkbox"
+                                                //     className="checkbox-glass"
+                                                //     checked={Boolean(editForm.receiver_bank)}
+                                                //     onChange={(e) => setEditForm({ ...editForm, receiver_bank: e.target.checked ? 1 : 0 })}
+                                                // />
+                                                <ToggleSwitch
+                                                    label=""
+                                                    value={editForm.receiver_bank ? 'yes' : 'no'}
+                                                    onChange={(value) =>
+                                                        setEditForm({
+                                                            ...editForm,
+                                                            receiver_bank: value === 'yes' ? 1 : 0,
+                                                        })
+                                                    }
                                                 />
                                             ) : (
                                                 <Badge type={receiverFlag(bank) ? 'yes' : 'no'}>
@@ -551,11 +572,21 @@ export default function BanksPage() {
                                         </td>
                                         <td className="px-6 py-5 text-center">
                                             {editingId === bank.id ? (
-                                                <input
-                                                    type="checkbox"
-                                                    className="checkbox-glass"
-                                                    checked={Boolean(editForm.pickup_bank)}
-                                                    onChange={(e) => setEditForm({ ...editForm, pickup_bank: e.target.checked ? 1 : 0 })}
+                                                // <input
+                                                //     type="checkbox"
+                                                //     className="checkbox-glass"
+                                                //     checked={Boolean(editForm.pickup_bank)}
+                                                //     onChange={(e) => setEditForm({ ...editForm, pickup_bank: e.target.checked ? 1 : 0 })}
+                                                // />
+                                                <ToggleSwitch
+                                                    label=""
+                                                    value={editForm.pickup_bank ? 'yes' : 'no'}
+                                                    onChange={(value) =>
+                                                        setEditForm({
+                                                            ...editForm,
+                                                            pickup_bank: value === 'yes' ? 1 : 0,
+                                                        })
+                                                    }
                                                 />
                                             ) : (
                                                 <Badge type={pickupFlag(bank) ? 'yes' : 'no'}>
@@ -629,28 +660,45 @@ export default function BanksPage() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <label className="inline-flex items-center gap-2 rounded-2xl border border-slate-200/70 dark:border-slate-700 px-3 py-2 text-sm font-medium">
-                            <input
+                            {/* <input
                                 type="checkbox"
                                 checked={Boolean(newBank.sender_bank)}
                                 onChange={(e) => setNewBank({ ...newBank, sender_bank: e.target.checked ? 1 : 0 })}
+                            /> */}
+                            <ToggleSwitch
+                                label="Sender Bank"
+                                value={newBank.sender_bank ? 'yes' : 'no'}
+                                onChange={(value) =>
+                                    setNewBank({
+                                        ...newBank,
+                                        sender_bank: value === 'yes' ? 1 : 0,
+                                    })
+                                }
                             />
-                            Sender Bank
                         </label>
                         <label className="inline-flex items-center gap-2 rounded-2xl border border-slate-200/70 dark:border-slate-700 px-3 py-2 text-sm font-medium">
-                            <input
-                                type="checkbox"
-                                checked={Boolean(newBank.receiver_bank)}
-                                onChange={(e) => setNewBank({ ...newBank, receiver_bank: e.target.checked ? 1 : 0 })}
+                            <ToggleSwitch
+                                label="Receiver Bank"
+                                value={newBank.receiver_bank ? 'yes' : 'no'}
+                                onChange={(value) =>
+                                    setNewBank({
+                                        ...newBank,
+                                        receiver_bank: value === 'yes' ? 1 : 0,
+                                    })
+                                }
                             />
-                            Receiver Bank
                         </label>
                         <label className="inline-flex items-center gap-2 rounded-2xl border border-slate-200/70 dark:border-slate-700 px-3 py-2 text-sm font-medium">
-                            <input
-                                type="checkbox"
-                                checked={Boolean(newBank.pickup_bank)}
-                                onChange={(e) => setNewBank({ ...newBank, pickup_bank: e.target.checked ? 1 : 0 })}
+                            <ToggleSwitch
+                                label="Cash Pickup Bank"
+                                value={newBank.pickup_bank ? 'yes' : 'no'}
+                                onChange={(value) =>
+                                    setNewBank({
+                                        ...newBank,
+                                        pickup_bank: value === 'yes' ? 1 : 0,
+                                    })
+                                }
                             />
-                            Cash Pickup Bank
                         </label>
                     </div>
                     <div className="flex items-center gap-2">
