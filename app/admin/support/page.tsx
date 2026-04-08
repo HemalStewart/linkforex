@@ -5,7 +5,7 @@ import { ENDPOINTS } from '@/app/lib/api';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
 import Pagination from '../components/ui/Pagination';
-import { Eye, Mail, MessageCircle, Phone, RefreshCw, Search, Send, Trash2, User } from 'lucide-react';
+import { Eye, Mail, MessageCircle, Phone, RefreshCw, Search, Send, Trash2, User, Save } from 'lucide-react';
 
 type SupportTicket = {
     id: number;
@@ -567,8 +567,9 @@ export default function SupportPage() {
                                 type="button"
                                 onClick={handleUpdateTicket}
                                 disabled={updatingTicket}
-                                className="btn-primary text-sm disabled:opacity-60"
+                                className="btn-primary text-sm disabled:opacity-60 flex items-center justify-center gap-2 px-5 py-3 rounded-full"
                             >
+                                <Save className="w-4 h-4" />
                                 {updatingTicket ? 'Saving...' : 'Save'}
                             </button>
                         </div>
