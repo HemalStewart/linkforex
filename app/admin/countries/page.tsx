@@ -9,6 +9,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import Badge from '../components/ui/Badge';
 import Pagination from '../components/ui/Pagination';
 import { Edit2, Globe, PlusCircle, RefreshCw, Save, Search, ShieldAlert, Trash2 } from 'lucide-react';
+import ToggleSwitch from '../components/ToggleSwitch';
 
 type YesNo = 'yes' | 'no';
 
@@ -571,33 +572,48 @@ export default function CountriesPage() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                                <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">High Risk Country</label>
-                            <select className="input-glass w-full" value={form.high_risk_country} onChange={(e) => setForm({ ...form, high_risk_country: e.target.value as YesNo })}>
+                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300"></label>
+                            {/* <select className="input-glass w-full" value={form.high_risk_country} onChange={(e) => setForm({ ...form, high_risk_country: e.target.value as YesNo })}>
                                 {YES_NO_OPTIONS.map((option) => (
                                     <option key={option} value={option}>{toYesNoLabel(option)}</option>
                                 ))}
-                            </select>
+                            </select> */}
+                            <ToggleSwitch
+                                label="High Risk Country"
+                                value={form.high_risk_country}
+                                onChange={(value) => setForm({ ...form, high_risk_country: value })}
+                            />
                         </div>
                         <div>
-                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Black List Country</label>
-                            <select className="input-glass w-full" value={form.black_list_country} onChange={(e) => setForm({ ...form, black_list_country: e.target.value as YesNo })}>
+                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300"></label>
+                            {/* <select className="input-glass w-full" value={form.black_list_country} onChange={(e) => setForm({ ...form, black_list_country: e.target.value as YesNo })}>
                                 {YES_NO_OPTIONS.map((option) => (
                                     <option key={option} value={option}>{toYesNoLabel(option)}</option>
                                 ))}
-                            </select>
+                            </select> */}
+                            <ToggleSwitch
+                                label="Black List Country"
+                                value={form.black_list_country}
+                                onChange={(value) => setForm({ ...form, black_list_country: value })}
+                            />
                         </div>
                         <div>
-                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Payout Currency</label>
-                            <select className="input-glass w-full" value={form.payout_currency} onChange={(e) => setForm({ ...form, payout_currency: e.target.value as YesNo })}>
+                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300"></label>
+                            {/* <select className="input-glass w-full" value={form.payout_currency} onChange={(e) => setForm({ ...form, payout_currency: e.target.value as YesNo })}>
                                 {YES_NO_OPTIONS.map((option) => (
                                     <option key={option} value={option}>{toYesNoLabel(option)}</option>
                                 ))}
-                            </select>
+                            </select> */}
+                            <ToggleSwitch
+                                label="Payout Currency"
+                                value={form.payout_currency}
+                                onChange={(value) => setForm({ ...form, payout_currency: value })}
+                            />
                         </div>
                     </div>
                     <div className="dialog-actions pt-4">
                         <button type="button" onClick={() => setModalOpen(false)} className="btn-secondary text-sm">Cancel</button>
-                        <button type="submit" className="btn-primary text-sm disabled:opacity-60" disabled={submitting}>
+                        <button type="submit" className="btn-primary glass-effect hover-lift text-sm disabled:opacity-60" disabled={submitting}>
                             {submitting ? (
                                 <span className="flex items-center gap-2"><Save className="w-4 h-4" /> Saving...</span>
                             ) : (

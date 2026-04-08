@@ -6,7 +6,7 @@ import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
 import Badge from '../components/ui/Badge';
 import Pagination from '../components/ui/Pagination';
-import { PlusCircle, RefreshCw, Search, Trash2, Edit2, Users2 } from 'lucide-react';
+import { PlusCircle, RefreshCw, Search, Trash2, Edit2, Users2, Save } from 'lucide-react';
 
 type YesNo = 'yes' | 'no';
 
@@ -405,8 +405,12 @@ export default function RelationshipsPage() {
                     </div>
                     <div className="dialog-actions">
                         <button type="button" className="btn-secondary text-sm" onClick={() => setModalOpen(false)}>Cancel</button>
-                        <button type="submit" className="btn-primary text-sm disabled:opacity-60" disabled={submitting}>
-                            {submitting ? 'Saving…' : 'Save'}
+                        <button type="submit" className="btn-primary glass-effect hover-lift text-sm disabled:opacity-60" disabled={submitting}>
+                            {submitting ? (
+                                <span className="flex items-center gap-2"><Save className="w-4 h-4" /> Saving…</span>
+                            ) : (
+                                <span className="flex items-center gap-2"><Save className="w-4 h-4" /> Save</span>
+                            )}
                         </button>
                     </div>
                 </form>

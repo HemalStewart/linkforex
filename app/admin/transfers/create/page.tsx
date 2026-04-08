@@ -2114,7 +2114,7 @@ export default function CreateTransferPage() {
                     className="btn-primary px-6 py-3 rounded-full text-sm font-bold inline-flex items-center gap-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 disabled:opacity-60"
                 >
                     {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                    {saving ? 'Creating Transfer...' : 'Create Transfer'}
+                    {saving ? 'Creating Transfer...' : 'Save'}
                 </button>
             </div>
 

@@ -77,7 +77,7 @@ const INITIAL_FORM: BranchFormData = {
 
 function SectionCard({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
     return (
-        <section className="rounded-[28px] border border-white/8 bg-slate-950/20 p-6 md:p-7">
+        <section className="rounded-[28px] border border-white/8 p-6 md:p-7">
             <div className="mb-5">
                 <h2 className="text-base font-bold text-slate-900 dark:text-white">{title}</h2>
                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-300">{description}</p>
@@ -421,7 +421,7 @@ export default function CreateBranchPage() {
                     </Link>
                     <button type="submit" disabled={loading} className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40">
                         <Save className="h-4 w-4" />
-                        <span>{loading ? 'Saving...' : 'Create Branch'}</span>
+                        <span>{loading ? 'Saving...' : 'Save'}</span>
                     </button>
                 </div>
             </form>
