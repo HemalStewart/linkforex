@@ -7,7 +7,8 @@ import Modal from '@/app/admin/components/Modal';
 import ConfirmModal from '@/app/admin/components/ConfirmModal';
 import Badge from '../components/ui/Badge';
 import Pagination from '../components/ui/Pagination';
-import { ArrowRightLeft, GitBranch, PlusCircle, RefreshCcw, Search, Tag } from 'lucide-react';
+import { ArrowRightLeft, GitBranch, PlusCircle, RefreshCcw, Search, Tag, Save } from 'lucide-react';
+import ToggleSwitch from '../components/ToggleSwitch';
 
 type YesNo = 'yes' | 'no';
 
@@ -552,13 +553,16 @@ export default function BranchRatesPage() {
                     </div>
 
                     <label className="flex items-center gap-3 text-sm font-semibold text-slate-700 dark:text-slate-300">
-                        <input
-                            type="checkbox"
-                            checked={form.applyToAll}
-                            onChange={(event) => setForm((prev) => ({ ...prev, applyToAll: event.target.checked }))}
-                            className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                        <ToggleSwitch
+                            label="Apply to all sender branches"
+                            value={form.applyToAll ? 'yes' : 'no'}
+                            onChange={(value) =>
+                                setForm((prev) => ({
+                                    ...prev,
+                                    applyToAll: value === 'yes',
+                                }))
+                            }
                         />
-                        Apply to all sender branches
                     </label>
 
                     <div className="dialog-actions pt-2">
@@ -566,7 +570,7 @@ export default function BranchRatesPage() {
                             Cancel
                         </button>
                         <button type="submit" disabled={submitting} className="btn-primary inline-flex items-center gap-2 text-sm font-semibold disabled:opacity-60">
-                            {submitting ? <RefreshCcw className="h-4 w-4 animate-spin" /> : <PlusCircle className="h-4 w-4" />}
+                            {submitting ? <RefreshCcw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                             {submitting ? 'Saving...' : 'Save'}
                         </button>
                     </div>

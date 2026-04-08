@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { PlusCircle, Search, Key } from 'lucide-react';
+import { PlusCircle, Search, Key, Save, X } from 'lucide-react';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../components/ConfirmModal';
@@ -554,8 +554,17 @@ export default function PermissionGroupsPage() {
                     onClick={() => setShowCreateForm((prev) => !prev)}
                     className="btn-primary px-5 py-3 rounded-full text-sm font-semibold inline-flex items-center gap-2"
                 >
-                    <PlusCircle className="w-4 h-4" />
-                    {showCreateForm ? 'Close' : 'Add Permission'}
+                    {showCreateForm ? (
+                        <>
+                            <X className="w-4 h-4" />
+                            Close
+                        </>
+                    ) : (
+                        <>
+                            <PlusCircle className="w-4 h-4" />
+                            Add Permission
+                        </>
+                    )}
                 </button>
             </div>
 
@@ -625,9 +634,9 @@ export default function PermissionGroupsPage() {
                             <button
                                 type="submit"
                                 disabled={creating}
-                                className="btn-primary px-5 py-2.5 rounded-full text-sm font-semibold disabled:opacity-60"
-                            >
-                                {creating ? 'Saving...' : 'Save Permission'}
+                                className="btn-primary px-5 py-2.5 rounded-full text-sm font-semibold disabled:opacity-60 flex items-center justify-center gap-2"
+                            >  <Save className="w-4 h-4" />
+                                {creating ? 'Saving...' : 'Save'}
                             </button>
                         </div>
                     </form>

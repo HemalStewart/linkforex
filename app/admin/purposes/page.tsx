@@ -7,6 +7,8 @@ import ConfirmModal from '../components/ConfirmModal';
 import Badge from '../components/ui/Badge';
 import Pagination from '../components/ui/Pagination';
 import { PlusCircle, RefreshCw, Search, Trash2, Edit2, ListChecks, Save } from 'lucide-react';
+import ToggleSwitch from '../components/ToggleSwitch';
+
 
 type YesNo = 'yes' | 'no';
 
@@ -392,8 +394,8 @@ export default function PurposesPage() {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">Active</label>
-                        <select
+                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2"></label>
+                        {/* <select
                             className="input-glass w-full"
                             value={form.active}
                             onChange={(event) => setForm((prev) => ({ ...prev, active: event.target.value as YesNo }))}
@@ -401,7 +403,12 @@ export default function PurposesPage() {
                             {YES_NO_OPTIONS.map((option) => (
                                 <option key={option} value={option}>{option === 'yes' ? 'Yes' : 'No'}</option>
                             ))}
-                        </select>
+                        </select> */}
+                        <ToggleSwitch
+                            label="Active"
+                            value={form.active}
+                            onChange={(value) => setForm((prev) => ({ ...prev, active: value }))}
+                        />
                     </div>
                     <div className="dialog-actions">
                         <button type="button" className="btn-secondary text-sm" onClick={() => setModalOpen(false)}>Cancel</button>

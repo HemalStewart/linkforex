@@ -796,7 +796,7 @@ export default function SettingsPage() {
                                             </div>
                                             <h3 className="font-bold text-teal-900 dark:text-teal-100">Two-Factor Authentication</h3>
                                         </div>
-                                        <label className="relative inline-flex items-center cursor-pointer">
+                                        {/* <label className="relative inline-flex items-center cursor-pointer">
                                             <input
                                                 type="checkbox"
                                                 checked={securitySettings.twoFactor}
@@ -804,7 +804,25 @@ export default function SettingsPage() {
                                                 className="sr-only peer"
                                             />
                                             <div className="w-14 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-teal-600"></div>
-                                        </label>
+                                        </label> */}
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setSecuritySettings((prev) => ({
+                                                    ...prev,
+                                                    twoFactor: !prev.twoFactor,
+                                                }))
+                                            }
+                                            className={`relative inline-flex h-8 w-14 items-center rounded-full transition-all duration-300 ${securitySettings.twoFactor
+                                                    ? 'bg-teal-600 shadow-md shadow-teal-500/30'
+                                                    : 'bg-slate-300 dark:bg-slate-600'
+                                                }`}
+                                        >
+                                            <span
+                                                className={`inline-block h-6 w-6 transform rounded-full bg-white shadow-md transition-transform duration-300 ${securitySettings.twoFactor ? 'translate-x-7' : 'translate-x-1'
+                                                    }`}
+                                            />
+                                        </button>
                                     </div>
                                     <p className="text-sm text-teal-800/70 dark:text-teal-200/70 leading-relaxed">
                                         Keep extra verification enabled for admin accounts.
@@ -824,7 +842,7 @@ export default function SettingsPage() {
                                 className="btn-primary inline-flex items-center gap-2 disabled:opacity-60"
                             >
                                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                                {loading ? 'Saving...' : 'Save Changes'}
+                                {loading ? 'Saving...' : 'Save'}
                             </button>
                         </div>
                     </div>

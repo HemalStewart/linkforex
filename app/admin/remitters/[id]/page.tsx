@@ -637,7 +637,7 @@ export default function EditRemitterPage() {
                         className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40"
                     >
                         <Save className="w-4 h-4" />
-                        <span>{submitting ? 'Updating...' : 'Save Changes'}</span>
+                        <span>{submitting ? 'Updating...' : 'Save'}</span>
                     </button>
                 </div>
             </form>

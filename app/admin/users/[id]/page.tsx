@@ -124,7 +124,7 @@ export default function EditUserPage() {
     }
 
     return (
-    <div className="max-w-7xl mx-auto space-y-8 pb-20 animate-fade-in-up">
+        <div className="max-w-7xl mx-auto space-y-8 pb-20 animate-fade-in-up">
             <ConfirmModal
                 isOpen={confirmModal.isOpen}
                 onClose={handleModalClose}
@@ -137,38 +137,38 @@ export default function EditUserPage() {
             />
 
             {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-          <Link href="/admin/users" className="inline-flex items-center text-sm font-bold text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 transition-colors mb-2 group">
-            <ArrowLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
+                    <Link href="/admin/users" className="inline-flex items-center text-sm font-bold text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 transition-colors mb-2 group">
+                        <ArrowLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
                         Back to Users
                     </Link>
-          <div className="flex items-center space-x-4">
-            <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                    <div className="flex items-center space-x-4">
+                        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                             Edit User
                         </h1>
-            <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-3 py-1 rounded-full text-xs font-bold uppercase">
+                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-3 py-1 rounded-full text-xs font-bold uppercase">
                             ID: {id}
                         </span>
                     </div>
                 </div>
             </div>
 
-      <form onSubmit={handleSubmit} className="card-glass p-8 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+            <form onSubmit={handleSubmit} className="card-glass p-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Personal Info */}
-          <div className="md:col-span-2">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center border-b border-slate-100 dark:border-slate-700/50 pb-2">
-              <User className="w-5 h-5 mr-2 text-teal-500" />
+                    <div className="md:col-span-2">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center border-b border-slate-100 dark:border-slate-700/50 pb-2">
+                            <User className="w-5 h-5 mr-2 text-teal-500" />
                             Personal Information
                         </h3>
                     </div>
 
                     <div>
-            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Full Name <span className="text-red-500">*</span></label>
-            <div className="relative input-icon group">
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Full Name <span className="text-red-500">*</span></label>
+                        <div className="relative input-icon group">
                             <span className="input-icon-left">
                                 <User className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
                             </span>
@@ -177,14 +177,14 @@ export default function EditUserPage() {
                                 required
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="input-glass w-full"
+                                className="input-glass w-full"
                             />
                         </div>
                     </div>
 
                     <div>
-            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Username <span className="text-red-500">*</span></label>
-            <div className="relative input-icon group">
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Username <span className="text-red-500">*</span></label>
+                        <div className="relative input-icon group">
                             <span className="input-icon-left">
                                 <User className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
                             </span>
@@ -193,14 +193,14 @@ export default function EditUserPage() {
                                 required
                                 value={formData.username}
                                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                className="input-glass w-full"
+                                className="input-glass w-full"
                             />
                         </div>
                     </div>
 
                     <div>
-            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Email <span className="text-red-500">*</span></label>
-            <div className="relative input-icon group">
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Email <span className="text-red-500">*</span></label>
+                        <div className="relative input-icon group">
                             <span className="input-icon-left">
                                 <Mail className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
                             </span>
@@ -209,14 +209,14 @@ export default function EditUserPage() {
                                 required
                                 value={formData.email}
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="input-glass w-full"
+                                className="input-glass w-full"
                             />
                         </div>
                     </div>
 
                     <div>
-            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Branch</label>
-            <div className="relative input-icon group">
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Branch</label>
+                        <div className="relative input-icon group">
                             <span className="input-icon-left">
                                 <Building className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
                             </span>
@@ -224,29 +224,29 @@ export default function EditUserPage() {
                                 type="text"
                                 value={formData.branch}
                                 onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
-                className="input-glass w-full"
+                                className="input-glass w-full"
                             />
                         </div>
                     </div>
 
                     {/* Role & Status */}
-          <div className="md:col-span-2 mt-4">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center border-b border-slate-100 dark:border-slate-700/50 pb-2">
-              <Shield className="w-5 h-5 mr-2 text-teal-500" />
+                    <div className="md:col-span-2 mt-4">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center border-b border-slate-100 dark:border-slate-700/50 pb-2">
+                            <Shield className="w-5 h-5 mr-2 text-teal-500" />
                             Access Control
                         </h3>
                     </div>
 
                     <div>
-            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Role</label>
-            <div className="relative input-icon group">
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Role</label>
+                        <div className="relative input-icon group">
                             <span className="input-icon-left">
                                 <Shield className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
                             </span>
                             <select
                                 value={formData.role}
                                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                className="input-glass w-full appearance-none cursor-pointer"
+                                className="input-glass w-full appearance-none cursor-pointer"
                             >
                                 <option value="admin">Admin</option>
                                 <option value="manager">Manager</option>
@@ -257,15 +257,15 @@ export default function EditUserPage() {
                     </div>
 
                     <div>
-            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Status</label>
-            <div className="relative input-icon">
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Status</label>
+                        <div className="relative input-icon">
                             <span className="input-icon-left">
                                 <span className={`w-2.5 h-2.5 rounded-full inline-block ${formData.status === 'active' ? 'bg-teal-500 ring-4 ring-teal-500/20' : 'bg-red-500'}`}></span>
                             </span>
                             <select
                                 value={formData.status}
                                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="input-glass w-full appearance-none cursor-pointer"
+                                className="input-glass w-full appearance-none cursor-pointer"
                             >
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
@@ -274,12 +274,12 @@ export default function EditUserPage() {
                         </div>
                     </div>
 
-          <div className="md:col-span-2">
-            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
+                    <div className="md:col-span-2">
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
                             Reset Password
-              <span className="text-xs text-slate-400 ml-2 font-normal">(leave empty to keep current)</span>
+                            <span className="text-xs text-slate-400 ml-2 font-normal">(leave empty to keep current)</span>
                         </label>
-            <div className="relative input-icon group">
+                        <div className="relative input-icon group">
                             <span className="input-icon-left">
                                 <Lock className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
                             </span>
@@ -287,34 +287,34 @@ export default function EditUserPage() {
                                 type="password"
                                 value={formData.password}
                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="input-glass w-full"
+                                className="input-glass w-full"
                                 placeholder="New password"
                             />
                         </div>
                     </div>
                 </div>
 
-        <div className="flex justify-end space-x-4 pt-8 mt-6 border-t border-slate-100 dark:border-slate-700/50">
+                <div className="flex justify-end space-x-4 pt-8 mt-6 border-t border-slate-100 dark:border-slate-700/50">
                     <Link
                         href="/admin/users"
-            className="px-6 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-sm transition-colors border border-slate-200 dark:border-slate-600"
+                        className="px-6 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-sm transition-colors border border-slate-200 dark:border-slate-600"
                     >
                         Cancel
                     </Link>
                     <button
                         type="submit"
                         disabled={submitting}
-            className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40"
+                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40"
                     >
                         {submitting ? (
                             <>
-                <Loader2 className="w-4 h-4 animate-spin" />
+                                <Loader2 className="w-4 h-4 animate-spin" />
                                 <span>Updating...</span>
                             </>
                         ) : (
                             <>
-                <Save className="w-4 h-4" />
-                                <span>Save Changes</span>
+                                <Save className="w-4 h-4" />
+                                <span>Save</span>
                             </>
                         )}
                     </button>
