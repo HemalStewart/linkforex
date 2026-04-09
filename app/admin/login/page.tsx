@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUserRaw, setStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../components/ConfirmModal';
-import { Mail, Lock, Loader2, Check, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, Loader2, Eye, EyeOff } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -151,7 +151,7 @@ export default function AdminLoginPage() {
               priority
             />
           </div>
-          <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-2">Welcome Back</h2>
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-2">Welcome</h2>
           <p className="text-slate-500 dark:text-slate-400 font-medium">Sign in to your dashboard to continue</p>
         </div>
 
@@ -212,17 +212,13 @@ export default function AdminLoginPage() {
 
             {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between pt-1 px-1">
-              <label className="flex items-center space-x-2.5 cursor-pointer group">
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    className="peer sr-only"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                  />
-                  <div className="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 bg-white/50 dark:bg-slate-800/50 peer-checked:bg-teal-500 peer-checked:border-teal-500 transition-all"></div>
-                  <Check className="w-3.5 h-3.5 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" strokeWidth={3} />
-                </div>
+              <label className="flex items-center gap-2.5 cursor-pointer group leading-none">
+                <input
+                  type="checkbox"
+                  className="checkbox-glass"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                />
                 <span className="text-sm font-bold text-slate-600 dark:text-slate-400 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
                   Remember me
                 </span>
