@@ -421,48 +421,48 @@ export default function CountriesPage() {
                         <table className="table-shell">
                             <thead className="table-head">
                                 <tr>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-normal normal-case">#</th>
-                                    <th className="px-8 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 tracking-normal normal-case">Actions</th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-normal normal-case">
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide">#</th>
+                                    <th className="px-8 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide">Actions</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide">
                                         <span>Country Code</span>
                                     </th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-normal normal-case">
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide">
                                         <button onClick={() => toggleSort('name')} className="flex items-center gap-1">
                                             <span>Country Name</span>
                                             <span>{sortIndicator('name')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-normal normal-case">
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide">
                                         <button onClick={() => toggleSort('high_risk_country')} className="flex items-center gap-1">
                                             <span>High Risk Country</span>
                                             <span>{sortIndicator('high_risk_country')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-normal normal-case">
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide">
                                         <button onClick={() => toggleSort('black_list_country')} className="flex items-center gap-1">
                                             <span>Black List Country</span>
                                             <span>{sortIndicator('black_list_country')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-normal normal-case">
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide">
                                         <button onClick={() => toggleSort('currency_code')} className="flex items-center gap-1">
                                             <span>Currency Code</span>
                                             <span>{sortIndicator('currency_code')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-normal normal-case">
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide">
                                         <button onClick={() => toggleSort('currency_symbol')} className="flex items-center gap-1">
                                             <span>Symbol</span>
                                             <span>{sortIndicator('currency_symbol')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-normal normal-case">
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide">
                                         <button onClick={() => toggleSort('currency_name')} className="flex items-center gap-1">
                                             <span>Currency Name</span>
                                             <span>{sortIndicator('currency_name')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-normal normal-case">
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide">
                                         <button onClick={() => toggleSort('payout_currency')} className="flex items-center gap-1">
                                             <span>Payout Currency</span>
                                             <span>{sortIndicator('payout_currency')}</span>
