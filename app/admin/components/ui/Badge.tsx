@@ -30,7 +30,7 @@ export default function Badge({ children, type = 'neutral', className = '' }: Ba
     };
 
     return (
-        <span className={`inline-flex min-w-[3.5rem] items-center justify-center rounded-full px-3 py-1 text-[11px] font-bold tracking-normal ${getBadgeClasses(type)} ${className}`}>
+        <span className={`inline-flex items-center rounded-full px-3 py-1 text-[10px] font-extrabold tracking-wider uppercase ${getBadgeClasses(type)} ${className}`}>
             {children}
         </span>
     );
