@@ -40,27 +40,31 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
 
     return createPortal(
         <div className="fixed inset-0 z-50 overflow-y-auto animate-fade-in" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-            <div className="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
-                {/* Backdrop with Blur */}
+            <div className="flex min-h-screen items-center justify-center px-4 py-8 text-center sm:px-6">
                 <div
-                    className="fixed inset-0 bg-slate-900/40 dark:bg-black/60 transition-all duration-300 backdrop-blur-sm animate-fade-in"
+                    className="fixed inset-0 bg-slate-950/38 dark:bg-black/62 transition-all duration-300 backdrop-blur-md animate-fade-in"
                     aria-hidden="true"
                     onClick={onClose}
                 ></div>
 
                 <div className={`
-                    relative transform overflow-hidden glass-effect-strong rounded-[18px] text-left shadow-lg transition-all sm:my-8 w-full ${sizeClasses[size]}
-                    border border-white/20 dark:border-white/10 animate-scale-in
+                    relative transform overflow-hidden rounded-[26px] text-left transition-all sm:my-8 w-full ${sizeClasses[size]}
+                    admin-panel-card animate-scale-in
                 `}>
-                    <div className="px-8 pt-8 pb-8">
+                    <div className="px-7 pt-7 pb-7 sm:px-8 sm:pt-8 sm:pb-8">
                         {title && (
-                            <div className="mb-6 flex items-center justify-between">
+                            <div className="mb-6 flex items-start justify-between gap-4 border-b border-white/10 pb-5 dark:border-white/6">
+                                <div>
                                 <h3 className="text-xl font-semibold text-slate-900 dark:text-white tracking-tight" id="modal-title">
                                     {title}
                                 </h3>
+                                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                                    Review the details below and save when ready.
+                                </p>
+                                </div>
                                 <button
                                     onClick={onClose}
-                                    className="glass-effect p-2 rounded-full text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-all duration-300 hover:scale-105"
+                                    className="btn-secondary !p-2.5 text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-all duration-300 hover:scale-105"
                                 >
                                     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
