@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Filter, Plus, RefreshCcw, Rows3, Search, Trash2 } from 'lucide-react';
+import { Filter, Plus, RefreshCcw, Rows3, Search, Trash2, Upload } from 'lucide-react';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../../components/ConfirmModal';
 import type { MobileAd } from '../_shared';
@@ -23,11 +23,11 @@ export default function MobileInAppAdsPage() {
     const [ads, setAds] = useState<MobileAd[]>([]);
     const [search, setSearch] = useState('');
     const [placementFilter, setPlacementFilter] = useState<'all' | 'onboarding' | 'home_carousel'>('all');
+    const [imageFile, setImageFile] = useState<File | null>(null);
     const [adForm, setAdForm] = useState({
         placement: 'onboarding' as 'onboarding' | 'home_carousel',
         title: '',
         description: '',
-        image_url: '',
         click_url: '',
         priority: 0,
         status: 'active' as 'active' | 'inactive',
@@ -102,10 +102,20 @@ export default function MobileInAppAdsPage() {
         }
         setCreatingAd(true);
         try {
+            const formData = new FormData();
+            formData.append('placement', adForm.placement);
+            formData.append('title', adForm.title);
+            formData.append('description', adForm.description);
+            formData.append('click_url', adForm.click_url);
+            formData.append('priority', String(adForm.priority));
+            formData.append('status', adForm.status);
+            if (imageFile) {
+                formData.append('image', imageFile);
+            }
+
             const res = await fetch(ENDPOINTS.MOBILE_ADMIN.ADS, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(adForm),
+                body: formData,
             });
             if (!res.ok) {
                 showModal('Create Failed', 'Could not create content item.', 'danger');
@@ -115,11 +125,11 @@ export default function MobileInAppAdsPage() {
                 placement: 'onboarding',
                 title: '',
                 description: '',
-                image_url: '',
                 click_url: '',
                 priority: 0,
                 status: 'active',
             });
+            setImageFile(null);
             await loadAds();
             showModal('Created', 'Content item created successfully.', 'success');
         } catch {
@@ -223,12 +233,21 @@ export default function MobileInAppAdsPage() {
                             onChange={(e) => setAdForm((prev) => ({ ...prev, description: e.target.value }))}
                             className="input-glass min-h-24 py-2.5 text-sm md:col-span-2"
                         />
-                        <input
-                            placeholder="Image URL"
-                            value={adForm.image_url}
-                            onChange={(e) => setAdForm((prev) => ({ ...prev, image_url: e.target.value }))}
-                            className="input-glass py-2.5 text-sm md:col-span-2"
-                        />
+                        <label className="md:col-span-2">
+                            <span className="mb-1.5 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-slate-500">
+                                <Upload className="h-3.5 w-3.5" />
+                                Upload Image
+                            </span>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
+                                className="input-glass py-2.5 text-sm"
+                            />
+                            <span className="mt-1 block text-xs text-slate-500 dark:text-slate-400">
+                                {imageFile ? imageFile.name : 'Optional image upload'}
+                            </span>
+                        </label>
                         <input
                             placeholder="Click URL"
                             value={adForm.click_url}
