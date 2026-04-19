@@ -54,7 +54,7 @@ export default function MobileControlOverviewPage() {
         { href: '/admin/mobile-users/control/wallet-transfers', title: 'Wallet Funding Queue', description: 'Review wallet-funded mobile transfers and update manual settlement status.' },
         { href: '/admin/mobile-users/control/profile-review-queue', title: 'Profile Review Queue', description: 'Review and approve/reject pending mobile profiles.' },
         { href: '/admin/mobile-users/control/campaigns', title: 'Campaigns', description: 'Create and send push/email campaigns.' },
-        { href: '/admin/mobile-users/control/in-app-ads', title: 'In-App Ads', description: 'Create and manage ad inventory shown in the app.' },
+        { href: '/admin/mobile-users/control/in-app-ads', title: 'Onboarding & Carousel', description: 'Create and manage onboarding slides and homepage carousel content shown in the app.' },
     ];
 
     return (

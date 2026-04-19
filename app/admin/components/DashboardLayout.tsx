@@ -611,7 +611,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 { name: 'Wallet Funding Queue', href: '/admin/mobile-users/control/wallet-transfers' },
                 { name: 'Profile Review Queue', href: '/admin/mobile-users/control/profile-review-queue', sections: ['MOBILE_PROFILE_REVIEW_QUEUE'] },
                 { name: 'Campaigns', href: '/admin/mobile-users/control/campaigns', sections: ['MOBILE_CAMPAIGNS'] },
-                { name: 'In-App Ads', href: '/admin/mobile-users/control/in-app-ads', sections: ['MOBILE_ADS'] },
+                { name: 'Onboarding & Carousel', href: '/admin/mobile-users/control/in-app-ads', sections: ['MOBILE_ADS'] },
             ]
         },
         {

@@ -126,6 +126,7 @@ export type MobileAd = {
     description?: string;
     image_url?: string;
     click_url?: string;
+    placement: 'onboarding' | 'home_carousel';
     priority: number;
     status: 'active' | 'inactive';
 };
