@@ -102,7 +102,7 @@ export default function ConfirmModal({
         }[type];
 
         return (
-            <div className="fixed top-5 right-5 z-[100] w-[min(92vw,24rem)] animate-slide-in-right">
+            <div className="fixed top-5 right-5 z-[9999] w-[min(92vw,24rem)] animate-slide-in-right">
                 <div className={`glass-effect-strong rounded-2xl border shadow-xl overflow-hidden ${toastStyles.container}`}>
                     <div className="p-4 flex items-start gap-3">
                         <div className={`mt-0.5 w-9 h-9 rounded-full flex items-center justify-center ${toastStyles.iconBg}`}>
