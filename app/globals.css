@@ -798,6 +798,134 @@ html {
   font-size: inherit !important;
 }
 
+/* Admin density: old admin full-width screens should show more data with less empty space. */
+.admin-density-compact {
+  --table-font-size: 0.8125rem;
+  --table-head-font-size: 0.65rem;
+}
+
+@media (min-width: 1024px) {
+  .admin-density-compact h1 {
+    font-size: 1.625rem !important;
+    line-height: 2rem !important;
+  }
+
+  .admin-density-compact h2 {
+    font-size: 1.25rem !important;
+    line-height: 1.65rem !important;
+  }
+
+  .admin-density-compact h3 {
+    font-size: 1rem !important;
+    line-height: 1.45rem !important;
+  }
+
+  .admin-density-compact .card-glass {
+    border-radius: 18px;
+  }
+
+  .admin-density-compact .glass-effect,
+  .admin-density-compact .glass-effect-strong {
+    box-shadow:
+      0 3px 12px -8px var(--shadow-1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .admin-density-compact .input-glass {
+    padding: 0.5rem 0.85rem;
+    border-radius: 12px;
+    font-size: 0.8125rem;
+  }
+
+  .admin-density-compact .btn-primary,
+  .admin-density-compact .btn-secondary {
+    padding: 0.52rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  .admin-density-compact .p-8 {
+    padding: 1.25rem !important;
+  }
+
+  .admin-density-compact .p-7 {
+    padding: 1.15rem !important;
+  }
+
+  .admin-density-compact .p-6 {
+    padding: 1rem !important;
+  }
+
+  .admin-density-compact .p-5 {
+    padding: 0.9rem !important;
+  }
+
+  .admin-density-compact .px-8 {
+    padding-left: 1.25rem !important;
+    padding-right: 1.25rem !important;
+  }
+
+  .admin-density-compact .px-6 {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  .admin-density-compact .py-8 {
+    padding-top: 1.25rem !important;
+    padding-bottom: 1.25rem !important;
+  }
+
+  .admin-density-compact .py-6 {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+  }
+
+  .admin-density-compact .gap-8 {
+    gap: 1.25rem !important;
+  }
+
+  .admin-density-compact .gap-6 {
+    gap: 1rem !important;
+  }
+
+  .admin-density-compact .mb-8 {
+    margin-bottom: 1.25rem !important;
+  }
+
+  .admin-density-compact .mb-6 {
+    margin-bottom: 1rem !important;
+  }
+
+  .admin-density-compact .mt-8 {
+    margin-top: 1.25rem !important;
+  }
+
+  .admin-density-compact .mt-6 {
+    margin-top: 1rem !important;
+  }
+
+  .admin-density-compact .space-y-8 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 1.25rem !important;
+  }
+
+  .admin-density-compact .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 1rem !important;
+  }
+
+  .admin-density-compact .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.75rem !important;
+  }
+
+  .admin-density-compact .table-scroll {
+    max-height: clamp(360px, 68vh, 820px);
+  }
+
+  .admin-density-compact .table-scroll thead th,
+  .admin-density-compact .table-shell thead th,
+  .admin-density-compact .table-shell tbody td {
+    padding: 0.55rem 0.9rem !important;
+  }
+}
+
 /* ─── Custom Checkbox ────────────────────────────────────────────────────── */
 /*
  * Usage:  <input type="checkbox" class="checkbox-glass" />

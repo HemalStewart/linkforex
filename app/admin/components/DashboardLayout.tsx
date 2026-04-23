@@ -649,17 +649,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     ];
 
     return (
-        <div className="flex h-screen overflow-hidden antialiased text-slate-900 dark:text-white relative">
+        <div className="admin-density-compact flex h-screen overflow-hidden antialiased text-slate-900 dark:text-white relative">
             {/* Soft Teal Background */}
             <div className="fixed inset-0 bg-gradient-to-b from-teal-50 via-teal-50 to-teal-100 dark:from-teal-950 dark:via-teal-950 dark:to-teal-900 -z-10"></div>
 
             {/* Sidebar - Thin, iOS-style */}
-            <aside className={`flex flex-col glass-effect-strong border border-white/20 dark:border-white/10 transition-all duration-500 ease-in-out my-4 ml-4 rounded-[20px] shadow-lg z-20 ${sidebarOpen ? 'w-72' : 'w-24'} animate-slide-in-left`}>
+            <aside className={`flex flex-col glass-effect-strong border border-white/20 dark:border-white/10 transition-all duration-500 ease-in-out my-3 ml-3 rounded-[18px] shadow-lg z-20 ${sidebarOpen ? 'w-64' : 'w-20'} animate-slide-in-left`}>
                 {/* Logo + Toggle */}
-                <div className="h-20 flex items-center px-5 border-b border-white/10 dark:border-white/10">
+                <div className="h-16 flex items-center px-4 border-b border-white/10 dark:border-white/10">
                     <button
                         onClick={() => setSidebarOpen(!sidebarOpen)}
-                        className={`w-full flex items-center ${sidebarOpen ? 'justify-between' : 'justify-center'} rounded-full px-3 py-2 glass-effect hover:bg-white/70 dark:hover:bg-white/5 transition-all duration-300`}
+                        className={`w-full flex items-center ${sidebarOpen ? 'justify-between' : 'justify-center'} rounded-full px-3 py-1.5 glass-effect hover:bg-white/70 dark:hover:bg-white/5 transition-all duration-300`}
                         aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
                     >
                         <div className={`flex items-center space-x-3 transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2 w-0 overflow-hidden'}`}>
@@ -668,7 +668,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                 alt="LinkForex"
                                 width={164}
                                 height={40}
-                                className="h-10 w-auto object-contain drop-shadow-md"
+                                className="h-8 w-auto object-contain drop-shadow-md"
                                 priority
                             />
                         </div>
@@ -679,7 +679,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </div>
 
                 {/* Navigation */}
-                <nav className="flex-1 px-4 py-5 space-y-2.5 overflow-y-auto no-scrollbar">
+                <nav className="flex-1 px-3 py-3 space-y-1.5 overflow-y-auto no-scrollbar">
                     {navigation.map((item, idx) => {
                         if (!item.children && !canViewSections(item.sections)) {
                             return null;
@@ -707,19 +707,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
                         if (item.children) {
                             return (
-                                <div key={item.name} className="mb-2 stagger-item" style={{ animationDelay: `${idx * 0.05}s` }}>
+                                <div key={item.name} className="mb-1.5 stagger-item" style={{ animationDelay: `${idx * 0.05}s` }}>
                                     <button
                                         onClick={() => sidebarOpen ? toggleMenu(item.name) : setSidebarOpen(true)}
-                                        className={`w-full flex items-center ${sidebarOpen ? 'justify-between px-5' : 'justify-center px-2'} py-3 rounded-full transition-all duration-300 group ${isActive
+                                        className={`w-full flex items-center ${sidebarOpen ? 'justify-between px-4' : 'justify-center px-2'} py-2.5 rounded-full transition-all duration-300 group ${isActive
                                             ? 'glass-effect text-teal-700 dark:text-teal-300 font-semibold shadow-sm ring-1 ring-teal-500/20'
                                             : 'text-slate-600 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-white/5 hover:text-teal-600 dark:hover:text-teal-300'
                                             }`}
                                     >
-                                        <div className="flex items-center space-x-3.5">
+                                        <div className="flex items-center space-x-3">
                                             <span className={`transition-all duration-300 ${isActive ? 'text-teal-500 scale-110' : 'group-hover:text-teal-500 group-hover:scale-110'}`}>
                                                 {item.icon}
                                             </span>
-                                            {sidebarOpen && <span className="tracking-wide text-[15px]">{item.name}</span>}
+                                            {sidebarOpen && <span className="tracking-wide text-[14px]">{item.name}</span>}
                                         </div>
                                         {sidebarOpen && (
                                             <ChevronRight className={`w-4 h-5 text-slate-400 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`} strokeWidth={2.5} />
@@ -728,7 +728,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
                                     {/* Submenu Items */}
                                     {sidebarOpen && isExpanded && (
-                                        <div className="mt-2 ml-5 pl-5 border-l border-teal-200/60 dark:border-teal-800/50 space-y-1.5 animate-slide-down">
+                                        <div className="mt-1.5 ml-4 pl-4 border-l border-teal-200/60 dark:border-teal-800/50 space-y-1 animate-slide-down">
                                             {visibleChildren.map((child) => {
                                                 const href = child.href || '';
                                                 const hashIndex = href.indexOf('#');
@@ -742,7 +742,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                                     <Link
                                                         key={child.name}
                                                         href={child.href!}
-                                                        className={`flex items-center justify-between px-4 py-2.5 rounded-full transition-all duration-300 text-[14px] font-medium ${isChildItemActive
+                                                        className={`flex items-center justify-between px-3.5 py-2 rounded-full transition-all duration-300 text-[13px] font-medium ${isChildItemActive
                                                             ? 'bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-sm shadow-teal-500/30'
                                                             : 'text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-white/5 hover:text-teal-600 dark:hover:text-teal-300'
                                                             }`}
@@ -772,17 +772,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                             <Link
                                 key={item.name}
                                 href={item.href!}
-                                className={`flex items-center ${sidebarOpen ? 'justify-between px-5' : 'justify-center px-2'} py-3 rounded-full transition-all duration-300 mb-2 group hover-lift stagger-item ${isActive
+                                className={`flex items-center ${sidebarOpen ? 'justify-between px-4' : 'justify-center px-2'} py-2.5 rounded-full transition-all duration-300 mb-1.5 group hover-lift stagger-item ${isActive
                                     ? 'bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-sm shadow-teal-500/30'
                                     : 'text-slate-600 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-white/5 hover:text-teal-600 dark:hover:text-teal-300'
                                     }`}
                                 style={{ animationDelay: `${idx * 0.05}s` }}
                             >
-                                <div className="flex items-center space-x-3.5">
+                                <div className="flex items-center space-x-3">
                                     <span className={`transition-all duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`}>
                                         {item.icon}
                                     </span>
-                                    {sidebarOpen && <span className="font-bold tracking-wide text-[15px]">{item.name}</span>}
+                                    {sidebarOpen && <span className="font-bold tracking-wide text-[14px]">{item.name}</span>}
                                 </div>
                             </Link>
                         );
@@ -794,7 +794,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col h-full overflow-hidden relative">
                 {/* Top Header */}
-                <header className="h-16 glass-effect-strong border border-white/20 dark:border-white/10 flex items-center justify-between px-6 z-10 animate-slide-down backdrop-blur-3xl m-4 rounded-[20px] shadow-sm">
+                <header className="h-14 glass-effect-strong border border-white/20 dark:border-white/10 flex items-center justify-between px-4 z-10 animate-slide-down backdrop-blur-3xl m-3 rounded-[18px] shadow-sm">
                     <div className="flex-1 max-w-xl">
                         <div className="relative group input-icon">
                             <span className="input-icon-left transition-all duration-300 group-focus-within:text-teal-500">
@@ -803,15 +803,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                             <input
                                 type="text"
                                 placeholder="Search everything..."
-                                className="input-glass w-full pr-4 py-3 text-sm transition-all duration-300"
+                                className="input-glass w-full pr-4 py-2.5 text-sm transition-all duration-300"
                             />
                         </div>
                     </div>
 
-                    <div className="flex items-center space-x-5">
+                    <div className="flex items-center space-x-3">
                         <Link
                             href="/admin/transfers/create"
-                            className="glass-effect rounded-full px-4 py-2.5 text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 flex items-center space-x-2 hover:shadow-lg"
+                            className="glass-effect rounded-full px-3.5 py-2 text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 flex items-center space-x-2 hover:shadow-lg"
                         >
                             <PlusCircle className="w-5 h-5" />
                             <span className="font-semibold">New Transfer</span>
@@ -823,14 +823,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                     setHeaderUserMenuOpen(false);
                                     setNotificationMenuOpen(false);
                                 }}
-                                className="p-3 glass-effect rounded-full text-slate-500 dark:text-slate-400 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 relative group"
+                                className="p-2.5 glass-effect rounded-full text-slate-500 dark:text-slate-400 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 relative group"
                                 aria-label="Theme"
                                 title="Theme"
                             >
                                 {resolvedTheme === 'dark' ? (
-                                    <Moon className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                                    <Moon className="w-5 h-5 group-hover:scale-110 transition-transform" />
                                 ) : (
-                                    <Sun className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                                    <Sun className="w-5 h-5 group-hover:scale-110 transition-transform" />
                                 )}
                             </button>
                             {themeMenuOpen && (
@@ -885,11 +885,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         <div ref={notificationMenuRef} className="relative">
                             <button
                                 onClick={() => setNotificationMenuOpen((prev) => !prev)}
-                                className="p-3 glass-effect rounded-full text-slate-500 dark:text-slate-400 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 relative group"
+                                className="p-2.5 glass-effect rounded-full text-slate-500 dark:text-slate-400 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 relative group"
                                 aria-label="Notifications"
                                 title="Notifications"
                             >
-                                <Bell className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                                <Bell className="w-5 h-5 group-hover:scale-110 transition-transform" />
                                 {notifications.length > 0 && (
                                     <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-800 animate-pulse"></span>
                                 )}
@@ -908,7 +908,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         <div ref={headerUserMenuRef} className="relative">
                             <button
                                 onClick={() => setHeaderUserMenuOpen((prev) => !prev)}
-                                className="glass-effect rounded-full pl-2 pr-3 py-1.5 text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 flex items-center space-x-2 hover:shadow-lg"
+                                className="glass-effect rounded-full pl-2 pr-3 py-1 text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 flex items-center space-x-2 hover:shadow-lg"
                             >
                                 <div className="avatar-circle avatar-circle-sm shrink-0 overflow-hidden">
                                     {profilePhotoUrl ? (
@@ -958,7 +958,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </header>
 
                 {/* Main Page Scrollable Area */}
-                <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden px-6 pb-6 pt-0 relative no-scrollbar">
+                <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden px-4 pb-4 pt-0 relative no-scrollbar">
                     {children}
                 </main>
             </div>
