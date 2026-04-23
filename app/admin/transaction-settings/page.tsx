@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../components/ConfirmModal';
-import { Save, SlidersHorizontal } from 'lucide-react';
+import { PoundSterling, RefreshCw, Save, SlidersHorizontal } from 'lucide-react';
 
 type Channel = 'app' | 'backend';
 type Period = 'month' | 'year';
@@ -56,36 +56,36 @@ export default function TransactionSettingsPage() {
 
     const closeModal = () => setConfirmModal((prev) => ({ ...prev, isOpen: false }));
 
-    useEffect(() => {
-        const load = async () => {
-            setLoading(true);
-            try {
-                const url = actingUser?.id
-                    ? `${ENDPOINTS.TRANSACTION_SETTINGS.LIST}?acting_user_id=${encodeURIComponent(String(actingUser.id))}`
-                    : ENDPOINTS.TRANSACTION_SETTINGS.LIST;
-                const res = await fetch(url);
-                const data = await res.json().catch(() => []);
-                const rows = Array.isArray(data) ? (data as TransactionSetting[]) : (data?.items as TransactionSetting[]) || [];
+    const fetchSettings = useCallback(async () => {
+        setLoading(true);
+        try {
+            const url = actingUser?.id
+                ? `${ENDPOINTS.TRANSACTION_SETTINGS.LIST}?acting_user_id=${encodeURIComponent(String(actingUser.id))}`
+                : ENDPOINTS.TRANSACTION_SETTINGS.LIST;
+            const res = await fetch(url);
+            const data = await res.json().catch(() => []);
+            const rows = Array.isArray(data) ? (data as TransactionSetting[]) : (data?.items as TransactionSetting[]) || [];
 
-                setValues((prev) => {
-                    const next = { ...prev };
-                    for (const row of rows) {
-                        const channel = row.channel === 'app' ? 'app' : 'backend';
-                        const period = row.period === 'year' ? 'year' : 'month';
-                        const key = keyOf(channel, period);
-                        next[key] = toFixed2(String(row.limit_amount ?? '0'));
-                    }
-                    return next;
-                });
-            } catch {
-                // keep defaults
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        void load();
+            setValues((prev) => {
+                const next = { ...prev };
+                for (const row of rows) {
+                    const channel = row.channel === 'app' ? 'app' : 'backend';
+                    const period = row.period === 'year' ? 'year' : 'month';
+                    const key = keyOf(channel, period);
+                    next[key] = toFixed2(String(row.limit_amount ?? '0'));
+                }
+                return next;
+            });
+        } catch {
+            // keep defaults
+        } finally {
+            setLoading(false);
+        }
     }, [actingUser?.id]);
+
+    useEffect(() => {
+        void fetchSettings();
+    }, [fetchSettings]);
 
     const updateDraft = (channel: Channel, period: Period, draft: string) => {
         const key = keyOf(channel, period);
@@ -142,7 +142,7 @@ export default function TransactionSettingsPage() {
     };
 
     return (
-        <div className="max-w-5xl mx-auto space-y-8 animate-fade-in-up pb-20">
+        <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-up pb-20">
             <ConfirmModal
                 isOpen={confirmModal.isOpen}
                 onClose={closeModal}
@@ -154,78 +154,118 @@ export default function TransactionSettingsPage() {
                 confirmText="OK"
             />
 
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
                         <SlidersHorizontal className="w-7 h-7 text-slate-500 dark:text-slate-300" />
                         Transaction Settings
                     </h1>
-                    <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">Configure monthly and yearly transaction limits for app and backend transfers.</p>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">
+                        Configure monthly and yearly transaction limits for app and backend transfers.
+                    </p>
                 </div>
-                <button
-                    onClick={() => void handleSave()}
-                    disabled={saving || loading}
-                    className="btn-primary rounded-full px-6 py-3 inline-flex items-center gap-2 disabled:opacity-50"
-                >
-                    <Save className="w-4 h-4" />
-                    {saving ? 'Saving...' : 'Save'}
-                </button>
+                <div className="flex items-center gap-3 justify-end">
+                    <button
+                        onClick={() => void fetchSettings()}
+                        disabled={saving}
+                        className="px-5 py-3 rounded-2xl border-0 glass-effect text-slate-700 dark:text-slate-300 font-bold hover:shadow-lg transition-all group disabled:opacity-50"
+                    >
+                        <span className="flex items-center space-x-2">
+                            <RefreshCw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
+                            <span>Refresh</span>
+                        </span>
+                    </button>
+                    <button
+                        onClick={() => void handleSave()}
+                        disabled={saving || loading}
+                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 disabled:opacity-50"
+                    >
+                        <Save className="w-5 h-5" />
+                        <span>{saving ? 'Saving...' : 'Save'}</span>
+                    </button>
+                </div>
             </div>
 
-            <div className="card-glass p-6 md:p-8 space-y-6">
+            <div className="card-glass p-5">
                 {loading ? (
-                    <div className="py-10 text-center text-slate-500 dark:text-slate-300">Loading transaction settings...</div>
+                    <div className="py-12 text-center text-slate-500 dark:text-slate-300 animate-pulse">
+                        Loading transaction settings...
+                    </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                         <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/60 bg-white/60 dark:bg-slate-900/30 p-5 space-y-4">
-                            <div className="text-sm font-bold text-slate-900 dark:text-white">App Limits (GBP)</div>
+                            <div className="flex items-center justify-between gap-3">
+                                <div className="text-sm font-bold text-slate-900 dark:text-white">App Limits (GBP)</div>
+                            </div>
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Monthly Limit</label>
-                                <input
-                                    className="input-glass w-full"
-                                    inputMode="decimal"
-                                    value={values[keyOf('app', 'month')]}
-                                    onChange={(e) => updateDraft('app', 'month', e.target.value)}
-                                    onBlur={() => normalizeBlur('app', 'month')}
-                                    placeholder="0.00"
-                                />
+                                <div className="relative input-icon">
+                                    <span className="input-icon-left">
+                                        <PoundSterling className="w-4 h-4" />
+                                    </span>
+                                    <input
+                                        className="input-glass w-full"
+                                        inputMode="decimal"
+                                        value={values[keyOf('app', 'month')]}
+                                        onChange={(e) => updateDraft('app', 'month', e.target.value)}
+                                        onBlur={() => normalizeBlur('app', 'month')}
+                                        placeholder="0.00"
+                                    />
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Yearly Limit</label>
-                                <input
-                                    className="input-glass w-full"
-                                    inputMode="decimal"
-                                    value={values[keyOf('app', 'year')]}
-                                    onChange={(e) => updateDraft('app', 'year', e.target.value)}
-                                    onBlur={() => normalizeBlur('app', 'year')}
-                                    placeholder="0.00"
-                                />
+                                <div className="relative input-icon">
+                                    <span className="input-icon-left">
+                                        <PoundSterling className="w-4 h-4" />
+                                    </span>
+                                    <input
+                                        className="input-glass w-full"
+                                        inputMode="decimal"
+                                        value={values[keyOf('app', 'year')]}
+                                        onChange={(e) => updateDraft('app', 'year', e.target.value)}
+                                        onBlur={() => normalizeBlur('app', 'year')}
+                                        placeholder="0.00"
+                                    />
+                                </div>
                             </div>
                         </div>
 
                         <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/60 bg-white/60 dark:bg-slate-900/30 p-5 space-y-4">
-                            <div className="text-sm font-bold text-slate-900 dark:text-white">Backend Limits (GBP)</div>
+                            <div className="flex items-center justify-between gap-3">
+                                <div className="text-sm font-bold text-slate-900 dark:text-white">Backend Limits (GBP)</div>
+                            </div>
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Monthly Limit</label>
-                                <input
-                                    className="input-glass w-full"
-                                    inputMode="decimal"
-                                    value={values[keyOf('backend', 'month')]}
-                                    onChange={(e) => updateDraft('backend', 'month', e.target.value)}
-                                    onBlur={() => normalizeBlur('backend', 'month')}
-                                    placeholder="0.00"
-                                />
+                                <div className="relative input-icon">
+                                    <span className="input-icon-left">
+                                        <PoundSterling className="w-4 h-4" />
+                                    </span>
+                                    <input
+                                        className="input-glass w-full"
+                                        inputMode="decimal"
+                                        value={values[keyOf('backend', 'month')]}
+                                        onChange={(e) => updateDraft('backend', 'month', e.target.value)}
+                                        onBlur={() => normalizeBlur('backend', 'month')}
+                                        placeholder="0.00"
+                                    />
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Yearly Limit</label>
-                                <input
-                                    className="input-glass w-full"
-                                    inputMode="decimal"
-                                    value={values[keyOf('backend', 'year')]}
-                                    onChange={(e) => updateDraft('backend', 'year', e.target.value)}
-                                    onBlur={() => normalizeBlur('backend', 'year')}
-                                    placeholder="0.00"
-                                />
+                                <div className="relative input-icon">
+                                    <span className="input-icon-left">
+                                        <PoundSterling className="w-4 h-4" />
+                                    </span>
+                                    <input
+                                        className="input-glass w-full"
+                                        inputMode="decimal"
+                                        value={values[keyOf('backend', 'year')]}
+                                        onChange={(e) => updateDraft('backend', 'year', e.target.value)}
+                                        onBlur={() => normalizeBlur('backend', 'year')}
+                                        placeholder="0.00"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -234,4 +274,3 @@ export default function TransactionSettingsPage() {
         </div>
     );
 }
-
