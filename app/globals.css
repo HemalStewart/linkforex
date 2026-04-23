@@ -820,6 +820,16 @@ html {
     line-height: 1.45rem !important;
   }
 
+  .admin-density-compact .max-w-7xl {
+    max-width: 100% !important;
+  }
+
+  .admin-density-compact .max-w-3xl,
+  .admin-density-compact .max-w-4xl,
+  .admin-density-compact .max-w-5xl {
+    max-width: 64rem !important;
+  }
+
   .admin-density-compact .card-glass {
     border-radius: 18px;
   }
@@ -847,6 +857,10 @@ html {
     padding: 1.25rem !important;
   }
 
+  .admin-density-compact .p-10 {
+    padding: 1.35rem !important;
+  }
+
   .admin-density-compact .p-7 {
     padding: 1.15rem !important;
   }
@@ -864,9 +878,20 @@ html {
     padding-right: 1.25rem !important;
   }
 
+  .admin-density-compact .px-10 {
+    padding-left: 1.35rem !important;
+    padding-right: 1.35rem !important;
+  }
+
   .admin-density-compact .px-6 {
     padding-left: 1rem !important;
     padding-right: 1rem !important;
+  }
+
+  .admin-density-compact .py-12,
+  .admin-density-compact .py-10 {
+    padding-top: 1.35rem !important;
+    padding-bottom: 1.35rem !important;
   }
 
   .admin-density-compact .py-8 {
@@ -879,8 +904,29 @@ html {
     padding-bottom: 1rem !important;
   }
 
+  .admin-density-compact .py-5 {
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+  }
+
+  .admin-density-compact .pt-8 {
+    padding-top: 1.25rem !important;
+  }
+
+  .admin-density-compact .pb-8 {
+    padding-bottom: 1.25rem !important;
+  }
+
+  .admin-density-compact .pb-20 {
+    padding-bottom: 2rem !important;
+  }
+
   .admin-density-compact .gap-8 {
     gap: 1.25rem !important;
+  }
+
+  .admin-density-compact .gap-10 {
+    gap: 1.35rem !important;
   }
 
   .admin-density-compact .gap-6 {
@@ -891,6 +937,10 @@ html {
     margin-bottom: 1.25rem !important;
   }
 
+  .admin-density-compact .mb-10 {
+    margin-bottom: 1.35rem !important;
+  }
+
   .admin-density-compact .mb-6 {
     margin-bottom: 1rem !important;
   }
@@ -899,12 +949,20 @@ html {
     margin-top: 1.25rem !important;
   }
 
+  .admin-density-compact .mt-10 {
+    margin-top: 1.35rem !important;
+  }
+
   .admin-density-compact .mt-6 {
     margin-top: 1rem !important;
   }
 
   .admin-density-compact .space-y-8 > :not([hidden]) ~ :not([hidden]) {
     margin-top: 1.25rem !important;
+  }
+
+  .admin-density-compact .space-y-10 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 1.35rem !important;
   }
 
   .admin-density-compact .space-y-6 > :not([hidden]) ~ :not([hidden]) {
@@ -923,6 +981,20 @@ html {
   .admin-density-compact .table-shell thead th,
   .admin-density-compact .table-shell tbody td {
     padding: 0.55rem 0.9rem !important;
+  }
+
+  .admin-density-compact :is(th, td).px-8,
+  .admin-density-compact :is(th, td).px-6,
+  .admin-density-compact :is(th, td).px-4 {
+    padding-left: 0.9rem !important;
+    padding-right: 0.9rem !important;
+  }
+
+  .admin-density-compact :is(th, td).py-5,
+  .admin-density-compact :is(th, td).py-4,
+  .admin-density-compact :is(th, td).py-3 {
+    padding-top: 0.55rem !important;
+    padding-bottom: 0.55rem !important;
   }
 }
 
