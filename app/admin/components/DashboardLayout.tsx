@@ -37,7 +37,8 @@ import {
     Sun,
     User,
     MessageCircle,
-    ListChecks
+    ListChecks,
+    SlidersHorizontal
 } from 'lucide-react';
 
 interface DashboardLayoutProps {
@@ -644,6 +645,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 { name: 'Banks', href: '/admin/banks', icon: <Building2 className="w-4 h-4" /> },
                 { name: 'Relationships', href: '/admin/relationships', icon: <Users className="w-4 h-4" /> },
                 { name: 'Purposes', href: '/admin/purposes', icon: <ListChecks className="w-4 h-4" /> },
+                { name: 'Transaction Settings', href: '/admin/transaction-settings', icon: <SlidersHorizontal className="w-4 h-4" /> },
             ]
         }
     ];

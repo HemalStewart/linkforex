@@ -1300,6 +1300,12 @@ export default function CreateTransferPage() {
                             idExpiry: errorData?.id_expiry || senderComplianceIssue.idExpiry,
                         });
                     }
+                    if (response.status === 422 && errorData?.error === 'limit_exceeded') {
+                        const limit = typeof errorData?.limit === 'number' ? errorData.limit.toFixed(2) : String(errorData?.limit ?? '0.00');
+                        const used = typeof errorData?.used === 'number' ? errorData.used.toFixed(2) : String(errorData?.used ?? '0.00');
+                        const remaining = typeof errorData?.remaining === 'number' ? errorData.remaining.toFixed(2) : String(errorData?.remaining ?? '0.00');
+                        message = `${errorData?.period === 'year' ? 'Yearly' : 'Monthly'} limit reached (GBP). Limit: £${limit}, Used: £${used}, Remaining: £${remaining}.`;
+                    }
                     if (response.status === 409 && errorData?.branch_access_required) {
                         const requestId = errorData?.request?.id ?? errorData?.request_id;
                         const nextIssue = {

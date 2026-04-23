@@ -125,6 +125,9 @@ export const ENDPOINTS = {
         LIST: `${API_BASE_URL}/relationships`,
         DETAIL: (id: string | number) => `${API_BASE_URL}/relationships/${id}`,
     },
+    TRANSACTION_SETTINGS: {
+        LIST: `${API_BASE_URL}/transaction-settings`,
+    },
     MOBILE_ADMIN: {
         OVERVIEW: `${API_BASE_URL}/mobile-admin/overview`,
         SETTINGS: `${API_BASE_URL}/mobile-admin/settings`,
