@@ -37,6 +37,38 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     return null;
 };
 
+const dateKey = (value: unknown): string => {
+    if (!value) return '';
+    const date = new Date(String(value).replace(' ', 'T'));
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toISOString().split('T')[0];
+};
+
+const transferDateKey = (transfer: any): string => {
+    return dateKey(
+        transfer.created_at ||
+        transfer.transaction_date ||
+        transfer.date ||
+        transfer.updated_at
+    );
+};
+
+const transferAmount = (transfer: any): number => {
+    return Number.parseFloat(
+        transfer.source_amount ||
+        transfer.sending_amount ||
+        transfer.total_amount ||
+        transfer.amount ||
+        '0'
+    ) || 0;
+};
+
+const addDays = (date: Date, days: number): Date => {
+    const next = new Date(date);
+    next.setDate(next.getDate() + days);
+    return next;
+};
+
 export default function DashboardPage() {
     const [isClient, setIsClient] = React.useState(false);
     const [stats, setStats] = React.useState({
@@ -48,6 +80,7 @@ export default function DashboardPage() {
     const [recentActivity, setRecentActivity] = React.useState<any[]>([]);
 
     const [volumeData, setVolumeData] = React.useState<any[]>([]);
+    const [volumeRangeLabel, setVolumeRangeLabel] = React.useState('Last 7 Days');
     const [statusChartData, setStatusChartData] = React.useState<any[]>([]);
     const [revenueData, setRevenueData] = React.useState<any[]>([]);
 
@@ -70,8 +103,8 @@ export default function DashboardPage() {
 
 
             // Calculate stats
-            const completedTransfers = transfers.filter((t: any) => t.status === 'completed');
-            const totalRevenue = completedTransfers.reduce((sum: number, t: any) => sum + parseFloat(t.source_amount || 0), 0);
+            const completedTransfers = transfers.filter((t: any) => ['approved', 'completed'].includes(String(t.status || '').toLowerCase()));
+            const totalRevenue = completedTransfers.reduce((sum: number, t: any) => sum + transferAmount(t), 0);
             const pendingKYC = customers.filter((c: any) => c.kyc_status === 'pending').length;
 
             setStats({
@@ -108,20 +141,29 @@ export default function DashboardPage() {
 
             // 2. Volume Data (Area Chart - Last 7 Days)
             const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            const last7Days = Array.from({ length: 7 }, (_, i) => {
-                const d = new Date();
-                d.setDate(d.getDate() - (6 - i));
-                return d;
-            });
+            const today = new Date();
+            const calendarLast7Days = Array.from({ length: 7 }, (_, i) => addDays(today, -(6 - i)));
+            const calendarKeys = new Set(calendarLast7Days.map((date) => dateKey(date.toISOString())));
+            const hasCurrentRangeData = transfers.some((transfer: any) => calendarKeys.has(transferDateKey(transfer)));
+            const latestTransferDate = transfers
+                .map((transfer: any) => transferDateKey(transfer))
+                .filter(Boolean)
+                .sort()
+                .pop();
+            const anchorDate = hasCurrentRangeData || !latestTransferDate
+                ? today
+                : new Date(`${latestTransferDate}T12:00:00`);
+            const last7Days = Array.from({ length: 7 }, (_, i) => addDays(anchorDate, -(6 - i)));
+            setVolumeRangeLabel(hasCurrentRangeData || !latestTransferDate ? 'Last 7 Days' : 'Latest 7 Data Days');
 
             const newVolumeData = last7Days.map(date => {
-                const dayName = days[date.getDay()];
-                const dateStr = date.toISOString().split('T')[0];
+                const dayName = `${days[date.getDay()]} ${date.getDate()}`;
+                const dateStr = dateKey(date.toISOString());
 
                 // Sum transfers for this day
-                const dayTransfers = transfers.filter((t: any) => t.created_at && t.created_at.startsWith(dateStr));
+                const dayTransfers = transfers.filter((t: any) => transferDateKey(t) === dateStr);
                 const count = dayTransfers.length;
-                const revenue = dayTransfers.reduce((sum: number, t: any) => sum + parseFloat(t.source_amount || 0), 0);
+                const revenue = dayTransfers.reduce((sum: number, t: any) => sum + transferAmount(t), 0);
 
                 return { name: dayName, value: count, revenue: revenue };
             });
@@ -130,9 +172,9 @@ export default function DashboardPage() {
             // 3. Branch Revenue (Bar Chart)
             const branchRevenue: Record<string, number> = {};
             transfers.forEach((t: any) => {
-                const customer = customers.find((c: any) => c.id === t.remitter_id);
-                const branch = customer?.branch || 'Unknown';
-                const amount = parseFloat(t.source_amount || 0);
+                const customer = customers.find((c: any) => String(c.id) === String(t.remitter_id || t.sender_id || ''));
+                const branch = t.branch_name || t.branch || t.branch_code || customer?.branch || 'Unknown';
+                const amount = transferAmount(t);
                 branchRevenue[branch] = (branchRevenue[branch] || 0) + amount;
             });
 
@@ -147,11 +189,12 @@ export default function DashboardPage() {
             const recent = transfers.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                 .slice(0, 4)
                 .map((t: any) => {
-                    const customer = customers.find((c: any) => c.id === t.remitter_id);
+                    const customer = customers.find((c: any) => String(c.id) === String(t.remitter_id || t.sender_id || ''));
+                    const customerName = customer?.name || customer?.sender_name || t.sender_name || t.customer_name || 'Unknown';
                     return {
                         ...t,
-                        customerName: customer?.name || 'Unknown',
-                        customerInitials: customer?.name?.split(' ').map((n: string) => n[0]).join('') || 'UK'
+                        customerName,
+                        customerInitials: customerName.split(' ').map((n: string) => n[0]).join('').slice(0, 2) || 'UK'
                     };
                 });
             setRecentActivity(recent);
@@ -249,7 +292,7 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Transfer Volume Area Chart */}
                 <div className="lg:col-span-2 card-glass p-6">
-                    <h2 className="text-xl font-extrabold text-gradient-blue mb-6 tracking-tight">Transfer Volume (Last 7 Days)</h2>
+                    <h2 className="text-xl font-extrabold text-gradient-blue mb-6 tracking-tight">Transfer Volume ({volumeRangeLabel})</h2>
                     <div className="h-80 w-full">
                         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                             <AreaChart data={volumeData}>
@@ -383,7 +426,7 @@ export default function DashboardPage() {
                                     <div>
                                         <p className="text-sm font-bold text-slate-900 dark:text-white">{activity.customerName}</p>
                                         <p className="text-xs text-slate-500 font-medium mt-0.5">
-                                            Sent £{parseFloat(activity.source_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            Sent £{transferAmount(activity).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </p>
                                     </div>
                                 </div>
