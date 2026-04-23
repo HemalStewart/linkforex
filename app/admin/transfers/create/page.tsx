@@ -1196,6 +1196,104 @@ export default function CreateTransferPage() {
         return null;
     };
 
+    const enforceTransactionLimits = useCallback(async (): Promise<string | null> => {
+        const amount = Number(formData.receiveAmount);
+        if (!Number.isFinite(amount) || amount <= 0) return null;
+        if (!formData.senderRecordId) return null;
+
+        const parseSettings = (raw: unknown): Array<Record<string, unknown>> => {
+            if (Array.isArray(raw)) return raw.filter((row) => row && typeof row === 'object') as Array<Record<string, unknown>>;
+            if (raw && typeof raw === 'object') {
+                const obj = raw as Record<string, unknown>;
+                const items = obj.items;
+                const data = obj.data;
+                if (Array.isArray(items)) return items.filter((row) => row && typeof row === 'object') as Array<Record<string, unknown>>;
+                if (Array.isArray(data)) return data.filter((row) => row && typeof row === 'object') as Array<Record<string, unknown>>;
+            }
+            return [];
+        };
+
+        const toNumber = (value: unknown): number => {
+            const n = Number(value);
+            return Number.isFinite(n) ? n : 0;
+        };
+
+        const normalize = (value: unknown): string => String(value ?? '').trim().toLowerCase();
+
+        // Fetch configured limits (GBP) for backend transfers.
+        let monthLimit = 0;
+        let yearLimit = 0;
+        try {
+            const settingsRes = await fetch(withActingUser(ENDPOINTS.TRANSACTION_SETTINGS.LIST));
+            const settingsPayload = await settingsRes.json().catch(() => ({}));
+            if (settingsRes.ok) {
+                const rows = parseSettings(settingsPayload);
+                for (const row of rows) {
+                    const channel = normalize(row.channel);
+                    const period = normalize(row.period);
+                    const active = normalize(row.active || 'yes');
+                    const currency = String(row.currency ?? 'GBP').trim().toUpperCase();
+                    if (active === 'no' || active === 'inactive') continue;
+                    if (channel !== 'backend') continue;
+                    if (currency !== 'GBP') continue;
+                    const limit = toNumber(row.limit_amount);
+                    if (period === 'month') monthLimit = limit;
+                    if (period === 'year') yearLimit = limit;
+                }
+            }
+        } catch {
+            // ignore settings failures; backend validation will still run when available
+        }
+
+        // A limit of 0 is treated as "not configured".
+        if (monthLimit <= 0 && yearLimit <= 0) return null;
+
+        const now = new Date();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+        const yearStart = new Date(now.getFullYear(), 0, 1).getTime();
+
+        try {
+            const transfersRes = await fetch(withActingUser(`${ENDPOINTS.TRANSFERS.LIST}?_t=${Date.now()}`));
+            const transfersPayload = await transfersRes.json().catch(() => []);
+            if (!transfersRes.ok) return null;
+
+            const rows = Array.isArray(transfersPayload)
+                ? (transfersPayload as Array<Record<string, unknown>>)
+                : (Array.isArray((transfersPayload as any)?.items) ? (transfersPayload as any).items : []);
+
+            let usedMonth = 0;
+            let usedYear = 0;
+            for (const transfer of rows) {
+                const remitterId = String((transfer as any)?.remitter_id ?? '');
+                if (remitterId !== String(formData.senderRecordId)) continue;
+
+                const status = normalize((transfer as any)?.status);
+                if (status === 'cancelled' || status === 'rejected') continue;
+
+                const createdAtRaw = String((transfer as any)?.created_at ?? '');
+                const createdAt = Date.parse(createdAtRaw);
+                if (!Number.isFinite(createdAt)) continue;
+
+                const sourceAmount = toNumber((transfer as any)?.source_amount);
+                if (createdAt >= monthStart) usedMonth += sourceAmount;
+                if (createdAt >= yearStart) usedYear += sourceAmount;
+            }
+
+            if (monthLimit > 0 && (usedMonth + amount) > monthLimit) {
+                const remaining = Math.max(0, monthLimit - usedMonth);
+                return `Monthly limit reached (GBP). Limit: £${monthLimit.toFixed(2)}, Used: £${usedMonth.toFixed(2)}, Remaining: £${remaining.toFixed(2)}.`;
+            }
+            if (yearLimit > 0 && (usedYear + amount) > yearLimit) {
+                const remaining = Math.max(0, yearLimit - usedYear);
+                return `Yearly limit reached (GBP). Limit: £${yearLimit.toFixed(2)}, Used: £${usedYear.toFixed(2)}, Remaining: £${remaining.toFixed(2)}.`;
+            }
+        } catch {
+            // ignore; backend validation may still apply
+        }
+
+        return null;
+    }, [formData.receiveAmount, formData.senderRecordId, withActingUser]);
+
     const handleSubmit = async () => {
         if (senderComplianceIssue.idExpired) {
             setModal(
@@ -1215,6 +1313,12 @@ export default function CreateTransferPage() {
         const validationError = validateForm();
         if (validationError) {
             setModal('Missing Information', validationError, 'warning');
+            return;
+        }
+
+        const limitError = await enforceTransactionLimits();
+        if (limitError) {
+            setModal('Limit Reached', limitError, 'warning');
             return;
         }
 
