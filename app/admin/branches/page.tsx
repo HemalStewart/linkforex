@@ -7,6 +7,7 @@ import { getStoredUser } from '@/app/lib/authStorage';
 import { isPrivilegedUser } from '@/app/lib/permissions';
 import ConfirmModal from '../components/ConfirmModal';
 import Pagination from '../components/ui/Pagination';
+import SortIndicator from '../components/SortIndicator';
 import { Search, PlusCircle, Trash2, Eye, RefreshCw, Tag, Phone, ArrowRightLeft, GitBranch, Edit2 } from 'lucide-react';
 
 export default function BranchesPage() {
@@ -219,8 +220,7 @@ export default function BranchesPage() {
     };
 
     const sortIndicator = (key: string) => {
-        if (sortKey !== key) return '↕';
-        return sortDir === 'asc' ? '↑' : '↓';
+        return <SortIndicator active={sortKey === key} dir={sortDir} className="text-slate-400 dark:text-slate-300" />;
     };
 
     const formatCurrency = (value: any) => {

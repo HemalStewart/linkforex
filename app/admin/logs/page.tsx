@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Activity, AlertCircle, Clock3, Download, FilterX, RefreshCw, Search, ShieldAlert, UserCheck } from 'lucide-react';
 import { ENDPOINTS } from '@/app/lib/api';
 import Pagination from '../components/ui/Pagination';
+import SortIndicator from '../components/SortIndicator';
 
 type LogRow = {
     id: number;
@@ -483,10 +484,9 @@ export default function LogsPage() {
         setSortDir(key === 'signInTs' || key === 'signOffTs' ? 'desc' : 'asc');
     };
 
-    const sortIndicator = (key: SortKey): string => {
-        if (sortKey !== key) return '↕';
-        return sortDir === 'asc' ? '↑' : '↓';
-    };
+    const sortIndicator = (key: SortKey) => (
+        <SortIndicator active={sortKey === key} dir={sortDir} className="text-slate-400 dark:text-slate-300" />
+    );
 
     const exportCsv = () => {
         const headers = [

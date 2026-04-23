@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
 import Badge from '../components/ui/Badge';
 import Pagination from '../components/ui/Pagination';
+import SortIndicator from '../components/SortIndicator';
 import { Users, RefreshCw, Search, Building2, Calendar } from 'lucide-react';
 
 export default function BeneficiariesPage() {
@@ -61,7 +62,9 @@ export default function BeneficiariesPage() {
         if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
         else { setSortKey(key); setSortDir('asc'); }
     };
-    const sortIndicator = (key: string) => sortKey !== key ? '↕' : sortDir === 'asc' ? '↑' : '↓';
+    const sortIndicator = (key: string) => (
+        <SortIndicator active={sortKey === key} dir={sortDir} className="text-slate-400 dark:text-slate-300" />
+    );
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-up">

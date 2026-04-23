@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import Modal from '../components/Modal';
+import SortIndicator from '../components/SortIndicator';
 import { CheckCircle2, Download, Eye, ImageUp, PenLine, PlusCircle, Printer, RotateCcw, Save, Search, XCircle } from 'lucide-react';
 
 type SortDir = 'asc' | 'desc';
@@ -538,10 +539,9 @@ export default function TransfersPage() {
         setSortDir('asc');
     };
 
-    const sortIndicator = (key: keyof TransferRow): string => {
-        if (sortKey !== key) return '↕';
-        return sortDir === 'asc' ? '↑' : '↓';
-    };
+    const sortIndicator = (key: keyof TransferRow) => (
+        <SortIndicator active={sortKey === key} dir={sortDir} className="text-slate-400 dark:text-slate-300" />
+    );
 
     const getCurrentUserName = (): string => {
         const user = getStoredUser<{ username?: string; name?: string; email?: string }>();

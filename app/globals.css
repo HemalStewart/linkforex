@@ -728,8 +728,8 @@ html {
   padding: 0.75rem 1.25rem;
   font-size: var(--table-head-font-size);
   font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em !important;
+  text-transform: none !important;
   color: rgba(15, 23, 42, 0.6);
   background: rgba(248, 250, 252, 0.92);
   backdrop-filter: blur(10px) saturate(130%);

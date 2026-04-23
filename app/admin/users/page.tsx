@@ -7,6 +7,7 @@ import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../components/ConfirmModal';
 import Badge from '../components/ui/Badge';
 import Pagination from '../components/ui/Pagination';
+import SortIndicator from '../components/SortIndicator';
 import { Search, UserPlus, Download, Trash2, Users, UserCheck, User, Shield, QrCode, Eye, RotateCcw, ChevronRight } from 'lucide-react';
 
 export default function UsersPage() {
@@ -270,8 +271,7 @@ export default function UsersPage() {
     };
 
     const sortIndicator = (key: string) => {
-        if (sortKey !== key) return '↕';
-        return sortDir === 'asc' ? '↑' : '↓';
+        return <SortIndicator active={sortKey === key} dir={sortDir} className="text-slate-400 dark:text-slate-300" />;
     };
 
     const totalUsers = users.length;

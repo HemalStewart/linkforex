@@ -7,6 +7,7 @@ import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../components/ConfirmModal';
 import Badge from '../components/ui/Badge';
 import Pagination from '../components/ui/Pagination';
+import SortIndicator from '../components/SortIndicator';
 
 type PermissionGroupRow = {
     id: number;
@@ -246,8 +247,7 @@ export default function PermissionGroupsPage() {
     };
 
     const sortIndicator = (key: string) => {
-        if (sortKey !== key) return '↕';
-        return sortDir === 'asc' ? '↑' : '↓';
+        return <SortIndicator active={sortKey === key} dir={sortDir} className="text-slate-400 dark:text-slate-300" />;
     };
 
     const badgeClass = (value: string) =>

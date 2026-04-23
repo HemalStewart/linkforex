@@ -6,6 +6,7 @@ import { ENDPOINTS } from '@/app/lib/api';
 import { getCurrentAdminUser, withActingUserParam } from '@/app/lib/adminUserScope';
 import ConfirmModal from '../components/ConfirmModal';
 import Pagination from '../components/ui/Pagination';
+import SortIndicator from '../components/SortIndicator';
 import { Search, UserPlus, Eye, Trash2, ChevronRight, Users } from 'lucide-react';
 
 type SortDir = 'asc' | 'desc';
@@ -187,8 +188,7 @@ export default function RemittersPage() {
     };
 
     const sortIndicator = (key: string) => {
-        if (sortKey !== key) return '↕';
-        return sortDir === 'asc' ? '↑' : '↓';
+        return <SortIndicator active={sortKey === key} dir={sortDir} className="text-slate-400 dark:text-slate-300" />;
     };
 
     const yesNo = (value: string) => (value || '').toLowerCase() === 'yes' ? 'Yes' : 'No';
