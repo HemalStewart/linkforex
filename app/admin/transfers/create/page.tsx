@@ -1604,10 +1604,11 @@ export default function CreateTransferPage() {
                         </div>
                     ) : null}
                     {formData.senderRecordId ? (
-                        <div className="mt-3 rounded-2xl border border-slate-200/70 dark:border-slate-700/60 bg-slate-50/60 dark:bg-slate-900/30 px-4 py-3 text-xs text-slate-600 dark:text-slate-300 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-2">
-                            <div>
+                        <div className="mt-3 rounded-2xl border border-slate-200/70 dark:border-slate-700/60 bg-slate-50/60 dark:bg-slate-900/30 px-4 py-3 text-xs text-slate-600 dark:text-slate-300 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-2">
+                            {/* Sanction tick/status is not required on transfer creation. */}
+                            {/* <div>
                                 <span className="font-semibold text-slate-800 dark:text-slate-200">Sanction:</span> {senderScreeningState.sanctionListVerified || '-'}
-                            </div>
+                            </div> */}
                             <div>
                                 <span className="font-semibold text-slate-800 dark:text-slate-200">Veriff:</span> {senderScreeningState.veriffStatus || '-'}
                             </div>
