@@ -4,6 +4,13 @@ import React, { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
+import {
+    branchMatchesAdminScope,
+    getAdminBranchCode,
+    getCurrentAdminUser,
+    isPrivilegedAdminUser,
+    withActingUserParam,
+} from '@/app/lib/adminUserScope';
 import ConfirmModal from '../../components/ConfirmModal';
 import {
     User, Calendar, MapPin, Briefcase, Phone, Building, CreditCard,
@@ -104,11 +111,11 @@ function FormSelect({ label, name, options, defaultValue, Icon, required, value,
     );
 }
 
-function FormFileUpload({ label, name, compact, defaultValue }: any) {
+function FormFileUpload({ label, name, compact, defaultValue, required }: any) {
     return (
         <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
-                {label}
+                {label} {required && <span className="text-red-500">*</span>}
             </label>
             <div className={`border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-2xl ${compact ? 'px-3 py-3' : 'px-4 py-8'} bg-slate-50/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800 transition-all duration-300 cursor-pointer text-center relative max-w-full overflow-hidden group hover:border-teal-400 dark:hover:border-teal-500`}>
                 <div className="flex flex-col items-center justify-center">
@@ -126,19 +133,35 @@ function FormFileUpload({ label, name, compact, defaultValue }: any) {
                             <span className="group-hover:text-teal-500 transition-colors">{compact ? 'Upload' : 'Click to upload'}</span>
                         )}
                     </span>
-                    <input type="file" name={name} className="absolute inset-0 opacity-0 cursor-pointer" />
+                    <input type="file" name={name} required={required} className="absolute inset-0 opacity-0 cursor-pointer" />
                 </div>
             </div>
         </div>
     );
 }
 
+const idTypesRequiringIssuedDate = new Set(['passport', 'driving license', 'residence permit']);
+
+const idTypeNeedsIssuedDate = (idType: string): boolean => idTypesRequiringIssuedDate.has(idType.trim().toLowerCase());
+
+const isUkCountry = (country: string): boolean => {
+    const normalized = country.trim().toLowerCase();
+    return ['uk', 'gb', 'great britain', 'united kingdom', 'england', 'scotland', 'wales', 'northern ireland'].includes(normalized);
+};
+
+const isValidUkPassportNumber = (value: string): boolean => /^\d{9}$/.test(value.trim());
+
 export default function CreateRemitterPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const returnUrl = searchParams.get('returnUrl');
+    const currentUser = React.useMemo(() => getCurrentAdminUser(), []);
+    const isPrivilegedUser = React.useMemo(() => isPrivilegedAdminUser(currentUser), [currentUser]);
+    const scopedBranchCode = React.useMemo(() => getAdminBranchCode(currentUser), [currentUser]);
 
     const [branches, setBranches] = useState<any[]>([]);
+    const [idType, setIdType] = useState('Passport');
+    const [country, setCountry] = useState('United Kingdom');
     const [loading, setLoading] = useState(false);
     const [duplicateChecking, setDuplicateChecking] = useState(false);
     const [possibleDuplicates, setPossibleDuplicates] = useState<DuplicateMatch[]>([]);
@@ -185,7 +208,7 @@ export default function CreateRemitterPage() {
                 const res = await fetch(ENDPOINTS.BRANCHES.LIST);
                 if (res.ok) {
                     const data = await res.json();
-                    setBranches(data);
+                    setBranches(Array.isArray(data) ? data : []);
                 }
             } catch (e) {
                 console.error("Failed to fetch branches", e);
@@ -193,6 +216,15 @@ export default function CreateRemitterPage() {
         };
         fetchBranches();
     }, []);
+
+    const branchOptions = React.useMemo(() => {
+        const source = branches.length > 0 ? branches : (scopedBranchCode ? [{ code: scopedBranchCode, name: scopedBranchCode }] : []);
+        const filtered = isPrivilegedUser ? source : source.filter((branch) => branchMatchesAdminScope(branch, currentUser));
+        const options = filtered
+            .map((branch) => String(branch.code || branch.transaction_prefix || branch.name || branch.id || '').trim())
+            .filter(Boolean);
+        return options.length > 0 ? Array.from(new Set(options)) : ['London - Link Forex Ltd'];
+    }, [branches, currentUser, isPrivilegedUser, scopedBranchCode]);
 
     const hasMinimumDuplicateSignals = React.useCallback((signals: typeof duplicateFormSignals): boolean => {
         const rawName = signals.sender_name;
@@ -227,14 +259,14 @@ export default function CreateRemitterPage() {
         const query = buildDuplicateQuery(signals);
         if (!query) return [];
 
-        const response = await fetch(`${ENDPOINTS.REMITTERS.POTENTIAL_MATCHES}?${query}`);
+        const response = await fetch(withActingUserParam(`${ENDPOINTS.REMITTERS.POTENTIAL_MATCHES}?${query}`, currentUser));
         if (!response.ok) {
             return [];
         }
 
         const data = await response.json() as { matches?: DuplicateMatch[] };
         return Array.isArray(data.matches) ? data.matches : [];
-    }, [buildDuplicateQuery, hasMinimumDuplicateSignals]);
+    }, [buildDuplicateQuery, currentUser, hasMinimumDuplicateSignals]);
 
     React.useEffect(() => {
         if (!hasMinimumDuplicateSignals(duplicateFormSignals)) {
@@ -276,7 +308,7 @@ export default function CreateRemitterPage() {
             body = JSON.stringify(jsonBody);
         }
 
-        const res = await fetch(ENDPOINTS.REMITTERS.LIST, {
+        const res = await fetch(withActingUserParam(ENDPOINTS.REMITTERS.LIST, currentUser), {
             method: 'POST',
             headers,
             body,
@@ -312,7 +344,7 @@ export default function CreateRemitterPage() {
 
         const result = await res.json();
         return { createdId: result.id };
-    }, []);
+    }, [currentUser]);
 
     const verificationLabel = (state?: string) => {
         const normalized = (state || '').toLowerCase();
@@ -334,7 +366,7 @@ export default function CreateRemitterPage() {
 
     const loadRemitterVeriffState = React.useCallback(async (remitterId: string | number) => {
         try {
-            const response = await fetch(ENDPOINTS.REMITTERS.DETAIL(remitterId));
+            const response = await fetch(withActingUserParam(ENDPOINTS.REMITTERS.DETAIL(remitterId), currentUser));
             if (!response.ok) return;
             const data = await response.json();
             setCreatedRemitterVeriff({
@@ -351,7 +383,7 @@ export default function CreateRemitterPage() {
         } catch (error) {
             console.error('Failed to load verification state', error);
         }
-    }, []);
+    }, [currentUser]);
 
     const triggerVeriffAction = React.useCallback(async (action: 'start' | 'sync') => {
         if (!createdRemitterId) return;
@@ -360,7 +392,7 @@ export default function CreateRemitterPage() {
             const endpoint = action === 'start'
                 ? ENDPOINTS.REMITTERS.VERIFF_START(createdRemitterId)
                 : ENDPOINTS.REMITTERS.VERIFF_SYNC(createdRemitterId);
-            const res = await fetch(endpoint, {
+            const res = await fetch(withActingUserParam(endpoint, currentUser), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({}),
@@ -416,7 +448,7 @@ export default function CreateRemitterPage() {
         } finally {
             setVeriffActionLoading(false);
         }
-    }, [createdRemitterId, loadRemitterVeriffState]);
+    }, [createdRemitterId, currentUser, loadRemitterVeriffState]);
 
     const refreshVerificationStatus = React.useCallback(async () => {
         if (!createdRemitterId) return;
@@ -430,9 +462,32 @@ export default function CreateRemitterPage() {
         }
     }, [createdRemitterId, loadRemitterVeriffState]);
 
+    const validateIdentityDetails = (data: any, submitFormData: FormData): string | null => {
+        const selectedIdType = String(data.id_type || '').trim();
+        const idNumber = String(data.id_no || '').trim();
+        const idExpiry = String(data.id_expire_date || '').trim();
+        const idIssued = String(data.id_issued_date || '').trim();
+        const countryValue = String(data.country || '').trim();
+        const idCopy = submitFormData.get('passport_copy');
+
+        if (!selectedIdType) return 'ID Type is required.';
+        if (!idNumber) return 'ID Number is required.';
+        if (!idExpiry) return 'ID Expiry Date is required.';
+        if (idTypeNeedsIssuedDate(selectedIdType) && !idIssued) {
+            return 'ID Issued Date is required for the selected ID type.';
+        }
+        if (selectedIdType.toLowerCase() === 'passport' && isUkCountry(countryValue) && !isValidUkPassportNumber(idNumber)) {
+            return 'UK passport number must be exactly 9 digits.';
+        }
+        if (!(idCopy instanceof File) || idCopy.size === 0) {
+            return 'ID Copy is required.';
+        }
+
+        return null;
+    };
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        setLoading(true);
         setCreatedRemitterId('');
         setCreatedRemitterVeriff(null);
         const submitFormData = new FormData(e.currentTarget);
@@ -440,6 +495,22 @@ export default function CreateRemitterPage() {
         submitFormData.forEach((value, key) => {
             data[key] = value;
         });
+
+        const validationMessage = validateIdentityDetails(data, submitFormData);
+        if (validationMessage) {
+            setConfirmModal({
+                isOpen: true,
+                title: 'Validation Error',
+                message: validationMessage,
+                type: 'warning',
+                isAlert: true,
+                shouldRedirect: false,
+                redirectUrl: ''
+            });
+            return;
+        }
+
+        setLoading(true);
 
         // Base API Data mapped to `sender_details` table columns
         const apiData: any = {
@@ -474,6 +545,7 @@ export default function CreateRemitterPage() {
             // ID details
             id_type: data.id_type,
             id_no: data.id_no,
+            id_issued_date: data.id_issued_date,
             id_expire_date: data.id_expire_date,
             email: (data.email || '').trim() || null,
         };
@@ -520,11 +592,11 @@ export default function CreateRemitterPage() {
                 setConfirmModal({
                     isOpen: true,
                     title: 'Saved',
-                    message: 'Remitter created. You can verify this remitter now from the Verification panel.',
+                    message: 'Remitter created successfully.',
                     type: 'info',
                     isAlert: true,
-                    shouldRedirect: false,
-                    redirectUrl: ''
+                    shouldRedirect: true,
+                    redirectUrl: '/admin/remitters'
                 });
             }
 
@@ -573,11 +645,11 @@ export default function CreateRemitterPage() {
                 setConfirmModal({
                     isOpen: true,
                     title: 'Saved',
-                    message: 'Remitter created. You can verify this remitter now from the Verification panel.',
+                    message: 'Remitter created successfully.',
                     type: 'info',
                     isAlert: true,
-                    shouldRedirect: false,
-                    redirectUrl: ''
+                    shouldRedirect: true,
+                    redirectUrl: '/admin/remitters'
                 });
             }
         } catch (error) {
@@ -645,7 +717,7 @@ export default function CreateRemitterPage() {
             <form onSubmit={handleSubmit} className="card-glass p-8 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
-                {/* Section 1: Client Type & Branch */}
+                {/* Section 1: Branch setup */}
                 <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
                         <Users className="w-5 h-5 mr-2 text-teal-500" />
@@ -653,14 +725,14 @@ export default function CreateRemitterPage() {
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div>
-                            <input type="hidden" name="clientType" value="individual" />
-                            <FormSelect label="Branch" name="branch_id" Icon={Building} options={branches.length > 0 ? branches.map(b => b.code || b.name) : ['London - Link Forex Ltd']} required />
-                            <div className="flex items-center mt-4 ml-1">
-                                <input type="checkbox" id="sanction_list_verified" name="sanction_list_verified" className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 cursor-pointer" />
-                                <label htmlFor="sanction_list_verified" className="ml-2 text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer">
-                                    Sanction List Verified
-                                </label>
-                            </div>
+                            <FormSelect
+                                label="Branch"
+                                name="branch_id"
+                                Icon={Building}
+                                options={branchOptions}
+                                required
+                                defaultValue={branchOptions[0]}
+                            />
                         </div>
                     </div>
                 </div>
@@ -793,10 +865,13 @@ export default function CreateRemitterPage() {
                         <FormInput
                             label="Country"
                             name="country"
-                            defaultValue="United Kingdom"
+                            value={country}
                             required
                             Icon={Globe}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, country: e.target.value }))}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                setCountry(e.target.value);
+                                setDuplicateFormSignals((prev) => ({ ...prev, country: e.target.value }));
+                            }}
                         />
                     </div>
                 </div>
@@ -808,7 +883,15 @@ export default function CreateRemitterPage() {
                         Identity Verification
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        <FormSelect label="ID Type" name="id_type" options={['Passport', 'Driving License', 'National ID', 'Residence Permit']} required Icon={CreditCard} />
+                        <FormSelect
+                            label="ID Type"
+                            name="id_type"
+                            options={['Passport', 'Driving License', 'National ID', 'Residence Permit']}
+                            required
+                            Icon={CreditCard}
+                            value={idType}
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setIdType(e.target.value)}
+                        />
                         <FormInput
                             label="ID Number"
                             name="id_no"
@@ -816,12 +899,19 @@ export default function CreateRemitterPage() {
                             Icon={FileText}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, id_no: e.target.value }))}
                         />
+                        <FormInput
+                            label="ID Issued Date"
+                            name="id_issued_date"
+                            type="date"
+                            required={idTypeNeedsIssuedDate(idType)}
+                            Icon={Calendar}
+                        />
                         <FormInput label="ID Expiry Date" name="id_expire_date" type="date" required Icon={Calendar} />
                     </div>
 
                     <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4 ml-1">Documents</h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <FormFileUpload label="ID Copy" name="passport_copy" compact />
+                        <FormFileUpload label="ID Copy" name="passport_copy" compact required />
                         <FormFileUpload label="Proof of Address" name="proof_of_address_doc" compact />
                         <FormFileUpload label="Source of Income" name="work_related_docs" compact />
                         <FormFileUpload label="AML Doc" name="sender_details_aml_screening_doc" compact />

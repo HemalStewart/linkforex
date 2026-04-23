@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
+import { getCurrentAdminUser, withActingUserParam } from '@/app/lib/adminUserScope';
 import ConfirmModal from '../components/ConfirmModal';
 import Pagination from '../components/ui/Pagination';
 import { Search, UserPlus, Eye, Trash2, ChevronRight, Users } from 'lucide-react';
@@ -10,6 +11,7 @@ import { Search, UserPlus, Eye, Trash2, ChevronRight, Users } from 'lucide-react
 type SortDir = 'asc' | 'desc';
 
 export default function RemittersPage() {
+    const currentUser = useMemo(() => getCurrentAdminUser(), []);
     const [remitters, setRemitters] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -45,7 +47,9 @@ export default function RemittersPage() {
             if (sourceFilter !== 'all') params.append('registration_source', sourceFilter);
             if (searchQuery.trim()) params.append('search', searchQuery.trim());
 
-            const res = await fetch(`${ENDPOINTS.REMITTERS.LIST}?${params.toString()}`);
+            const query = params.toString();
+            const url = withActingUserParam(query ? `${ENDPOINTS.REMITTERS.LIST}?${query}` : ENDPOINTS.REMITTERS.LIST, currentUser);
+            const res = await fetch(url);
             if (!res.ok) {
                 setRemitters([]);
                 return;
@@ -60,7 +64,6 @@ export default function RemittersPage() {
                 sender_id: r.sender_id || '-',
                 sender_name: r.sender_name || r.name || '-',
                 active: (r.status || 'inactive').toLowerCase() === 'active' ? 'Active' : 'Inactive',
-                sanction_list_verified: r.sanction_list_verified || 'no',
                 dob: r.dob || '-',
                 place_of_birth: r.place_of_birth || '-',
                 telephone: r.phone || '-',
@@ -111,7 +114,6 @@ export default function RemittersPage() {
                 r.sender_id,
                 r.sender_name,
                 r.active,
-                r.sanction_list_verified,
                 r.dob,
                 r.place_of_birth,
                 r.telephone,
@@ -218,7 +220,7 @@ export default function RemittersPage() {
         if (!remitterToDelete) return;
 
         try {
-            const res = await fetch(ENDPOINTS.REMITTERS.DETAIL(remitterToDelete.id), { method: 'DELETE' });
+            const res = await fetch(withActingUserParam(ENDPOINTS.REMITTERS.DETAIL(remitterToDelete.id), currentUser), { method: 'DELETE' });
             if (res.ok) {
                 setRemitters(remitters.filter((r) => r.id !== remitterToDelete.id));
                 setConfirmModal({
@@ -257,7 +259,6 @@ export default function RemittersPage() {
         { key: 'sender_id', label: 'Sender Id' },
         { key: 'sender_name', label: 'Sender Name' },
         { key: 'active', label: 'Active' },
-        { key: 'sanction_list_verified', label: 'Sanction List Verified' },
         { key: 'dob', label: 'Date Of Birth' },
         { key: 'place_of_birth', label: 'Place Of Birth' },
         { key: 'telephone', label: 'Telephone' },
@@ -410,7 +411,6 @@ export default function RemittersPage() {
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.sender_id || '-'}</td>
                                         <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{row.sender_name || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.active || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{yesNo(row.sanction_list_verified)}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.dob || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.place_of_birth || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.telephone || '-'}</td>

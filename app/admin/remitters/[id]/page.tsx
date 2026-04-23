@@ -4,6 +4,12 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
+import {
+    getAdminBranchCode,
+    getCurrentAdminUser,
+    isPrivilegedAdminUser,
+    withActingUserParam,
+} from '@/app/lib/adminUserScope';
 import ConfirmModal from '../../components/ConfirmModal';
 import {
     ArrowLeft,
@@ -25,10 +31,24 @@ import {
     ExternalLink
 } from 'lucide-react';
 
+const idTypesRequiringIssuedDate = new Set(['passport', 'driving license', 'residence permit']);
+
+const idTypeNeedsIssuedDate = (idType: string): boolean => idTypesRequiringIssuedDate.has(idType.trim().toLowerCase());
+
+const isUkCountry = (country: string): boolean => {
+    const normalized = country.trim().toLowerCase();
+    return ['uk', 'gb', 'great britain', 'united kingdom', 'england', 'scotland', 'wales', 'northern ireland'].includes(normalized);
+};
+
+const isValidUkPassportNumber = (value: string): boolean => /^\d{9}$/.test(value.trim());
+
 export default function EditRemitterPage() {
     const router = useRouter();
     const params = useParams();
     const id = params.id as string;
+    const currentUser = React.useMemo(() => getCurrentAdminUser(), []);
+    const isPrivilegedUser = React.useMemo(() => isPrivilegedAdminUser(currentUser), [currentUser]);
+    const scopedBranchCode = React.useMemo(() => getAdminBranchCode(currentUser), [currentUser]);
 
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -41,7 +61,6 @@ export default function EditRemitterPage() {
         sender_id: '',
         sender_name: '',
         status: 'active',
-        sanction_list_verified: 'no',
         dob: '',
         place_of_birth: '',
         phone: '',
@@ -56,6 +75,7 @@ export default function EditRemitterPage() {
         proof_of_funds: 'no',
         id_type: '',
         id_number: '',
+        id_issued_date: '',
         id_expiry: '',
         other_info: '',
         use_in: 'All',
@@ -95,7 +115,7 @@ export default function EditRemitterPage() {
 
     const fetchRemitter = async () => {
         try {
-            const res = await fetch(ENDPOINTS.REMITTERS.DETAIL(id));
+            const res = await fetch(withActingUserParam(ENDPOINTS.REMITTERS.DETAIL(id), currentUser));
             if (res.ok) {
                 const data = await res.json();
                 setFormData({
@@ -107,7 +127,6 @@ export default function EditRemitterPage() {
                     sender_id: data.sender_id || '',
                     sender_name: data.sender_name || data.name || '',
                     status: data.status || 'active',
-                    sanction_list_verified: data.sanction_list_verified || 'no',
                     dob: data.dob || '',
                     place_of_birth: data.place_of_birth || '',
                     phone: data.phone || '',
@@ -122,6 +141,7 @@ export default function EditRemitterPage() {
                     proof_of_funds: data.proof_of_funds || 'no',
                     id_type: data.id_type || '',
                     id_number: data.id_number || '',
+                    id_issued_date: data.id_issued_date || '',
                     id_expiry: data.id_expiry || '',
                     other_info: data.other_info || '',
                     use_in: data.use_in || 'All',
@@ -154,17 +174,42 @@ export default function EditRemitterPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!formData.id_type?.trim()) {
+            setConfirmModal({ isOpen: true, title: 'Validation Error', message: 'ID Type is required.', type: 'warning', isAlert: true, shouldRedirect: false });
+            return;
+        }
+        if (!formData.id_number?.trim()) {
+            setConfirmModal({ isOpen: true, title: 'Validation Error', message: 'ID Number is required.', type: 'warning', isAlert: true, shouldRedirect: false });
+            return;
+        }
+        if (!formData.id_expiry?.trim()) {
+            setConfirmModal({ isOpen: true, title: 'Validation Error', message: 'ID Expiry Date is required.', type: 'warning', isAlert: true, shouldRedirect: false });
+            return;
+        }
+        if (idTypeNeedsIssuedDate(formData.id_type) && !formData.id_issued_date?.trim()) {
+            setConfirmModal({ isOpen: true, title: 'Validation Error', message: 'ID Issued Date is required for the selected ID type.', type: 'warning', isAlert: true, shouldRedirect: false });
+            return;
+        }
+        if (String(formData.id_type || '').trim().toLowerCase() === 'passport'
+            && isUkCountry(String(formData.country || ''))
+            && !isValidUkPassportNumber(String(formData.id_number || ''))) {
+            setConfirmModal({ isOpen: true, title: 'Validation Error', message: 'UK passport number must be exactly 9 digits.', type: 'warning', isAlert: true, shouldRedirect: false });
+            return;
+        }
+
         setSubmitting(true);
 
         const payload = {
             ...formData,
+            branch: isPrivilegedUser ? formData.branch : (scopedBranchCode || formData.branch),
             name: formData.sender_name,
             sender_name: formData.sender_name,
             active: formData.status === 'active' ? 'Active' : 'Inactive'
         };
 
         try {
-            const res = await fetch(ENDPOINTS.REMITTERS.DETAIL(id), {
+            const res = await fetch(withActingUserParam(ENDPOINTS.REMITTERS.DETAIL(id), currentUser), {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
@@ -206,7 +251,7 @@ export default function EditRemitterPage() {
 
     const handleDelete = async () => {
         try {
-            const res = await fetch(ENDPOINTS.REMITTERS.DETAIL(id), { method: 'DELETE' });
+            const res = await fetch(withActingUserParam(ENDPOINTS.REMITTERS.DETAIL(id), currentUser), { method: 'DELETE' });
             if (res.ok) {
                 router.push('/admin/remitters');
             } else {
@@ -272,7 +317,7 @@ export default function EditRemitterPage() {
             const endpoint = action === 'start'
                 ? ENDPOINTS.REMITTERS.VERIFF_START(id)
                 : ENDPOINTS.REMITTERS.VERIFF_SYNC(id);
-            const response = await fetch(endpoint, {
+            const response = await fetch(withActingUserParam(endpoint, currentUser), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({}),
@@ -385,10 +430,6 @@ export default function EditRemitterPage() {
                     <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
                         <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Compliance</p>
                         <div className="mt-2 flex items-center justify-between gap-2">
-                            <span className="text-sm text-slate-600 dark:text-slate-300">Sanction</span>
-                            <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${yesNoBadge(formData.sanction_list_verified)}`}>{yesNoText(formData.sanction_list_verified)}</span>
-                        </div>
-                        <div className="mt-2 flex items-center justify-between gap-2">
                             <span className="text-sm text-slate-600 dark:text-slate-300">ID Verified</span>
                             <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${yesNoBadge(formData.id_verified)}`}>{yesNoText(formData.id_verified)}</span>
                         </div>
@@ -473,6 +514,7 @@ export default function EditRemitterPage() {
                         <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">ID & AML</p>
                         <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">ID Type: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.id_type)}</span></p>
                         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">ID No: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.id_number)}</span></p>
+                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">ID Issued: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.id_issued_date)}</span></p>
                         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">ID Expiry: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.id_expiry)}</span></p>
                         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Veriff Decision: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.veriff_decision)}</span></p>
                         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Veriff Checked: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.veriff_checked_at)}</span></p>
@@ -573,15 +615,18 @@ export default function EditRemitterPage() {
                         <input className="input-glass w-full" value={formData.id_number} onChange={(e) => setFormData({ ...formData, id_number: e.target.value })} />
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">ID Expire Date</label>
-                        <input type="date" className="input-glass w-full" value={formData.id_expiry || ''} onChange={(e) => setFormData({ ...formData, id_expiry: e.target.value })} />
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">ID Issued Date</label>
+                        <input
+                            type="date"
+                            className="input-glass w-full"
+                            value={formData.id_issued_date || ''}
+                            required={idTypeNeedsIssuedDate(formData.id_type)}
+                            onChange={(e) => setFormData({ ...formData, id_issued_date: e.target.value })}
+                        />
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Sanction List Verified</label>
-                        <select className="input-glass w-full" value={formData.sanction_list_verified} onChange={(e) => setFormData({ ...formData, sanction_list_verified: e.target.value })}>
-                            <option value="no">No</option>
-                            <option value="yes">Yes</option>
-                        </select>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">ID Expire Date</label>
+                        <input type="date" className="input-glass w-full" value={formData.id_expiry || ''} onChange={(e) => setFormData({ ...formData, id_expiry: e.target.value })} />
                     </div>
                     <div>
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">ID Verified</label>
