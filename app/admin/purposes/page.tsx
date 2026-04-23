@@ -389,7 +389,7 @@ export default function PurposesPage() {
                             className="input-glass w-full"
                             value={form.name}
                             onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
-                            placeholder="Family, Friend, Business, etc"
+                            placeholder="Family Support, Education, Travel, etc"
                             required
                         />
                     </div>

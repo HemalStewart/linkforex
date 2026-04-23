@@ -110,7 +110,6 @@ export default function CreateMobileUserRemitterPage() {
     const searchParams = useSearchParams();
     const returnUrl = searchParams.get('returnUrl');
 
-    const [clientType, setClientType] = useState<'individual' | 'business'>('individual');
     const [branches, setBranches] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
 
@@ -124,30 +123,6 @@ export default function CreateMobileUserRemitterPage() {
         redirectUrl: ''
     });
 
-    // Director State - Limited to 3 to match Database Schema
-    interface Director {
-        name: string;
-        dob: string;
-        address: string;
-        idType: string;
-        idNumber: string;
-    }
-    const [directors, setDirectors] = useState<Director[]>([
-        { name: '', dob: '', address: '', idType: 'Passport', idNumber: '' }
-    ]);
-
-    const addDirector = () => {
-        if (directors.length < 3) {
-            setDirectors([...directors, { name: '', dob: '', address: '', idType: 'Passport', idNumber: '' }]);
-        }
-    };
-
-    const removeDirector = (index: number) => setDirectors(directors.filter((_, i) => i !== index));
-    const updateDirector = (index: number, field: keyof Director, value: string) => {
-        const updated = [...directors];
-        updated[index][field] = value;
-        setDirectors(updated);
-    };
 
     React.useEffect(() => {
         const fetchBranches = async () => {
@@ -166,21 +141,6 @@ export default function CreateMobileUserRemitterPage() {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-
-        // Validation: Business requires at least 1 director
-        if (clientType === 'business' && (directors.length === 0 || !directors[0].name)) {
-            setConfirmModal({
-                isOpen: true,
-                title: 'Validation Error',
-                message: 'Business clients must have at least one director.',
-                type: 'warning',
-                isAlert: true,
-                shouldRedirect: false,
-                redirectUrl: ''
-            });
-            return;
-        }
-
         setLoading(true);
         const formData = new FormData(e.currentTarget);
         const data: any = {};
@@ -190,7 +150,7 @@ export default function CreateMobileUserRemitterPage() {
 
         // Map fields to API expects for individual client
         const apiData: any = {
-            client_type: clientType,
+            client_type: 'individual',
             status: 'active',
             branch: data.branch_id,
             role: 'customer',
@@ -199,19 +159,15 @@ export default function CreateMobileUserRemitterPage() {
             sys_entry_from: 'mobile_app', // registration source explicitly set for mobile users
 
             // Name Fields
-            sender_name: clientType === 'business' ? data.company_name : data.sender_name,
+            sender_name: data.sender_name,
             phone: data.telephone,
             telephone: data.telephone,
 
             // Individual Fields
-            date_of_birth: clientType === 'business' ? null : data.date_of_birth,
-            place_of_birth: clientType === 'business' ? null : data.place_of_birth,
-            occupation: clientType === 'business' ? null : data.occupation,
+            date_of_birth: data.date_of_birth,
+            place_of_birth: data.place_of_birth,
+            occupation: data.occupation,
 
-            // Business Fields (bc_ prefix)
-            bc_company_name: clientType === 'business' ? data.company_name : null,
-            bc_type_of_company: clientType === 'business' ? data.company_type : null,
-            bc_company_house_no: clientType === 'business' ? data.company_reg_no : null,
 
             address_1: data.address_1,
             address_2: data.address_2,
@@ -220,25 +176,12 @@ export default function CreateMobileUserRemitterPage() {
             county: data.county,
             country: data.country,
 
-            // ID details (For business, this might be primary contact ID or null if directors handled separately)
+           
             id_type: data.id_type,
             id_no: data.id_no,
             id_expire_date: data.id_expire_date,
             email: 'mobile-entry@linkforex.com',
         };
-
-        // --- FLATTEN DIRECTORS INTO API PAYLOAD (bc_d1, bc_d2, bc_d3) ---
-        if (clientType === 'business') {
-            directors.forEach((d, i) => {
-                const prefix = `bc_d${i + 1}`; // bc_d1, bc_d2, bc_d3
-                apiData[`${prefix}_name`] = d.name;
-                apiData[`${prefix}_dob`] = d.dob;
-                apiData[`${prefix}_address1`] = d.address;
-                apiData[`${prefix}_file_director_id`] = d.idType + ':' + d.idNumber; // composite or strictly mapped
-                // Add other mappings if detailed fields exist
-            });
-        }
-
         try {
             const res = await fetch(ENDPOINTS.REMITTERS.LIST, {
                 method: 'POST',
@@ -271,7 +214,7 @@ export default function CreateMobileUserRemitterPage() {
             setConfirmModal({
                 isOpen: true,
                 title: 'Success',
-                message: `New Mobile ${clientType === 'business' ? 'Business' : 'Individual'} Profile Created Successfully!`,
+                message: 'New Mobile Individual Profile Created Successfully!',
                 type: 'info',
                 isAlert: true,
                 shouldRedirect: true,
@@ -339,29 +282,7 @@ export default function CreateMobileUserRemitterPage() {
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 ml-1">Client Type</label>
-                            <div className="flex space-x-4">
-                                <label className={`flex-1 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-slate-800 ${clientType === 'individual' ? 'ring-2 ring-teal-500 bg-teal-50/50 dark:bg-teal-900/10' : ''}`}>
-                                    <input type="radio" name="clientType" value="individual" className="sr-only" checked={clientType === 'individual'} onChange={() => setClientType('individual')} />
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${clientType === 'individual' ? 'border-teal-600' : 'border-slate-400'}`}>
-                                            {clientType === 'individual' && <div className="w-2 h-2 rounded-full bg-teal-600"></div>}
-                                        </div>
-                                        <span className="font-bold text-sm text-slate-700 dark:text-slate-300">Individual</span>
-                                    </div>
-                                </label>
-                                <label className={`flex-1 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-slate-800 ${clientType === 'business' ? 'ring-2 ring-teal-500 bg-teal-50/50 dark:bg-teal-900/10' : ''}`}>
-                                    <input type="radio" name="clientType" value="business" className="sr-only" checked={clientType === 'business'} onChange={() => setClientType('business')} />
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${clientType === 'business' ? 'border-teal-600' : 'border-slate-400'}`}>
-                                            {clientType === 'business' && <div className="w-2 h-2 rounded-full bg-teal-600"></div>}
-                                        </div>
-                                        <span className="font-bold text-sm text-slate-700 dark:text-slate-300">Business</span>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-                        <div>
+                            <input type="hidden" name="clientType" value="individual" />
                             <FormSelect label="Branch" name="branch_id" Icon={Building} options={branches.length > 0 ? branches.map(b => b.code || b.name) : ['London - Link Forex Ltd']} required />
                             <div className="flex items-center mt-4 ml-1">
                                 <input type="checkbox" id="sanction_list_verified" name="sanction_list_verified" className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 cursor-pointer" />
@@ -373,31 +294,18 @@ export default function CreateMobileUserRemitterPage() {
                     </div>
                 </div>
 
-                {/* Section 2: Personal / Company Details */}
+                {/* Section 2: Personal Details */}
                 <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
                         <User className="w-5 h-5 mr-2 text-teal-500" />
-                        {clientType === 'business' ? 'Company Details' : 'Personal Details'}
+                        Personal Details
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormInput label="Sender ID" name="sender_id" placeholder="Auto-generated" disabled defaultValue={'LF3992'} Icon={CreditCard} />
-                        {clientType === 'business' ? (
-                            <>
-                                <div className="md:col-span-2">
-                                    <FormInput label="Company Name" name="company_name" placeholder="Registered Company Name" required Icon={Building} />
-                                </div>
-                                <FormSelect label="Company Type" name="company_type" options={['LTD', 'PLC', 'Sole Trader', 'Partnership', 'LLP']} Icon={Layers} required />
-                                <FormInput label="Company Reg No" name="company_reg_no" placeholder="Registration Number" required Icon={FileText} />
-                                <FormInput label="Trading Address" name="bc_trading_address" placeholder="If different from reg address" Icon={MapPin} />
-                            </>
-                        ) : (
-                            <>
                                 <FormInput label="Full Name" name="sender_name" placeholder="Full Name" required Icon={User} />
                                 <FormInput label="Date of Birth" name="date_of_birth" type="date" required Icon={Calendar} />
                                 <FormInput label="Place of Birth" name="place_of_birth" placeholder="City, Country" Icon={MapPin} />
                                 <FormInput label="Occupation" name="occupation" placeholder="Occupation" Icon={Briefcase} />
-                            </>
-                        )}
                         <FormInput label="Telephone" name="telephone" placeholder="Phone number" required Icon={Phone} />
                     </div>
                 </div>
@@ -421,63 +329,6 @@ export default function CreateMobileUserRemitterPage() {
                         <FormInput label="Country" name="country" defaultValue="United Kingdom" required Icon={Globe} />
                     </div>
                 </div>
-
-                {/* Section 4: Directors (Business Only) - Max 3 */}
-                {clientType === 'business' && (
-                    <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
-                                <Users className="w-5 h-5 mr-2 text-teal-500" />
-                                Directors (Max 3)
-                            </h3>
-                            {directors.length < 3 && (
-                                <button type="button" onClick={addDirector} className="text-xs font-bold text-teal-600 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-full transition-colors flex items-center">
-                                    <Plus className="w-3 h-3 mr-1" /> Add Director
-                                </button>
-                            )}
-                        </div>
-
-                        {/* Info Note */}
-                        <div className="mb-6 bg-teal-50 dark:bg-teal-900/20 p-4 rounded-xl text-xs text-teal-700 dark:text-teal-300 flex items-start">
-                            <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0 mt-0.5" />
-                            <p>System supports up to 3 directors. Please enter details for at least one director / owner.</p>
-                        </div>
-
-                        <div className="space-y-4">
-                            {directors.map((director, index) => (
-                                <div key={index} className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 relative group">
-                                    <div className="absolute top-4 right-4">
-                                        {directors.length > 1 && (
-                                            <button type="button" onClick={() => removeDirector(index)} className="text-red-400 hover:text-red-600 p-1">
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        )}
-                                    </div>
-                                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Director {index + 1}</h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="md:col-span-2">
-                                            <FormInput label="Full Name" value={director.name} onChange={(e: any) => updateDirector(index, 'name', e.target.value)} required Icon={User} />
-                                        </div>
-                                        <FormInput label="Date of Birth" type="date" value={director.dob} onChange={(e: any) => updateDirector(index, 'dob', e.target.value)} required Icon={Calendar} />
-                                        <div className="md:col-span-2">
-                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Address</label>
-                                            <textarea rows={2} className="input-glass w-full text-sm p-3" value={director.address} onChange={(e) => updateDirector(index, 'address', e.target.value)} required />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">ID Type</label>
-                                            <select className="input-glass w-full py-3 px-4 text-sm" value={director.idType} onChange={(e) => updateDirector(index, 'idType', e.target.value)}>
-                                                <option>Passport</option>
-                                                <option>Driving License</option>
-                                                <option>National ID</option>
-                                            </select>
-                                        </div>
-                                        <FormInput label="ID Number" value={director.idNumber} onChange={(e: any) => updateDirector(index, 'idNumber', e.target.value)} Icon={FileText} />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
 
                 {/* Section 5: IDs & Documents */}
                 <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">

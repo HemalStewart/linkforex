@@ -1738,7 +1738,6 @@ export default function CreateTransferPage() {
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Source Of Income</label>
                         <select className="input-glass w-full" value={formData.sourceOfIncome} onChange={(event) => setFormData((prev) => ({ ...prev, sourceOfIncome: event.target.value }))}>
                             <option>Salary</option>
-                            <option>Business</option>
                             <option>Savings</option>
                             <option>Gift</option>
                         </select>
@@ -1759,7 +1758,6 @@ export default function CreateTransferPage() {
                             <option>Family Maintenance/Savings</option>
                             <option>Medical</option>
                             <option>Education</option>
-                            <option>Business</option>
                         </select>
                     </div>
 

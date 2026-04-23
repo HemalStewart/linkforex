@@ -100,7 +100,6 @@ export default function CreateRemitterPage() {
     const searchParams = useSearchParams();
     const returnUrl = searchParams.get('returnUrl');
 
-    const [clientType, setClientType] = useState<'individual' | 'business'>('individual');
     const [activeTab, setActiveTab] = useState('general');
     const [branches, setBranches] = useState<any[]>([]);
     const [relationships, setRelationships] = useState<string[]>(['Family']);
@@ -171,29 +170,9 @@ export default function CreateRemitterPage() {
         setReceivers(updated);
     };
 
-    // Director State
-    interface Director {
-        name: string;
-        dob: string;
-        address: string;
-        idType: string;
-        idNumber: string;
-    }
-    const [directors, setDirectors] = useState<Director[]>([
-        { name: '', dob: '', address: '', idType: 'Passport', idNumber: '' }
-    ]);
-
-    const addDirector = () => setDirectors([...directors, { name: '', dob: '', address: '', idType: 'Passport', idNumber: '' }]);
-    const removeDirector = (index: number) => setDirectors(directors.filter((_, i) => i !== index));
-    const updateDirector = (index: number, field: keyof Director, value: string) => {
-        const updated = [...directors];
-        updated[index][field] = value;
-        setDirectors(updated);
-    };
 
     const tabs = [
         { id: 'general', label: 'General Details' },
-        ...(clientType === 'business' ? [{ id: 'directors', label: 'Directors' }] : []),
         { id: 'kyc', label: 'KYC Documents' },
         { id: 'receivers', label: 'Beneficiaries' },
     ];
@@ -213,22 +192,6 @@ export default function CreateRemitterPage() {
                 return;
             }
         }
-
-        if (activeTab === 'directors') {
-            if (directors.length === 0 || !directors[0].name) {
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Validation Error',
-                    message: 'Business clients must have at least one director.',
-                    type: 'warning',
-                    isAlert: true,
-                    shouldRedirect: false,
-                    redirectUrl: ''
-                });
-                return;
-            }
-        }
-
         if (currentTabIndex < tabs.length - 1) {
             setActiveTab(tabs[currentTabIndex + 1].id);
             window.scrollTo(0, 0);
@@ -276,22 +239,6 @@ export default function CreateRemitterPage() {
             setActiveTab('receivers');
             return;
         }
-
-        // Validation: Business requires at least 1 director
-        if (clientType === 'business' && (directors.length === 0 || !directors[0].name)) {
-            setConfirmModal({
-                isOpen: true,
-                title: 'Validation Error',
-                message: 'Business clients must have at least one director.',
-                type: 'warning',
-                isAlert: true,
-                shouldRedirect: false,
-                redirectUrl: ''
-            });
-            setActiveTab('directors');
-            return;
-        }
-
         setLoading(true);
         const formData = new FormData(e.currentTarget);
         const data: any = {};
@@ -301,22 +248,18 @@ export default function CreateRemitterPage() {
 
         // Map fields to API expects for individual client
         const apiData: any = {
-            client_type: clientType,
+            client_type: 'individual',
             status: 'active',
             branch: data.branch_id,
             role: 'customer',
-            name: clientType === 'business' ? data.company_name : data.sender_name,
+            name: data.sender_name,
             phone: data.telephone,
 
             // Individual Fields
-            dob: clientType === 'business' ? null : data.date_of_birth,
-            place_of_birth: clientType === 'business' ? null : data.place_of_birth,
-            occupation: clientType === 'business' ? null : data.occupation,
+            dob: data.date_of_birth,
+            place_of_birth: data.place_of_birth,
+            occupation: data.occupation,
 
-            // Business Fields
-            company_name: clientType === 'business' ? data.company_name : null,
-            company_type: clientType === 'business' ? data.company_type : null,
-            company_reg_no: clientType === 'business' ? data.company_reg_no : null,
 
             address_1: data.address_1,
             address_2: data.address_2,
@@ -325,7 +268,7 @@ export default function CreateRemitterPage() {
             county: data.county,
             country: data.country,
 
-            // ID details (For business, this might be primary contact ID or null if directors handled separately)
+           
             id_type: data.id_type,
             id_number: data.id_no,
             id_expiry: data.id_expire_date,
@@ -358,26 +301,6 @@ export default function CreateRemitterPage() {
 
             const result = await res.json();
             const remitterId = result.id; // Assuming API returns the created ID
-
-            // 2. Create Directors (if business)
-            if (clientType === 'business') {
-                const directorPromises = directors.map(d => {
-                    return fetch(ENDPOINTS.DIRECTORS.LIST, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            remitter_id: remitterId,
-                            name: d.name,
-                            dob: d.dob,
-                            address: d.address,
-                            id_type: d.idType,
-                            id_number: d.idNumber
-                        })
-                    });
-                });
-                await Promise.all(directorPromises);
-            }
-
             // 3. Create Receivers
             const receiverPromises = receivers.map(r => {
                 return fetch(ENDPOINTS.BENEFICIARIES.LIST, {
@@ -402,7 +325,7 @@ export default function CreateRemitterPage() {
             setConfirmModal({
                 isOpen: true,
                 title: 'Success',
-                message: `New ${clientType === 'business' ? 'Business' : 'Individual'} Remitter Created Successfully!`,
+                message: 'New Individual Remitter Created Successfully!',
                 type: 'info',
                 isAlert: true,
                 shouldRedirect: true,
@@ -507,51 +430,13 @@ export default function CreateRemitterPage() {
                                 </div>
                             </div>
 
-                            <div className="flex flex-col md:flex-row gap-6 mb-6">
-                                <div className="flex-1">
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Client Type</label>
-                                    <div className="flex space-x-4">
-                                        <label className={`flex-1 border rounded-lg p-4 cursor-pointer transition-colors ${clientType === 'individual' ? 'bg-teal-50 border-teal-500 ring-1 ring-teal-500' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
-                                            <input type="radio" name="clientType" value="individual" className="sr-only" checked={clientType === 'individual'} onChange={() => setClientType('individual')} />
-                                            <div className="flex items-center space-x-3">
-                                                <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${clientType === 'individual' ? 'border-teal-600' : 'border-slate-400'}`}>
-                                                    {clientType === 'individual' && <div className="w-2 h-2 rounded-full bg-teal-600"></div>}
-                                                </div>
-                                                <span className={`font-medium ${clientType === 'individual' ? 'text-teal-900' : 'text-slate-700 dark:text-slate-300'}`}>Individual</span>
-                                            </div>
-                                        </label>
-                                        <label className={`flex-1 border rounded-lg p-4 cursor-pointer transition-colors ${clientType === 'business' ? 'bg-teal-50 border-teal-500 ring-1 ring-teal-500' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
-                                            <input type="radio" name="clientType" value="business" className="sr-only" checked={clientType === 'business'} onChange={() => setClientType('business')} />
-                                            <div className="flex items-center space-x-3">
-                                                <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${clientType === 'business' ? 'border-teal-600' : 'border-slate-400'}`}>
-                                                    {clientType === 'business' && <div className="w-2 h-2 rounded-full bg-teal-600"></div>}
-                                                </div>
-                                                <span className={`font-medium ${clientType === 'business' ? 'text-teal-900' : 'text-slate-700 dark:text-slate-300'}`}>Business</span>
-                                            </div>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <FormInput label="Sender ID" name="sender_id" placeholder="Auto-generated" disabled defaultValue={'LF3992'} />
 
-                                {clientType === 'business' ? (
-                                    <>
-                                        <div className="md:col-span-2">
-                                            <FormInput label="Company Name *" name="company_name" placeholder="Registered Company Name" required />
-                                        </div>
-                                        <FormSelect label="Company Type *" name="company_type" options={['LTD', 'PLC', 'Sole Trader', 'Partnership', 'LLP']} />
-                                        <FormInput label="Company Reg No *" name="company_reg_no" placeholder="Registration Number" required />
-                                    </>
-                                ) : (
-                                    <>
                                         <FormInput label="Sender Name *" name="sender_name" placeholder="Full Name" required />
                                         <FormInput label="Date of Birth *" name="date_of_birth" type="date" required />
                                         <FormInput label="Place of Birth" name="place_of_birth" placeholder="City, Country" />
                                         <FormInput label="Occupation" name="occupation" placeholder="Occupation" />
-                                    </>
-                                )}
 
                                 <FormInput label="Telephone *" name="telephone" placeholder="Phone number" required />
                             </div>
@@ -606,97 +491,6 @@ export default function CreateRemitterPage() {
                                     <FormFileUpload label="AML Screening Doc" name="sender_details_aml_screening_doc" />
                                     <FormFileUpload label="Other Supporting Document" name="other_doc" />
                                 </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* DIRECTORS TAB */}
-                    {activeTab === 'directors' && (
-                        <div className="space-y-6 animate-fade-in">
-                            <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg border border-amber-200 dark:border-amber-800 text-sm text-amber-700 dark:text-amber-300">
-                                Please add at least one director for this business.
-                            </div>
-
-                            {directors.map((director, index) => (
-                                <div key={index} className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 relative group">
-                                    <div className="absolute top-4 right-4">
-                                        {directors.length > 1 && (
-                                            <button
-                                                type="button"
-                                                onClick={() => removeDirector(index)}
-                                                className="text-red-500 hover:text-red-700 text-sm font-medium p-2 bg-white dark:bg-slate-800 rounded-lg shadow-sm"
-                                            >
-                                                Remove
-                                            </button>
-                                        )}
-                                    </div>
-                                    <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide mb-4">Director #{index + 1}</h3>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                        <div className="md:col-span-1">
-                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Full Name *</label>
-                                            <input
-                                                type="text"
-                                                required
-                                                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm"
-                                                value={director.name}
-                                                onChange={(e) => updateDirector(index, 'name', e.target.value)}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Date of Birth *</label>
-                                            <input
-                                                type="date"
-                                                required
-                                                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm"
-                                                value={director.dob}
-                                                onChange={(e) => updateDirector(index, 'dob', e.target.value)}
-                                            />
-                                        </div>
-                                        <div className="md:col-span-3">
-                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Residential Address *</label>
-                                            <textarea
-                                                required
-                                                rows={2}
-                                                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm"
-                                                value={director.address}
-                                                onChange={(e) => updateDirector(index, 'address', e.target.value)}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">ID Type</label>
-                                            <select
-                                                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm"
-                                                value={director.idType}
-                                                onChange={(e) => updateDirector(index, 'idType', e.target.value)}
-                                            >
-                                                <option>Passport</option>
-                                                <option>Driving License</option>
-                                                <option>National ID</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">ID Number</label>
-                                            <input
-                                                type="text"
-                                                className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm"
-                                                value={director.idNumber}
-                                                onChange={(e) => updateDirector(index, 'idNumber', e.target.value)}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-
-                            <div className="flex justify-center pt-4">
-                                <button
-                                    type="button"
-                                    onClick={addDirector}
-                                    className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 font-medium transition-colors flex items-center space-x-2"
-                                >
-                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                                    <span>Add Another Director</span>
-                                </button>
                             </div>
                         </div>
                     )}
