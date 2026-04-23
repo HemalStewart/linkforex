@@ -49,14 +49,6 @@ type BranchRateRow = {
     updated_at?: string | null;
 };
 
-type MobileRateRow = {
-    id: number;
-    currency_code?: string;
-    code?: string;
-    source_branch_code?: string;
-    display_order?: number;
-};
-
 type CurrencyOption = {
     code: string;
     name: string;
@@ -123,7 +115,6 @@ export default function BranchRatesPage() {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [rows, setRows] = useState<BranchRateRow[]>([]);
-    const [mobileRows, setMobileRows] = useState<MobileRateRow[]>([]);
     const [branches, setBranches] = useState<Branch[]>([]);
     const [currencies, setCurrencies] = useState<CurrencyOption[]>([]);
     const [search, setSearch] = useState('');
@@ -147,17 +138,15 @@ export default function BranchRatesPage() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [ratesRes, branchesRes, countriesRes, mobileRes] = await Promise.all([
+            const [ratesRes, branchesRes, countriesRes] = await Promise.all([
                 fetch(ENDPOINTS.BRANCH_CURRENCY_RATES.LIST),
                 fetch(`${ENDPOINTS.BRANCHES.LIST}?status=active`),
                 fetch(`${ENDPOINTS.COUNTRIES.LIST}?status=active&payout_currency=yes&sort=name&dir=asc`),
-                fetch(ENDPOINTS.MOBILE_ADMIN.EXCHANGE_RATES),
             ]);
 
             const ratesData = ratesRes.ok ? await ratesRes.json() : [];
             const branchData = branchesRes.ok ? await branchesRes.json() : [];
             const countryData = countriesRes.ok ? await countriesRes.json() : [];
-            const mobileData = mobileRes.ok ? await mobileRes.json() : [];
 
             const senderBranches = (Array.isArray(branchData) ? branchData : []).filter((branch: Branch) =>
                 isSenderBranch(branch)
@@ -178,13 +167,11 @@ export default function BranchRatesPage() {
             setRows(Array.isArray(ratesData) ? ratesData : []);
             setBranches(senderBranches);
             setCurrencies(Array.from(currencyMap.values()).sort((a, b) => a.code.localeCompare(b.code)));
-            setMobileRows(Array.isArray(mobileData) ? mobileData : []);
         } catch (error) {
             console.error('Failed to load branch rates', error);
             setRows([]);
             setBranches([]);
             setCurrencies([]);
-            setMobileRows([]);
         } finally {
             setLoading(false);
         }
@@ -408,32 +395,7 @@ export default function BranchRatesPage() {
                 if (!createResponse.ok) {
                     throw new Error(await readErrorMessage(createResponse, 'Failed to create branch rate.'));
                 }
-
-                const created = await createResponse.json();
-                const duplicatesRes = await fetch(
-                    `${ENDPOINTS.BRANCH_CURRENCY_RATES.LIST}?branch_code=${encodeURIComponent(branchCode)}&currency_code=${encodeURIComponent(selectedCurrency.code)}`
-                );
-                const duplicates = duplicatesRes.ok ? await duplicatesRes.json() : [];
-                if (Array.isArray(duplicates)) {
-                    const toDisable = duplicates
-                        .filter((row) => String(row?.id || '') !== String(created?.id || ''))
-                        .filter((row) => normalizeYesNo(row?.active) === 'yes');
-
-                    for (const duplicate of toDisable) {
-                        await fetch(ENDPOINTS.BRANCH_CURRENCY_RATES.DETAIL(duplicate.id), {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ active: 'no', modified_user: userName }),
-                        });
-                    }
-                }
             }
-
-            await upsertMobileConfig({
-                currencyCode: selectedCurrency.code,
-                branchCode: form.branchCode,
-                mobileRows,
-            });
 
             setToast({
                 isOpen: true,
@@ -525,19 +487,6 @@ export default function BranchRatesPage() {
                             />
                         </div>
                         <div>
-                            <label className="mb-2 ml-1 block text-sm font-bold text-slate-700 dark:text-slate-300">Branch Rate</label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                className="input-glass w-full"
-                                value={form.branchRate}
-                                onChange={(event) => setForm((prev) => ({ ...prev, branchRate: event.target.value }))}
-                                onBlur={(event) => setForm((prev) => ({ ...prev, branchRate: normalizeRateDraft(event.target.value) }))}
-                                required
-                            />
-                        </div>
-                        <div>
                             <label className="mb-2 ml-1 block text-sm font-bold text-slate-700 dark:text-slate-300">Customer Digital Rate</label>
                             <input
                                 type="number"
@@ -547,6 +496,19 @@ export default function BranchRatesPage() {
                                 value={form.digitalRate}
                                 onChange={(event) => setForm((prev) => ({ ...prev, digitalRate: event.target.value }))}
                                 onBlur={(event) => setForm((prev) => ({ ...prev, digitalRate: normalizeRateDraft(event.target.value) }))}
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="mb-2 ml-1 block text-sm font-bold text-slate-700 dark:text-slate-300">Branch Rate</label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                className="input-glass w-full"
+                                value={form.branchRate}
+                                onChange={(event) => setForm((prev) => ({ ...prev, branchRate: event.target.value }))}
+                                onBlur={(event) => setForm((prev) => ({ ...prev, branchRate: normalizeRateDraft(event.target.value) }))}
                                 required
                             />
                         </div>
@@ -718,13 +680,13 @@ export default function BranchRatesPage() {
                                         </button>
                                     </th>
                                     <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
-                                        <button onClick={() => toggleSort('branchRate')} className="flex items-center gap-1">
-                                            Branch Rate <span className="text-slate-400 dark:text-slate-300">{sortIndicator('branchRate')}</span>
+                                        <button onClick={() => toggleSort('digital')} className="flex items-center gap-1">
+                                            Customer Digital Rate <span className="text-slate-400 dark:text-slate-300">{sortIndicator('digital')}</span>
                                         </button>
                                     </th>
                                     <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
-                                        <button onClick={() => toggleSort('digital')} className="flex items-center gap-1">
-                                            Customer Digital Rate <span className="text-slate-400 dark:text-slate-300">{sortIndicator('digital')}</span>
+                                        <button onClick={() => toggleSort('branchRate')} className="flex items-center gap-1">
+                                            Branch Rate <span className="text-slate-400 dark:text-slate-300">{sortIndicator('branchRate')}</span>
                                         </button>
                                     </th>
                                     <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
@@ -769,13 +731,13 @@ export default function BranchRatesPage() {
                                                 {Number(row.customer_rate || 0).toFixed(2)}
                                             </td>
                                             <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
-                                                {row.branch_rate !== null && row.branch_rate !== undefined
-                                                    ? Number(row.branch_rate || 0).toFixed(2)
+                                                {row.digital_rate !== null && row.digital_rate !== undefined
+                                                    ? Number(row.digital_rate || 0).toFixed(2)
                                                     : '—'}
                                             </td>
                                             <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
-                                                {row.digital_rate !== null && row.digital_rate !== undefined
-                                                    ? Number(row.digital_rate || 0).toFixed(2)
+                                                {row.branch_rate !== null && row.branch_rate !== undefined
+                                                    ? Number(row.branch_rate || 0).toFixed(2)
                                                     : '—'}
                                             </td>
                                             <td className="px-4 py-4 text-sm">
@@ -827,7 +789,7 @@ function isSenderBranch(branch: Branch): boolean {
     )
         .trim()
         .toLowerCase();
-    if (defaultType === 'sender') {
+    if (defaultType === 'sender' || defaultType === 'both') {
         return true;
     }
 
@@ -842,63 +804,6 @@ function isSenderBranch(branch: Branch): boolean {
 }
 
 
-
-async function upsertMobileConfig({
-    currencyCode,
-    branchCode,
-    mobileRows,
-}: {
-    currencyCode: string;
-    branchCode: string;
-    mobileRows: MobileRateRow[];
-}) {
-    const existing = mobileRows.find((row) =>
-        String(row.code || row.currency_code || '').trim().toUpperCase() === currencyCode.toUpperCase()
-    );
-
-    const payload = {
-        currency_code: currencyCode.toUpperCase(),
-        source_branch_code: branchCode.toUpperCase(),
-        visible_in_app: 'yes',
-        show_on_home: 'yes',
-        default_for_transfer: 'no',
-        display_order: Number(existing?.display_order ?? 10),
-    };
-
-    let response = existing
-        ? await fetch(ENDPOINTS.MOBILE_ADMIN.EXCHANGE_RATE_DETAIL(existing.id), {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-        })
-        : await fetch(ENDPOINTS.MOBILE_ADMIN.EXCHANGE_RATES, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-        });
-
-    if (!existing && response.status === 409) {
-        const freshRes = await fetch(ENDPOINTS.MOBILE_ADMIN.EXCHANGE_RATES, { cache: 'no-store' });
-        const freshRows = freshRes.ok ? await freshRes.json() : [];
-        const matched = Array.isArray(freshRows)
-            ? freshRows.find((row: MobileRateRow) =>
-                String(row.code || row.currency_code || '').trim().toUpperCase() === currencyCode.toUpperCase()
-            )
-            : null;
-
-        if (matched?.id) {
-            response = await fetch(ENDPOINTS.MOBILE_ADMIN.EXCHANGE_RATE_DETAIL(matched.id), {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-            });
-        }
-    }
-
-    if (!response.ok) {
-        throw new Error(await readErrorMessage(response, 'Failed to update mobile digital rate config.'));
-    }
-}
 
 async function readErrorMessage(response: Response, fallback: string): Promise<string> {
     try {
