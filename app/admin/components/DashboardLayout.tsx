@@ -86,11 +86,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const themeMenuRef = React.useRef<HTMLDivElement | null>(null);
     const originalFetchRef = React.useRef<typeof window.fetch | null>(null);
     const signOffSentRef = React.useRef(false);
-    const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
-        'Operations': true,
-        'Basic Data': true,
-        'Management': true
-    });
+    const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
 
     const [counts, setCounts] = useState({
         transfers: 0,
