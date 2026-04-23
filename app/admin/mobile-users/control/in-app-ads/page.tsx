@@ -284,9 +284,6 @@ export default function MobileInAppAdsPage() {
                     <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                         <div>
                             <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">Content Inventory</h2>
-                            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                                Filter onboarding and home carousel items by placement, title, or status.
-                            </p>
                         </div>
                         <div className="grid w-full gap-3 lg:max-w-xl lg:grid-cols-[minmax(0,1fr)_180px]">
                             <label className="relative">

@@ -637,11 +637,6 @@ export default function BranchRatesPage() {
                             ))}
                         </select>
                     </div>
-                    <div className="md:col-span-2 flex items-end">
-                        <div className="text-xs text-slate-400 dark:text-slate-300">
-                            Search across all columns and narrow by status, branch, or currency.
-                        </div>
-                    </div>
                 </div>
             </div>
 

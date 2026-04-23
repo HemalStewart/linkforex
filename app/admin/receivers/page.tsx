@@ -73,7 +73,7 @@ export default function ReceiversPage() {
 
             <div className="card-glass p-5">
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
-                    <div className="xl:col-span-5">
+                    <div className="xl:col-span-12">
                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left">
@@ -87,9 +87,6 @@ export default function ReceiversPage() {
                                 className="input-glass w-full text-sm"
                             />
                         </div>
-                    </div>
-                    <div className="xl:col-span-7 flex items-end">
-                        <p className="text-xs text-slate-400 dark:text-slate-300">Search across all receiver columns.</p>
                     </div>
                 </div>
             </div>

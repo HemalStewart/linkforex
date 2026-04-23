@@ -336,11 +336,6 @@ export default function BranchesPage() {
                             />
                         </div>
                     </div>
-                    <div className="flex items-end">
-                        <div className="text-xs text-slate-400 dark:text-slate-300">
-                            Search across all columns.
-                        </div>
-                    </div>
                 </div>
             </div>
 

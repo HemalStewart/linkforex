@@ -304,11 +304,6 @@ export default function RolesPage() {
                             <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
                         </div>
                     </div>
-                    <div className="flex items-end">
-                        <div className="text-xs text-slate-400 dark:text-slate-300">
-                            Search matches across all columns.
-                        </div>
-                    </div>
                 </div>
             </div>
 
