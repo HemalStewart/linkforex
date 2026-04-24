@@ -6,6 +6,8 @@ import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../../components/ConfirmModal';
 import type { MobileAd } from '../_shared';
 
+const MAX_UPLOAD_BYTES = 4 * 1024 * 1024; // Keep below typical proxy/serverless limits.
+
 const placementOptions = [
     { value: 'all', label: 'All Placements' },
     { value: 'onboarding', label: 'Onboarding' },
@@ -17,6 +19,72 @@ const placementLabels: Record<'onboarding' | 'home_carousel', string> = {
     home_carousel: 'Home Carousel',
 };
 
+const formatBytes = (bytes: number): string => {
+    if (!Number.isFinite(bytes) || bytes <= 0) return '0 B';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let idx = 0;
+    let value = bytes;
+    while (value >= 1024 && idx < units.length - 1) {
+        value /= 1024;
+        idx += 1;
+    }
+    return `${value.toFixed(idx === 0 ? 0 : 2)} ${units[idx]}`;
+};
+
+const readImageElement = (file: File): Promise<HTMLImageElement> => {
+    return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+            URL.revokeObjectURL(url);
+            resolve(img);
+        };
+        img.onerror = () => {
+            URL.revokeObjectURL(url);
+            reject(new Error('Unable to read image'));
+        };
+        img.src = url;
+    });
+};
+
+const compressImage = async (file: File): Promise<File> => {
+    // If already small enough, keep original.
+    if (file.size <= MAX_UPLOAD_BYTES) {
+        return file;
+    }
+
+    const img = await readImageElement(file);
+    const maxEdge = 1920;
+    const scale = Math.min(1, maxEdge / Math.max(img.naturalWidth, img.naturalHeight));
+    const targetW = Math.max(1, Math.round(img.naturalWidth * scale));
+    const targetH = Math.max(1, Math.round(img.naturalHeight * scale));
+
+    const canvas = document.createElement('canvas');
+    canvas.width = targetW;
+    canvas.height = targetH;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+        return file;
+    }
+    ctx.drawImage(img, 0, 0, targetW, targetH);
+
+    let quality = 0.86;
+    let blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality));
+    if (!blob) return file;
+
+    while (blob.size > MAX_UPLOAD_BYTES && quality >= 0.5) {
+        quality -= 0.08;
+        blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality));
+        if (!blob) break;
+    }
+
+    if (!blob || blob.size > file.size) {
+        return file;
+    }
+
+    return new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' });
+};
+
 export default function MobileInAppAdsPage() {
     const [loading, setLoading] = useState(true);
     const [creatingAd, setCreatingAd] = useState(false);
@@ -24,11 +92,11 @@ export default function MobileInAppAdsPage() {
     const [search, setSearch] = useState('');
     const [placementFilter, setPlacementFilter] = useState<'all' | 'onboarding' | 'home_carousel'>('all');
     const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imageMeta, setImageMeta] = useState<{ originalBytes: number; finalBytes: number } | null>(null);
     const [adForm, setAdForm] = useState({
         placement: 'onboarding' as 'onboarding' | 'home_carousel',
         title: '',
         description: '',
-        click_url: '',
         priority: 0,
         status: 'active' as 'active' | 'inactive',
     });
@@ -86,7 +154,6 @@ export default function MobileInAppAdsPage() {
                 return [
                     ad.title,
                     ad.description,
-                    ad.click_url,
                     ad.status,
                     placementLabels[ad.placement] ?? ad.placement,
                 ]
@@ -100,36 +167,48 @@ export default function MobileInAppAdsPage() {
             showModal('Missing Details', 'Title is required.', 'warning');
             return;
         }
+        if (!imageFile) {
+            showModal('Missing Details', 'Image upload is required.', 'warning');
+            return;
+        }
         setCreatingAd(true);
         try {
             const formData = new FormData();
             formData.append('placement', adForm.placement);
             formData.append('title', adForm.title);
             formData.append('description', adForm.description);
-            formData.append('click_url', adForm.click_url);
             formData.append('priority', String(adForm.priority));
             formData.append('status', adForm.status);
-            if (imageFile) {
-                formData.append('image', imageFile);
-            }
+            formData.append('image', imageFile);
 
             const res = await fetch(ENDPOINTS.MOBILE_ADMIN.ADS, {
                 method: 'POST',
                 body: formData,
             });
             if (!res.ok) {
-                showModal('Create Failed', 'Could not create content item.', 'danger');
+                let message = 'Could not create content item.';
+                try {
+                    const payload = await res.json();
+                    if (payload?.message) message = String(payload.message);
+                    if (payload?.messages && typeof payload.messages === 'object') {
+                        const entries = Object.values(payload.messages).map((v) => String(v));
+                        if (entries.length > 0) message = entries.join('\n');
+                    }
+                } catch {
+                    // ignore
+                }
+                showModal('Create Failed', message, 'danger');
                 return;
             }
             setAdForm({
                 placement: 'onboarding',
                 title: '',
                 description: '',
-                click_url: '',
                 priority: 0,
                 status: 'active',
             });
             setImageFile(null);
+            setImageMeta(null);
             await loadAds();
             showModal('Created', 'Content item created successfully.', 'success');
         } catch {
@@ -241,19 +320,30 @@ export default function MobileInAppAdsPage() {
                             <input
                                 type="file"
                                 accept="image/*"
-                                onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
+                                onChange={async (e) => {
+                                    const file = e.target.files?.[0] ?? null;
+                                    if (!file) {
+                                        setImageFile(null);
+                                        setImageMeta(null);
+                                        return;
+                                    }
+                                    try {
+                                        const compressed = await compressImage(file);
+                                        setImageFile(compressed);
+                                        setImageMeta({ originalBytes: file.size, finalBytes: compressed.size });
+                                    } catch {
+                                        setImageFile(file);
+                                        setImageMeta({ originalBytes: file.size, finalBytes: file.size });
+                                    }
+                                }}
                                 className="input-glass py-2.5 text-sm"
                             />
                             <span className="mt-1 block text-xs text-slate-500 dark:text-slate-400">
-                                {imageFile ? imageFile.name : 'Optional image upload'}
+                                {imageFile
+                                    ? `${imageFile.name} · ${formatBytes(imageMeta?.originalBytes ?? imageFile.size)} → ${formatBytes(imageMeta?.finalBytes ?? imageFile.size)}`
+                                    : 'Upload an image (auto-compressed if needed)'}
                             </span>
                         </label>
-                        <input
-                            placeholder="Click URL"
-                            value={adForm.click_url}
-                            onChange={(e) => setAdForm((prev) => ({ ...prev, click_url: e.target.value }))}
-                            className="input-glass py-2.5 text-sm md:col-span-2"
-                        />
                         <input
                             type="number"
                             placeholder="Priority"
@@ -291,7 +381,7 @@ export default function MobileInAppAdsPage() {
                                 <input
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
-                                    placeholder="Search title, description, or URL"
+                                    placeholder="Search title or description"
                                     className="input-glass py-2.5 pl-10 text-sm"
                                 />
                             </label>
@@ -316,6 +406,7 @@ export default function MobileInAppAdsPage() {
                         <table className="table-shell">
                             <thead className="table-head">
                                 <tr>
+                                    <th>Image</th>
                                     <th>Title</th>
                                     <th>Placement</th>
                                     <th>Status</th>
@@ -326,6 +417,23 @@ export default function MobileInAppAdsPage() {
                             <tbody className="table-body">
                                 {filteredAds.map((ad) => (
                                     <tr key={ad.id}>
+                                        <td className="w-[84px]">
+                                            <div className="h-11 w-[72px] overflow-hidden rounded-xl border border-white/20 bg-white/30 dark:bg-white/5">
+                                                {ad.image_url ? (
+                                                    // Bust cache for recently updated assets.
+                                                    <img
+                                                        src={`${ad.image_url}${String(ad.image_url).includes('?') ? '&' : '?'}v=${ad.id}`}
+                                                        alt={ad.title}
+                                                        className="h-full w-full object-cover"
+                                                        loading="lazy"
+                                                    />
+                                                ) : (
+                                                    <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-slate-400">
+                                                        No image
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </td>
                                         <td>
                                             <div className="space-y-1">
                                                 <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">{ad.title}</div>
@@ -359,7 +467,7 @@ export default function MobileInAppAdsPage() {
                                 ))}
                                 {filteredAds.length === 0 && (
                                     <tr>
-                                        <td colSpan={5} className="px-3 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
+                                        <td colSpan={6} className="px-3 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
                                             {loading ? 'Loading...' : 'No content items found'}
                                         </td>
                                     </tr>
