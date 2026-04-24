@@ -3,7 +3,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { ENDPOINTS, UPLOADS_BASE_URL } from '@/app/lib/api';
+import { ENDPOINTS } from '@/app/lib/api';
+import { resolveUploadsUrl } from '@/app/lib/uploads';
 import { ArrowLeft, Download, History, Search, RotateCcw } from 'lucide-react';
 
 type Transfer = {
@@ -217,7 +218,8 @@ const encodePath = (rawPath: string): string => (
 const docUrl = (value: unknown): string | null => {
     const raw = asString(value).trim();
     if (!raw || raw === '-' || raw.toLowerCase() === 'none') return null;
-    if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('data:')) return raw;
+    if (raw.startsWith('data:')) return raw;
+    if (raw.startsWith('http://') || raw.startsWith('https://')) return resolveUploadsUrl(raw);
 
     const normalized = raw.replace(/^\/+/, '');
     const withoutUploadsPrefix = normalized.startsWith('uploads/')
@@ -225,7 +227,7 @@ const docUrl = (value: unknown): string | null => {
         : normalized;
     const encoded = encodePath(withoutUploadsPrefix);
 
-    return `${UPLOADS_BASE_URL}/${encoded}`;
+    return resolveUploadsUrl(`uploads/${encoded}`);
 };
 
 function DocumentCell({ value }: { value: unknown }) {

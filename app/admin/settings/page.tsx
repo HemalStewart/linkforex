@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ENDPOINTS, UPLOADS_BASE_URL } from '@/app/lib/api';
+import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import { applyUiSettings, getStoredUiSettings, type UiSettings } from '@/app/lib/uiPreferences';
+import { resolveUploadsUrl } from '@/app/lib/uploads';
 import Modal from '@/app/admin/components/Modal';
 import {
     Building2,
@@ -58,9 +59,7 @@ const resolvePhotoUrl = (value?: string | null, fallback?: string | null): strin
 
     const relative = String(value || '').trim();
     if (!relative) return null;
-    if (/^https?:\/\//i.test(relative)) return relative;
-    const normalized = relative.replace(/^\/+/, '').replace(/^uploads\//, '');
-    return `${UPLOADS_BASE_URL}/${normalized}`;
+    return resolveUploadsUrl(relative) || null;
 };
 
 const toLabel = (value?: string | null, fallback = '—'): string => {

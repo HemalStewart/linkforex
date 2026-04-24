@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { ENDPOINTS, UPLOADS_BASE_URL, isApiRequestUrl } from '@/app/lib/api';
+import { ENDPOINTS, isApiRequestUrl } from '@/app/lib/api';
+import { resolveUploadsUrl } from '@/app/lib/uploads';
 import { clearStoredUser, getStoredUserRaw } from '@/app/lib/authStorage';
 import { isPrivilegedUser as getIsPrivilegedUser } from '@/app/lib/permissions';
 import { applyThemePreference, getStoredThemePreference, resolveTheme, type ThemePreference, type ResolvedTheme } from '@/app/lib/theme';
@@ -560,9 +561,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         const relative = String(user?.profile_photo || '').trim();
         if (!relative) return null;
 
-        if (/^https?:\/\//i.test(relative)) return relative;
-        const normalized = relative.replace(/^\/+/, '').replace(/^uploads\//, '');
-        return `${UPLOADS_BASE_URL}/${normalized}`;
+        return resolveUploadsUrl(relative) || null;
     };
     const toTitleCase = (value?: string, fallback = ''): string => {
         const text = String(value || '').trim();
