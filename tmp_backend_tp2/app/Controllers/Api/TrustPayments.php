@@ -23,20 +23,37 @@ class TrustPayments extends ResourceController
             return $this->fail('Unauthorized', 401);
         }
 
-        $transferId = (int) ($this->request->getVar('transfer_id') ?? 0);
-        if ($transferId <= 0) {
-            return $this->fail(['transfer_id' => 'transfer_id is required.'], 422);
-        }
-
         $payload = $this->request->getPost() ?? [];
         if (!is_array($payload)) {
             $payload = [];
         }
 
+        $transferId = (int) ($this->request->getVar('transfer_id') ?? 0);
+        $orderReference = trim((string) ($this->request->getVar('orderreference') ?? ($payload['orderreference'] ?? '')));
+
         $model = new \App\Models\TransferModel();
-        $transfer = $model->find($transferId);
+        $transfer = null;
+        if ($transferId > 0) {
+            $transfer = $model->find($transferId);
+        }
+
+        // Fallback: map by our transfer code (mobile/web reference) when transfer_id isn't present.
+        if (!$transfer && $orderReference !== '') {
+            $transfer = $model
+                ->where('code', $orderReference)
+                ->orderBy('id', 'DESC')
+                ->first();
+            if ($transfer) {
+                $transferId = (int) ($transfer['id'] ?? 0);
+            }
+        }
+
         if (!$transfer) {
-            return $this->failNotFound('Transfer not found.');
+            return $this->fail([
+                'transfer_id' => $transferId > 0 ? null : 'transfer_id is missing.',
+                'orderreference' => $orderReference !== '' ? null : 'orderreference is missing.',
+                'message' => 'Transfer not found for webhook payload.',
+            ], 422);
         }
 
         $meta = [];
@@ -87,4 +104,3 @@ class TrustPayments extends ResourceController
         ]);
     }
 }
-
