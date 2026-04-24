@@ -45,6 +45,8 @@ export default function MobileAppFlowSettingsPage() {
             next.trust_wallet_network = String(data?.trust_wallet_network || next.trust_wallet_network || '').trim();
             next.trust_wallet_address = String(data?.trust_wallet_address || next.trust_wallet_address || '').trim();
             next.trust_wallet_instructions = String(data?.trust_wallet_instructions || next.trust_wallet_instructions || '').trim();
+            next.exchange_rate_push_title = String(data?.exchange_rate_push_title || next.exchange_rate_push_title || '').trim();
+            next.exchange_rate_push_body = String(data?.exchange_rate_push_body || next.exchange_rate_push_body || '').trim();
             next.veriff_api_key = '';
             next.veriff_hmac_secret = '';
             next.veriff_configured = Boolean(data?.veriff_configured);
@@ -243,6 +245,35 @@ export default function MobileAppFlowSettingsPage() {
                                 onChange={(e) => setSettings((prev) => ({ ...prev, trust_wallet_instructions: e.target.value }))}
                                 className="input-glass mt-1.5 min-h-28 w-full py-2.5 text-sm normal-case"
                                 placeholder="Example: Send the exact amount to the wallet address, keep your transaction hash, and tap 'I have sent funds' in the app."
+                            />
+                        </label>
+                    </div>
+                </div>
+
+                <div className="mt-5 rounded-2xl border border-slate-200/70 bg-white/40 p-4 dark:border-slate-700 dark:bg-slate-900/30">
+                    <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Exchange Rate Push Template</h3>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                        Customize the title and message used when customer digital rates change. Supported placeholders: <span className="font-semibold">{'{base}'}</span>, <span className="font-semibold">{'{currency}'}</span>, <span className="font-semibold">{'{pair}'}</span>, <span className="font-semibold">{'{rate}'}</span>.
+                    </p>
+
+                    <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                            Notification Title
+                            <input
+                                value={settings.exchange_rate_push_title}
+                                onChange={(e) => setSettings((prev) => ({ ...prev, exchange_rate_push_title: e.target.value }))}
+                                className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
+                                placeholder="Exchange rates updated"
+                            />
+                        </label>
+
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 md:col-span-2">
+                            Notification Body
+                            <textarea
+                                value={settings.exchange_rate_push_body}
+                                onChange={(e) => setSettings((prev) => ({ ...prev, exchange_rate_push_body: e.target.value }))}
+                                className="input-glass mt-1.5 min-h-24 w-full py-2.5 text-sm normal-case"
+                                placeholder="New {base} to {currency} customer digital rate: {rate}"
                             />
                         </label>
                     </div>

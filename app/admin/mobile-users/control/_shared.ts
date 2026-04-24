@@ -33,6 +33,8 @@ export type SettingsData = {
     trust_wallet_network: string;
     trust_wallet_address: string;
     trust_wallet_instructions: string;
+    exchange_rate_push_title: string;
+    exchange_rate_push_body: string;
     liveness_provider: 'none' | 'veriff';
     veriff_base_url: string;
     veriff_api_key: string;
@@ -50,6 +52,8 @@ export type YesNoSettingKey = Exclude<
     | 'trust_wallet_network'
     | 'trust_wallet_address'
     | 'trust_wallet_instructions'
+    | 'exchange_rate_push_title'
+    | 'exchange_rate_push_body'
     | 'liveness_provider'
     | 'veriff_base_url'
     | 'veriff_api_key'
@@ -195,6 +199,8 @@ export const defaultSettings: SettingsData = {
     trust_wallet_network: '',
     trust_wallet_address: '',
     trust_wallet_instructions: '',
+    exchange_rate_push_title: 'Exchange rates updated',
+    exchange_rate_push_body: 'New {base} to {currency} customer digital rate: {rate}',
     liveness_provider: 'veriff',
     veriff_base_url: 'https://stationapi.veriff.com',
     veriff_api_key: '',
