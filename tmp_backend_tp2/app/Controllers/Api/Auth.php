@@ -2570,9 +2570,10 @@ class Auth extends BaseController
         $limit = min($limit, 100);
 
         $statusFilter = strtolower(trim((string) ($this->request->getGet('status') ?? '')));
-        $typeFilter = strtolower(trim((string) ($this->request->getGet('type') ?? 'mobile_app')));
-        if ($typeFilter === '') {
-            $typeFilter = 'mobile_app';
+        $typeFilter = strtolower(trim((string) ($this->request->getGet('type') ?? 'mobile')));
+        if ($typeFilter === '' || $typeFilter === 'mobile_app') {
+            // DB enum uses "mobile" (not "mobile_app").
+            $typeFilter = 'mobile';
         }
 
         $model = new \App\Models\TransferModel();
@@ -2735,7 +2736,11 @@ class Auth extends BaseController
         $transfer = $model
             ->where('id', $transferId)
             ->where('remitter_id', (int) ($user['id'] ?? 0))
-            ->where('type', 'mobile_app')
+            ->groupStart()
+            ->where('type', 'mobile')
+            ->orWhere('type', '')
+            ->orWhere('type', null)
+            ->groupEnd()
             ->first();
 
         if (!$transfer) {
@@ -2870,7 +2875,7 @@ class Auth extends BaseController
             ], 503);
         }
 
-        $limitIssue = $this->enforceTransactionLimitsOrFail('app', (int) $user['id'], $sourceAmount, 'mobile_app');
+        $limitIssue = $this->enforceTransactionLimitsOrFail('app', (int) $user['id'], $sourceAmount, 'mobile');
         if ($limitIssue) {
             $status = (int) ($limitIssue['status'] ?? 422);
             return $this->respond($limitIssue, $status);
@@ -2928,7 +2933,7 @@ class Auth extends BaseController
             'source_of_funds' => 'trust_wallet',
             'purpose' => $purpose !== '' ? $purpose : 'Family Support',
             'status' => 'awaiting_funds',
-            'type' => 'mobile_app',
+            'type' => 'mobile',
             'collection_method' => $collectionMethod !== '' ? $collectionMethod : 'manual_settlement',
             'meta_json' => json_encode($transferMeta, JSON_UNESCAPED_UNICODE),
         ];
