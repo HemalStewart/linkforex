@@ -13,6 +13,7 @@ export default function Badge({ children, type = 'neutral', className = '' }: Ba
             case 'active':
                 return 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300 ring-1 ring-teal-200 dark:ring-teal-800';
             case 'no':
+                return 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300 ring-1 ring-rose-200 dark:ring-rose-800';
             case 'inactive':
             case 'neutral':
                 return 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 ring-1 ring-slate-200 dark:ring-slate-700';

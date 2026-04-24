@@ -339,7 +339,7 @@ export default function RelationshipsPage() {
                                     <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
                                     <td className="px-6 py-4 font-semibold text-slate-800 dark:text-slate-100">{row.name || '—'}</td>
                                     <td className="px-6 py-4">
-                                        <Badge type={normalizeYesNo(row.active) === 'yes' ? 'active' : 'danger'}>
+                                        <Badge type={normalizeYesNo(row.active) === 'yes' ? 'yes' : 'no'}>
                                             {normalizeYesNo(row.active) === 'yes' ? 'Yes' : 'No'}
                                         </Badge>
                                     </td>

@@ -496,12 +496,12 @@ export default function CountriesPage() {
                                             {country.name || '—'}
                                         </td>
                                         <td className="px-8 py-5 text-sm whitespace-nowrap">
-                                            <Badge type={normalizeYesNo(country.high_risk_country) === 'yes' ? 'danger' : 'neutral'} className="min-w-[58px] justify-center">
+                                            <Badge type={normalizeYesNo(country.high_risk_country) === 'yes' ? 'yes' : 'no'} className="min-w-[58px] justify-center">
                                                 {toYesNoLabel(normalizeYesNo(country.high_risk_country))}
                                             </Badge>
                                         </td>
                                         <td className="px-8 py-5 text-sm whitespace-nowrap">
-                                            <Badge type={normalizeYesNo(country.black_list_country) === 'yes' ? 'dark' : 'neutral'} className="min-w-[58px] justify-center">
+                                            <Badge type={normalizeYesNo(country.black_list_country) === 'yes' ? 'yes' : 'no'} className="min-w-[58px] justify-center">
                                                 {toYesNoLabel(normalizeYesNo(country.black_list_country))}
                                             </Badge>
                                         </td>
