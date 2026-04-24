@@ -692,17 +692,6 @@ class Auth extends BaseController
             ];
         }
 
-        if (trim((string) ($settings['trust_wallet_address'] ?? '')) === '') {
-            return [
-                'status' => 503,
-                'payload' => [
-                    'status' => 503,
-                    'message' => 'Wallet funding is not configured yet. Please contact support.',
-                    'support_email' => $this->supportEmail($settings),
-                ],
-            ];
-        }
-
         $livenessEnabled = (($settings['enable_liveness_check'] ?? 'yes') === 'yes' && ($settings['liveness_provider'] ?? 'veriff') === 'veriff');
         $kycStatus = strtolower(trim((string) ($user['kyc_status'] ?? 'pending')));
         if ($livenessEnabled && in_array($kycStatus, ['pending', 'submitted'], true)) {
@@ -735,6 +724,16 @@ class Auth extends BaseController
         }
 
         return null;
+    }
+
+    private function isTrustWalletMode(string $paymentMode): bool
+    {
+        $modeKey = strtolower(trim($paymentMode));
+        if ($modeKey === '') {
+            $modeKey = 'trust_wallet';
+        }
+
+        return str_contains($modeKey, 'wallet');
     }
 
     private function nextMobileTransferCode(): string
@@ -2743,6 +2742,15 @@ class Auth extends BaseController
             return $this->failNotFound('Transfer not found.');
         }
 
+        $paymentModeKey = strtolower(trim((string) ($transfer['payment_mode'] ?? '')));
+        if ($this->isTrustWalletMode($paymentModeKey) && trim((string) ($settings['trust_wallet_address'] ?? '')) === '') {
+            return $this->respond([
+                'status' => 503,
+                'message' => 'Wallet funding is not configured yet. Please contact support.',
+                'support_email' => $this->supportEmail($settings),
+            ], 503);
+        }
+
         $currentStatus = strtolower(trim((string) ($transfer['status'] ?? 'awaiting_funds')));
         if (!in_array($currentStatus, ['awaiting_funds', 'funds_received'], true)) {
             return $this->fail('Transfer cannot be updated in its current state.', 409);
@@ -2845,6 +2853,14 @@ class Auth extends BaseController
         }
         if (!empty($errors)) {
             return $this->fail($errors, 400);
+        }
+
+        if ($this->isTrustWalletMode($paymentMode) && trim((string) ($settings['trust_wallet_address'] ?? '')) === '') {
+            return $this->respond([
+                'status' => 503,
+                'message' => 'Wallet funding is not configured yet. Please contact support.',
+                'support_email' => $this->supportEmail($settings),
+            ], 503);
         }
 
         $limitIssue = $this->enforceTransactionLimitsOrFail('app', (int) $user['id'], $sourceAmount, 'mobile_app');
