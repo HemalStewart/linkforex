@@ -2830,6 +2830,13 @@ class Auth extends BaseController
         $sourceCurrency = strtoupper(trim((string) $this->requestInput('source_currency', 'GBP')));
         $paymentMode = trim((string) $this->requestInput('payment_mode', 'trust_wallet'));
         $collectionMethod = trim((string) $this->requestInput('collection_method', 'manual_settlement'));
+
+        // Backwards/robustness: if the app sends "card" as a collection method (or similar),
+        // treat it as a card payment even if payment_mode is missing/defaulted.
+        $collectionKey = strtolower(trim($collectionMethod));
+        if ($collectionKey !== '' && str_contains($collectionKey, 'card')) {
+            $paymentMode = 'trust_payments';
+        }
         $paymentReference = trim((string) $this->requestInput('payment_reference'));
         $walletTxHash = trim((string) $this->requestInput('wallet_tx_hash'));
 
