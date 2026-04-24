@@ -496,12 +496,12 @@ export default function CountriesPage() {
                                             {country.name || '—'}
                                         </td>
                                         <td className="px-8 py-5 text-sm whitespace-nowrap">
-                                            <Badge type={normalizeYesNo(country.high_risk_country) === 'yes' ? 'yes' : 'no'} className="min-w-[58px] justify-center">
+                                            <Badge type={normalizeYesNo(country.high_risk_country) === 'yes' ? 'yes' : 'no'} className="min-w-[44px] justify-center">
                                                 {toYesNoLabel(normalizeYesNo(country.high_risk_country))}
                                             </Badge>
                                         </td>
                                         <td className="px-8 py-5 text-sm whitespace-nowrap">
-                                            <Badge type={normalizeYesNo(country.black_list_country) === 'yes' ? 'yes' : 'no'} className="min-w-[58px] justify-center">
+                                            <Badge type={normalizeYesNo(country.black_list_country) === 'yes' ? 'yes' : 'no'} className="min-w-[44px] justify-center">
                                                 {toYesNoLabel(normalizeYesNo(country.black_list_country))}
                                             </Badge>
                                         </td>
@@ -515,7 +515,7 @@ export default function CountriesPage() {
                                             {country.currency_name || '—'}
                                         </td>
                                         <td className="px-8 py-5 text-sm whitespace-nowrap">
-                                            <Badge type={normalizeYesNo(country.payout_currency) === 'yes' ? 'yes' : 'no'} className="min-w-[58px] justify-center">
+                                            <Badge type={normalizeYesNo(country.payout_currency) === 'yes' ? 'yes' : 'no'} className="min-w-[44px] justify-center">
                                                 {toYesNoLabel(normalizeYesNo(country.payout_currency))}
                                             </Badge>
                                         </td>

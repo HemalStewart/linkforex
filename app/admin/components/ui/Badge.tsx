@@ -38,12 +38,12 @@ export default function Badge({ children, type = 'neutral', className = '' }: Ba
         normalizedType === 'active' ||
         normalizedType === 'inactive' ||
         normalizedType === 'neutral'
-            ? 'px-2.5 py-0.5 text-[9px] leading-none'
+            ? 'px-2 py-0.5 text-[8px] leading-none tracking-wide'
             : 'px-3 py-1 text-[10px] leading-none';
 
     return (
         <span
-            className={`inline-flex items-center rounded-full font-extrabold tracking-wider uppercase ${sizeClass} ${getBadgeClasses(
+            className={`inline-flex items-center rounded-full font-extrabold uppercase ${sizeClass} ${getBadgeClasses(
                 type
             )} ${className}`}
         >
