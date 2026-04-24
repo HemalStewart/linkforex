@@ -7,6 +7,7 @@ type BadgeProps = {
 };
 
 export default function Badge({ children, type = 'neutral', className = '' }: BadgeProps) {
+    const normalizedType = type.toLowerCase();
     const getBadgeClasses = (type: string) => {
         switch (type.toLowerCase()) {
             case 'yes':
@@ -30,8 +31,22 @@ export default function Badge({ children, type = 'neutral', className = '' }: Ba
         }
     };
 
+    // Keep table yes/no pills compact without shrinking warning/info badges used in alerts.
+    const sizeClass =
+        normalizedType === 'yes' ||
+        normalizedType === 'no' ||
+        normalizedType === 'active' ||
+        normalizedType === 'inactive' ||
+        normalizedType === 'neutral'
+            ? 'px-2.5 py-0.5 text-[9px] leading-none'
+            : 'px-3 py-1 text-[10px] leading-none';
+
     return (
-        <span className={`inline-flex items-center rounded-full px-3 py-1 text-[10px] font-extrabold tracking-wider uppercase ${getBadgeClasses(type)} ${className}`}>
+        <span
+            className={`inline-flex items-center rounded-full font-extrabold tracking-wider uppercase ${sizeClass} ${getBadgeClasses(
+                type
+            )} ${className}`}
+        >
             {children}
         </span>
     );
