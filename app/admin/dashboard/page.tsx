@@ -511,7 +511,7 @@ export default function DashboardPage() {
     const recentActivity = useMemo<Array<DashboardTransfer & { customerName: string; customerInitials: string }>>(() => {
         return [...filteredTransfers]
             .sort((left, right) => (transferDate(right)?.getTime() || 0) - (transferDate(left)?.getTime() || 0))
-            .slice(0, 8)
+            .slice(0, 6)
             .map((transfer) => {
                 const customer = customers.find((candidate) => String(candidate.id) === String(transfer.remitter_id || transfer.sender_id || ''));
                 const customerName = customer?.name || customer?.sender_name || transfer.remitter_name || transfer.sender_name || 'Unknown';
