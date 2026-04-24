@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { Filter, Plus, RefreshCcw, Rows3, Search, Trash2, Upload } from 'lucide-react';
-import { ENDPOINTS } from '@/app/lib/api';
+import { ENDPOINTS, UPLOADS_BASE_URL } from '@/app/lib/api';
 import ConfirmModal from '../../../components/ConfirmModal';
 import type { MobileAd } from '../_shared';
 
@@ -29,6 +29,32 @@ const formatBytes = (bytes: number): string => {
         idx += 1;
     }
     return `${value.toFixed(idx === 0 ? 0 : 2)} ${units[idx]}`;
+};
+
+const resolveUploadsProxyUrl = (rawUrl?: string): string => {
+    const raw = String(rawUrl ?? '').trim();
+    if (!raw) return '';
+    if (raw.startsWith(UPLOADS_BASE_URL)) return raw;
+
+    // If backend returns absolute http(s)://host/uploads/..., map to our same-origin uploads proxy.
+    if (/^https?:\/\//i.test(raw)) {
+        try {
+            const parsed = new URL(raw);
+            const pathname = parsed.pathname || '';
+            const idx = pathname.indexOf('/uploads/');
+            if (idx >= 0) {
+                const rest = pathname.slice(idx + '/uploads/'.length).replace(/^\/+/, '');
+                if (rest) return `${UPLOADS_BASE_URL}/${rest}`;
+            }
+            return raw;
+        } catch {
+            return raw;
+        }
+    }
+
+    // Relative paths.
+    const normalized = raw.replace(/^\/+/, '').replace(/^uploads\//, '');
+    return `${UPLOADS_BASE_URL}/${normalized}`;
 };
 
 const readImageElement = (file: File): Promise<HTMLImageElement> => {
@@ -422,7 +448,7 @@ export default function MobileInAppAdsPage() {
                                                 {ad.image_url ? (
                                                     // Bust cache for recently updated assets.
                                                     <img
-                                                        src={`${ad.image_url}${String(ad.image_url).includes('?') ? '&' : '?'}v=${ad.id}`}
+                                                        src={`${resolveUploadsProxyUrl(ad.image_url)}${String(ad.image_url).includes('?') ? '&' : '?'}v=${ad.id}`}
                                                         alt={ad.title}
                                                         className="h-full w-full object-cover"
                                                         loading="lazy"
