@@ -40,7 +40,12 @@ import {
     MessageCircle,
     ListChecks,
     SlidersHorizontal,
-    Smartphone
+    Smartphone,
+    Info,
+    TrendingUp,
+    CreditCard,
+    Megaphone,
+    Image as ImageIcon
 } from 'lucide-react';
 
 interface DashboardLayoutProps {
@@ -613,19 +618,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             name: 'Mobile Controls',
             icon: <Smartphone className="w-5 h-5" />,
             children: [
-                { name: 'Overview', href: '/admin/mobile-users/control/overview' },
-                { name: 'Mobile Profiles', href: '/admin/mobile-profiles', icon: <Globe className="w-4 h-4" /> },
-                { name: 'App Flow Settings', href: '/admin/mobile-users/control/app-flow-settings', sections: ['MOBILE_APP_FLOW_SETTINGS'] },
-                { name: 'Customer Digital Rates', href: '/admin/mobile-users/control/exchange-rates' },
-                { name: 'Wallet Funding Queue', href: '/admin/mobile-users/control/wallet-transfers' },
-                { name: 'Profile Review Queue', href: '/admin/mobile-users/control/profile-review-queue', sections: ['MOBILE_PROFILE_REVIEW_QUEUE'] },
-                { name: 'Campaigns', href: '/admin/mobile-users/control/campaigns', sections: ['MOBILE_CAMPAIGNS'] },
-                { name: 'Onboarding & Carousel', href: '/admin/mobile-users/control/in-app-ads', sections: ['MOBILE_ADS'] },
+                { name: 'Overview', href: '/admin/mobile-users/control/overview', icon: <Info className="w-4 h-4" /> },
+                { name: 'Mobile Profiles', href: '/admin/mobile-profiles', icon: <User className="w-4 h-4" /> },
+                { name: 'App Flow Settings', href: '/admin/mobile-users/control/app-flow-settings', icon: <SlidersHorizontal className="w-4 h-4" />, sections: ['MOBILE_APP_FLOW_SETTINGS'] },
+                { name: 'Customer Digital Rates', href: '/admin/mobile-users/control/exchange-rates', icon: <TrendingUp className="w-4 h-4" /> },
+                { name: 'Wallet Funding Queue', href: '/admin/mobile-users/control/wallet-transfers', icon: <CreditCard className="w-4 h-4" /> },
+                { name: 'Profile Review Queue', href: '/admin/mobile-users/control/profile-review-queue', icon: <UserCheck className="w-4 h-4" />, sections: ['MOBILE_PROFILE_REVIEW_QUEUE'] },
+                { name: 'Campaigns', href: '/admin/mobile-users/control/campaigns', icon: <Megaphone className="w-4 h-4" />, sections: ['MOBILE_CAMPAIGNS'] },
+                { name: 'Onboarding & Carousel', href: '/admin/mobile-users/control/in-app-ads', icon: <ImageIcon className="w-4 h-4" />, sections: ['MOBILE_ADS'] },
             ]
         },
         {
             name: 'Application Basic Data',
-            icon: <Globe className="w-3 h-3" />,
+            icon: <Globe className="w-5 h-5" />,
             children: [
                 { name: 'Countries', href: '/admin/countries', icon: <Globe className="w-4 h-4" /> },
                 { name: 'Banks', href: '/admin/banks', icon: <Building2 className="w-4 h-4" /> },
@@ -721,7 +726,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                             <span className={`transition-all duration-300 ${isActive ? 'text-teal-500 scale-110' : 'group-hover:text-teal-500 group-hover:scale-110'}`}>
                                                 {item.icon}
                                             </span>
-                                            {sidebarOpen && <span className="tracking-wide text-[14px]">{item.name}</span>}
+                                            {sidebarOpen && <span className="tracking-wide text-[14px] whitespace-nowrap overflow-hidden text-ellipsis">{item.name}</span>}
                                         </div>
                                         {sidebarOpen && (
                                             <ChevronRight className={`w-4 h-5 text-slate-400 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`} strokeWidth={2.5} />
