@@ -612,7 +612,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         {
             name: 'Mobile Controls',
             icon: <Smartphone className="w-5 h-5" />,
-            href: '/admin/mobile-profiles'
+            children: [
+                { name: 'Overview', href: '/admin/mobile-users/control/overview' },
+                { name: 'Mobile Profiles', href: '/admin/mobile-profiles', icon: <Globe className="w-4 h-4" /> },
+                { name: 'App Flow Settings', href: '/admin/mobile-users/control/app-flow-settings', sections: ['MOBILE_APP_FLOW_SETTINGS'] },
+                { name: 'Customer Digital Rates', href: '/admin/mobile-users/control/exchange-rates' },
+                { name: 'Wallet Funding Queue', href: '/admin/mobile-users/control/wallet-transfers' },
+                { name: 'Profile Review Queue', href: '/admin/mobile-users/control/profile-review-queue', sections: ['MOBILE_PROFILE_REVIEW_QUEUE'] },
+                { name: 'Campaigns', href: '/admin/mobile-users/control/campaigns', sections: ['MOBILE_CAMPAIGNS'] },
+                { name: 'Onboarding & Carousel', href: '/admin/mobile-users/control/in-app-ads', sections: ['MOBILE_ADS'] },
+            ]
         },
         {
             name: 'Application Basic Data',
@@ -831,11 +840,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                     <div className="p-2">
                                         <button
                                             onClick={() => handleThemeChange('system')}
-                                            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-left ${
-                                                themePreference === 'system'
-                                                    ? 'bg-white/70 dark:bg-white/10 text-teal-600 dark:text-teal-300'
-                                                    : 'text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-white/5'
-                                            }`}
+                                            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-left ${themePreference === 'system'
+                                                ? 'bg-white/70 dark:bg-white/10 text-teal-600 dark:text-teal-300'
+                                                : 'text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-white/5'
+                                                }`}
                                         >
                                             <span className="flex items-center space-x-3">
                                                 <Monitor className="w-4 h-4" />
@@ -845,11 +853,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                         </button>
                                         <button
                                             onClick={() => handleThemeChange('light')}
-                                            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-left ${
-                                                themePreference === 'light'
-                                                    ? 'bg-white/70 dark:bg-white/10 text-teal-600 dark:text-teal-300'
-                                                    : 'text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-white/5'
-                                            }`}
+                                            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-left ${themePreference === 'light'
+                                                ? 'bg-white/70 dark:bg-white/10 text-teal-600 dark:text-teal-300'
+                                                : 'text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-white/5'
+                                                }`}
                                         >
                                             <span className="flex items-center space-x-3">
                                                 <Sun className="w-4 h-4" />
@@ -859,11 +866,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                         </button>
                                         <button
                                             onClick={() => handleThemeChange('dark')}
-                                            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-left ${
-                                                themePreference === 'dark'
-                                                    ? 'bg-white/70 dark:bg-white/10 text-teal-600 dark:text-teal-300'
-                                                    : 'text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-white/5'
-                                            }`}
+                                            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-left ${themePreference === 'dark'
+                                                ? 'bg-white/70 dark:bg-white/10 text-teal-600 dark:text-teal-300'
+                                                : 'text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-white/5'
+                                                }`}
                                         >
                                             <span className="flex items-center space-x-3">
                                                 <Moon className="w-4 h-4" />
