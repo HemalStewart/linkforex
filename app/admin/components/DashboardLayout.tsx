@@ -625,7 +625,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         },
         {
             name: 'Application Basic Data',
-            icon: <Globe className="w-5 h-5" />,
+            icon: <Globe className="w-3 h-3" />,
             children: [
                 { name: 'Countries', href: '/admin/countries', icon: <Globe className="w-4 h-4" /> },
                 { name: 'Banks', href: '/admin/banks', icon: <Building2 className="w-4 h-4" /> },
