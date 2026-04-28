@@ -39,7 +39,8 @@ import {
     User,
     MessageCircle,
     ListChecks,
-    SlidersHorizontal
+    SlidersHorizontal,
+    Smartphone
 } from 'lucide-react';
 
 interface DashboardLayoutProps {
@@ -590,44 +591,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 { name: 'Receivers', href: '/admin/receivers', icon: <UserCheck className="w-4 h-4" />, sections: ['RECEIVER_DETAILS', 'BENEFICIARIES', 'CUSTOMER', 'RECEIVERS'] },
                 { name: 'KYC Reviews', href: '/admin/kyc', badge: counts.kyc > 0 ? counts.kyc.toString() : undefined, icon: <ShieldCheck className="w-4 h-4" /> },
                 { name: 'Branch Access Flags', href: '/admin/branch-access', badge: counts.branchAccessFlags > 0 ? counts.branchAccessFlags.toString() : undefined, icon: <AlertTriangle className="w-4 h-4" /> },
-            ]
-        },
-        {
-            name: 'Mobile Profiles',
-            icon: <Users className="w-5 h-5" />,
-            href: '/admin/mobile-profiles'
-        },
-        {
-            name: 'Mobile Control',
-            icon: <ShieldCheck className="w-5 h-5" />,
-            children: [
-                { name: 'Overview', href: '/admin/mobile-users/control/overview' },
-                { name: 'App Flow Settings', href: '/admin/mobile-users/control/app-flow-settings', sections: ['MOBILE_APP_FLOW_SETTINGS'] },
-                { name: 'Customer Digital Rates', href: '/admin/mobile-users/control/exchange-rates' },
-                { name: 'Wallet Funding Queue', href: '/admin/mobile-users/control/wallet-transfers' },
-                { name: 'Profile Review Queue', href: '/admin/mobile-users/control/profile-review-queue', sections: ['MOBILE_PROFILE_REVIEW_QUEUE'] },
-                { name: 'Campaigns', href: '/admin/mobile-users/control/campaigns', sections: ['MOBILE_CAMPAIGNS'] },
-                { name: 'Onboarding & Carousel', href: '/admin/mobile-users/control/in-app-ads', sections: ['MOBILE_ADS'] },
-            ]
-        },
-        {
-            name: 'Management',
-            icon: <Settings className="w-5 h-5" />,
-            children: [
-                { name: 'System Users', href: '/admin/users', icon: <Users className="w-4 h-4" />, sections: ['SYSUSERS', 'SYSTEM_USERS'] },
-                { name: 'Roles', href: '/admin/roles', icon: <Shield className="w-4 h-4" />, sections: ['SYSGROUPS', 'ROLES'] },
-                { name: 'Role Permissions', href: '/admin/permission-groups', icon: <ShieldCheck className="w-4 h-4" />, sections: ['SYSGROUPS_PERMISSION', 'PERMISSION_GROUPS'] },
-                { name: 'Branches', href: '/admin/branches', icon: <Building2 className="w-4 h-4" />, sections: ['BRANCH', 'BRANCHES'] },
+                { name: 'Support', href: '/admin/support', icon: <MessageCircle className="w-4 h-4" />, badge: counts.supportOpen > 0 ? counts.supportOpen.toString() : undefined },
                 { name: 'Branch Rates', href: '/admin/branch-rates', icon: <Coins className="w-4 h-4" />, sections: ['BRANCH_CURRENCY_RATE', 'BRANCH_CURRENCY_RATES', 'MOBILE_EXCHANGE_RATES', 'MOBILE_APP_FLOW_SETTINGS'] },
             ]
         },
         {
-            name: 'System',
-            icon: <Cpu className="w-5 h-5" />,
+            name: 'Master Data',
+            icon: <Database className="w-5 h-5" />,
             children: [
-                { name: 'Settings', href: '/admin/settings', icon: <Settings className="w-4 h-4" /> },
-                { name: 'Support Inbox', href: '/admin/support', icon: <MessageCircle className="w-4 h-4" />, badge: counts.supportOpen > 0 ? counts.supportOpen.toString() : undefined },
-                { name: 'User Logs', href: '/admin/logs', icon: <FileText className="w-4 h-4" />, sections: ['SYSUSERS_LOG', 'SYSRECORD_LOGS', 'AUDIT_LOGS'] },
+                { name: 'Branches', href: '/admin/branches', icon: <Building2 className="w-4 h-4" />, sections: ['BRANCH', 'BRANCHES'] },
+                { name: 'Transaction Settings', href: '/admin/transaction-settings', icon: <SlidersHorizontal className="w-4 h-4" /> },
             ]
         },
         {
@@ -637,15 +610,34 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             sections: ['TODAY_SUMMARY', 'MC_STATISTICS', 'REPORTS']
         },
         {
-            name: 'Basic Data',
-            icon: <Database className="w-5 h-5" />,
+            name: 'Mobile Controls',
+            icon: <Smartphone className="w-5 h-5" />,
+            href: '/admin/mobile-profiles'
+        },
+        {
+            name: 'Application Basic Data',
+            icon: <Globe className="w-5 h-5" />,
             children: [
                 { name: 'Countries', href: '/admin/countries', icon: <Globe className="w-4 h-4" /> },
                 { name: 'Banks', href: '/admin/banks', icon: <Building2 className="w-4 h-4" /> },
                 { name: 'Relationships', href: '/admin/relationships', icon: <Users className="w-4 h-4" /> },
                 { name: 'Purposes', href: '/admin/purposes', icon: <ListChecks className="w-4 h-4" /> },
-                { name: 'Transaction Settings', href: '/admin/transaction-settings', icon: <SlidersHorizontal className="w-4 h-4" /> },
             ]
+        },
+        {
+            name: 'System Users',
+            icon: <Users className="w-5 h-5" />,
+            children: [
+                { name: 'Role', href: '/admin/roles', icon: <Shield className="w-4 h-4" />, sections: ['SYSGROUPS', 'ROLES'] },
+                { name: 'Role Permissions', href: '/admin/permission-groups', icon: <ShieldCheck className="w-4 h-4" />, sections: ['SYSGROUPS_PERMISSION', 'PERMISSION_GROUPS'] },
+                { name: 'Users', href: '/admin/users', icon: <Users className="w-4 h-4" />, sections: ['SYSUSERS', 'SYSTEM_USERS'] },
+                { name: 'User Logs', href: '/admin/logs', icon: <FileText className="w-4 h-4" />, sections: ['SYSUSERS_LOG', 'SYSRECORD_LOGS', 'AUDIT_LOGS'] },
+            ]
+        },
+        {
+            name: 'Configuration',
+            icon: <Settings className="w-5 h-5" />,
+            href: '/admin/settings'
         }
     ];
 
