@@ -7,7 +7,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import { PoundSterling, RefreshCw, Save, SlidersHorizontal } from 'lucide-react';
 
 type Channel = 'app' | 'backend';
-type Period = 'month' | 'year';
+type Period = 'quarter' | 'year';
 
 type TransactionSetting = {
     id?: string | number;
@@ -40,9 +40,9 @@ export default function TransactionSettingsPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [values, setValues] = useState<Record<string, string>>({
-        [keyOf('app', 'month')]: '0.00',
+        [keyOf('app', 'quarter')]: '0.00',
         [keyOf('app', 'year')]: '0.00',
-        [keyOf('backend', 'month')]: '0.00',
+        [keyOf('backend', 'quarter')]: '0.00',
         [keyOf('backend', 'year')]: '0.00',
     });
 
@@ -70,7 +70,7 @@ export default function TransactionSettingsPage() {
                 const next = { ...prev };
                 for (const row of rows) {
                     const channel = row.channel === 'app' ? 'app' : 'backend';
-                    const period = row.period === 'year' ? 'year' : 'month';
+                    const period = row.period === 'year' ? 'year' : 'quarter';
                     const key = keyOf(channel, period);
                     next[key] = toFixed2(String(row.limit_amount ?? '0'));
                 }
@@ -101,9 +101,9 @@ export default function TransactionSettingsPage() {
         setSaving(true);
         try {
             const items: TransactionSetting[] = [
-                { channel: 'app', period: 'month', currency: 'GBP', limit_amount: Number(values[keyOf('app', 'month')]) || 0, active: 'yes' },
+                { channel: 'app', period: 'quarter', currency: 'GBP', limit_amount: Number(values[keyOf('app', 'quarter')]) || 0, active: 'yes' },
                 { channel: 'app', period: 'year', currency: 'GBP', limit_amount: Number(values[keyOf('app', 'year')]) || 0, active: 'yes' },
-                { channel: 'backend', period: 'month', currency: 'GBP', limit_amount: Number(values[keyOf('backend', 'month')]) || 0, active: 'yes' },
+                { channel: 'backend', period: 'quarter', currency: 'GBP', limit_amount: Number(values[keyOf('backend', 'quarter')]) || 0, active: 'yes' },
                 { channel: 'backend', period: 'year', currency: 'GBP', limit_amount: Number(values[keyOf('backend', 'year')]) || 0, active: 'yes' },
             ];
 
@@ -198,7 +198,7 @@ export default function TransactionSettingsPage() {
                                 <div className="text-sm font-bold text-slate-900 dark:text-white">App Limits (GBP)</div>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Monthly Limit</label>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">3 Month Limit</label>
                                 <div className="relative input-icon">
                                     <span className="input-icon-left">
                                         <PoundSterling className="w-4 h-4" />
@@ -206,9 +206,9 @@ export default function TransactionSettingsPage() {
                                     <input
                                         className="input-glass w-full"
                                         inputMode="decimal"
-                                        value={values[keyOf('app', 'month')]}
-                                        onChange={(e) => updateDraft('app', 'month', e.target.value)}
-                                        onBlur={() => normalizeBlur('app', 'month')}
+                                        value={values[keyOf('app', 'quarter')]}
+                                        onChange={(e) => updateDraft('app', 'quarter', e.target.value)}
+                                        onBlur={() => normalizeBlur('app', 'quarter')}
                                         placeholder="0.00"
                                     />
                                 </div>
@@ -236,7 +236,7 @@ export default function TransactionSettingsPage() {
                                 <div className="text-sm font-bold text-slate-900 dark:text-white">Backend Limits (GBP)</div>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Monthly Limit</label>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">3 Month Limit</label>
                                 <div className="relative input-icon">
                                     <span className="input-icon-left">
                                         <PoundSterling className="w-4 h-4" />
@@ -244,9 +244,9 @@ export default function TransactionSettingsPage() {
                                     <input
                                         className="input-glass w-full"
                                         inputMode="decimal"
-                                        value={values[keyOf('backend', 'month')]}
-                                        onChange={(e) => updateDraft('backend', 'month', e.target.value)}
-                                        onBlur={() => normalizeBlur('backend', 'month')}
+                                        value={values[keyOf('backend', 'quarter')]}
+                                        onChange={(e) => updateDraft('backend', 'quarter', e.target.value)}
+                                        onBlur={() => normalizeBlur('backend', 'quarter')}
                                         placeholder="0.00"
                                     />
                                 </div>
