@@ -51,6 +51,7 @@ export default function MobileControlOverviewPage() {
     const shortcuts = [
         { href: '/admin/mobile-users/control/app-flow-settings', title: 'App Flow Settings', description: 'OTP, verification, liveness and provider setup.' },
         { href: '/admin/mobile-users/control/exchange-rates', title: 'Customer Digital Rates', description: 'Choose which branch-backed digital rates appear in the app and on home cards.' },
+        { href: '/admin/mobile-users/control/user-rates', title: 'User Rates', description: 'Optional VIP user-specific digital rate overrides.' },
         { href: '/admin/mobile-users/control/wallet-transfers', title: 'Wallet Funding Queue', description: 'Review wallet-funded mobile transfers and update manual settlement status.' },
         { href: '/admin/mobile-users/control/profile-review-queue', title: 'Profile Review Queue', description: 'Review and approve/reject pending mobile profiles.' },
         { href: '/admin/mobile-users/control/campaigns', title: 'Campaigns', description: 'Create and send push/email campaigns.' },

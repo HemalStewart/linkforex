@@ -133,6 +133,8 @@ export const ENDPOINTS = {
         SETTINGS: `${API_BASE_URL}/mobile-admin/settings`,
         EXCHANGE_RATES: `${API_BASE_URL}/mobile-admin/exchange-rates`,
         EXCHANGE_RATE_DETAIL: (id: string | number) => `${API_BASE_URL}/mobile-admin/exchange-rates/${id}`,
+        USER_RATE_OVERRIDES: `${API_BASE_URL}/mobile-admin/user-rate-overrides`,
+        USER_RATE_OVERRIDE_DETAIL: (id: string | number) => `${API_BASE_URL}/mobile-admin/user-rate-overrides/${id}`,
         REVIEW_QUEUE: `${API_BASE_URL}/mobile-admin/review-queue`,
         REVIEW_APPROVE: (id: string | number) => `${API_BASE_URL}/mobile-admin/review-queue/${id}/approve`,
         REVIEW_REJECT: (id: string | number) => `${API_BASE_URL}/mobile-admin/review-queue/${id}/reject`,
