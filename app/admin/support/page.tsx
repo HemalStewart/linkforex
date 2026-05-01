@@ -103,6 +103,10 @@ export default function SupportPage() {
     const [replyMessage, setReplyMessage] = useState('');
     const [sendingReply, setSendingReply] = useState(false);
     const [updatingTicket, setUpdatingTicket] = useState(false);
+    const [userLimitLoading, setUserLimitLoading] = useState(false);
+    const [userLimitSaving, setUserLimitSaving] = useState(false);
+    const [userQuarterLimit, setUserQuarterLimit] = useState<string>('');
+    const [userYearLimit, setUserYearLimit] = useState<string>('');
     const [deleteState, setDeleteState] = useState<{ open: boolean; ticket: SupportTicket | null; loading: boolean }>({
         open: false,
         ticket: null,
@@ -112,6 +116,30 @@ export default function SupportPage() {
     const refreshSidebarCounts = () => {
         if (typeof window !== 'undefined') {
             window.dispatchEvent(new Event('admin-counts-refresh'));
+        }
+    };
+
+    const fetchUserLimits = async (email: string) => {
+        const normalized = String(email || '').trim().toLowerCase();
+        if (!normalized) return;
+
+        setUserLimitLoading(true);
+        try {
+            const url = `${ENDPOINTS.TRANSACTION_SETTINGS.USER_LIMITS}?email=${encodeURIComponent(normalized)}&channel=app`;
+            const res = await fetch(url);
+            const data = res.ok ? await res.json() : [];
+            const rows = Array.isArray(data) ? data : [];
+
+            const activeQuarter = rows.find((r: any) => String(r.status || '').toLowerCase() !== 'inactive' && String(r.period || '').toLowerCase() === 'quarter');
+            const activeYear = rows.find((r: any) => String(r.status || '').toLowerCase() !== 'inactive' && String(r.period || '').toLowerCase() === 'year');
+
+            setUserQuarterLimit(activeQuarter?.limit_amount != null ? String(activeQuarter.limit_amount) : '');
+            setUserYearLimit(activeYear?.limit_amount != null ? String(activeYear.limit_amount) : '');
+        } catch {
+            setUserQuarterLimit('');
+            setUserYearLimit('');
+        } finally {
+            setUserLimitLoading(false);
         }
     };
 
@@ -180,6 +208,8 @@ export default function SupportPage() {
         setDetailOpen(true);
         setReplyMessage('');
         setMessages([]);
+        setUserQuarterLimit('');
+        setUserYearLimit('');
         await fetchTicketDetail(ticket.id);
     };
 
@@ -191,6 +221,10 @@ export default function SupportPage() {
                 const data = (await res.json()) as TicketDetail;
                 setSelectedTicket(data.ticket);
                 setMessages(Array.isArray(data.messages) ? data.messages : []);
+                const email = String(data.ticket?.email || '').trim();
+                if (email) {
+                    void fetchUserLimits(email);
+                }
             }
         } catch {
             // ignore
@@ -245,6 +279,56 @@ export default function SupportPage() {
             refreshSidebarCounts();
         } finally {
             setUpdatingTicket(false);
+        }
+    };
+
+    const handleSaveUserLimits = async () => {
+        if (!selectedTicket?.email) return;
+        const email = String(selectedTicket.email).trim().toLowerCase();
+        if (!email) return;
+
+        const quarter = Number(userQuarterLimit);
+        const year = Number(userYearLimit);
+
+        setUserLimitSaving(true);
+        try {
+            const tasks: Promise<Response>[] = [];
+
+            if (!Number.isNaN(quarter) && quarter > 0) {
+                tasks.push(fetch(ENDPOINTS.TRANSACTION_SETTINGS.USER_LIMITS, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_email: email,
+                        channel: 'app',
+                        period: 'quarter',
+                        currency: 'GBP',
+                        limit_amount: quarter,
+                    }),
+                }));
+            }
+
+            if (!Number.isNaN(year) && year > 0) {
+                tasks.push(fetch(ENDPOINTS.TRANSACTION_SETTINGS.USER_LIMITS, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_email: email,
+                        channel: 'app',
+                        period: 'year',
+                        currency: 'GBP',
+                        limit_amount: year,
+                    }),
+                }));
+            }
+
+            if (tasks.length > 0) {
+                await Promise.all(tasks);
+            }
+
+            await fetchUserLimits(email);
+        } finally {
+            setUserLimitSaving(false);
         }
     };
 
@@ -501,6 +585,62 @@ export default function SupportPage() {
                                 </div>
                             </div>
                         </div>
+
+                        {String(selectedTicket.email || '').trim() !== '' && (
+                            <div className="card-glass p-6">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div>
+                                        <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">User Transaction Limits (App)</h3>
+                                        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                                            Set per-user limits for this customer. These override the global transaction settings.
+                                        </p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => void fetchUserLimits(String(selectedTicket.email))}
+                                        className="glass-effect inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:text-teal-600 dark:text-slate-200 dark:hover:text-teal-300"
+                                    >
+                                        <RefreshCw className={`h-4 w-4 ${userLimitLoading ? 'animate-spin' : ''}`} />
+                                        Refresh
+                                    </button>
+                                </div>
+
+                                <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                                    <div>
+                                        <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">3 Month Limit (GBP)</label>
+                                        <input
+                                            className="input-glass w-full"
+                                            inputMode="decimal"
+                                            placeholder={userLimitLoading ? 'Loading…' : '0.00'}
+                                            value={userQuarterLimit}
+                                            onChange={(e) => setUserQuarterLimit(e.target.value)}
+                                            disabled={userLimitLoading}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">Yearly Limit (GBP)</label>
+                                        <input
+                                            className="input-glass w-full"
+                                            inputMode="decimal"
+                                            placeholder={userLimitLoading ? 'Loading…' : '0.00'}
+                                            value={userYearLimit}
+                                            onChange={(e) => setUserYearLimit(e.target.value)}
+                                            disabled={userLimitLoading}
+                                        />
+                                    </div>
+                                    <div className="flex justify-end">
+                                        <button
+                                            type="button"
+                                            onClick={() => void handleSaveUserLimits()}
+                                            disabled={userLimitLoading || userLimitSaving || (!userQuarterLimit.trim() && !userYearLimit.trim())}
+                                            className="btn-primary rounded-full px-6 py-3 text-sm font-bold disabled:opacity-50"
+                                        >
+                                            {userLimitSaving ? 'Saving…' : 'Save Limits'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         <div className="space-y-3">
                             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Conversation</h3>

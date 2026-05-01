@@ -127,6 +127,8 @@ export const ENDPOINTS = {
     },
     TRANSACTION_SETTINGS: {
         LIST: `${API_BASE_URL}/transaction-settings`,
+        USER_LIMITS: `${API_BASE_URL}/transaction-settings/user-limits`,
+        USER_LIMIT_DETAIL: (id: string | number) => `${API_BASE_URL}/transaction-settings/user-limits/${id}`,
     },
     MOBILE_ADMIN: {
         OVERVIEW: `${API_BASE_URL}/mobile-admin/overview`,
