@@ -2567,7 +2567,8 @@ class Auth extends BaseController
         if ($limit <= 0) {
             $limit = 50;
         }
-        $limit = min($limit, 100);
+        // Allow larger limits for app-side monthly/yearly limit checks.
+        $limit = min($limit, 1000);
 
         $statusFilter = strtolower(trim((string) ($this->request->getGet('status') ?? '')));
         $typeFilter = strtolower(trim((string) ($this->request->getGet('type') ?? 'mobile')));
