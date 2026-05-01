@@ -592,7 +592,7 @@ export default function SupportPage() {
                                     <div>
                                         <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">User Transaction Limits (App)</h3>
                                         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                                            Set per-user limits for this customer. These override the global transaction settings.
+                                            Set additional per-user limits for this customer. These are added on top of the global transaction settings.
                                         </p>
                                     </div>
                                     <button
@@ -607,7 +607,7 @@ export default function SupportPage() {
 
                                 <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                                     <div>
-                                        <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">3 Month Limit (GBP)</label>
+                                        <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">Additional 3 Month Limit (GBP)</label>
                                         <input
                                             className="input-glass w-full"
                                             inputMode="decimal"
@@ -618,7 +618,7 @@ export default function SupportPage() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">Yearly Limit (GBP)</label>
+                                        <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">Additional Yearly Limit (GBP)</label>
                                         <input
                                             className="input-glass w-full"
                                             inputMode="decimal"
