@@ -101,6 +101,8 @@ type TransferRow = {
     rowNo: number;
     rowRef: string;
     rawStatus: string;
+    amlStatus: string;
+    amlHits: number;
     print: string;
     sign: string;
     signatureSigned: boolean;
@@ -393,6 +395,8 @@ export default function TransfersPage() {
                 rowNo: index + 1,
                 rowRef: asString(transfer.id),
                 rawStatus,
+                amlStatus: asString(meta.aml_status) || '-',
+                amlHits: asNumber(meta.aml_hits),
                 print: 'None',
                 sign: signatureSigned ? 'Signed' : 'Not Signed',
                 signatureSigned,
@@ -962,6 +966,24 @@ export default function TransfersPage() {
                 <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider ${statusBadgeClass(row.rawStatus)}`}>
                     {row.status}
                 </span>
+            )
+        },
+        {
+            key: 'amlStatus',
+            label: 'AML Status',
+            sortable: true,
+            className: 'min-w-[140px]',
+            render: (row) => (
+                <div className="flex flex-col items-start gap-1">
+                    <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider ${row.amlStatus.toLowerCase() === 'review' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'}`}>
+                        {row.amlStatus === '-' ? '—' : row.amlStatus}
+                    </span>
+                    {row.amlHits > 0 && (
+                        <span className="text-[11px] text-slate-500 dark:text-slate-300">
+                            Hits: {row.amlHits}
+                        </span>
+                    )}
+                </div>
             )
         },
         { key: 'payoutCurrency', label: 'Payout Currency', sortable: true },
