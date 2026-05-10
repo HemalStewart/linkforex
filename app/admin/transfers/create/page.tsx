@@ -18,6 +18,7 @@ import {
     User,
     Phone,
     MapPin,
+    Shield,
     Building2,
     Wallet,
     HandCoins,
@@ -117,6 +118,17 @@ type Beneficiary = {
     relation?: string;
     mobile_number?: string;
     status?: string;
+};
+
+type RecentTransfer = {
+    id: string | number;
+    code?: string | null;
+    status?: string | null;
+    source_amount?: string | number | null;
+    dest_amount?: string | number | null;
+    rate?: string | number | null;
+    payout_currency?: string | null;
+    created_at?: string | null;
 };
 
 type BranchAccessCheckResult = {
@@ -229,6 +241,7 @@ export default function CreateTransferPage() {
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [wizardStep, setWizardStep] = useState<1 | 2 | 3 | 4>(1);
 
     const [branches, setBranches] = useState<Branch[]>([]);
     const [currencies, setCurrencies] = useState<Currency[]>([]);
@@ -286,6 +299,9 @@ export default function CreateTransferPage() {
         veriffCheckedAt: '',
         amlResult: '',
     });
+
+    const [recentTransfers, setRecentTransfers] = useState<RecentTransfer[]>([]);
+    const [recentTransfersLoading, setRecentTransfersLoading] = useState(false);
 
     const [confirmModal, setConfirmModal] = useState({
         isOpen: false,
@@ -459,6 +475,32 @@ export default function CreateTransferPage() {
         const separator = url.includes('?') ? '&' : '?';
         return `${url}${separator}acting_user_id=${encodeURIComponent(String(currentUserId))}`;
     }, [currentUserId]);
+
+    const fetchRecentTransfersForSender = useCallback(async (senderId: string) => {
+        if (!senderId) {
+            setRecentTransfers([]);
+            return;
+        }
+
+        setRecentTransfersLoading(true);
+        try {
+            const url = withActingUser(`${ENDPOINTS.TRANSFERS.LIST}?remitter_id=${encodeURIComponent(senderId)}&_t=${Date.now()}`);
+            const res = await fetch(url);
+            if (!res.ok) {
+                setRecentTransfers([]);
+                return;
+            }
+            const data = await res.json().catch(() => []);
+            const rows = Array.isArray(data)
+                ? (data as RecentTransfer[])
+                : (Array.isArray((data as any)?.items) ? ((data as any).items as RecentTransfer[]) : []);
+            setRecentTransfers(rows.slice(0, 4));
+        } catch {
+            setRecentTransfers([]);
+        } finally {
+            setRecentTransfersLoading(false);
+        }
+    }, [withActingUser]);
 
     const isAllowedCountry = useCallback((value: string): boolean => {
         if (!value.trim()) return false;
@@ -939,9 +981,29 @@ export default function CreateTransferPage() {
         });
         await fetchReceiversForSender(senderRecordId);
         await checkBranchAccessForSender(senderRecordId);
-    }, [fetchReceiversForSender, checkBranchAccessForSender, evaluateSenderCompliance]);
+        await fetchRecentTransfersForSender(senderRecordId);
+        setWizardStep(2);
+    }, [fetchReceiversForSender, checkBranchAccessForSender, evaluateSenderCompliance, fetchRecentTransfersForSender]);
 
     useEffect(() => {
+        const senderId = searchParams.get('senderId');
+        if (senderId && senderId !== processedReturnRemitterId) {
+            const fetchSender = async () => {
+                try {
+                    const res = await fetch(withActingUser(ENDPOINTS.REMITTERS.DETAIL(senderId)));
+                    if (!res.ok) return;
+                    const remitter = (await res.json()) as Remitter;
+                    await selectSender(remitter);
+                    setProcessedReturnRemitterId(senderId);
+                    setWizardStep(2);
+                } catch (error) {
+                    console.error('Failed to load sender from wizard start', error);
+                }
+            };
+            fetchSender();
+            return;
+        }
+
         const newRemitterId = searchParams.get('newRemitterId');
         if (!newRemitterId || newRemitterId === processedReturnRemitterId) return;
 
@@ -952,6 +1014,7 @@ export default function CreateTransferPage() {
                 const remitter = (await res.json()) as Remitter;
                 await selectSender(remitter);
                 setProcessedReturnRemitterId(newRemitterId);
+                setWizardStep(2);
             } catch (error) {
                 console.error('Failed to load newly created sender', error);
             }
@@ -1040,6 +1103,7 @@ export default function CreateTransferPage() {
                 });
                 await selectReceiver(receiver);
                 setProcessedReturnReceiverId(newReceiverId);
+                setWizardStep(3);
             } catch (error) {
                 console.error('Failed to load newly created receiver', error);
             }
@@ -1316,12 +1380,6 @@ export default function CreateTransferPage() {
             return;
         }
 
-        const limitError = await enforceTransactionLimits();
-        if (limitError) {
-            setModal('Limit Reached', limitError, 'warning');
-            return;
-        }
-
         setSaving(true);
 
         const branch = branches.find((item) => getBranchValue(item) === formData.toBranch);
@@ -1495,6 +1553,51 @@ export default function CreateTransferPage() {
                 </button>
             </div>
 
+            <div className="card-glass p-4 md:p-5">
+                <div className="flex flex-wrap items-center gap-3">
+                    {([
+                        { step: 1 as const, label: 'Sender' },
+                        { step: 2 as const, label: 'Beneficiary' },
+                        { step: 3 as const, label: 'Details' },
+                        { step: 4 as const, label: 'Confirm' },
+                    ]).map((item) => {
+                        const active = wizardStep === item.step;
+                        const done = wizardStep > item.step;
+                        return (
+                            <button
+                                key={item.step}
+                                type="button"
+                                onClick={() => {
+                                    if (done) setWizardStep(item.step);
+                                }}
+                                className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-colors ${
+                                    active
+                                        ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/30'
+                                        : done
+                                            ? 'glass-effect text-slate-700 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300'
+                                            : 'glass-effect text-slate-400 dark:text-slate-500 cursor-not-allowed'
+                                }`}
+                                disabled={!done}
+                                title={done ? 'Edit this step' : 'Complete previous steps first'}
+                            >
+                                <span className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-extrabold ${
+                                    active
+                                        ? 'bg-white/20 text-white'
+                                        : done
+                                            ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300'
+                                            : 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-600'
+                                }`}>
+                                    {item.step}
+                                </span>
+                                {item.label}
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {wizardStep === 3 ? (
+            <>
             <div className="card-glass p-6 md:p-8 space-y-6">
                 <div className="flex items-center justify-between">
                     <h2 className="text-lg font-bold text-slate-900 dark:text-white">Transfer Setup</h2>
@@ -1637,6 +1740,88 @@ export default function CreateTransferPage() {
             </div>
 
             <div className="card-glass p-6 md:p-8 space-y-6">
+                <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">Transaction Details</h2>
+                </div>
+
+	                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+	                    <div>
+	                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Deposit Bank</label>
+	                        <select className="input-glass w-full" value={formData.depositBank} onChange={(event) => setFormData((prev) => ({ ...prev, depositBank: event.target.value }))}>
+	                            <option>NONE - (N)</option>
+	                            <option>HBL Pakistan</option>
+	                            <option>MCB Pakistan</option>
+	                        </select>
+	                    </div>
+
+	                    <div>
+	                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Deposit Branch</label>
+	                        <select className="input-glass w-full" value={formData.depositBranch} onChange={(event) => setFormData((prev) => ({ ...prev, depositBranch: event.target.value }))}>
+	                            <option>CASH</option>
+	                            <option>MAIN</option>
+	                            <option>ONLINE</option>
+	                        </select>
+	                    </div>
+
+	                    <div>
+	                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Source Of Income</label>
+	                        <select className="input-glass w-full" value={formData.sourceOfIncome} onChange={(event) => setFormData((prev) => ({ ...prev, sourceOfIncome: event.target.value }))}>
+	                            <option>Salary</option>
+	                            <option>Savings</option>
+	                            <option>Gift</option>
+	                        </select>
+	                    </div>
+
+	                    <div>
+	                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Relationship</label>
+	                        <select className="input-glass w-full" value={formData.relationship} onChange={(event) => setFormData((prev) => ({ ...prev, relationship: event.target.value }))}>
+	                            {relationships.map((relation) => (
+	                                <option key={relation} value={relation}>{relation}</option>
+	                            ))}
+	                        </select>
+	                    </div>
+
+	                    <div>
+	                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Purpose Of Transaction</label>
+	                        <select className="input-glass w-full" value={formData.purposeOfTransaction} onChange={(event) => setFormData((prev) => ({ ...prev, purposeOfTransaction: event.target.value }))}>
+	                            <option>Family Maintenance/Savings</option>
+	                            <option>Medical</option>
+	                            <option>Education</option>
+	                        </select>
+	                    </div>
+
+	                    <div>
+	                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Other Purpose</label>
+	                        <input
+	                            className="input-glass w-full"
+	                            value={formData.otherPurpose}
+	                            onChange={(event) => setFormData((prev) => ({ ...prev, otherPurpose: event.target.value }))}
+	                        />
+	                    </div>
+
+	                    <div>
+	                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Entry Type <span className="text-red-500">*</span></label>
+	                        <select className="input-glass w-full" value={formData.entryType} onChange={(event) => setFormData((prev) => ({ ...prev, entryType: event.target.value }))}>
+	                            <option>Cash Collected</option>
+	                            <option>Bank Transfer Received</option>
+	                            <option>Card Collected</option>
+	                        </select>
+	                    </div>
+
+	                    <div>
+	                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Payment Mode</label>
+	                        <select className="input-glass w-full" value={formData.paymentMode} onChange={(event) => setFormData((prev) => ({ ...prev, paymentMode: event.target.value }))}>
+	                            <option>P - CASH PICKUP</option>
+	                            <option>D - DIRECT BANK</option>
+	                        </select>
+	                    </div>
+	                </div>
+            </div>
+            </>
+            ) : null}
+
+            {wizardStep === 1 ? (
+            <div className="card-glass p-6 md:p-8 space-y-6">
                 <div className="flex items-center justify-between gap-3">
                     <h2 className="text-lg font-bold text-slate-900 dark:text-white">Sender Details</h2>
                     <div className="flex items-center gap-2">
@@ -1733,6 +1918,66 @@ export default function CreateTransferPage() {
                             </div>
                         </div>
                     ) : null}
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/60 bg-white/60 dark:bg-slate-900/40 p-4">
+                        <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                            Sender Summary
+                        </div>
+                        <div className="mt-3 space-y-2 text-sm text-slate-700 dark:text-slate-200">
+                            <div className="flex items-center gap-2">
+                                <User className="w-4 h-4 text-slate-400" />
+                                <span className="font-semibold">{formData.senderName || '-'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Phone className="w-4 h-4 text-slate-400" />
+                                <span>{formData.senderContacts || '-'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <MapPin className="w-4 h-4 text-slate-400" />
+                                <span>{formData.senderPostcode || '-'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Shield className="w-4 h-4 text-slate-400" />
+                                <span className="font-semibold">{formData.senderVerified === 'yes' ? 'Verified' : 'Not verified'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/60 bg-white/60 dark:bg-slate-900/40 p-4">
+                        <div className="flex items-center justify-between">
+                            <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                                Recent Transactions
+                            </div>
+                            {recentTransfersLoading ? (
+                                <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+                            ) : null}
+                        </div>
+                        <div className="mt-3 space-y-2">
+                            {recentTransfers.length === 0 ? (
+                                <div className="text-sm text-slate-500 dark:text-slate-300">
+                                    {formData.senderRecordId ? 'No recent transfers found.' : 'Select a sender to view recent transfers.'}
+                                </div>
+                            ) : (
+                                recentTransfers.map((transfer) => (
+                                    <div key={String(transfer.id)} className="flex items-center justify-between rounded-xl bg-white/70 dark:bg-slate-900/40 px-3 py-2">
+                                        <div className="min-w-0">
+                                            <div className="text-sm font-semibold text-slate-900 dark:text-white truncate">{transfer.code || `#${transfer.id}`}</div>
+                                            <div className="text-[11px] text-slate-500 dark:text-slate-300 truncate">{transfer.created_at || '-'}</div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                                                £{Number(transfer.source_amount || 0).toFixed(2)}
+                                            </div>
+                                            <div className="text-[11px] text-slate-500 dark:text-slate-300">
+                                                {String(transfer.status || '').replaceAll('_', ' ') || '-'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
@@ -1900,6 +2145,9 @@ export default function CreateTransferPage() {
                 </div>
             </div>
 
+            ) : null}
+
+            {wizardStep === 2 ? (
             <div className="card-glass p-6 md:p-8 space-y-6">
                 <div className="flex items-center justify-between gap-3">
                     <h2 className="text-lg font-bold text-slate-900 dark:text-white">Receiver Details</h2>
@@ -1923,7 +2171,10 @@ export default function CreateTransferPage() {
                             onChange={(event) => {
                                 const selected = beneficiaries.find((item) => String(item.id) === event.target.value);
                                 if (selected) {
-                                    void selectReceiver(selected);
+                                    void (async () => {
+                                        await selectReceiver(selected);
+                                        setWizardStep(3);
+                                    })();
                                 } else {
                                     setFormData((prev) => ({ ...prev, receiverRecordId: '' }));
                                     setReceiverBranchAccessIssue({ blocked: false, message: '' });
@@ -2212,19 +2463,127 @@ export default function CreateTransferPage() {
                 </div>
             </div>
 
-            <div className="flex justify-end gap-4">
-                <Link href="/admin/transfers" className="px-6 py-3 rounded-full glass-effect text-slate-600 dark:text-slate-300 font-bold text-sm transition-colors">
+            ) : null}
+
+            {wizardStep === 4 ? (
+                <div className="card-glass p-6 md:p-8 space-y-6">
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">Confirm Transfer</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/60 bg-white/60 dark:bg-slate-900/40 p-4">
+                            <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Sender</div>
+                            <div className="mt-2 text-sm text-slate-700 dark:text-slate-200 space-y-1">
+                                <div className="font-semibold">{formData.senderName || '-'}</div>
+                                <div>{formData.senderContacts || '-'}</div>
+                                <div>{formData.senderId || '-'}</div>
+                            </div>
+                            <button type="button" onClick={() => setWizardStep(1)} className="mt-3 text-xs font-bold text-teal-600 hover:text-teal-700 dark:text-teal-300 dark:hover:text-teal-200">
+                                Edit sender
+                            </button>
+                        </div>
+                        <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/60 bg-white/60 dark:bg-slate-900/40 p-4">
+                            <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Beneficiary</div>
+                            <div className="mt-2 text-sm text-slate-700 dark:text-slate-200 space-y-1">
+                                <div className="font-semibold">{formData.receiverName || '-'}</div>
+                                <div>{formData.receiverContacts || '-'}</div>
+                                <div>{formData.receiverBank || '-'}</div>
+                            </div>
+                            <button type="button" onClick={() => setWizardStep(2)} className="mt-3 text-xs font-bold text-teal-600 hover:text-teal-700 dark:text-teal-300 dark:hover:text-teal-200">
+                                Edit beneficiary
+                            </button>
+                        </div>
+                        <div className="md:col-span-2 rounded-2xl border border-slate-100/70 dark:border-slate-700/60 bg-white/60 dark:bg-slate-900/40 p-4">
+                            <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Transfer Details</div>
+                            <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-slate-700 dark:text-slate-200">
+                                <div>
+                                    <div className="text-[11px] text-slate-500 dark:text-slate-300">To Branch</div>
+                                    <div className="font-semibold">{formData.toBranch || '-'}</div>
+                                </div>
+                                <div>
+                                    <div className="text-[11px] text-slate-500 dark:text-slate-300">Amount (GBP)</div>
+                                    <div className="font-semibold">£{Number(formData.receiveAmount || 0).toFixed(2)}</div>
+                                </div>
+                                <div>
+                                    <div className="text-[11px] text-slate-500 dark:text-slate-300">Payout</div>
+                                    <div className="font-semibold">{formData.payoutCurrency || '-'} @ {Number(formData.customerRate || 0).toFixed(2)}</div>
+                                </div>
+                            </div>
+                            <button type="button" onClick={() => setWizardStep(3)} className="mt-3 text-xs font-bold text-teal-600 hover:text-teal-700 dark:text-teal-300 dark:hover:text-teal-200">
+                                Edit details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            ) : null}
+
+            <div className="flex items-center justify-between gap-4">
+                <Link
+                    href="/admin/transfers"
+                    className="px-6 py-3 rounded-full glass-effect text-slate-600 dark:text-slate-300 font-bold text-sm transition-colors"
+                >
                     Cancel
                 </Link>
-                <button
-                    type="button"
-                    onClick={handleSubmit}
-                    disabled={saving}
-                    className="btn-primary px-6 py-3 rounded-full text-sm font-bold inline-flex items-center gap-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 disabled:opacity-60"
-                >
-                    {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                    {saving ? 'Creating Transfer...' : 'Save'}
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setWizardStep((prev) => {
+                                if (prev === 2) return 1;
+                                if (prev === 3) return 2;
+                                if (prev === 4) return 3;
+                                return 1;
+                            });
+                        }}
+                        disabled={wizardStep === 1}
+                        className="px-6 py-3 rounded-full glass-effect text-slate-700 dark:text-slate-200 font-bold text-sm disabled:opacity-50"
+                    >
+                        Back
+                    </button>
+                    {wizardStep < 4 ? (
+                        <button
+                            type="button"
+                            onClick={async () => {
+                                if (wizardStep === 1) {
+                                    if (!formData.senderRecordId) {
+                                        setModal('Missing Information', 'Please select a sender to continue.', 'warning');
+                                        return;
+                                    }
+                                    setWizardStep(2);
+                                    return;
+                                }
+                                if (wizardStep === 2) {
+                                    if (!formData.receiverRecordId) {
+                                        setModal('Missing Information', 'Please select a beneficiary to continue.', 'warning');
+                                        return;
+                                    }
+                                    setWizardStep(3);
+                                    return;
+                                }
+                                if (wizardStep === 3) {
+                                    const validationError = validateForm();
+                                    if (validationError) {
+                                        setModal('Missing Information', validationError, 'warning');
+                                        return;
+                                    }
+                                    setWizardStep(4);
+                                }
+                            }}
+                            className="btn-primary px-6 py-3 rounded-full text-sm font-bold inline-flex items-center gap-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40"
+                        >
+                            Next
+                            <ChevronRight className="w-4 h-4" />
+                        </button>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={handleSubmit}
+                            disabled={saving}
+                            className="btn-primary px-6 py-3 rounded-full text-sm font-bold inline-flex items-center gap-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 disabled:opacity-60"
+                        >
+                            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                            {saving ? 'Creating Transfer...' : 'Save'}
+                        </button>
+                    )}
+                </div>
             </div>
 
         </div>

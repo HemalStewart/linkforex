@@ -392,13 +392,22 @@ export default function EditRemitterPage() {
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Remitter Details</h1>
                     <p className="text-slate-500 dark:text-slate-300 mt-2">Field view and edit for sender profile</p>
                 </div>
-                <button
-                    onClick={handleDelete}
-                    className="px-5 py-3 rounded-full text-sm font-bold transition-colors flex items-center space-x-2 glass-effect text-slate-600 dark:text-slate-300 hover:text-red-600"
-                >
-                    <Trash2 className="w-4 h-4" />
-                    <span>Delete</span>
-                </button>
+                <div className="flex items-center gap-3">
+                    <Link
+                        href={`/admin/transfers/create?senderId=${encodeURIComponent(id)}`}
+                        className="px-5 py-3 rounded-full text-sm font-bold transition-colors flex items-center space-x-2 btn-primary"
+                    >
+                        <ExternalLink className="w-4 h-4" />
+                        <span>Start Transfer</span>
+                    </Link>
+                    <button
+                        onClick={handleDelete}
+                        className="px-5 py-3 rounded-full text-sm font-bold transition-colors flex items-center space-x-2 glass-effect text-slate-600 dark:text-slate-300 hover:text-red-600"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                        <span>Delete</span>
+                    </button>
+                </div>
             </div>
 
             <div className="card-glass p-6 space-y-5">
