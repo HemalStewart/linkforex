@@ -6,7 +6,7 @@ import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import Modal from '../components/Modal';
 import SortIndicator from '../components/SortIndicator';
-import { CheckCircle2, Download, Eye, ImageUp, PenLine, PlusCircle, Printer, RotateCcw, Save, Search, XCircle } from 'lucide-react';
+import { CheckCircle2, Download, Eye, FileText, ImageUp, PenLine, PlusCircle, Printer, RotateCcw, Save, Search, XCircle } from 'lucide-react';
 
 type SortDir = 'asc' | 'desc';
 
@@ -151,6 +151,7 @@ type TransferRow = {
     receiverAmlDocument: string;
     receiverAmlResult: string;
     rescreeningMtReceiver: string;
+    pofDocs: string;
     enteredUser: string;
     enteredDate: string;
     modifiedUser: string;
@@ -237,6 +238,29 @@ const parseTransferMeta = (transfer: Transfer): Record<string, unknown> => {
     return {};
 };
 
+type PofDocument = {
+    url?: string;
+    path?: string;
+    uploaded_at?: string;
+};
+
+const asPofDocuments = (value: unknown): PofDocument[] => {
+    if (!Array.isArray(value)) return [];
+    return value
+        .map((item) => (isRecord(item) ? item : null))
+        .filter(Boolean)
+        .map((item) => ({
+            url: asString(item?.url),
+            path: asString(item?.path),
+            uploaded_at: asString(item?.uploaded_at)
+        }))
+        .filter((doc) => Boolean(doc.url || doc.path));
+};
+
+const looksLikeImageUrl = (value: string): boolean => (
+    /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(value.split('?')[0] || '')
+);
+
 const makeAddress = (...parts: Array<unknown>): string => {
     const built = parts
         .map((part) => asString(part).trim())
@@ -274,6 +298,8 @@ export default function TransfersPage() {
     const [hasInk, setHasInk] = useState(false);
     const [statusActionBusyId, setStatusActionBusyId] = useState<string | null>(null);
     const [statusActionType, setStatusActionType] = useState<'approve' | 'cancel' | null>(null);
+    const [pofModalOpen, setPofModalOpen] = useState(false);
+    const [pofTransferId, setPofTransferId] = useState<string | null>(null);
 
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const uploadInputRef = useRef<HTMLInputElement | null>(null);
@@ -394,6 +420,7 @@ export default function TransfersPage() {
             const signatureSigned = yesNo(meta.signature_signed) === 'Yes' || signatureImage.length > 0;
             const signatureSignedBy = asString(meta.signature_signed_by) || '-';
             const signatureSignedAt = asString(meta.signature_signed_at);
+            const pofDocs = asPofDocuments(meta.pof_documents);
 
             return {
                 id: asString(transfer.id),
@@ -450,6 +477,7 @@ export default function TransfersPage() {
                 receiverAmlDocument: asString(meta.receiver_aml_document) || '-',
                 receiverAmlResult: asString(meta.receiver_aml_result) || '-',
                 rescreeningMtReceiver: asString(meta.rescreening_mt_receiver) || asString(remitter?.rescreening_sender) || '-',
+                pofDocs: pofDocs.length > 0 ? `${pofDocs.length} file(s)` : '-',
                 enteredUser,
                 enteredDate: asString(transfer.created_at) || '-',
                 modifiedUser,
@@ -458,6 +486,16 @@ export default function TransfersPage() {
             };
         });
     }, [transfers, remitterById, beneficiaryById, branchByKey, userById]);
+
+    const openPofModal = (transferId: string) => {
+        setPofTransferId(transferId);
+        setPofModalOpen(true);
+    };
+
+    const closePofModal = () => {
+        setPofModalOpen(false);
+        setPofTransferId(null);
+    };
 
     const statusConfig = useMemo(() => {
         const countByStatus = (status: string) => rows.filter((row) => row.rawStatus === status).length;
@@ -1040,6 +1078,39 @@ export default function TransfersPage() {
         { key: 'receiverAmlDocument', label: 'Receiver AML Document', sortable: true },
         { key: 'receiverAmlResult', label: 'Receiver AML Result', sortable: true },
         { key: 'rescreeningMtReceiver', label: 'Re/screening MT Receiver', sortable: true },
+        {
+            key: 'pofDocs',
+            label: 'POF Docs',
+            sortable: false,
+            render: (row) => {
+                const transfer = transferById.get(row.id);
+                const meta = transfer ? parseTransferMeta(transfer) : {};
+                const docs = asPofDocuments(meta.pof_documents);
+
+                if (docs.length > 0) {
+                    return (
+                        <button
+                            type="button"
+                            onClick={() => openPofModal(row.id)}
+                            className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all"
+                            title="View proof of funds documents"
+                        >
+                            <FileText className="w-4 h-4" />
+                        </button>
+                    );
+                }
+
+                if (row.rawStatus === 'pending_documentation') {
+                    return (
+                        <span className="inline-flex items-center rounded-full border border-orange-200 bg-orange-50 px-2 py-0.5 text-xs font-semibold text-orange-700 dark:border-orange-500/40 dark:bg-orange-950/40 dark:text-orange-200">
+                            Required
+                        </span>
+                    );
+                }
+
+                return <span className="text-slate-400 dark:text-slate-500">-</span>;
+            }
+        },
         { key: 'enteredUser', label: 'Entered User', sortable: true },
         { key: 'enteredDate', label: 'Entered Date', sortable: true, render: (row) => formatDateTime(row.enteredDate) },
         { key: 'modifiedUser', label: 'Modified User', sortable: true },
@@ -1080,6 +1151,94 @@ export default function TransfersPage() {
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 pb-20 animate-fade-in-up">
+            <Modal
+                isOpen={pofModalOpen}
+                onClose={closePofModal}
+                title="Proof Of Funds Documents"
+                size="lg"
+            >
+                {(() => {
+                    if (!pofTransferId) return null;
+                    const transfer = transferById.get(pofTransferId);
+                    const meta = transfer ? parseTransferMeta(transfer) : {};
+                    const docs = asPofDocuments(meta.pof_documents);
+
+                    if (docs.length === 0) {
+                        return (
+                            <div className="space-y-2">
+                                <p className="text-sm text-slate-600 dark:text-slate-300">
+                                    No documents uploaded yet.
+                                </p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    Transfer status: <span className="font-semibold">{formatStatus(normalizeStatusKey(transfer?.status || 'pending'))}</span>
+                                </p>
+                            </div>
+                        );
+                    }
+
+                    return (
+                        <div className="space-y-4">
+                            <div className="text-sm text-slate-500 dark:text-slate-300">
+                                Transfer: <span className="font-semibold text-slate-900 dark:text-white">{asString(transfer?.code) || pofTransferId}</span>
+                            </div>
+                            <div className="space-y-3">
+                                {docs.map((doc, index) => {
+                                    const url = asString(doc.url || doc.path);
+                                    const uploadedAt = asString(doc.uploaded_at);
+                                    const isImage = looksLikeImageUrl(url);
+
+                                    return (
+                                        <div
+                                            key={`${url}-${index}`}
+                                            className="rounded-2xl border border-slate-200/70 dark:border-slate-700/70 bg-white/70 dark:bg-slate-900/40 p-4 space-y-3"
+                                        >
+                                            <div className="flex items-start justify-between gap-4">
+                                                <div className="min-w-0">
+                                                    <div className="text-sm font-semibold text-slate-900 dark:text-white truncate">
+                                                        Document {index + 1}
+                                                    </div>
+                                                    <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                                                        {url || 'Unknown file'}
+                                                    </div>
+                                                    {uploadedAt ? (
+                                                        <div className="text-xs text-slate-500 dark:text-slate-400">
+                                                            Uploaded: {formatDateTime(uploadedAt)}
+                                                        </div>
+                                                    ) : null}
+                                                </div>
+                                                {url ? (
+                                                    <a
+                                                        href={url}
+                                                        target="_blank"
+                                                        rel="noreferrer noopener"
+                                                        className="btn-secondary inline-flex items-center gap-2 text-sm shrink-0"
+                                                    >
+                                                        <Eye className="w-4 h-4" />
+                                                        Open
+                                                    </a>
+                                                ) : null}
+                                            </div>
+                                            {isImage && url ? (
+                                                // eslint-disable-next-line @next/next/no-img-element
+                                                <img
+                                                    src={url}
+                                                    alt={`POF document ${index + 1}`}
+                                                    className="w-full max-h-[420px] object-contain rounded-xl border border-slate-200 dark:border-slate-700 bg-white"
+                                                />
+                                            ) : null}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            <div className="dialog-actions !mt-0">
+                                <button type="button" onClick={closePofModal} className="btn-secondary">
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    );
+                })()}
+            </Modal>
             <Modal
                 isOpen={signModalOpen}
                 onClose={closeSignatureModal}
