@@ -175,6 +175,7 @@ const formatDateTime = (value: string): string => {
 
 const formatStatus = (value: string): string => {
     if (!value) return '-';
+    if (normalizeStatusKey(value) === 'verify_pof_documents') return 'Verify Proof Of Funds Documents';
     return value.split('_').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
 };
 
@@ -192,6 +193,10 @@ const statusBadgeClass = (value: string): string => {
     switch (normalizeStatusKey(value)) {
         case 'awaiting_funds':
             return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
+        case 'pending_documentation':
+            return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300';
+        case 'verify_pof_documents':
+            return 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300';
         case 'funds_received':
             return 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300';
         case 'processing':
@@ -460,6 +465,8 @@ export default function TransfersPage() {
         return {
             all: { label: 'All', shortLabel: 'All', count: rows.length },
             awaiting_funds: { label: 'Awaiting', shortLabel: 'Awaiting', count: countByStatus('awaiting_funds') },
+            pending_documentation: { label: 'Docs', shortLabel: 'Docs', count: countByStatus('pending_documentation') },
+            verify_pof_documents: { label: 'POF Review', shortLabel: 'POF', count: countByStatus('verify_pof_documents') },
             funds_received: { label: 'Received', shortLabel: 'Received', count: countByStatus('funds_received') },
             processing: { label: 'Processing', shortLabel: 'Processing', count: countByStatus('processing') },
             pending: { label: 'Pending', shortLabel: 'Pending', count: countByStatus('pending') },
