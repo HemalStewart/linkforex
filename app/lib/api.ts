@@ -59,6 +59,8 @@ export const ENDPOINTS = {
         DETAIL: (id: string | number) => `${API_BASE_URL}/transfers/${id}`,
         APPROVE: (id: string | number) => `${API_BASE_URL}/transfers/${id}/approve`,
         CANCEL: (id: string | number) => `${API_BASE_URL}/transfers/${id}/cancel`,
+        APPROVE_POF: (id: string | number) => `${API_BASE_URL}/transfers/${id}/pof/approve`,
+        REJECT_POF: (id: string | number) => `${API_BASE_URL}/transfers/${id}/pof/reject`,
     },
     USERS: {
         LIST: `${API_BASE_URL}/users`,

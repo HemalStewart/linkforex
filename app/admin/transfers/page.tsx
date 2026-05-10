@@ -6,7 +6,7 @@ import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import Modal from '../components/Modal';
 import SortIndicator from '../components/SortIndicator';
-import { CheckCircle2, Download, Eye, FileText, ImageUp, PenLine, PlusCircle, Printer, RotateCcw, Save, Search, XCircle } from 'lucide-react';
+import { CheckCircle2, Download, Eye, FileCheck2, FileText, FileX2, ImageUp, PenLine, PlusCircle, Printer, RotateCcw, Save, Search, XCircle } from 'lucide-react';
 
 type SortDir = 'asc' | 'desc';
 
@@ -300,6 +300,11 @@ export default function TransfersPage() {
     const [statusActionType, setStatusActionType] = useState<'approve' | 'cancel' | null>(null);
     const [pofModalOpen, setPofModalOpen] = useState(false);
     const [pofTransferId, setPofTransferId] = useState<string | null>(null);
+    const [pofReviewModalOpen, setPofReviewModalOpen] = useState(false);
+    const [pofReviewTransferId, setPofReviewTransferId] = useState<string | null>(null);
+    const [pofReviewNote, setPofReviewNote] = useState('');
+    const [pofReviewBusy, setPofReviewBusy] = useState<'approve' | 'reject' | null>(null);
+    const [pofReviewError, setPofReviewError] = useState('');
 
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const uploadInputRef = useRef<HTMLInputElement | null>(null);
@@ -495,6 +500,70 @@ export default function TransfersPage() {
     const closePofModal = () => {
         setPofModalOpen(false);
         setPofTransferId(null);
+    };
+
+    const openPofReviewModal = (transferId: string) => {
+        setPofReviewTransferId(transferId);
+        setPofReviewNote('');
+        setPofReviewError('');
+        setPofReviewModalOpen(true);
+    };
+
+    const closePofReviewModal = (force = false) => {
+        if (pofReviewBusy && !force) return;
+        setPofReviewModalOpen(false);
+        setPofReviewTransferId(null);
+        setPofReviewNote('');
+        setPofReviewError('');
+    };
+
+    const extractErrorMessage = async (response: Response, fallback: string): Promise<string> => {
+        try {
+            const data = await response.json();
+            if (data?.messages) {
+                if (typeof data.messages === 'string') return data.messages;
+                if (typeof data.messages === 'object') return Object.values(data.messages).join('\n');
+            }
+            if (data?.message) return String(data.message);
+        } catch {
+            // keep fallback
+        }
+        return fallback;
+    };
+
+    const handlePofReview = async (decision: 'approve' | 'reject') => {
+        if (!pofReviewTransferId) return;
+        if (decision === 'reject' && !pofReviewNote.trim()) {
+            setPofReviewError('Rejection note is required.');
+            return;
+        }
+
+        setPofReviewBusy(decision);
+        setPofReviewError('');
+        try {
+            const endpoint = decision === 'approve'
+                ? ENDPOINTS.TRANSFERS.APPROVE_POF(pofReviewTransferId)
+                : ENDPOINTS.TRANSFERS.REJECT_POF(pofReviewTransferId);
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ note: pofReviewNote.trim() })
+            });
+
+            if (!response.ok) {
+                setPofReviewError(await extractErrorMessage(response, `Failed to ${decision} proof of funds.`));
+                return;
+            }
+
+            const updated = (await response.json()) as Transfer;
+            refreshSingleTransfer(updated);
+            closePofReviewModal(true);
+        } catch (error) {
+            console.error(`Failed to ${decision} proof of funds`, error);
+            setPofReviewError(`Failed to ${decision} proof of funds.`);
+        } finally {
+            setPofReviewBusy(null);
+        }
     };
 
     const statusConfig = useMemo(() => {
@@ -1240,6 +1309,112 @@ export default function TransfersPage() {
                 })()}
             </Modal>
             <Modal
+                isOpen={pofReviewModalOpen}
+                onClose={closePofReviewModal}
+                title="Review Proof Of Funds"
+                size="lg"
+            >
+                {(() => {
+                    if (!pofReviewTransferId) return null;
+                    const transfer = transferById.get(pofReviewTransferId);
+                    const meta = transfer ? parseTransferMeta(transfer) : {};
+                    const docs = asPofDocuments(meta.pof_documents);
+                    const currentStatus = normalizeStatusKey(transfer?.status || '');
+                    const canApprove = currentStatus === 'verify_pof_documents' && docs.length > 0;
+                    const canReject = ['pending_documentation', 'verify_pof_documents'].includes(currentStatus);
+
+                    return (
+                        <div className="space-y-5">
+                            <div className="rounded-2xl border border-slate-200/70 dark:border-slate-700/70 bg-white/70 dark:bg-slate-900/40 p-4">
+                                <div className="grid gap-3 sm:grid-cols-3 text-sm">
+                                    <div>
+                                        <div className="text-xs font-bold uppercase tracking-wide text-slate-400">Transfer</div>
+                                        <div className="font-semibold text-slate-900 dark:text-white">{asString(transfer?.code) || pofReviewTransferId}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-xs font-bold uppercase tracking-wide text-slate-400">Status</div>
+                                        <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${statusBadgeClass(currentStatus)}`}>
+                                            {formatStatus(currentStatus)}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <div className="text-xs font-bold uppercase tracking-wide text-slate-400">Documents</div>
+                                        <div className="font-semibold text-slate-900 dark:text-white">{docs.length}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {docs.length > 0 ? (
+                                <div className="space-y-2">
+                                    {docs.map((doc, index) => {
+                                        const url = asString(doc.url || doc.path);
+                                        return (
+                                            <div key={`${url}-${index}`} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200/70 dark:border-slate-700/70 px-3 py-2">
+                                                <div className="min-w-0 text-sm">
+                                                    <div className="font-semibold text-slate-800 dark:text-slate-100">Document {index + 1}</div>
+                                                    <div className="truncate text-xs text-slate-500 dark:text-slate-400">{url}</div>
+                                                </div>
+                                                <a href={url} target="_blank" rel="noreferrer noopener" className="btn-secondary inline-flex items-center gap-2 text-sm shrink-0">
+                                                    <Eye className="w-4 h-4" />
+                                                    Open
+                                                </a>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-semibold text-orange-700 dark:border-orange-500/40 dark:bg-orange-950/40 dark:text-orange-200">
+                                    No Proof of Funds documents have been uploaded yet.
+                                </div>
+                            )}
+
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2">
+                                    Review Note {canApprove ? '(optional for approval)' : '(required for rejection)'}
+                                </label>
+                                <textarea
+                                    value={pofReviewNote}
+                                    onChange={(event) => setPofReviewNote(event.target.value)}
+                                    rows={4}
+                                    className="input-glass w-full"
+                                    placeholder="Add a clear compliance note for the audit trail"
+                                />
+                            </div>
+
+                            {pofReviewError && (
+                                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 dark:border-red-500/40 dark:bg-red-950/40 dark:text-red-200">
+                                    {pofReviewError}
+                                </div>
+                            )}
+
+                            <div className="dialog-actions !mt-0">
+                                <button type="button" onClick={() => closePofReviewModal()} className="btn-secondary" disabled={Boolean(pofReviewBusy)}>
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => void handlePofReview('reject')}
+                                    disabled={!canReject || Boolean(pofReviewBusy)}
+                                    className="px-4 py-2 rounded-full bg-red-500/90 text-white text-sm font-semibold hover:bg-red-500 disabled:opacity-50 inline-flex items-center gap-2"
+                                >
+                                    <FileX2 className="w-4 h-4" />
+                                    {pofReviewBusy === 'reject' ? 'Rejecting...' : 'Reject POF'}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => void handlePofReview('approve')}
+                                    disabled={!canApprove || Boolean(pofReviewBusy)}
+                                    className="btn-primary inline-flex items-center gap-2"
+                                >
+                                    <FileCheck2 className="w-4 h-4" />
+                                    {pofReviewBusy === 'approve' ? 'Approving...' : 'Approve POF'}
+                                </button>
+                            </div>
+                        </div>
+                    );
+                })()}
+            </Modal>
+            <Modal
                 isOpen={signModalOpen}
                 onClose={closeSignatureModal}
                 title="Transfer Signature"
@@ -1399,6 +1574,7 @@ export default function TransfersPage() {
                                         ) : column.label}
                                     </th>
                                 ))}
+                                <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">POF Review</th>
                                 <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Approve</th>
                                 <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Cancel</th>
                                 <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">View</th>
@@ -1415,6 +1591,20 @@ export default function TransfersPage() {
                                             </span>
                                         </td>
                                     ))}
+                                    <td className="px-4 py-3 text-sm">
+                                        {['pending_documentation', 'verify_pof_documents'].includes(row.rawStatus) ? (
+                                            <button
+                                                type="button"
+                                                onClick={() => openPofReviewModal(row.id)}
+                                                className="px-3 py-1.5 rounded-full glass-effect text-xs font-semibold text-slate-600 dark:text-slate-200 hover:text-teal-600 inline-flex items-center gap-1"
+                                            >
+                                                <FileCheck2 className="w-3.5 h-3.5" />
+                                                Review
+                                            </button>
+                                        ) : (
+                                            <span className="text-slate-400 dark:text-slate-500">-</span>
+                                        )}
+                                    </td>
                                     <td className="px-4 py-3 text-sm">
                                         {row.rawStatus === 'pending' ? (
                                             <button
@@ -1459,7 +1649,7 @@ export default function TransfersPage() {
                             ))}
                             {pagedRows.length === 0 && (
                                 <tr>
-                                    <td colSpan={columns.length + 4} className="px-4 py-10 text-center text-sm text-slate-500 dark:text-slate-300">
+                                    <td colSpan={columns.length + 5} className="px-4 py-10 text-center text-sm text-slate-500 dark:text-slate-300">
                                         No transfers found.
                                     </td>
                                 </tr>
@@ -1471,7 +1661,7 @@ export default function TransfersPage() {
                                     <td className="px-4 py-3 text-sm font-bold text-teal-700 dark:text-teal-300">
                                         {receivedTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </td>
-                                    <td colSpan={Math.max(columns.length - receivedAmountColumnIndex - 1 + 4, 1)} className="px-4 py-3" />
+                                    <td colSpan={Math.max(columns.length - receivedAmountColumnIndex - 1 + 5, 1)} className="px-4 py-3" />
                                 </tr>
                             )}
                         </tbody>
