@@ -599,7 +599,6 @@ export default function EditBranchPage() {
                                 <option value="">Select transaction type</option>
                                 <option value="Receiver">Receiver</option>
                                 <option value="Sender">Sender</option>
-                                <option value="Both">Both</option>
                             </SelectField>
                             <TextField label="Daily Transfer Limit" type="number" value={formData.day_transfer_limit} onChange={(value) => updateField('day_transfer_limit', value)} placeholder="100000" icon={<Coins className="h-5 w-5" />} disabled={isReadOnly} />
                             <SelectField label="Branch Ownership Type" value={formData.branch_ownership_type} onChange={(value) => updateField('branch_ownership_type', value as 'Own' | 'Agent')} icon={<Store className="h-5 w-5" />} disabled={isReadOnly}>
