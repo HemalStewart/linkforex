@@ -103,7 +103,21 @@ export default function CreateUserPage() {
                 payload.append('created_by', enteredBy);
                 payload.append('updated_by', enteredBy);
             }
-            if (signatureFile) payload.append('signature', signatureFile);
+            if (signatureFile) {
+                const isAllowedSignatureImage = ['image/jpeg', 'image/png'].includes(signatureFile.type);
+                if (!isAllowedSignatureImage) {
+                    setConfirmModal({
+                        isOpen: true,
+                        title: 'Invalid Signature File',
+                        message: 'Signature upload only supports JPG and PNG images.',
+                        type: 'danger',
+                        isAlert: true,
+                        shouldRedirect: false
+                    });
+                    return;
+                }
+                payload.append('signature', signatureFile);
+            }
             if (signatureClear) payload.append('signature_clear', '1');
 
             const res = await fetch(ENDPOINTS.USERS.LIST, {
@@ -420,7 +434,7 @@ export default function CreateUserPage() {
                   <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate">
                     {signatureFile ? signatureFile.name : 'No file chosen'}
                   </p>
-                  <p className="text-xs text-slate-400">PNG, JPG, or PDF</p>
+                  <p className="text-xs text-slate-400">PNG or JPG only</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
@@ -446,10 +460,23 @@ export default function CreateUserPage() {
               <input
                 ref={signatureInputRef}
                 type="file"
-                accept=".png,.jpg,.jpeg,.pdf"
+                accept="image/png,image/jpeg,.png,.jpg,.jpeg"
                 className="hidden"
                 onChange={(e) => {
                     const file = e.target.files?.[0] || null;
+                    if (file && !['image/jpeg', 'image/png'].includes(file.type)) {
+                        setConfirmModal({
+                            isOpen: true,
+                            title: 'Invalid Signature File',
+                            message: 'Signature upload only supports JPG and PNG images.',
+                            type: 'danger',
+                            isAlert: true,
+                            shouldRedirect: false
+                        });
+                        e.target.value = '';
+                        setSignatureFile(null);
+                        return;
+                    }
                     setSignatureFile(file);
                     setSignatureClear(false);
                 }}

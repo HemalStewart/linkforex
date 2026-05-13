@@ -49,7 +49,7 @@ function FormSelect({ label, name, options, defaultValue }: any) {
     );
 }
 
-function FormFileUpload({ label, name, compact, defaultValue }: any) {
+function FormFileUpload({ label, name, compact, defaultValue, accept }: any) {
     return (
         <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
@@ -69,7 +69,7 @@ function FormFileUpload({ label, name, compact, defaultValue }: any) {
                             compact ? 'Upload' : 'Click to upload'
                         )}
                     </span>
-                    <input type="file" name={name} className="absolute inset-0 opacity-0 cursor-pointer" />
+                    <input type="file" name={name} accept={accept} className="absolute inset-0 opacity-0 cursor-pointer" />
                 </div>
             </div>
         </div>
@@ -487,7 +487,7 @@ export default function CreateRemitterPage() {
                                     <FormFileUpload label="ID Copy / Passport" name="passport_copy" />
                                     <FormFileUpload label="Proof of Address" name="proof_of_address_doc" />
                                     <FormFileUpload label="Source of Income/Funds" name="work_related_docs" />
-                                    <FormFileUpload label="Signature" name="signature_file_name" />
+                                    <FormFileUpload label="Signature" name="signature_file_name" accept="image/png,image/jpeg,.png,.jpg,.jpeg" />
                                     <FormFileUpload label="AML Screening Doc" name="sender_details_aml_screening_doc" />
                                     <FormFileUpload label="Other Supporting Document" name="other_doc" />
                                 </div>
