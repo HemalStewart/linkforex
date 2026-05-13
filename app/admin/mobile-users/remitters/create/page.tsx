@@ -4,6 +4,12 @@ import React, { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
+import {
+    branchMatchesAdminScope,
+    getAdminBranchCode,
+    getCurrentAdminUser,
+    isPrivilegedAdminUser,
+} from '@/app/lib/adminUserScope';
 import ConfirmModal from '../../../components/ConfirmModal';
 import {
     User, Calendar, MapPin, Briefcase, Phone, Building, CreditCard,
@@ -14,6 +20,24 @@ import {
 type SelectOption = string | {
     value: string;
     label: string;
+};
+
+const isSenderBranch = (branch: any): boolean => {
+    const defaultType = String(branch?.default_transaction_type ?? branch?.branch_default_transaction_type ?? '')
+        .trim()
+        .toLowerCase();
+    return defaultType === 'sender' || defaultType === 'both';
+};
+
+const branchOptionValue = (branch: any): string =>
+    String(branch?.code || branch?.transaction_prefix || branch?.name || branch?.id || '').trim();
+
+const branchOptionLabel = (branch: any, fallback: string): string =>
+    String(branch?.name || branch?.branch_name || branch?.code || branch?.transaction_prefix || fallback).trim();
+
+const isLondonBranchOption = (option: { value: string; label: string }): boolean => {
+    const combined = `${option.value} ${option.label}`.toLowerCase();
+    return combined.includes('london') || option.value.toUpperCase() === 'LFX';
 };
 
 // --- HELPER COMPONENTS (Reused) ---
@@ -118,6 +142,9 @@ export default function CreateMobileUserRemitterPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const returnUrl = searchParams.get('returnUrl');
+    const currentUser = React.useMemo(() => getCurrentAdminUser(), []);
+    const isPrivilegedUser = React.useMemo(() => isPrivilegedAdminUser(currentUser), [currentUser]);
+    const scopedBranchCode = React.useMemo(() => getAdminBranchCode(currentUser), [currentUser]);
 
     const [branches, setBranches] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
@@ -149,11 +176,15 @@ export default function CreateMobileUserRemitterPage() {
     }, []);
 
     const branchOptions = React.useMemo<SelectOption[]>(() => {
+        const source = branches.length > 0 ? branches : (scopedBranchCode ? [{ code: scopedBranchCode, name: scopedBranchCode }] : []);
+        const scoped = isPrivilegedUser ? source : source.filter((branch) => branchMatchesAdminScope(branch, currentUser));
+        const senderBranches = scoped.filter(isSenderBranch);
+        const filtered = branches.length > 0 ? senderBranches : scoped;
         const seen = new Set<string>();
-        const options = branches
+        const options = filtered
             .map((branch) => {
-                const optionValue = String(branch.code || branch.transaction_prefix || branch.name || branch.id || '').trim();
-                const optionLabel = String(branch.name || branch.branch_name || branch.code || branch.transaction_prefix || optionValue).trim();
+                const optionValue = branchOptionValue(branch);
+                const optionLabel = branchOptionLabel(branch, optionValue);
                 return optionValue ? { value: optionValue, label: optionLabel || optionValue } : null;
             })
             .filter((option): option is { value: string; label: string } => {
@@ -161,8 +192,9 @@ export default function CreateMobileUserRemitterPage() {
                 seen.add(option.value);
                 return true;
             });
-        return options.length > 0 ? options : [{ value: 'London - Link Forex Ltd', label: 'London - Link Forex Ltd' }];
-    }, [branches]);
+        const sorted = [...options].sort((a, b) => Number(isLondonBranchOption(b)) - Number(isLondonBranchOption(a)));
+        return sorted.length > 0 ? sorted : [{ value: 'London - Link Forex Ltd', label: 'London - Link Forex Ltd' }];
+    }, [branches, currentUser, isPrivilegedUser, scopedBranchCode]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();

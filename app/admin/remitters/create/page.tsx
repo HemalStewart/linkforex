@@ -51,6 +51,24 @@ type SelectOption = string | {
     label: string;
 };
 
+const isSenderBranch = (branch: any): boolean => {
+    const defaultType = String(branch?.default_transaction_type ?? branch?.branch_default_transaction_type ?? '')
+        .trim()
+        .toLowerCase();
+    return defaultType === 'sender' || defaultType === 'both';
+};
+
+const branchOptionValue = (branch: any): string =>
+    String(branch?.code || branch?.transaction_prefix || branch?.name || branch?.id || '').trim();
+
+const branchOptionLabel = (branch: any, fallback: string): string =>
+    String(branch?.name || branch?.branch_name || branch?.code || branch?.transaction_prefix || fallback).trim();
+
+const isLondonBranchOption = (option: { value: string; label: string }): boolean => {
+    const combined = `${option.value} ${option.label}`.toLowerCase();
+    return combined.includes('london') || option.value.toUpperCase() === 'LFX';
+};
+
 // --- HELPER COMPONENTS (Reused) ---
 
 function FormInput({ label, name, type = 'text', placeholder, disabled, step, defaultValue, required, Icon, value, onChange }: any) {
@@ -228,12 +246,14 @@ export default function CreateRemitterPage() {
 
     const branchOptions = React.useMemo<SelectOption[]>(() => {
         const source = branches.length > 0 ? branches : (scopedBranchCode ? [{ code: scopedBranchCode, name: scopedBranchCode }] : []);
-        const filtered = isPrivilegedUser ? source : source.filter((branch) => branchMatchesAdminScope(branch, currentUser));
+        const scoped = isPrivilegedUser ? source : source.filter((branch) => branchMatchesAdminScope(branch, currentUser));
+        const senderBranches = scoped.filter(isSenderBranch);
+        const filtered = branches.length > 0 ? senderBranches : scoped;
         const seen = new Set<string>();
         const options = filtered
             .map((branch) => {
-                const optionValue = String(branch.code || branch.transaction_prefix || branch.name || branch.id || '').trim();
-                const optionLabel = String(branch.name || branch.branch_name || branch.code || branch.transaction_prefix || optionValue).trim();
+                const optionValue = branchOptionValue(branch);
+                const optionLabel = branchOptionLabel(branch, optionValue);
                 return optionValue ? { value: optionValue, label: optionLabel || optionValue } : null;
             })
             .filter((option): option is { value: string; label: string } => {
@@ -241,7 +261,8 @@ export default function CreateRemitterPage() {
                 seen.add(option.value);
                 return true;
             });
-        return options.length > 0 ? options : [{ value: 'London - Link Forex Ltd', label: 'London - Link Forex Ltd' }];
+        const sorted = [...options].sort((a, b) => Number(isLondonBranchOption(b)) - Number(isLondonBranchOption(a)));
+        return sorted.length > 0 ? sorted : [{ value: 'London - Link Forex Ltd', label: 'London - Link Forex Ltd' }];
     }, [branches, currentUser, isPrivilegedUser, scopedBranchCode]);
 
     const hasMinimumDuplicateSignals = React.useCallback((signals: typeof duplicateFormSignals): boolean => {
