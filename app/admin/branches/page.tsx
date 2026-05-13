@@ -258,10 +258,16 @@ export default function BranchesPage() {
                     isAlert: true
                 });
             } else {
+                const errorData = await res.json().catch(() => null);
+                const errorMessage =
+                    errorData?.messages?.error ||
+                    errorData?.message ||
+                    errorData?.error ||
+                    'Failed to delete branch';
                 setConfirmModal({
                     isOpen: true,
                     title: 'Error',
-                    message: 'Failed to delete branch',
+                    message: errorMessage,
                     type: 'danger',
                     isAlert: true
                 });
