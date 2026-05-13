@@ -46,6 +46,11 @@ type VeriffState = {
     branch_veriff_enabled?: boolean;
 };
 
+type SelectOption = string | {
+    value: string;
+    label: string;
+};
+
 // --- HELPER COMPONENTS (Reused) ---
 
 function FormInput({ label, name, type = 'text', placeholder, disabled, step, defaultValue, required, Icon, value, onChange }: any) {
@@ -99,9 +104,13 @@ function FormSelect({ label, name, options, defaultValue, Icon, required, value,
                     required={required}
                     className={`input-glass w-full py-3 ${Icon ? '' : 'pl-4'} pr-10 appearance-none cursor-pointer text-sm`}
                 >
-                    {options.map((opt: string, index: number) => (
-                        <option key={`${name}-${opt}-${index}`} value={opt}>{opt}</option>
-                    ))}
+                    {options.map((opt: SelectOption, index: number) => {
+                        const optionValue = typeof opt === 'string' ? opt : opt.value;
+                        const optionLabel = typeof opt === 'string' ? opt : opt.label;
+                        return (
+                            <option key={`${name}-${optionValue}-${index}`} value={optionValue}>{optionLabel}</option>
+                        );
+                    })}
                 </select>
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
@@ -217,13 +226,22 @@ export default function CreateRemitterPage() {
         fetchBranches();
     }, []);
 
-    const branchOptions = React.useMemo(() => {
+    const branchOptions = React.useMemo<SelectOption[]>(() => {
         const source = branches.length > 0 ? branches : (scopedBranchCode ? [{ code: scopedBranchCode, name: scopedBranchCode }] : []);
         const filtered = isPrivilegedUser ? source : source.filter((branch) => branchMatchesAdminScope(branch, currentUser));
+        const seen = new Set<string>();
         const options = filtered
-            .map((branch) => String(branch.code || branch.transaction_prefix || branch.name || branch.id || '').trim())
-            .filter(Boolean);
-        return options.length > 0 ? Array.from(new Set(options)) : ['London - Link Forex Ltd'];
+            .map((branch) => {
+                const optionValue = String(branch.code || branch.transaction_prefix || branch.name || branch.id || '').trim();
+                const optionLabel = String(branch.name || branch.branch_name || branch.code || branch.transaction_prefix || optionValue).trim();
+                return optionValue ? { value: optionValue, label: optionLabel || optionValue } : null;
+            })
+            .filter((option): option is { value: string; label: string } => {
+                if (!option || seen.has(option.value)) return false;
+                seen.add(option.value);
+                return true;
+            });
+        return options.length > 0 ? options : [{ value: 'London - Link Forex Ltd', label: 'London - Link Forex Ltd' }];
     }, [branches, currentUser, isPrivilegedUser, scopedBranchCode]);
 
     const hasMinimumDuplicateSignals = React.useCallback((signals: typeof duplicateFormSignals): boolean => {
@@ -731,7 +749,7 @@ export default function CreateRemitterPage() {
                                 Icon={Building}
                                 options={branchOptions}
                                 required
-                                defaultValue={branchOptions[0]}
+                                defaultValue={typeof branchOptions[0] === 'string' ? branchOptions[0] : branchOptions[0]?.value}
                             />
                         </div>
                     </div>

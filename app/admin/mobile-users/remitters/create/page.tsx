@@ -11,6 +11,11 @@ import {
     CheckCircle, Shield, Layers, Save, Users, AlertCircle
 } from 'lucide-react';
 
+type SelectOption = string | {
+    value: string;
+    label: string;
+};
+
 // --- HELPER COMPONENTS (Reused) ---
 
 function FormInput({ label, name, type = 'text', placeholder, disabled, step, defaultValue, required, Icon, value, onChange }: any) {
@@ -64,9 +69,13 @@ function FormSelect({ label, name, options, defaultValue, Icon, required, value,
                     required={required}
                     className={`input-glass w-full py-3 ${Icon ? '' : 'pl-4'} pr-10 appearance-none cursor-pointer text-sm`}
                 >
-                    {options.map((opt: string) => (
-                        <option key={opt} value={opt}>{opt}</option>
-                    ))}
+                    {options.map((opt: SelectOption, index: number) => {
+                        const optionValue = typeof opt === 'string' ? opt : opt.value;
+                        const optionLabel = typeof opt === 'string' ? opt : opt.label;
+                        return (
+                            <option key={`${name}-${optionValue}-${index}`} value={optionValue}>{optionLabel}</option>
+                        );
+                    })}
                 </select>
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
@@ -130,7 +139,7 @@ export default function CreateMobileUserRemitterPage() {
                 const res = await fetch(ENDPOINTS.BRANCHES.LIST);
                 if (res.ok) {
                     const data = await res.json();
-                    setBranches(data);
+                    setBranches(Array.isArray(data) ? data : []);
                 }
             } catch (e) {
                 console.error("Failed to fetch branches", e);
@@ -138,6 +147,22 @@ export default function CreateMobileUserRemitterPage() {
         };
         fetchBranches();
     }, []);
+
+    const branchOptions = React.useMemo<SelectOption[]>(() => {
+        const seen = new Set<string>();
+        const options = branches
+            .map((branch) => {
+                const optionValue = String(branch.code || branch.transaction_prefix || branch.name || branch.id || '').trim();
+                const optionLabel = String(branch.name || branch.branch_name || branch.code || branch.transaction_prefix || optionValue).trim();
+                return optionValue ? { value: optionValue, label: optionLabel || optionValue } : null;
+            })
+            .filter((option): option is { value: string; label: string } => {
+                if (!option || seen.has(option.value)) return false;
+                seen.add(option.value);
+                return true;
+            });
+        return options.length > 0 ? options : [{ value: 'London - Link Forex Ltd', label: 'London - Link Forex Ltd' }];
+    }, [branches]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -283,7 +308,14 @@ export default function CreateMobileUserRemitterPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div>
                             <input type="hidden" name="clientType" value="individual" />
-                            <FormSelect label="Branch" name="branch_id" Icon={Building} options={branches.length > 0 ? branches.map(b => b.code || b.name) : ['London - Link Forex Ltd']} required />
+                            <FormSelect
+                                label="Branch"
+                                name="branch_id"
+                                Icon={Building}
+                                options={branchOptions}
+                                defaultValue={typeof branchOptions[0] === 'string' ? branchOptions[0] : branchOptions[0]?.value}
+                                required
+                            />
                             <div className="flex items-center mt-4 ml-1">
                                 <input type="checkbox" id="sanction_list_verified" name="sanction_list_verified" className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 cursor-pointer" />
                                 <label htmlFor="sanction_list_verified" className="ml-2 text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer">
