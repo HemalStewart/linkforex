@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { BadgeCheck, Bell, Mail, Megaphone, Newspaper, RefreshCcw, Save, ShieldAlert, ShieldCheck, Smartphone } from 'lucide-react';
-import { ENDPOINTS } from '@/app/lib/api';
+import { API_BASE_URL, ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../../components/ConfirmModal';
 import { defaultSettings, type SettingsData, yesNoKeys } from '../_shared';
 
@@ -102,6 +102,14 @@ export default function MobileAppFlowSettingsPage() {
         { key: 'restrict_blacklisted_countries', label: 'Block Blacklisted Countries', icon: <ShieldAlert className="h-4 w-4" /> },
         { key: 'require_new_device_verification', label: 'Require New Device Verification', icon: <Smartphone className="h-4 w-4" /> },
     ]), []);
+
+    const veriffWebhookUrl = useMemo(() => {
+        const base = API_BASE_URL.replace(/\/+$/, '');
+        if (/^https?:\/\//i.test(base)) {
+            return `${base}/webhooks/veriff`;
+        }
+        return 'https://YOUR_BACKEND_DOMAIN/api/webhooks/veriff';
+    }, []);
 
     return (
         <div className="mx-auto max-w-7xl space-y-8 pb-20 animate-fade-in-up">
@@ -311,14 +319,20 @@ export default function MobileAppFlowSettingsPage() {
                         </label>
 
                         <label className="text-xs font-bold uppercase tracking-wider text-slate-500 md:col-span-2">
-                            Callback URL
+                            App Return URL
                             <input
                                 value={settings.veriff_callback_url}
                                 onChange={(e) => setSettings((prev) => ({ ...prev, veriff_callback_url: e.target.value }))}
                                 className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
-                                placeholder="https://your-domain/api/webhooks/veriff"
+                                placeholder="linkforex://veriff-complete"
                             />
                         </label>
+
+                        <div className="md:col-span-2 rounded-2xl border border-slate-200/70 bg-white/50 p-3 text-xs text-slate-500 dark:border-slate-700 dark:bg-slate-900/30 dark:text-slate-400">
+                            Configure this URL in Veriff Station as the decision webhook:
+                            <div className="mt-1 font-mono text-[11px] text-slate-700 dark:text-slate-200">{veriffWebhookUrl}</div>
+                            The app return URL is only for sending the user back to the mobile app after the Veriff web flow.
+                        </div>
 
                         <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
                             API Key

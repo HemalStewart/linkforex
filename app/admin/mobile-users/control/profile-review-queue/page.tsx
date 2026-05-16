@@ -195,6 +195,17 @@ export default function MobileProfileReviewQueuePage() {
                                     <td>
                                         <div className="text-[11px] font-bold uppercase text-slate-600">{u.veriff_status || '-'}</div>
                                         <div className="text-[10px] uppercase text-slate-400">{u.veriff_decision || '-'}</div>
+                                        {u.veriff_person_name ? (
+                                            <div className="mt-1 text-[10px] text-slate-500">{u.veriff_person_name}</div>
+                                        ) : null}
+                                        {(u.veriff_document_type || u.veriff_document_country) ? (
+                                            <div className="text-[10px] text-slate-500">
+                                                {[u.veriff_document_country, u.veriff_document_type].filter(Boolean).join(' • ')}
+                                            </div>
+                                        ) : null}
+                                        {u.veriff_reason ? (
+                                            <div className="text-[10px] text-rose-500">{u.veriff_reason}</div>
+                                        ) : null}
                                     </td>
                                     <td>
                                         <div className="text-[11px] font-bold uppercase text-slate-600">{u.sanction_status || '-'}</div>

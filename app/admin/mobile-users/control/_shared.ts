@@ -72,7 +72,16 @@ export type QueueUser = {
     country?: string;
     veriff_status?: string;
     veriff_decision?: string;
+    veriff_code?: string;
+    veriff_reason_code?: string;
+    veriff_reason?: string;
     veriff_checked_at?: string;
+    veriff_decision_time?: string;
+    veriff_person_name?: string;
+    veriff_document_type?: string;
+    veriff_document_country?: string;
+    veriff_document_number?: string;
+    veriff_pep_sanction_match?: string;
     mobile_verified_at?: string;
     sanction_status?: string;
     sanction_reason?: string;
@@ -205,6 +214,6 @@ export const defaultSettings: SettingsData = {
     veriff_base_url: 'https://stationapi.veriff.com',
     veriff_api_key: '',
     veriff_hmac_secret: '',
-    veriff_callback_url: '',
+    veriff_callback_url: 'linkforex://veriff-complete',
     veriff_configured: false,
 };
