@@ -324,14 +324,14 @@ export default function MobileAppFlowSettingsPage() {
                                 value={settings.veriff_callback_url}
                                 onChange={(e) => setSettings((prev) => ({ ...prev, veriff_callback_url: e.target.value }))}
                                 className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
-                                placeholder="linkforex://veriff-complete"
+                                placeholder="https://linkforex.vercel.app/api/veriff-return"
                             />
                         </label>
 
                         <div className="md:col-span-2 rounded-2xl border border-slate-200/70 bg-white/50 p-3 text-xs text-slate-500 dark:border-slate-700 dark:bg-slate-900/30 dark:text-slate-400">
                             Configure this URL in Veriff Station as the decision webhook:
                             <div className="mt-1 font-mono text-[11px] text-slate-700 dark:text-slate-200">{veriffWebhookUrl}</div>
-                            The app return URL is only for sending the user back to the mobile app after the Veriff web flow.
+                            Veriff requires an HTTPS return URL. This page redirects the user back to the LinkForex mobile app.
                         </div>
 
                         <label className="text-xs font-bold uppercase tracking-wider text-slate-500">

@@ -214,6 +214,6 @@ export const defaultSettings: SettingsData = {
     veriff_base_url: 'https://stationapi.veriff.com',
     veriff_api_key: '',
     veriff_hmac_secret: '',
-    veriff_callback_url: 'linkforex://veriff-complete',
+    veriff_callback_url: 'https://linkforex.vercel.app/api/veriff-return',
     veriff_configured: false,
 };
