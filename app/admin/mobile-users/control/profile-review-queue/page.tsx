@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { RefreshCcw, Search } from 'lucide-react';
+import { Download, FileText, Image, RefreshCcw, Search, X } from 'lucide-react';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../../components/ConfirmModal';
 import type { QueueUser } from '../_shared';
@@ -11,6 +11,12 @@ export default function MobileProfileReviewQueuePage() {
     const [queue, setQueue] = useState<QueueUser[]>([]);
     const [queueStatus, setQueueStatus] = useState<'pending' | 'verified' | 'rejected' | 'all'>('pending');
     const [queueSearch, setQueueSearch] = useState('');
+    const [mediaModal, setMediaModal] = useState<{
+        isOpen: boolean;
+        loading: boolean;
+        user: QueueUser | null;
+        media: Array<Record<string, unknown>>;
+    }>({ isOpen: false, loading: false, user: null, media: [] });
     const [confirmModal, setConfirmModal] = useState({
         isOpen: false,
         title: '',
@@ -115,6 +121,123 @@ export default function MobileProfileReviewQueuePage() {
         }
     };
 
+    const value = (input: unknown) => {
+        const text = input === null || input === undefined ? '' : String(input);
+        return text.trim() || '-';
+    };
+
+    const mediaLabel = (item: Record<string, unknown>, index: number) => {
+        return value(
+            item.name ||
+            item.context ||
+            item.type ||
+            item.mimeType ||
+            item.mimetype ||
+            `Media ${index + 1}`
+        );
+    };
+
+    const mediaId = (item: Record<string, unknown>) => {
+        return value(item.id || item.mediaId || item.media_id);
+    };
+
+    const openVerificationReport = (user: QueueUser) => {
+        const rows = [
+            ['Profile ID', user.id],
+            ['Name', user.name],
+            ['Email', user.email],
+            ['Phone', user.phone],
+            ['Country', user.country],
+            ['KYC Status', user.kyc_status],
+            ['Account Status', user.status],
+            ['Mobile Verified At', user.mobile_verified_at],
+            ['Veriff Session ID', user.veriff_session_id],
+            ['Veriff Attempt ID', user.veriff_attempt_id],
+            ['Veriff Status', user.veriff_status],
+            ['Veriff Decision', user.veriff_decision],
+            ['Veriff Code', user.veriff_code],
+            ['Veriff Reason Code', user.veriff_reason_code],
+            ['Veriff Reason', user.veriff_reason],
+            ['Veriff Checked At', user.veriff_checked_at],
+            ['Veriff Decision Time', user.veriff_decision_time],
+            ['Verified Person Name', user.veriff_person_name],
+            ['Document Type', user.veriff_document_type],
+            ['Document Country', user.veriff_document_country],
+            ['Document Number', user.veriff_document_number],
+            ['PEP/Sanctions Match', user.veriff_pep_sanction_match],
+            ['Sanction Status', user.sanction_status],
+            ['Sanction Reason', user.sanction_reason],
+            ['Sanction Checked At', user.sanction_checked_at],
+            ['Created At', user.created_at],
+            ['Updated At', user.updated_at],
+        ];
+
+        const reportWindow = window.open('', '_blank', 'noopener,noreferrer,width=900,height=1100');
+        if (!reportWindow) {
+            showModal('Report Blocked', 'Please allow pop-ups to open the verification report.', 'warning');
+            return;
+        }
+
+        const rowHtml = rows.map(([label, data]) => `
+            <tr>
+                <th>${String(label)}</th>
+                <td>${String(value(data)).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char] || char))}</td>
+            </tr>
+        `).join('');
+
+        reportWindow.document.open();
+        reportWindow.document.write(`<!doctype html>
+<html>
+<head>
+  <title>LinkForex Veriff Report - ${value(user.name)}</title>
+  <style>
+    body { font-family: Arial, sans-serif; color: #111827; margin: 36px; }
+    header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #111827; padding-bottom: 16px; margin-bottom: 24px; }
+    h1 { margin: 0; font-size: 24px; }
+    p { margin: 4px 0; color: #4b5563; }
+    table { width: 100%; border-collapse: collapse; margin-top: 18px; }
+    th, td { text-align: left; vertical-align: top; padding: 10px 12px; border: 1px solid #e5e7eb; font-size: 13px; }
+    th { width: 260px; background: #f9fafb; font-weight: 700; }
+    .badge { display: inline-block; padding: 6px 10px; border-radius: 999px; background: #dcfce7; color: #166534; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+    .actions { margin-top: 20px; }
+    button { border: 0; border-radius: 999px; background: #111827; color: white; padding: 10px 16px; font-weight: 700; cursor: pointer; }
+    @media print { .actions { display: none; } body { margin: 18px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>LinkForex Identity Verification Report</h1>
+      <p>Generated ${new Date().toLocaleString()}</p>
+      <p>Use browser print to save this report as PDF.</p>
+    </div>
+    <span class="badge">${value(user.kyc_status)}</span>
+  </header>
+  <table>${rowHtml}</table>
+  <div class="actions"><button onclick="window.print()">Save / Print PDF</button></div>
+</body>
+</html>`);
+        reportWindow.document.close();
+    };
+
+    const openMediaModal = async (user: QueueUser) => {
+        setMediaModal({ isOpen: true, loading: true, user, media: [] });
+        try {
+            const res = await fetch(ENDPOINTS.MOBILE_ADMIN.REVIEW_VERIFF_MEDIA(user.id));
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                showModal('Media Unavailable', data?.message || 'Could not load Veriff media.', 'warning');
+                setMediaModal((prev) => ({ ...prev, loading: false }));
+                return;
+            }
+            const media = Array.isArray(data.media) ? data.media : [];
+            setMediaModal({ isOpen: true, loading: false, user, media });
+        } catch {
+            showModal('Media Unavailable', 'Could not load Veriff media.', 'warning');
+            setMediaModal((prev) => ({ ...prev, loading: false }));
+        }
+    };
+
     return (
         <div className="mx-auto max-w-7xl space-y-8 pb-20 animate-fade-in-up">
             <ConfirmModal
@@ -127,6 +250,59 @@ export default function MobileProfileReviewQueuePage() {
                 isAlert
                 confirmText="OK"
             />
+
+            {mediaModal.isOpen ? (
+                <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
+                    <div className="w-full max-w-2xl rounded-3xl border border-slate-200/70 bg-white p-6 shadow-2xl dark:border-slate-700 dark:bg-slate-900">
+                        <div className="mb-5 flex items-start justify-between gap-4">
+                            <div>
+                                <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">Veriff Media</h2>
+                                <p className="mt-1 text-sm text-slate-500">{mediaModal.user?.name || '-'}</p>
+                            </div>
+                            <button
+                                onClick={() => setMediaModal({ isOpen: false, loading: false, user: null, media: [] })}
+                                className="rounded-full border border-slate-200 p-2 text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
+
+                        {mediaModal.loading ? (
+                            <div className="py-10 text-center text-sm font-semibold text-slate-500">Loading Veriff media...</div>
+                        ) : mediaModal.media.length === 0 ? (
+                            <div className="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500 dark:border-slate-700">
+                                No Veriff media is available yet. Complete the Veriff flow first, then sync the result.
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {mediaModal.media.map((item, index) => {
+                                    const id = mediaId(item);
+                                    return (
+                                        <div key={`${id}-${index}`} className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 p-4 dark:border-slate-700">
+                                            <div className="flex min-w-0 items-center gap-3">
+                                                <Image className="h-5 w-5 shrink-0 text-teal-500" />
+                                                <div className="min-w-0">
+                                                    <div className="truncate text-sm font-bold text-slate-800 dark:text-slate-100">{mediaLabel(item, index)}</div>
+                                                    <div className="truncate text-xs text-slate-500">{id}</div>
+                                                </div>
+                                            </div>
+                                            {mediaModal.user && id !== '-' ? (
+                                                <button
+                                                    onClick={() => window.open(ENDPOINTS.MOBILE_ADMIN.REVIEW_VERIFF_MEDIA_DOWNLOAD(mediaModal.user!.id, id), '_blank', 'noopener,noreferrer')}
+                                                    className="inline-flex items-center gap-1 rounded-full border border-slate-300 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                                                >
+                                                    <Download className="h-3.5 w-3.5" />
+                                                    Open
+                                                </button>
+                                            ) : null}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            ) : null}
 
             <div className="flex items-start justify-between gap-4">
                 <div>
@@ -218,6 +394,20 @@ export default function MobileProfileReviewQueuePage() {
                                                 className="rounded-full border border-slate-300 px-3 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
                                             >
                                                 Sync
+                                            </button>
+                                            <button
+                                                onClick={() => openVerificationReport(u)}
+                                                className="rounded-full border border-slate-300 px-3 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                                            >
+                                                <FileText className="mr-1 inline-block h-3 w-3" />
+                                                Report
+                                            </button>
+                                            <button
+                                                onClick={() => openMediaModal(u)}
+                                                className="rounded-full border border-slate-300 px-3 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                                            >
+                                                <Image className="mr-1 inline-block h-3 w-3" />
+                                                Media
                                             </button>
                                             <button
                                                 onClick={() => approveQueueUser(u)}

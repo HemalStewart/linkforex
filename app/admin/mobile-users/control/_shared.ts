@@ -71,6 +71,8 @@ export type QueueUser = {
     kyc_status: string;
     country?: string;
     veriff_status?: string;
+    veriff_session_id?: string;
+    veriff_attempt_id?: string;
     veriff_decision?: string;
     veriff_code?: string;
     veriff_reason_code?: string;
