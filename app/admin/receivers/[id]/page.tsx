@@ -63,6 +63,7 @@ export default function EditReceiverPage() {
         relation: relationships[0] || 'Family',
         mobile_number: '',
         status: 'active',
+        aml_status: 'pending',
     });
 
     const isAllied = formData.payment_mode === 'Direct deposit to Allied Bank';
@@ -193,6 +194,7 @@ export default function EditReceiverPage() {
                             relation: data.relation ?? relationships[0] ?? 'Family',
                             mobile_number: data.mobile_number ?? '',
                             status: data.status ?? 'active',
+                            aml_status: data.aml_status ?? 'pending',
                         });
                     }
                 }
@@ -469,6 +471,25 @@ export default function EditReceiverPage() {
                             >
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">AML Status</label>
+                            <select
+                                className={`input-glass w-full font-semibold transition-colors duration-200 ${
+                                    formData.aml_status === 'clear' ? 'text-emerald-600 dark:text-emerald-400' :
+                                    formData.aml_status === 'review' ? 'text-amber-600 dark:text-amber-400' :
+                                    formData.aml_status === 'hit' ? 'text-rose-600 dark:text-rose-400' :
+                                    'text-slate-600 dark:text-slate-400'
+                                }`}
+                                value={formData.aml_status}
+                                onChange={(e) => setFormData({ ...formData, aml_status: e.target.value })}
+                            >
+                                <option value="pending" className="text-slate-700 dark:text-slate-200">Pending</option>
+                                <option value="clear" className="text-emerald-700 dark:text-emerald-400">Clear</option>
+                                <option value="review" className="text-amber-700 dark:text-amber-400">Review</option>
+                                <option value="hit" className="text-rose-700 dark:text-rose-400">Hit</option>
                             </select>
                         </div>
 

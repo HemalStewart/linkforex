@@ -17,11 +17,12 @@ type Receiver = {
     iban?: string | null;
     country?: string | null;
     status?: string | null;
+    aml_status?: string | null;
     created_at?: string | null;
     [key: string]: unknown;
 };
 
-type ColumnKey = 'name' | 'bank' | 'account' | 'country' | 'status' | 'createdAt';
+type ColumnKey = 'name' | 'bank' | 'account' | 'country' | 'status' | 'amlStatus' | 'createdAt';
 
 const asString = (value: unknown): string => {
     if (value === null || value === undefined) return '';
@@ -53,11 +54,55 @@ const statusBadgeClass = (value: unknown): string => {
 export default function ReceiversPage() {
     const [receivers, setReceivers] = useState<Receiver[]>([]);
     const [loading, setLoading] = useState(true);
+    const [updatingId, setUpdatingId] = useState<string | number | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [sortKey, setSortKey] = useState<ColumnKey>('createdAt');
     const [sortDir, setSortDir] = useState<SortDir>('desc');
     const [page, setPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(50);
+
+    const handleAmlStatusChange = async (id: string | number, newStatus: string) => {
+        setUpdatingId(id);
+        try {
+            const res = await fetch(ENDPOINTS.BENEFICIARIES.DETAIL(id), {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    aml_status: newStatus,
+                }),
+            });
+
+            if (res.ok) {
+                const updatedReceiver = (await res.json()) as Receiver;
+                setReceivers((prev) =>
+                    prev.map((r) => (r.id === id ? { ...r, aml_status: updatedReceiver.aml_status } : r))
+                );
+            } else {
+                alert('Failed to update AML status');
+            }
+        } catch (error) {
+            console.error('Error updating AML status:', error);
+            alert('An error occurred while updating AML status');
+        } finally {
+            setUpdatingId(null);
+        }
+    };
+
+    const getAmlBadgeClass = (status: string) => {
+        switch (normalize(status)) {
+            case 'clear':
+                return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
+            case 'review':
+                return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-800';
+            case 'hit':
+                return 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300 border-rose-200 dark:border-rose-800';
+            case 'pending':
+            default:
+                return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700';
+        }
+    };
 
     useEffect(() => {
         void fetchReceivers();
@@ -129,6 +174,8 @@ export default function ReceiversPage() {
                     return asString(receiver.country);
                 case 'status':
                     return asString(receiver.status);
+                case 'amlStatus':
+                    return asString(receiver.aml_status);
                 case 'createdAt':
                 default:
                     return asString(receiver.created_at);
@@ -250,6 +297,11 @@ export default function ReceiversPage() {
                                         </button>
                                     </th>
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                        <button onClick={() => toggleSort('amlStatus')} className="flex items-center gap-2">
+                                            AML Status <SortIndicator active={sortKey === 'amlStatus'} dir={sortDir} />
+                                        </button>
+                                    </th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
                                         <button onClick={() => toggleSort('createdAt')} className="flex items-center gap-2">
                                             Entered <SortIndicator active={sortKey === 'createdAt'} dir={sortDir} />
                                         </button>
@@ -281,6 +333,19 @@ export default function ReceiversPage() {
                                                     {formatStatus(receiver.status)}
                                                 </span>
                                             </td>
+                                            <td className="px-4 py-4">
+                                                <select
+                                                    value={receiver.aml_status || 'pending'}
+                                                    disabled={updatingId === receiver.id}
+                                                    onChange={(e) => handleAmlStatusChange(receiver.id, e.target.value)}
+                                                    className={`text-xs font-bold uppercase tracking-wider rounded-full px-3 py-1 border cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all duration-200 ${getAmlBadgeClass(String(receiver.aml_status || 'pending'))}`}
+                                                >
+                                                    <option value="pending" className="bg-white text-slate-700 dark:bg-slate-800 dark:text-slate-200">Pending</option>
+                                                    <option value="clear" className="bg-white text-emerald-700 dark:bg-slate-800 dark:text-emerald-300">Clear</option>
+                                                    <option value="review" className="bg-white text-amber-700 dark:bg-slate-800 dark:text-amber-300">Review</option>
+                                                    <option value="hit" className="bg-white text-rose-700 dark:bg-slate-800 dark:text-rose-300">Hit</option>
+                                                </select>
+                                            </td>
                                             <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
                                                 {receiver.created_at ? new Date(receiver.created_at).toLocaleString() : '-'}
                                             </td>
@@ -306,7 +371,7 @@ export default function ReceiversPage() {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={7} className="py-20 text-center">
+                                        <td colSpan={8} className="py-20 text-center">
                                             <div className="w-24 h-24 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
                                                 <Users className="w-10 h-10 text-slate-400" />
                                             </div>

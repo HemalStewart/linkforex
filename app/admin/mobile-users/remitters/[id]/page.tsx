@@ -45,6 +45,8 @@ export default function EditRemitterPage() {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
+    const [initialKycStatus, setInitialKycStatus] = useState<string>('pending');
+    const [enableKycOverride, setEnableKycOverride] = useState(false);
     const [formData, setFormData] = useState<MobileProfileForm>({
         name: '',
         email: '',
@@ -87,6 +89,7 @@ export default function EditRemitterPage() {
             if (res.ok) {
                 const data = await res.json();
                 setFormData(data);
+                setInitialKycStatus(data.kyc_status || 'pending');
             }
         } catch (error) {
             console.error('Failed to fetch remitter:', error);
@@ -553,20 +556,84 @@ export default function EditRemitterPage() {
                         </div>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">KYC Status</label>
+                    <div className="space-y-3">
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">KYC Status</label>
+                        
+                        {initialKycStatus === 'pending' && (
+                            <div className="flex items-start space-x-3 bg-teal-50/50 dark:bg-slate-800/40 border border-teal-100/50 dark:border-slate-700/60 p-4 rounded-2xl mb-1">
+                                <input
+                                    type="checkbox"
+                                    id="enableKycOverride"
+                                    checked={enableKycOverride}
+                                    onChange={(e) => {
+                                        const checked = e.target.checked;
+                                        setEnableKycOverride(checked);
+                                        if (!checked) {
+                                            setFormData((prev) => ({ ...prev, kyc_status: 'pending' }));
+                                        }
+                                    }}
+                                    className="checkbox-glass mt-0.5 h-4 w-4 text-teal-600 focus:ring-teal-500 rounded border-slate-300 cursor-pointer"
+                                />
+                                <label htmlFor="enableKycOverride" className="text-xs font-bold text-slate-700 dark:text-slate-200 cursor-pointer select-none">
+                                    Manually Pass KYC
+                                    <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block mt-0.5 leading-normal">
+                                        Check this box to enable manually passing this pending verification profile.
+                                    </span>
+                                </label>
+                            </div>
+                        )}
+
+                        {initialKycStatus === 'verified' && (
+                            <div className="flex items-start space-x-3 bg-amber-50/50 dark:bg-slate-800/40 border border-amber-100/50 dark:border-slate-700/60 p-4 rounded-2xl mb-1">
+                                <input
+                                    type="checkbox"
+                                    id="enableKycRevert"
+                                    checked={enableKycOverride}
+                                    onChange={(e) => {
+                                        const checked = e.target.checked;
+                                        setEnableKycOverride(checked);
+                                        if (!checked) {
+                                            setFormData((prev) => ({ ...prev, kyc_status: 'verified' }));
+                                        }
+                                    }}
+                                    className="checkbox-glass mt-0.5 h-4 w-4 text-amber-600 focus:ring-amber-500 rounded border-slate-300 cursor-pointer"
+                                />
+                                <label htmlFor="enableKycRevert" className="text-xs font-bold text-slate-700 dark:text-slate-200 cursor-pointer select-none">
+                                    Revert Verified Status
+                                    <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block mt-0.5 leading-normal">
+                                        Check this box to enable changing this verified profile back to pending.
+                                    </span>
+                                </label>
+                            </div>
+                        )}
+
                         <div className="relative input-icon group">
                             <span className="input-icon-left">
                                 <AlertTriangle className={`w-5 h-5 ${formData.kyc_status === 'verified' ? 'text-teal-500' : formData.kyc_status === 'rejected' ? 'text-red-500' : 'text-amber-500'}`} />
                             </span>
                             <select
                                 value={formData.kyc_status}
+                                disabled={(initialKycStatus !== 'pending' && initialKycStatus !== 'verified') || !enableKycOverride}
                                 onChange={(e) => setFormData({ ...formData, kyc_status: e.target.value })}
-                                className="input-glass w-full py-3 pr-10 appearance-none cursor-pointer"
+                                className="input-glass w-full py-3 pr-10 appearance-none disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                             >
-                                <option value="pending">Pending</option>
-                                <option value="verified">Verified</option>
-                                <option value="rejected">Rejected</option>
+                                {initialKycStatus === 'pending' ? (
+                                    <>
+                                        <option value="pending">Pending</option>
+                                        {enableKycOverride && <option value="verified">Manually Passed</option>}
+                                    </>
+                                ) : initialKycStatus === 'verified' ? (
+                                    <>
+                                        <option value="verified">Verified</option>
+                                        {enableKycOverride && <option value="pending">Pending</option>}
+                                    </>
+                                ) : (
+                                    <>
+                                        <option value="pending">Pending</option>
+                                        <option value="verified">Verified</option>
+                                        <option value="rejected">Rejected</option>
+                                    </>
+                                )}
                             </select>
                             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-300 pointer-events-none" />
                         </div>

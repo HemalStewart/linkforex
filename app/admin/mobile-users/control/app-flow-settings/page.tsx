@@ -61,7 +61,31 @@ export default function MobileAppFlowSettingsPage() {
     }, []);
 
     const setToggle = (key: keyof SettingsData, value: boolean) => {
-        setSettings((prev) => ({ ...prev, [key]: value ? 'yes' : 'no' }));
+        setSettings((prev) => {
+            const next = { ...prev, [key]: value ? 'yes' : 'no' };
+            
+            // Dependency 1: If Lock Profile is disabled, Allow Edit must be disabled
+            if (key === 'lock_profile_after_verification' && !value) {
+                next['allow_profile_edit_after_lock'] = 'no';
+            }
+            
+            // Dependency 2: If Push Notifications is disabled, Send Exchange Rate Push must be disabled
+            if (key === 'enable_push_notifications' && !value) {
+                next['send_exchange_rate_push'] = 'no';
+            }
+
+            // Dependency 3: If Allow Edit is enabled, Lock Profile must be enabled
+            if (key === 'allow_profile_edit_after_lock' && value) {
+                next['lock_profile_after_verification'] = 'yes';
+            }
+
+            // Dependency 4: If Send Exchange Rate Push is enabled, Push Notifications must be enabled
+            if (key === 'send_exchange_rate_push' && value) {
+                next['enable_push_notifications'] = 'yes';
+            }
+            
+            return next;
+        });
     };
 
     const saveSettings = async () => {
@@ -86,21 +110,96 @@ export default function MobileAppFlowSettingsPage() {
     };
 
     const settingsRows = useMemo(() => ([
-        { key: 'require_email_otp', label: 'Require Email OTP', icon: <Mail className="h-4 w-4" /> },
-        { key: 'require_mobile_otp', label: 'Require Mobile OTP', icon: <Smartphone className="h-4 w-4" /> },
-        { key: 'enable_liveness_check', label: 'Enable Liveness Check', icon: <ShieldCheck className="h-4 w-4" /> },
-        { key: 'enable_sanction_screening', label: 'Enable Sanction Screening', icon: <ShieldAlert className="h-4 w-4" /> },
-        { key: 'lock_profile_after_verification', label: 'Lock Profile After Verification', icon: <BadgeCheck className="h-4 w-4" /> },
-        { key: 'allow_profile_edit_after_lock', label: 'Allow Edit After Lock', icon: <RefreshCcw className="h-4 w-4" /> },
-        { key: 'enable_google_sign_in', label: 'Enable Google Sign-In', icon: <Smartphone className="h-4 w-4" /> },
-        { key: 'enable_apple_sign_in', label: 'Enable Apple Sign-In', icon: <Smartphone className="h-4 w-4" /> },
-        { key: 'enable_push_notifications', label: 'Enable Push Notifications', icon: <Bell className="h-4 w-4" /> },
-        { key: 'enable_email_notifications', label: 'Enable Email Notifications', icon: <Mail className="h-4 w-4" /> },
-        { key: 'enable_secure_message', label: 'Enable Secure Message', icon: <ShieldCheck className="h-4 w-4" /> },
-        { key: 'enable_in_app_ads', label: 'Enable In-App Ads', icon: <Newspaper className="h-4 w-4" /> },
-        { key: 'send_exchange_rate_push', label: 'Send Exchange Rate Push', icon: <Megaphone className="h-4 w-4" /> },
-        { key: 'restrict_blacklisted_countries', label: 'Block Blacklisted Countries', icon: <ShieldAlert className="h-4 w-4" /> },
-        { key: 'require_new_device_verification', label: 'Require New Device Verification', icon: <Smartphone className="h-4 w-4" /> },
+        { 
+            key: 'require_email_otp', 
+            label: 'Require Email OTP', 
+            icon: <Mail className="h-5 w-5" />,
+            description: 'Enforces verification of user email addresses via a 6-digit OTP code challenge during registration.'
+        },
+        { 
+            key: 'require_mobile_otp', 
+            label: 'Require Mobile OTP', 
+            icon: <Smartphone className="h-5 w-5" />,
+            description: 'Enforces verification of user phone numbers via an SMS verification challenge before allowing transfers.'
+        },
+        { 
+            key: 'enable_liveness_check', 
+            label: 'Enable Liveness Check', 
+            icon: <ShieldCheck className="h-5 w-5" />,
+            description: 'Automates customer identity validation using liveness checks and document verification via Veriff.'
+        },
+        { 
+            key: 'enable_sanction_screening', 
+            label: 'Enable Sanction Screening', 
+            icon: <ShieldAlert className="h-5 w-5" />,
+            description: 'Automatically screens newly registered remitters and beneficiaries against PEP/Sanction blacklists.'
+        },
+        { 
+            key: 'lock_profile_after_verification', 
+            label: 'Lock Profile After Verification', 
+            icon: <BadgeCheck className="h-5 w-5" />,
+            description: 'Locks remitter profile edits once identity is verified. If unticked, Allow Edit After Lock is automatically unticked and disabled.'
+        },
+        { 
+            key: 'allow_profile_edit_after_lock', 
+            label: 'Allow Edit After Lock', 
+            icon: <RefreshCcw className="h-5 w-5" />,
+            description: 'Allows remitters to edit their profiles even after verification locks them. (Requires Lock Profile After Verification).'
+        },
+        { 
+            key: 'enable_google_sign_in', 
+            label: 'Enable Google Sign-In', 
+            icon: <Smartphone className="h-5 w-5" />,
+            description: 'Allows users to sign up and authenticate quickly using Google Social sign-in.'
+        },
+        { 
+            key: 'enable_apple_sign_in', 
+            label: 'Enable Apple Sign-In', 
+            icon: <Smartphone className="h-5 w-5" />,
+            description: 'Allows users to sign up and authenticate quickly using Apple Social sign-in.'
+        },
+        { 
+            key: 'enable_push_notifications', 
+            label: 'Enable Push Notifications', 
+            icon: <Bell className="h-5 w-5" />,
+            description: 'Allows sending system alerts, status messages, and rate push updates. If unticked, Send Exchange Rate Push is automatically unticked and disabled.'
+        },
+        { 
+            key: 'enable_email_notifications', 
+            label: 'Enable Email Notifications', 
+            icon: <Mail className="h-5 w-5" />,
+            description: 'Allows sending automated registration receipts, transaction summaries, and system messages via email.'
+        },
+        { 
+            key: 'enable_secure_message', 
+            label: 'Enable Secure Message', 
+            icon: <ShieldCheck className="h-5 w-5" />,
+            description: 'Enables mobile support desk chat and secure messaging between customers and staff members.'
+        },
+        { 
+            key: 'enable_in_app_ads', 
+            label: 'Enable In-App Ads', 
+            icon: <Newspaper className="h-5 w-5" />,
+            description: 'Displays custom banner carousel ads and onboarding slides inside the mobile app.'
+        },
+        { 
+            key: 'send_exchange_rate_push', 
+            label: 'Send Exchange Rate Push', 
+            icon: <Megaphone className="h-5 w-5" />,
+            description: 'Sends automated real-time push alerts to customers on currency digital rate changes. (Requires Push Notifications).'
+        },
+        { 
+            key: 'restrict_blacklisted_countries', 
+            label: 'Block Blacklisted Countries', 
+            icon: <ShieldAlert className="h-5 w-5" />,
+            description: 'Rejects traffic and blocks account registrations originating from blacklisted countries.'
+        },
+        { 
+            key: 'require_new_device_verification', 
+            label: 'Require New Device Verification', 
+            icon: <Smartphone className="h-5 w-5" />,
+            description: 'Requires a secondary confirmation code when users attempt logging in from unrecognized mobile devices.'
+        },
     ]), []);
 
     const veriffWebhookUrl = useMemo(() => {
@@ -143,23 +242,41 @@ export default function MobileAppFlowSettingsPage() {
             </div>
 
             <div className="card-glass p-6">
-                <div className="space-y-3">
+                <div className="space-y-4">
                     {settingsRows.map((row) => {
                         const key = row.key as keyof SettingsData;
                         const checked = settings[key] === 'yes';
+                        
+                        // Disable if parent dependencies are unticked
+                        const isDisabled = key === 'allow_profile_edit_after_lock' && settings['lock_profile_after_verification'] !== 'yes'
+                            || key === 'send_exchange_rate_push' && settings['enable_push_notifications'] !== 'yes';
+
                         return (
-                            <label key={key} className="flex items-center justify-between rounded-2xl border border-slate-200/70 bg-white/40 px-4 py-3 dark:border-slate-700 dark:bg-slate-900/30">
-                                <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
-                                    {row.icon}
-                                    {row.label}
+                            <div 
+                                key={key} 
+                                className={`flex items-start justify-between rounded-3xl border p-5 transition-all duration-200 ${
+                                    isDisabled 
+                                        ? 'border-slate-100 bg-slate-50/30 opacity-60 dark:border-slate-800/40 dark:bg-slate-950/10'
+                                        : 'border-slate-200/70 bg-white/40 hover:bg-white/60 dark:border-slate-700 dark:bg-slate-900/30 dark:hover:bg-slate-900/50'
+                                }`}
+                            >
+                                <div className="flex gap-3.5 pr-4">
+                                    <div className={`mt-0.5 rounded-xl p-2.5 ${isDisabled ? 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500' : 'bg-teal-50 text-teal-500 dark:bg-teal-950/40 dark:text-teal-400'}`}>
+                                        {row.icon}
+                                    </div>
+                                    <div className="space-y-1">
+                                        <div className="text-sm font-bold text-slate-800 dark:text-slate-100">{row.label}</div>
+                                        <div className="text-xs font-semibold text-slate-400 dark:text-slate-500 leading-relaxed max-w-2xl">{row.description}</div>
+                                    </div>
                                 </div>
                                 <input
                                     type="checkbox"
                                     checked={checked}
+                                    disabled={isDisabled}
                                     onChange={(e) => setToggle(key, e.target.checked)}
-                                    className="h-4 w-4 cursor-pointer rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                                    className="h-5 w-5 mt-1 cursor-pointer rounded border-slate-300 text-teal-600 focus:ring-teal-500 focus:ring-offset-2 disabled:cursor-not-allowed"
                                 />
-                            </label>
+                            </div>
                         );
                     })}
                 </div>
