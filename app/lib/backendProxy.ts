@@ -1,6 +1,9 @@
 const stripTrailingSlash = (value: string): string => value.replace(/\/+$/, '');
 
-const DEFAULT_BACKEND_API_BASE_URL = 'http://localhost:8888/linforex_backend/public/api';
+const DEFAULT_BACKEND_API_BASE_URL =
+    process.env.NODE_ENV === 'production'
+        ? 'https://api.link-forex.co.uk/api'
+        : 'http://localhost:8888/linforex_backend/public/api';
 
 export const getBackendApiBaseUrl = (): string => {
     return stripTrailingSlash(
