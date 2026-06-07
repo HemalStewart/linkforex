@@ -163,4 +163,7 @@ export const ENDPOINTS = {
         REPLY: (id: string | number) => `${API_BASE_URL}/support/tickets/${id}/reply`,
         MINE: `${API_BASE_URL}/support/tickets/mine`,
     },
+    API_TOKEN_SETTINGS: {
+        LIST: `${API_BASE_URL}/api-token-settings`,
+    },
 };
