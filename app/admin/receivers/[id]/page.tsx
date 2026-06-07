@@ -43,6 +43,8 @@ export default function EditReceiverPage() {
     };
     const idTypes = ['Passport', 'CNIC', 'Driving license', 'Other'];
     const [relationships, setRelationships] = useState<string[]>(['Family']);
+    const [initialAmlStatus, setInitialAmlStatus] = useState<string>('pending');
+    const [enableAmlOverride, setEnableAmlOverride] = useState<boolean>(false);
 
     const [formData, setFormData] = useState({
         customer_id: '',
@@ -64,6 +66,7 @@ export default function EditReceiverPage() {
         mobile_number: '',
         status: 'active',
         aml_status: 'pending',
+        aml_status_change_reason: '',
     });
 
     const isAllied = formData.payment_mode === 'Direct deposit to Allied Bank';
@@ -195,7 +198,9 @@ export default function EditReceiverPage() {
                             mobile_number: data.mobile_number ?? '',
                             status: data.status ?? 'active',
                             aml_status: data.aml_status ?? 'pending',
+                            aml_status_change_reason: data.aml_status_change_reason ?? '',
                         });
+                        setInitialAmlStatus(data.aml_status ?? 'pending');
                     }
                 }
             } catch (error) {
@@ -235,6 +240,9 @@ export default function EditReceiverPage() {
         if (isCashPickup) {
             if (!formData.receiver_id_type.trim()) errors.push('Receiver ID type is required for cash pickup.');
             if (!formData.receiver_id_number.trim()) errors.push('Receiver ID number is required for cash pickup.');
+        }
+        if (formData.aml_status !== initialAmlStatus && !formData.aml_status_change_reason.trim()) {
+            errors.push('AML status change reason is required.');
         }
         if (errors.length) {
             setConfirmModal({
@@ -474,24 +482,87 @@ export default function EditReceiverPage() {
                             </select>
                         </div>
 
+                        {initialAmlStatus === 'review' && (
+                            <div className="flex items-start space-x-3 bg-emerald-50/50 dark:bg-slate-800/40 border border-emerald-100/50 dark:border-slate-700/60 p-4 rounded-2xl mb-1 col-span-1 md:col-span-2">
+                                <input
+                                    type="checkbox"
+                                    id="enableAmlOverride"
+                                    checked={enableAmlOverride}
+                                    onChange={(e) => {
+                                        const checked = e.target.checked;
+                                        setEnableAmlOverride(checked);
+                                        if (!checked) {
+                                            setFormData((prev) => ({ ...prev, aml_status: 'review' }));
+                                        }
+                                    }}
+                                    className="checkbox-glass mt-0.5 h-4 w-4 text-emerald-600 focus:ring-emerald-500 rounded border-slate-300 cursor-pointer"
+                                />
+                                <label htmlFor="enableAmlOverride" className="text-xs font-bold text-slate-700 dark:text-slate-200 cursor-pointer select-none">
+                                    Manually Pass AML
+                                    <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block mt-0.5 leading-normal">
+                                        Check this box to enable manually passing this review verification profile.
+                                    </span>
+                                </label>
+                            </div>
+                        )}
+
                         <div>
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">AML Status</label>
                             <select
                                 className={`input-glass w-full font-semibold transition-colors duration-200 ${
-                                    formData.aml_status === 'passed' || formData.aml_status === 'clear' ? 'text-emerald-600 dark:text-emerald-400' :
+                                    formData.aml_status === 'passed' || formData.aml_status === 'manually passed' || formData.aml_status === 'clear' ? 'text-emerald-600 dark:text-emerald-400' :
                                     formData.aml_status === 'review' ? 'text-amber-600 dark:text-amber-400' :
                                     formData.aml_status === 'hit' ? 'text-rose-600 dark:text-rose-400' :
                                     'text-slate-600 dark:text-slate-400'
                                 }`}
                                 value={formData.aml_status}
+                                disabled={initialAmlStatus === 'review' && !enableAmlOverride}
                                 onChange={(e) => setFormData({ ...formData, aml_status: e.target.value })}
                             >
-                                <option value="pending" className="text-slate-700 dark:text-slate-200">Pending</option>
-                                <option value="passed" className="text-emerald-700 dark:text-emerald-400">Passed</option>
-                                <option value="review" className="text-amber-700 dark:text-amber-400">Review</option>
-                                <option value="hit" className="text-rose-700 dark:text-rose-400">Hit</option>
+                                {initialAmlStatus === 'review' ? (
+                                    <>
+                                        <option value="review" className="text-amber-700 dark:text-amber-400">Review</option>
+                                        {enableAmlOverride && (
+                                            <option value="manually passed" className="text-emerald-700 dark:text-emerald-400">Manually Passed</option>
+                                        )}
+                                    </>
+                                ) : (
+                                    <>
+                                        <option value="pending" className="text-slate-700 dark:text-slate-200">Pending</option>
+                                        <option value="passed" className="text-emerald-700 dark:text-emerald-400">Passed</option>
+                                        <option value="manually passed" className="text-emerald-700 dark:text-emerald-400">Manually Passed</option>
+                                        <option value="review" className="text-amber-700 dark:text-amber-400">Review</option>
+                                        <option value="hit" className="text-rose-700 dark:text-rose-400">Hit</option>
+                                    </>
+                                )}
                             </select>
                         </div>
+
+                        {formData.aml_status !== initialAmlStatus && (
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
+                                    Reason for AML Status Change <span className="text-red-500">*</span>
+                                </label>
+                                <textarea
+                                    className="input-glass w-full p-3 h-24 resize-none"
+                                    placeholder="Enter the reason why you are manually changing the AML status"
+                                    value={formData.aml_status_change_reason}
+                                    required
+                                    onChange={(e) => setFormData({ ...formData, aml_status_change_reason: e.target.value })}
+                                />
+                            </div>
+                        )}
+
+                        {formData.aml_status === initialAmlStatus && formData.aml_status_change_reason && (
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
+                                    Previous AML Status Change Reason
+                                </label>
+                                <div className="input-glass w-full p-3 bg-slate-50/40 dark:bg-slate-900/30 text-slate-600 dark:text-slate-300 h-24 overflow-y-auto">
+                                    {formData.aml_status_change_reason}
+                                </div>
+                            </div>
+                        )}
 
                         <div>
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Payment Mode</label>
