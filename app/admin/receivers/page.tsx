@@ -22,7 +22,7 @@ type Receiver = {
     [key: string]: unknown;
 };
 
-type ColumnKey = 'name' | 'bank' | 'account' | 'country' | 'status' | 'amlStatus' | 'createdAt';
+type ColumnKey = 'remitter' | 'name' | 'bank' | 'account' | 'country' | 'status' | 'amlStatus' | 'createdAt';
 
 const asString = (value: unknown): string => {
     if (value === null || value === undefined) return '';
@@ -93,6 +93,7 @@ export default function ReceiversPage() {
     const getAmlBadgeClass = (status: string) => {
         switch (normalize(status)) {
             case 'clear':
+            case 'passed':
                 return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
             case 'review':
                 return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-800';
@@ -147,6 +148,7 @@ export default function ReceiversPage() {
         if (!term) return receivers;
         return receivers.filter((receiver) => {
             const text = [
+                receiver.remitter_name,
                 receiver.name,
                 receiver.bank_name,
                 receiver.account_number,
@@ -164,6 +166,8 @@ export default function ReceiversPage() {
         const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
         const valueFor = (receiver: Receiver): string => {
             switch (sortKey) {
+                case 'remitter':
+                    return asString(receiver.remitter_name);
                 case 'name':
                     return asString(receiver.name);
                 case 'bank':
@@ -272,6 +276,11 @@ export default function ReceiversPage() {
                             <thead className="table-head">
                                 <tr>
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                        <button onClick={() => toggleSort('remitter')} className="flex items-center gap-2">
+                                            Remitter <SortIndicator active={sortKey === 'remitter'} dir={sortDir} />
+                                        </button>
+                                    </th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
                                         <button onClick={() => toggleSort('name')} className="flex items-center gap-2">
                                             Name <SortIndicator active={sortKey === 'name'} dir={sortDir} />
                                         </button>
@@ -314,6 +323,9 @@ export default function ReceiversPage() {
                                     pagedReceivers.map((receiver) => (
                                         <tr key={String(receiver.id)} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
                                             <td className="px-4 py-4 text-sm font-semibold text-slate-900 dark:text-white">
+                                                {asString(receiver.remitter_name) || '-'}
+                                            </td>
+                                            <td className="px-4 py-4 text-sm font-semibold text-slate-900 dark:text-white">
                                                 {asString(receiver.name) || '-'}
                                             </td>
                                             <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
@@ -334,17 +346,9 @@ export default function ReceiversPage() {
                                                 </span>
                                             </td>
                                             <td className="px-4 py-4">
-                                                <select
-                                                    value={receiver.aml_status || 'pending'}
-                                                    disabled={updatingId === receiver.id}
-                                                    onChange={(e) => handleAmlStatusChange(receiver.id, e.target.value)}
-                                                    className={`text-xs font-bold uppercase tracking-wider rounded-full px-3 py-1 border cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all duration-200 ${getAmlBadgeClass(String(receiver.aml_status || 'pending'))}`}
-                                                >
-                                                    <option value="pending" className="bg-white text-slate-700 dark:bg-slate-800 dark:text-slate-200">Pending</option>
-                                                    <option value="clear" className="bg-white text-emerald-700 dark:bg-slate-800 dark:text-emerald-300">Clear</option>
-                                                    <option value="review" className="bg-white text-amber-700 dark:bg-slate-800 dark:text-amber-300">Review</option>
-                                                    <option value="hit" className="bg-white text-rose-700 dark:bg-slate-800 dark:text-rose-300">Hit</option>
-                                                </select>
+                                                <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider border ${getAmlBadgeClass(String(receiver.aml_status || 'pending'))}`}>
+                                                    {asString(receiver.aml_status || 'pending')}
+                                                </span>
                                             </td>
                                             <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
                                                 {receiver.created_at ? new Date(receiver.created_at).toLocaleString() : '-'}
@@ -371,7 +375,7 @@ export default function ReceiversPage() {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={8} className="py-20 text-center">
+                                        <td colSpan={9} className="py-20 text-center">
                                             <div className="w-24 h-24 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
                                                 <Users className="w-10 h-10 text-slate-400" />
                                             </div>
