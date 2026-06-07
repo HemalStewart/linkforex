@@ -35,6 +35,7 @@ type MobileProfileForm = {
     veriff_document_number?: string;
     veriff_pep_sanction_match?: string;
     veriff_media_synced_at?: string;
+    kyc_status_change_reason?: string;
 };
 
 export default function EditRemitterPage() {
@@ -59,6 +60,7 @@ export default function EditRemitterPage() {
         city: '',
         postcode: '',
         country: 'United Kingdom',
+        kyc_status_change_reason: '',
     });
     const [mediaModal, setMediaModal] = useState<{
         isOpen: boolean;
@@ -88,7 +90,11 @@ export default function EditRemitterPage() {
             const res = await fetch(ENDPOINTS.REMITTERS.DETAIL(id));
             if (res.ok) {
                 const data = await res.json();
-                setFormData(data);
+                setFormData({
+                    ...data,
+                    kyc_status: data.kyc_status || 'pending',
+                    kyc_status_change_reason: data.kyc_status_change_reason || '',
+                });
                 setInitialKycStatus(data.kyc_status || 'pending');
             }
         } catch (error) {
@@ -637,6 +643,33 @@ export default function EditRemitterPage() {
                             </select>
                             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-300 pointer-events-none" />
                         </div>
+
+                        {formData.kyc_status !== initialKycStatus && (
+                            <div className="mt-3 space-y-2 animate-fade-in">
+                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 ml-1">
+                                    Reason for KYC Status Change <span className="text-red-500">*</span>
+                                </label>
+                                <textarea
+                                    value={formData.kyc_status_change_reason || ''}
+                                    required
+                                    onChange={(e) => setFormData({ ...formData, kyc_status_change_reason: e.target.value })}
+                                    className="input-glass w-full py-3 px-4 rounded-2xl"
+                                    placeholder="Please provide the reason for manually updating the KYC status of this user."
+                                    rows={3}
+                                />
+                            </div>
+                        )}
+
+                        {formData.kyc_status === initialKycStatus && formData.kyc_status_change_reason && (
+                            <div className="mt-3 space-y-2">
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 ml-1">
+                                    Last KYC Status Change Reason
+                                </label>
+                                <div className="text-sm font-semibold text-slate-700 dark:text-slate-300 bg-slate-50/50 dark:bg-slate-800/30 p-3 rounded-2xl border border-slate-200/50 dark:border-slate-700/50">
+                                    {formData.kyc_status_change_reason}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="md:col-span-2 mt-2">
