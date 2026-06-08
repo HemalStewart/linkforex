@@ -28,8 +28,12 @@ import {
     Layers,
     FileText,
     RefreshCcw,
-    ExternalLink
+    ExternalLink,
+    ChevronDown,
+    ChevronUp,
+    ShieldCheck
 } from 'lucide-react';
+import { resolveUploadsUrl } from '@/app/lib/uploads';
 
 const idTypesRequiringIssuedDate = new Set(['passport', 'driving license', 'residence permit']);
 
@@ -100,6 +104,14 @@ export default function EditRemitterPage() {
     });
     const [veriffLoading, setVeriffLoading] = useState(false);
 
+    // Dilisense AML screening states
+    const [sanctionReference, setSanctionReference] = useState<string>('');
+    const [sanctionCheckedAt, setSanctionCheckedAt] = useState<string>('');
+    const [sanctionRawPayload, setSanctionRawPayload] = useState<string>('');
+    const [senderDetailsAmlScreeningDoc, setSenderDetailsAmlScreeningDoc] = useState<string>('');
+    const [sanctionScore, setSanctionScore] = useState<number>(0);
+    const [showRawPayload, setShowRawPayload] = useState<boolean>(false);
+
     const [confirmModal, setConfirmModal] = useState({
         isOpen: false,
         title: '',
@@ -164,6 +176,11 @@ export default function EditRemitterPage() {
                     updated_by: data.updated_by || '',
                     updated_at: data.updated_at || ''
                 });
+                setSanctionReference(data.sanction_reference ?? '');
+                setSanctionCheckedAt(data.sanction_checked_at ?? '');
+                setSanctionRawPayload(data.sanction_raw_payload ?? '');
+                setSenderDetailsAmlScreeningDoc(data.sender_details_aml_screening_doc ?? '');
+                setSanctionScore(Number(data.sanction_score ?? 0));
             }
         } catch (error) {
             console.error('Failed to fetch remitter:', error);
@@ -695,6 +712,88 @@ export default function EditRemitterPage() {
                     </button>
                 </div>
             </form>
+
+            {/* AML Screening History (Dilisense) */}
+            {sanctionReference && (
+                <div className="card-glass p-8 relative overflow-hidden mt-8">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+                    
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-slate-100 dark:border-slate-700/50 pb-4">
+                        <div className="flex items-center space-x-3">
+                            <div className="p-2 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400">
+                                <ShieldCheck className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Dilisense AML Screening History</h3>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">Watchlist and PEP checks</p>
+                            </div>
+                        </div>
+                        {senderDetailsAmlScreeningDoc && (
+                            <a
+                                href={resolveUploadsUrl(senderDetailsAmlScreeningDoc)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center justify-center space-x-2 px-4 py-2 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-400 font-semibold text-xs transition-all border border-teal-500/20 shadow-sm shadow-teal-500/5 hover:shadow-teal-500/10"
+                            >
+                                <FileText className="w-4 h-4" />
+                                <span>Download PDF Report</span>
+                                <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
+                        )}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                        <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
+                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Screening Reference</span>
+                            <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{sanctionReference}</span>
+                        </div>
+                        <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
+                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Checked At</span>
+                            <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                                {sanctionCheckedAt ? new Date(sanctionCheckedAt).toLocaleString() : '-'}
+                            </span>
+                        </div>
+                        <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
+                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Total Hits</span>
+                            <div>
+                                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${sanctionScore > 0 ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'}`}>
+                                    {sanctionScore} {sanctionScore > 0 ? 'HITS DETECTED' : 'CLEAR'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {sanctionRawPayload && (
+                        <div className="border border-slate-100 dark:border-slate-700/50 rounded-2xl overflow-hidden bg-slate-50/30 dark:bg-slate-900/10">
+                            <button
+                                type="button"
+                                onClick={() => setShowRawPayload(!showRawPayload)}
+                                className="w-full flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors text-left"
+                            >
+                                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Raw Dilisense Response Payload</span>
+                                <div className="flex items-center space-x-1.5 text-slate-400">
+                                    <span className="text-xs font-medium">{showRawPayload ? 'Collapse' : 'Expand'}</span>
+                                    {showRawPayload ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                </div>
+                            </button>
+                            {showRawPayload && (
+                                <div className="p-4 border-t border-slate-100 dark:border-slate-700/50 bg-slate-950">
+                                    <pre className="text-xs font-mono text-emerald-400 overflow-x-auto max-h-80 p-2 leading-relaxed whitespace-pre-wrap select-all">
+                                        {(() => {
+                                            try {
+                                                const parsed = typeof sanctionRawPayload === 'string' ? JSON.parse(sanctionRawPayload) : sanctionRawPayload;
+                                                return JSON.stringify(parsed, null, 2);
+                                            } catch (e) {
+                                                return String(sanctionRawPayload);
+                                            }
+                                        })()}
+                                    </pre>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 }
