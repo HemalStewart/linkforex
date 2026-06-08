@@ -19,6 +19,7 @@ type Receiver = {
     status?: string | null;
     aml_status?: string | null;
     created_at?: string | null;
+    registration_source?: string | null;
     [key: string]: unknown;
 };
 
@@ -311,6 +312,7 @@ export default function ReceiversPage() {
                                             AML Status <SortIndicator active={sortKey === 'amlStatus'} dir={sortDir} />
                                         </button>
                                     </th>
+
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
                                         <button onClick={() => toggleSort('createdAt')} className="flex items-center gap-2">
                                             Entered <SortIndicator active={sortKey === 'createdAt'} dir={sortDir} />

@@ -181,6 +181,7 @@ export default function BeneficiariesPage() {
                                                 {statusLabel}
                                             </Badge>
                                         </td>
+
                                         <td className="px-6 py-5 text-sm text-slate-500 dark:text-slate-400">
                                             <div className="flex items-center space-x-2">
                                                 <Calendar className="w-4 h-4 text-slate-400" />
