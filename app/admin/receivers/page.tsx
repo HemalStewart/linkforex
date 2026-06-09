@@ -6,6 +6,7 @@ import { ENDPOINTS } from '@/app/lib/api';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
 import { Building2, Eye, Plus, Search, Trash2, Users } from 'lucide-react';
+import VeriffDetailsModal from '../components/VeriffDetailsModal';
 
 type SortDir = 'asc' | 'desc';
 
@@ -20,10 +21,14 @@ type Receiver = {
     aml_status?: string | null;
     created_at?: string | null;
     registration_source?: string | null;
+    veriff_status?: string | null;
+    veriff_session_id?: string | null;
+    veriff_checked_at?: string | null;
+    veriff_pep_sanction_match?: string | null;
     [key: string]: unknown;
 };
 
-type ColumnKey = 'remitter' | 'name' | 'bank' | 'account' | 'country' | 'status' | 'amlStatus' | 'createdAt';
+type ColumnKey = 'remitter' | 'name' | 'bank' | 'account' | 'country' | 'status' | 'amlStatus' | 'source' | 'veriffStatus' | 'createdAt';
 
 const asString = (value: unknown): string => {
     if (value === null || value === undefined) return '';
@@ -61,6 +66,7 @@ export default function ReceiversPage() {
     const [sortDir, setSortDir] = useState<SortDir>('desc');
     const [page, setPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(50);
+    const [selectedReceiver, setSelectedReceiver] = useState<Receiver | null>(null);
 
     const handleAmlStatusChange = async (id: string | number, newStatus: string) => {
         setUpdatingId(id);
@@ -105,6 +111,27 @@ export default function ReceiversPage() {
             default:
                 return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700';
         }
+    };
+
+    const getVeriffBadgeClass = (status: string) => {
+        switch (normalize(status)) {
+            case 'clear':
+            case 'passed':
+                return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
+            case 'review':
+                return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-800';
+            case 'pending':
+                return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800';
+            case 'not_applicable':
+            default:
+                return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700';
+        }
+    };
+
+    const getSourceBadgeClass = (source: string) => {
+        return normalize(source) === 'mobile_app'
+            ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border-purple-200 dark:border-purple-800'
+            : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800';
     };
 
     useEffect(() => {
@@ -157,6 +184,8 @@ export default function ReceiversPage() {
                 receiver.iban,
                 receiver.country,
                 receiver.status,
+                receiver.registration_source,
+                receiver.veriff_status,
             ]
                 .map((v) => asString(v).toLowerCase())
                 .join(' ');
@@ -182,6 +211,10 @@ export default function ReceiversPage() {
                     return asString(receiver.status);
                 case 'amlStatus':
                     return asString(receiver.aml_status);
+                case 'source':
+                    return asString(receiver.registration_source);
+                case 'veriffStatus':
+                    return asString(receiver.veriff_status);
                 case 'createdAt':
                 default:
                     return asString(receiver.created_at);
@@ -312,6 +345,16 @@ export default function ReceiversPage() {
                                             AML Status <SortIndicator active={sortKey === 'amlStatus'} dir={sortDir} />
                                         </button>
                                     </th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                        <button onClick={() => toggleSort('source')} className="flex items-center gap-2">
+                                            Source <SortIndicator active={sortKey === 'source'} dir={sortDir} />
+                                        </button>
+                                    </th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                        <button onClick={() => toggleSort('veriffStatus')} className="flex items-center gap-2">
+                                            Veriff <SortIndicator active={sortKey === 'veriffStatus'} dir={sortDir} />
+                                        </button>
+                                    </th>
 
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
                                         <button onClick={() => toggleSort('createdAt')} className="flex items-center gap-2">
@@ -353,6 +396,28 @@ export default function ReceiversPage() {
                                                     {asString(receiver.aml_status || 'pending')}
                                                 </span>
                                             </td>
+                                            <td className="px-4 py-4">
+                                                <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider border ${getSourceBadgeClass(String(receiver.registration_source || 'web'))}`}>
+                                                    {normalize(receiver.registration_source) === 'mobile_app' ? 'Mobile App' : 'Web'}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-4">
+                                                <div className="inline-flex items-center gap-1.5">
+                                                    <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider border ${getVeriffBadgeClass(String(receiver.veriff_status || 'not_applicable'))}`}>
+                                                        {formatStatus(receiver.veriff_status || 'N/A')}
+                                                    </span>
+                                                    {receiver.veriff_pep_sanction_match && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setSelectedReceiver(receiver)}
+                                                            className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-teal-600 transition-colors"
+                                                            title="View Veriff screening details"
+                                                        >
+                                                            <Eye className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </td>
                                             <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
                                                 {receiver.created_at ? new Date(receiver.created_at).toLocaleString() : '-'}
                                             </td>
@@ -378,7 +443,7 @@ export default function ReceiversPage() {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={9} className="py-20 text-center">
+                                        <td colSpan={11} className="py-20 text-center">
                                             <div className="w-24 h-24 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
                                                 <Users className="w-10 h-10 text-slate-400" />
                                             </div>
@@ -400,6 +465,17 @@ export default function ReceiversPage() {
                     onRowsPerPageChange={(rows) => { setRowsPerPage(rows); setPage(1); }}
                 />
             </div>
+            {selectedReceiver && (
+                <VeriffDetailsModal
+                    isOpen={!!selectedReceiver}
+                    onClose={() => setSelectedReceiver(null)}
+                    beneficiaryName={asString(selectedReceiver.name)}
+                    veriffStatus={asString(selectedReceiver.veriff_status)}
+                    veriffSessionId={asString(selectedReceiver.veriff_session_id)}
+                    veriffCheckedAt={asString(selectedReceiver.veriff_checked_at)}
+                    veriffPepSanctionMatch={asString(selectedReceiver.veriff_pep_sanction_match)}
+                />
+            )}
         </div>
     );
 }

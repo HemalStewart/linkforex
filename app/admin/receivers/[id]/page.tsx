@@ -55,6 +55,14 @@ export default function EditReceiverPage() {
     const [amlHits, setAmlHits] = useState<number>(0);
     const [showRawPayload, setShowRawPayload] = useState<boolean>(false);
 
+    // Veriff PEP/Sanctions screening states
+    const [veriffSessionId, setVeriffSessionId] = useState<string>('');
+    const [veriffStatus, setVeriffStatus] = useState<string>('');
+    const [veriffCheckedAt, setVeriffCheckedAt] = useState<string>('');
+    const [veriffPepSanctionMatch, setVeriffPepSanctionMatch] = useState<string>('');
+    const [showVeriffRawPayload, setShowVeriffRawPayload] = useState<boolean>(false);
+    const [registrationSource, setRegistrationSource] = useState<string>('web');
+
     const [formData, setFormData] = useState({
         customer_id: '',
         name: '',
@@ -215,6 +223,12 @@ export default function EditReceiverPage() {
                         setAmlRawPayload(data.aml_raw_payload ?? '');
                         setAmlScreeningDoc(data.aml_screening_doc ?? '');
                         setAmlHits(Number(data.aml_hits ?? 0));
+                        // Veriff fields
+                        setVeriffSessionId(data.veriff_session_id ?? '');
+                        setVeriffStatus(data.veriff_status ?? '');
+                        setVeriffCheckedAt(data.veriff_checked_at ?? '');
+                        setVeriffPepSanctionMatch(data.veriff_pep_sanction_match ?? '');
+                        setRegistrationSource(data.registration_source ?? 'web');
                     }
                 }
             } catch (error) {
@@ -817,6 +831,93 @@ export default function EditReceiverPage() {
                                                 return JSON.stringify(parsed, null, 2);
                                             } catch (e) {
                                                 return String(amlRawPayload);
+                                            }
+                                        })()}
+                                    </pre>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Veriff PEP/Sanctions Screening History (Mobile-registered beneficiaries only) */}
+            {registrationSource === 'mobile_app' && veriffSessionId && (
+                <div className="card-glass p-8 relative overflow-hidden mt-8">
+                    <div className="absolute top-0 left-0 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl -ml-16 -mt-16 pointer-events-none"></div>
+                    
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-slate-100 dark:border-slate-700/50 pb-4">
+                        <div className="flex items-center space-x-3">
+                            <div className="p-2 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                                <ShieldCheck className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Veriff PEP / Sanctions Screening</h3>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">Watchlist screening via Veriff (Mobile App)</p>
+                            </div>
+                        </div>
+                        <span className={`inline-flex rounded-full px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider border ${
+                            veriffStatus === 'clear' || veriffStatus === 'passed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' :
+                            veriffStatus === 'review' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-800' :
+                            veriffStatus === 'pending' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800' :
+                            'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                        }`}>
+                            {veriffStatus ? veriffStatus.replace('_', ' ') : 'N/A'}
+                        </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                        <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
+                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Session ID</span>
+                            <span className="text-sm font-mono font-bold text-slate-800 dark:text-slate-200 break-all">{veriffSessionId || '-'}</span>
+                        </div>
+                        <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
+                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Checked At</span>
+                            <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                                {veriffCheckedAt ? new Date(veriffCheckedAt).toLocaleString() : '-'}
+                            </span>
+                        </div>
+                        <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
+                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Hits</span>
+                            <div>
+                                {(() => {
+                                    let hits = 0;
+                                    try {
+                                        const parsed = veriffPepSanctionMatch ? JSON.parse(veriffPepSanctionMatch) : null;
+                                        hits = (parsed?.data?.hits || parsed?.hits || []).length;
+                                    } catch { /* ignore */ }
+                                    return (
+                                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${hits > 0 ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'}`}>
+                                            {hits} {hits > 0 ? 'HITS DETECTED' : 'CLEAR'}
+                                        </span>
+                                    );
+                                })()}
+                            </div>
+                        </div>
+                    </div>
+
+                    {veriffPepSanctionMatch && (
+                        <div className="border border-slate-100 dark:border-slate-700/50 rounded-2xl overflow-hidden bg-slate-50/30 dark:bg-slate-900/10">
+                            <button
+                                type="button"
+                                onClick={() => setShowVeriffRawPayload(!showVeriffRawPayload)}
+                                className="w-full flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors text-left"
+                            >
+                                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Raw Veriff Screening Response</span>
+                                <div className="flex items-center space-x-1.5 text-slate-400">
+                                    <span className="text-xs font-medium">{showVeriffRawPayload ? 'Collapse' : 'Expand'}</span>
+                                    {showVeriffRawPayload ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                </div>
+                            </button>
+                            {showVeriffRawPayload && (
+                                <div className="p-4 border-t border-slate-100 dark:border-slate-700/50 bg-slate-950">
+                                    <pre className="text-xs font-mono text-emerald-400 overflow-x-auto max-h-80 p-2 leading-relaxed whitespace-pre-wrap select-all">
+                                        {(() => {
+                                            try {
+                                                const parsed = typeof veriffPepSanctionMatch === 'string' ? JSON.parse(veriffPepSanctionMatch) : veriffPepSanctionMatch;
+                                                return JSON.stringify(parsed, null, 2);
+                                            } catch (e) {
+                                                return String(veriffPepSanctionMatch);
                                             }
                                         })()}
                                     </pre>

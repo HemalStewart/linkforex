@@ -4,7 +4,8 @@ import { ENDPOINTS } from '@/app/lib/api';
 import Badge from '../components/ui/Badge';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
-import { Users, RefreshCw, Search, Building2, Calendar } from 'lucide-react';
+import { Users, RefreshCw, Search, Building2, Calendar, Eye } from 'lucide-react';
+import VeriffDetailsModal from '../components/VeriffDetailsModal';
 
 export default function BeneficiariesPage() {
     const [beneficiaries, setBeneficiaries] = useState<any[]>([]);
@@ -14,6 +15,7 @@ export default function BeneficiariesPage() {
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
     const [page, setPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(25);
+    const [selectedBeneficiary, setSelectedBeneficiary] = useState<any | null>(null);
 
     useEffect(() => {
         fetchBeneficiaries();
@@ -38,7 +40,10 @@ export default function BeneficiariesPage() {
         return beneficiaries.filter(b =>
             b.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             b.bank_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            b.account_number?.includes(searchQuery)
+            b.account_number?.includes(searchQuery) ||
+            b.registration_source?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            b.veriff_status?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            b.aml_status?.toLowerCase().includes(searchQuery.toLowerCase())
         );
     }, [beneficiaries, searchQuery]);
 
@@ -133,6 +138,11 @@ export default function BeneficiariesPage() {
                                     <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Location</th>
                                     <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
                                     <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        <button onClick={() => toggleSort('aml_status')} className="flex items-center gap-1">AML Status <span>{sortIndicator('aml_status')}</span></button>
+                                    </th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Source</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Veriff Status</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                         <button onClick={() => toggleSort('created_at')} className="flex items-center gap-1">Date Added <span>{sortIndicator('created_at')}</span></button>
                                     </th>
                                 </tr>
@@ -181,6 +191,50 @@ export default function BeneficiariesPage() {
                                                 {statusLabel}
                                             </Badge>
                                         </td>
+                                        <td className="px-6 py-5">
+                                            <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider border ${
+                                                (b.aml_status ?? '').toLowerCase() === 'clear' || (b.aml_status ?? '').toLowerCase() === 'passed' || (b.aml_status ?? '').toLowerCase() === 'manually passed'
+                                                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                                                    : (b.aml_status ?? '').toLowerCase() === 'review'
+                                                    ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-800'
+                                                    : (b.aml_status ?? '').toLowerCase() === 'hit'
+                                                    ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300 border-rose-200 dark:border-rose-800'
+                                                    : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                                            }`}>
+                                                {b.aml_status || 'pending'}
+                                            </span>
+                                        </td>
+                                        <td className="px-8 py-5">
+                                            <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider ${
+                                                b.registration_source === 'mobile_app' 
+                                                    ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-350 border border-purple-200 dark:border-purple-800' 
+                                                    : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-350 border border-blue-200 dark:border-blue-800'
+                                            }`}>
+                                                {b.registration_source === 'mobile_app' ? 'Mobile App' : 'Web'}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            <div className="flex items-center space-x-2">
+                                                <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider ${
+                                                    b.veriff_status === 'clear' || b.veriff_status === 'passed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-350 border border-emerald-200 dark:border-emerald-800' :
+                                                    b.veriff_status === 'review' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-355 border border-amber-200 dark:border-amber-800' :
+                                                    b.veriff_status === 'pending' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-350 border border-blue-200 dark:border-blue-800' :
+                                                    'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-350 border border-slate-200 dark:border-slate-700'
+                                                }`}>
+                                                    {b.veriff_status ? b.veriff_status.replace('_', ' ') : '-'}
+                                                </span>
+                                                {b.veriff_pep_sanction_match && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setSelectedBeneficiary(b)}
+                                                        className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-teal-600 transition-colors"
+                                                        title="View Veriff details"
+                                                    >
+                                                        <Eye className="w-3.5 h-3.5" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </td>
 
                                         <td className="px-6 py-5 text-sm text-slate-500 dark:text-slate-400">
                                             <div className="flex items-center space-x-2">
@@ -203,6 +257,17 @@ export default function BeneficiariesPage() {
                     onRowsPerPageChange={(rows) => { setRowsPerPage(rows); setPage(1); }}
                 />
             </div>
+            {selectedBeneficiary && (
+                <VeriffDetailsModal
+                    isOpen={!!selectedBeneficiary}
+                    onClose={() => setSelectedBeneficiary(null)}
+                    beneficiaryName={selectedBeneficiary.name}
+                    veriffStatus={selectedBeneficiary.veriff_status}
+                    veriffSessionId={selectedBeneficiary.veriff_session_id}
+                    veriffCheckedAt={selectedBeneficiary.veriff_checked_at}
+                    veriffPepSanctionMatch={selectedBeneficiary.veriff_pep_sanction_match}
+                />
+            )}
         </div>
     );
 }
