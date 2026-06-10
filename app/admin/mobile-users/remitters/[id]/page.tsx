@@ -37,6 +37,7 @@ type MobileProfileForm = {
     veriff_pep_sanction_match?: string;
     veriff_media_synced_at?: string;
     kyc_status_change_reason?: string;
+    veriff_raw_payload?: string;
 };
 
 export default function EditRemitterPage() {
@@ -57,6 +58,7 @@ export default function EditRemitterPage() {
     const [senderDetailsAmlScreeningDoc, setSenderDetailsAmlScreeningDoc] = useState<string>('');
     const [sanctionScore, setSanctionScore] = useState<number>(0);
     const [showRawPayload, setShowRawPayload] = useState<boolean>(false);
+    const [showVeriffRawPayload, setShowVeriffRawPayload] = useState<boolean>(false);
 
     const [formData, setFormData] = useState<MobileProfileForm>({
         name: '',
@@ -116,6 +118,62 @@ export default function EditRemitterPage() {
             console.error('Failed to fetch remitter:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const [syncingVeriff, setSyncingVeriff] = useState(false);
+
+    const handleSyncVeriff = async () => {
+        setSyncingVeriff(true);
+        try {
+            const res = await fetch(ENDPOINTS.REMITTERS.VERIFF_SYNC(id), {
+                method: 'POST',
+            });
+            const data = await res.json().catch(() => ({}));
+            if (res.ok) {
+                if (data.remitter) {
+                    setFormData({
+                        ...data.remitter,
+                        kyc_status: data.remitter.kyc_status || 'pending',
+                        kyc_status_change_reason: data.remitter.kyc_status_change_reason || '',
+                    });
+                    setInitialKycStatus(data.remitter.kyc_status || 'pending');
+                    setSanctionReference(data.remitter.sanction_reference ?? '');
+                    setSanctionCheckedAt(data.remitter.sanction_checked_at ?? '');
+                    setSanctionRawPayload(data.remitter.sanction_raw_payload ?? '');
+                    setSenderDetailsAmlScreeningDoc(data.remitter.sender_details_aml_screening_doc ?? '');
+                    setSanctionScore(Number(data.remitter.sanction_score ?? 0));
+                }
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Sync Success',
+                    message: data.message || 'Veriff verification synced successfully.',
+                    type: 'success',
+                    isAlert: true,
+                    shouldRedirect: false,
+                });
+            } else {
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Sync Failed',
+                    message: data.message || 'Failed to sync Veriff decision.',
+                    type: 'danger',
+                    isAlert: true,
+                    shouldRedirect: false,
+                });
+            }
+        } catch (error) {
+            console.error('Failed to sync Veriff:', error);
+            setConfirmModal({
+                isOpen: true,
+                title: 'Sync Error',
+                message: 'An error occurred while syncing with Veriff.',
+                type: 'danger',
+                isAlert: true,
+                shouldRedirect: false,
+            });
+        } finally {
+            setSyncingVeriff(false);
         }
     };
 
@@ -702,11 +760,16 @@ export default function EditRemitterPage() {
                                 <div className="flex flex-wrap gap-2">
                                     <button
                                         type="button"
-                                        onClick={fetchRemitter}
-                                        className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                                        disabled={syncingVeriff}
+                                        onClick={handleSyncVeriff}
+                                        className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        <RefreshCcw className="h-3.5 w-3.5" />
-                                        Refresh
+                                        {syncingVeriff ? (
+                                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                        ) : (
+                                            <RefreshCcw className="h-3.5 w-3.5" />
+                                        )}
+                                        Sync Veriff KYC
                                     </button>
                                     <button
                                         type="button"
@@ -754,6 +817,36 @@ export default function EditRemitterPage() {
                                     Reason: {formData.veriff_reason}
                                 </div>
                             ) : null}
+
+                            {formData.veriff_raw_payload && (
+                                <div className="mt-4 border border-slate-100 dark:border-slate-700/50 rounded-2xl overflow-hidden bg-slate-50/30 dark:bg-slate-900/10">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowVeriffRawPayload(!showVeriffRawPayload)}
+                                        className="w-full flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors text-left"
+                                    >
+                                        <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Raw Veriff Webhook/Sync Payload</span>
+                                        <div className="flex items-center space-x-1.5 text-slate-400">
+                                            <span className="text-xs font-medium">{showVeriffRawPayload ? 'Collapse' : 'Expand'}</span>
+                                            {showVeriffRawPayload ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                        </div>
+                                    </button>
+                                    {showVeriffRawPayload && (
+                                        <div className="p-4 border-t border-slate-100 dark:border-slate-700/50 bg-slate-950">
+                                            <pre className="text-xs font-mono text-emerald-400 overflow-x-auto max-h-80 p-2 leading-relaxed whitespace-pre-wrap select-all">
+                                                {(() => {
+                                                    try {
+                                                        const parsed = typeof formData.veriff_raw_payload === 'string' ? JSON.parse(formData.veriff_raw_payload) : formData.veriff_raw_payload;
+                                                        return JSON.stringify(parsed, null, 2);
+                                                    } catch (e) {
+                                                        return String(formData.veriff_raw_payload);
+                                                    }
+                                                })()}
+                                            </pre>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
 
