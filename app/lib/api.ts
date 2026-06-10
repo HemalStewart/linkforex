@@ -53,6 +53,10 @@ export const ENDPOINTS = {
     BENEFICIARIES: {
         LIST: `${API_BASE_URL}/beneficiaries`,
         DETAIL: (id: string | number) => `${API_BASE_URL}/beneficiaries/${id}`,
+        DILISENSE_REPORTS_LIST: (id: string | number) => `${API_BASE_URL}/beneficiaries/${id}/dilisense-reports`,
+        DILISENSE_REPORT_GENERATE: (id: string | number) => `${API_BASE_URL}/beneficiaries/${id}/dilisense-reports`,
+        DILISENSE_REPORT_DOWNLOAD: (id: string | number, reportId: string | number) => `${API_BASE_URL}/beneficiaries/${id}/dilisense-reports/${reportId}/download`,
+        DILISENSE_REPORT_DELETE: (id: string | number, reportId: string | number) => `${API_BASE_URL}/beneficiaries/${id}/dilisense-reports/${reportId}`,
     },
     TRANSFERS: {
         LIST: `${API_BASE_URL}/transfers`,
@@ -145,6 +149,10 @@ export const ENDPOINTS = {
         REVIEW_VERIFF_MEDIA: (id: string | number) => `${API_BASE_URL}/mobile-admin/review-queue/${id}/veriff-media`,
         REVIEW_VERIFF_MEDIA_DOWNLOAD: (id: string | number, mediaId: string) => `${API_BASE_URL}/mobile-admin/review-queue/${id}/veriff-media/${mediaId}`,
         REVIEW_VERIFF_PDF: (id: string | number) => `${API_BASE_URL}/mobile-admin/review-queue/${id}/veriff-pdf`,
+        REVIEW_VERIFF_REPORTS_LIST: (id: string | number) => `${API_BASE_URL}/mobile-admin/review-queue/${id}/veriff-reports`,
+        REVIEW_VERIFF_REPORT_GENERATE: (id: string | number) => `${API_BASE_URL}/mobile-admin/review-queue/${id}/veriff-reports`,
+        REVIEW_VERIFF_REPORT_DOWNLOAD: (id: string | number, reportId: string | number) => `${API_BASE_URL}/mobile-admin/review-queue/${id}/veriff-reports/${reportId}/download`,
+        REVIEW_VERIFF_REPORT_DELETE: (id: string | number, reportId: string | number) => `${API_BASE_URL}/mobile-admin/review-queue/${id}/veriff-reports/${reportId}`,
         TRANSFERS: `${API_BASE_URL}/mobile-admin/transfers`,
         TRANSFER_DETAIL: (id: string | number) => `${API_BASE_URL}/mobile-admin/transfers/${id}`,
         CAMPAIGNS: `${API_BASE_URL}/mobile-admin/campaigns`,

@@ -82,13 +82,45 @@ export default function EditRemitterPage() {
         syncedAt?: string | null;
     }>({ isOpen: false, loading: false, media: [] });
 
-    const [confirmModal, setConfirmModal] = useState({
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'info' | 'danger' | 'warning' | 'success';
+        isAlert: boolean;
+        shouldRedirect: boolean;
+        actionType?: 'delete_user' | 'delete_report';
+        targetReportId?: string | number | null;
+    }>({
         isOpen: false,
         title: '',
         message: '',
-        type: 'info' as 'info' | 'danger' | 'warning' | 'success',
+        type: 'info',
         isAlert: true,
-        shouldRedirect: false
+        shouldRedirect: false,
+        actionType: 'delete_user',
+        targetReportId: null
+    });
+
+    const [reportsModal, setReportsModal] = useState<{
+        isOpen: boolean;
+        loading: boolean;
+        generating: boolean;
+        deletingId: string | number | null;
+        reports: Array<{
+            id: string | number;
+            remitter_id: string | number;
+            session_id: string;
+            pdf_path: string;
+            created_by: string;
+            created_at: string;
+        }>;
+    }>({
+        isOpen: false,
+        loading: false,
+        generating: false,
+        deletingId: null,
+        reports: []
     });
 
     useEffect(() => {
@@ -282,82 +314,112 @@ export default function EditRemitterPage() {
         }
     };
 
-    const openVerificationReport = () => {
-        const rows = [
-            ['Profile ID', id],
-            ['Name', formData.name],
-            ['Email', formData.email],
-            ['Phone', formData.phone],
-            ['KYC Status', formData.kyc_status],
-            ['Account Status', formData.status],
-            ['Mobile Verified At', formData.mobile_verified_at],
-            ['Veriff Session ID', formData.veriff_session_id],
-            ['Veriff Attempt ID', formData.veriff_attempt_id],
-            ['Veriff Status', formData.veriff_status],
-            ['Veriff Decision', formData.veriff_decision],
-            ['Veriff Code', formData.veriff_code],
-            ['Veriff Reason Code', formData.veriff_reason_code],
-            ['Veriff Reason', formData.veriff_reason],
-            ['Veriff Checked At', formData.veriff_checked_at],
-            ['Veriff Decision Time', formData.veriff_decision_time],
-            ['Verified Person Name', formData.veriff_person_name],
-            ['Document Type', formData.veriff_document_type],
-            ['Document Country', formData.veriff_document_country],
-            ['Document Number', formData.veriff_document_number],
-            ['PEP/Sanctions Match', formData.veriff_pep_sanction_match],
-            ['Media Synced At', formData.veriff_media_synced_at],
-        ];
-
-        const reportWindow = window.open('', '_blank', 'noopener,noreferrer,width=900,height=1100');
-        if (!reportWindow) {
+    const fetchReports = async () => {
+        setReportsModal((prev) => ({ ...prev, loading: true }));
+        try {
+            const res = await fetch(ENDPOINTS.MOBILE_ADMIN.REVIEW_VERIFF_REPORTS_LIST(id));
+            const data = await res.json().catch(() => []);
+            if (res.ok && Array.isArray(data)) {
+                setReportsModal((prev) => ({ ...prev, loading: false, reports: data }));
+            } else {
+                setReportsModal((prev) => ({ ...prev, loading: false }));
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Fetch Failed',
+                    message: data?.message || 'Failed to fetch Veriff reports.',
+                    type: 'danger',
+                    isAlert: true,
+                    shouldRedirect: false,
+                });
+            }
+        } catch (error) {
+            console.error('Failed to fetch reports:', error);
+            setReportsModal((prev) => ({ ...prev, loading: false }));
             setConfirmModal({
                 isOpen: true,
-                title: 'Report Blocked',
-                message: 'Please allow pop-ups to open the verification report.',
-                type: 'warning',
+                title: 'Error',
+                message: 'An error occurred while fetching reports.',
+                type: 'danger',
                 isAlert: true,
                 shouldRedirect: false,
             });
-            return;
         }
-
-        const escapeHtml = (text: unknown) => String(value(text)).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char] || char));
-        reportWindow.document.open();
-        reportWindow.document.write(`<!doctype html>
-<html>
-<head>
-  <title>LinkForex Veriff Report - ${escapeHtml(formData.name)}</title>
-  <style>
-    body { font-family: Arial, sans-serif; color: #111827; margin: 36px; }
-    header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #111827; padding-bottom: 16px; margin-bottom: 24px; }
-    h1 { margin: 0; font-size: 24px; }
-    p { margin: 4px 0; color: #4b5563; }
-    table { width: 100%; border-collapse: collapse; margin-top: 18px; }
-    th, td { text-align: left; vertical-align: top; padding: 10px 12px; border: 1px solid #e5e7eb; font-size: 13px; }
-    th { width: 260px; background: #f9fafb; font-weight: 700; }
-    .badge { display: inline-block; padding: 6px 10px; border-radius: 999px; background: #dcfce7; color: #166534; font-size: 12px; font-weight: 700; text-transform: uppercase; }
-    .actions { margin-top: 20px; }
-    button { border: 0; border-radius: 999px; background: #111827; color: white; padding: 10px 16px; font-weight: 700; cursor: pointer; }
-    @media print { .actions { display: none; } body { margin: 18px; } }
-  </style>
-</head>
-<body>
-  <header>
-    <div>
-      <h1>LinkForex Identity Verification Report</h1>
-      <p>Generated ${new Date().toLocaleString()}</p>
-      <p>Use browser print to save this report as PDF.</p>
-    </div>
-    <span class="badge">${escapeHtml(formData.kyc_status)}</span>
-  </header>
-  <table>
-    ${rows.map(([label, data]) => `<tr><th>${escapeHtml(label)}</th><td>${escapeHtml(data)}</td></tr>`).join('')}
-  </table>
-  <div class="actions"><button onclick="window.print()">Save / Print PDF</button></div>
-</body>
-</html>`);
-        reportWindow.document.close();
     };
+
+    const openReportsModal = () => {
+        setReportsModal({
+            isOpen: true,
+            loading: true,
+            generating: false,
+            deletingId: null,
+            reports: [],
+        });
+        fetchReports();
+    };
+
+    const handleGenerateReport = async () => {
+        setReportsModal((prev) => ({ ...prev, generating: true }));
+        try {
+            const res = await fetch(ENDPOINTS.MOBILE_ADMIN.REVIEW_VERIFF_REPORT_GENERATE(id), {
+                method: 'POST',
+            });
+            const data = await res.json().catch(() => ({}));
+            if (res.ok) {
+                // Refresh reports list
+                const listRes = await fetch(ENDPOINTS.MOBILE_ADMIN.REVIEW_VERIFF_REPORTS_LIST(id));
+                const listData = await listRes.json().catch(() => []);
+                setReportsModal((prev) => ({
+                    ...prev,
+                    generating: false,
+                    reports: Array.isArray(listData) ? listData : prev.reports,
+                }));
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Generation Success',
+                    message: 'A new Veriff KYC PDF report has been generated and saved successfully.',
+                    type: 'success',
+                    isAlert: true,
+                    shouldRedirect: false,
+                });
+            } else {
+                setReportsModal((prev) => ({ ...prev, generating: false }));
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Generation Failed',
+                    message: data?.message || 'Failed to generate Veriff PDF report.',
+                    type: 'danger',
+                    isAlert: true,
+                    shouldRedirect: false,
+                });
+            }
+        } catch (error) {
+            console.error('Failed to generate report:', error);
+            setReportsModal((prev) => ({ ...prev, generating: false }));
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'An error occurred while generating the report.',
+                type: 'danger',
+                isAlert: true,
+                shouldRedirect: false,
+            });
+        }
+    };
+
+    const confirmDeleteReport = (reportId: string | number) => {
+        setConfirmModal({
+            isOpen: true,
+            title: 'Delete Veriff Report',
+            message: 'Are you sure you want to delete this Veriff report? This action cannot be undone.',
+            type: 'danger',
+            isAlert: false,
+            shouldRedirect: false,
+            actionType: 'delete_report',
+            targetReportId: reportId
+        });
+    };
+
+
 
     if (loading) {
         return <div className="w-full p-12 text-center text-slate-500 font-medium animate-pulse">Loading remitter details...</div>;
@@ -378,6 +440,43 @@ export default function EditRemitterPage() {
 
         setDeleteLoading(true);
         try {
+            if (confirmModal.actionType === 'delete_report') {
+                const reportId = confirmModal.targetReportId;
+                if (reportId) {
+                    const res = await fetch(ENDPOINTS.MOBILE_ADMIN.REVIEW_VERIFF_REPORT_DELETE(id, reportId), {
+                        method: 'DELETE',
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    if (res.ok) {
+                        // Refresh reports list
+                        const listRes = await fetch(ENDPOINTS.MOBILE_ADMIN.REVIEW_VERIFF_REPORTS_LIST(id));
+                        const listData = await listRes.json().catch(() => []);
+                        setReportsModal((prev) => ({
+                            ...prev,
+                            reports: Array.isArray(listData) ? listData : prev.reports.filter((r) => r.id !== reportId),
+                        }));
+                        setConfirmModal({
+                            isOpen: true,
+                            title: 'Deleted',
+                            message: 'Veriff report has been deleted.',
+                            type: 'success',
+                            isAlert: true,
+                            shouldRedirect: false,
+                        });
+                    } else {
+                        setConfirmModal({
+                            isOpen: true,
+                            title: 'Delete Failed',
+                            message: data?.message || 'Failed to delete Veriff report.',
+                            type: 'danger',
+                            isAlert: true,
+                            shouldRedirect: false,
+                        });
+                    }
+                }
+                return;
+            }
+
             const res = await fetch(ENDPOINTS.REMITTERS.DETAIL(id), { method: 'DELETE' });
             const data = await res.json().catch(() => ({}));
 
@@ -401,11 +500,11 @@ export default function EditRemitterPage() {
                 });
             }
         } catch (error) {
-            console.error('Failed to delete remitter:', error);
+            console.error('Failed to perform delete:', error);
             setConfirmModal({
                 isOpen: true,
                 title: 'Delete Failed',
-                message: 'An error occurred while deleting the mobile user.',
+                message: 'An error occurred while deleting.',
                 type: 'danger',
                 isAlert: true,
                 shouldRedirect: false,
@@ -490,6 +589,128 @@ export default function EditRemitterPage() {
                                         </div>
                                     );
                                 })}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            ) : null}
+
+            {reportsModal.isOpen ? (
+                <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-md transition-all duration-300">
+                    <div className="w-full max-w-4xl rounded-3xl border border-slate-200/50 bg-white/95 p-6 shadow-2xl dark:border-slate-700/50 dark:bg-slate-900/95 backdrop-blur-lg transform transition-all duration-300 scale-100">
+                        <div className="mb-6 flex items-start justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+                            <div>
+                                <h2 className="text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <span className="relative flex h-3 w-3">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
+                                    </span>
+                                    <ShieldCheck className="h-6 w-6 text-teal-500" />
+                                    Veriff KYC PDF Reports
+                                </h2>
+                                <p className="mt-1 text-sm font-medium text-slate-500 dark:text-slate-400">
+                                    Manage, view, generate, or delete PDF verification reports for {formData.name || '-'}.
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setReportsModal((prev) => ({ ...prev, isOpen: false }))}
+                                className="rounded-full border border-slate-200 p-2 text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800 transition-colors"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
+
+                        {/* Actions & Info bar */}
+                        <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl bg-teal-50/40 p-4 dark:bg-slate-800/40 border border-teal-100/30 dark:border-slate-700/50">
+                            <div className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                                Session ID: <span className="font-mono text-teal-600 dark:text-teal-400">{formData.veriff_session_id || 'N/A'}</span>
+                            </div>
+                            <button
+                                type="button"
+                                disabled={reportsModal.generating || !formData.veriff_session_id}
+                                onClick={handleGenerateReport}
+                                className="inline-flex items-center justify-center gap-2 rounded-full bg-teal-600 hover:bg-teal-700 px-5 py-2.5 text-xs font-bold text-white transition-all shadow-md shadow-teal-600/10 hover:shadow-teal-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {reportsModal.generating ? (
+                                    <>
+                                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                        Generating...
+                                    </>
+                                ) : (
+                                    <>
+                                        <RefreshCcw className="h-3.5 w-3.5" />
+                                        Generate New Report
+                                    </>
+                                )}
+                            </button>
+                        </div>
+
+                        {/* List */}
+                        {reportsModal.loading ? (
+                            <div className="py-20 text-center">
+                                <Loader2 className="mx-auto h-8 w-8 animate-spin text-teal-500" />
+                                <p className="mt-2 text-sm font-semibold text-slate-500 dark:text-slate-400">Loading reports...</p>
+                            </div>
+                        ) : reportsModal.reports.length === 0 ? (
+                            <div className="rounded-2xl border border-dashed border-slate-300 p-12 text-center dark:border-slate-700">
+                                <FileText className="mx-auto h-12 w-12 text-slate-300 dark:text-slate-600 mb-3" />
+                                <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">No reports generated yet</h4>
+                                <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto">
+                                    Click "Generate New Report" above to compile a fresh KYC verification report.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="max-h-[350px] overflow-y-auto pr-1">
+                                <table className="w-full border-collapse text-left">
+                                    <thead>
+                                        <tr className="border-b border-slate-200 dark:border-slate-800 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+                                            <th className="py-3 px-4">Date Generated</th>
+                                            <th className="py-3 px-4">Session ID</th>
+                                            <th className="py-3 px-4">Generated By</th>
+                                            <th className="py-3 px-4 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                                        {reportsModal.reports.map((report) => (
+                                            <tr key={report.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
+                                                <td className="py-4 px-4 text-sm font-bold text-slate-800 dark:text-slate-100">
+                                                    {new Date(report.created_at).toLocaleString()}
+                                                </td>
+                                                <td className="py-4 px-4 font-mono text-xs text-slate-500 dark:text-slate-400">
+                                                    {report.session_id}
+                                                </td>
+                                                <td className="py-4 px-4 text-xs font-semibold text-slate-600 dark:text-slate-400">
+                                                    {report.created_by || 'system'}
+                                                </td>
+                                                <td className="py-4 px-4 text-right">
+                                                    <div className="inline-flex items-center gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => window.open(ENDPOINTS.MOBILE_ADMIN.REVIEW_VERIFF_REPORT_DOWNLOAD(id, report.id), '_blank', 'noopener,noreferrer')}
+                                                            className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white hover:bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 transition dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 hover:scale-[1.02] active:scale-[0.98]"
+                                                        >
+                                                            <Download className="h-3.5 w-3.5" />
+                                                            Open PDF
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            disabled={deleteLoading && confirmModal.targetReportId === report.id}
+                                                            onClick={() => confirmDeleteReport(report.id)}
+                                                            className="inline-flex items-center justify-center rounded-full border border-red-200 bg-red-50 hover:bg-red-100 p-1.5 text-red-600 transition dark:border-red-900/40 dark:bg-red-900/10 dark:text-red-400 dark:hover:bg-red-900/20 disabled:opacity-50 hover:scale-105"
+                                                        >
+                                                            {deleteLoading && confirmModal.targetReportId === report.id ? (
+                                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                            ) : (
+                                                                <Trash2 className="h-4 w-4" />
+                                                            )}
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         )}
                     </div>
@@ -771,21 +992,14 @@ export default function EditRemitterPage() {
                                         )}
                                         Sync Veriff KYC
                                     </button>
+
                                     <button
                                         type="button"
-                                        onClick={openVerificationReport}
+                                        onClick={openReportsModal}
                                         className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
                                     >
                                         <FileText className="h-3.5 w-3.5" />
-                                        Report
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => window.open(ENDPOINTS.MOBILE_ADMIN.REVIEW_VERIFF_PDF(id), '_blank', 'noopener,noreferrer')}
-                                        className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-                                    >
-                                        <Download className="h-3.5 w-3.5" />
-                                        Download Veriff PDF
+                                        Veriff Reports
                                     </button>
                                     <button
                                         type="button"
