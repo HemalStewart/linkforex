@@ -144,6 +144,7 @@ export const ENDPOINTS = {
         REVIEW_REJECT: (id: string | number) => `${API_BASE_URL}/mobile-admin/review-queue/${id}/reject`,
         REVIEW_VERIFF_MEDIA: (id: string | number) => `${API_BASE_URL}/mobile-admin/review-queue/${id}/veriff-media`,
         REVIEW_VERIFF_MEDIA_DOWNLOAD: (id: string | number, mediaId: string) => `${API_BASE_URL}/mobile-admin/review-queue/${id}/veriff-media/${mediaId}`,
+        REVIEW_VERIFF_PDF: (id: string | number) => `${API_BASE_URL}/mobile-admin/review-queue/${id}/veriff-pdf`,
         TRANSFERS: `${API_BASE_URL}/mobile-admin/transfers`,
         TRANSFER_DETAIL: (id: string | number) => `${API_BASE_URL}/mobile-admin/transfers/${id}`,
         CAMPAIGNS: `${API_BASE_URL}/mobile-admin/campaigns`,
