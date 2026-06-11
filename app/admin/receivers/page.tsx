@@ -254,22 +254,20 @@ export default function ReceiversPage() {
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-up pb-20">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Receivers</h1>
-                    <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">Manage all transfer beneficiaries</p>
-                </div>
-                <Link href="/admin/receivers/create" className="btn-primary flex items-center space-x-2 rounded-full px-6">
-                    <Plus className="w-5 h-5" />
-                    <span>Add Receiver</span>
-                </Link>
-            </div>
+            <div className="card-glass overflow-hidden shadow-xl">
+                <div className="px-6 py-4 border-b border-slate-100/70 dark:border-slate-700/60 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div className="flex items-center space-x-3">
+                        <Users className="w-6 h-6 text-slate-400 flex-shrink-0" />
+                        <div>
+                            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Receivers Directory</h2>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                Showing {total === 0 ? 0 : startIndex + 1} to {endIndex} of {total}
+                            </p>
+                        </div>
+                    </div>
 
-            <div className="card-glass p-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="md:col-span-2">
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search</label>
-                        <div className="relative input-icon">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 lg:flex-grow lg:justify-end">
+                        <div className="relative input-icon flex-grow max-w-md">
                             <span className="input-icon-left"><Search className="w-4 h-4" /></span>
                             <input
                                 type="text"
@@ -279,27 +277,19 @@ export default function ReceiversPage() {
                                 className="input-glass w-full text-sm"
                             />
                         </div>
-                    </div>
-                    <div className="md:col-span-2 flex md:justify-end items-end">
-                        <button
-                            type="button"
-                            onClick={() => void fetchReceivers()}
-                            className="px-4 py-2 rounded-full glass-effect text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300"
-                        >
-                            Refresh
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div className="card-glass overflow-hidden shadow-xl">
-                <div className="px-6 py-4 border-b border-slate-100/70 dark:border-slate-700/60 flex items-center space-x-3">
-                    <Users className="w-6 h-6 text-slate-400" />
-                    <div>
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Receivers Directory</h2>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                            Showing {total === 0 ? 0 : startIndex + 1} to {endIndex} of {total}
-                        </p>
+                        <div className="flex items-center gap-3">
+                            <button
+                                type="button"
+                                onClick={() => void fetchReceivers()}
+                                className="px-4 py-2 rounded-full glass-effect text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 whitespace-nowrap"
+                            >
+                                Refresh
+                            </button>
+                            <Link href="/admin/receivers/create" className="btn-primary flex items-center space-x-2 rounded-full px-6 text-sm whitespace-nowrap">
+                                <Plus className="w-5 h-5" />
+                                <span>Add Receiver</span>
+                            </Link>
+                        </div>
                     </div>
                 </div>
 
