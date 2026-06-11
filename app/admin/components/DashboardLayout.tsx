@@ -607,6 +607,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 { name: 'Branches', href: '/admin/branches', icon: <Building2 className="w-4 h-4" />, sections: ['BRANCH', 'BRANCHES'] },
                 { name: 'Transaction Settings', href: '/admin/transaction-settings', icon: <SlidersHorizontal className="w-4 h-4" /> },
                 { name: 'API Tokens', href: '/admin/api-tokens', icon: <Key className="w-4 h-4" />, sections: ['MOBILE_APP_FLOW_SETTINGS'] },
+                { name: 'Dilisense Sources', href: '/admin/dilisense-sources', icon: <Database className="w-4 h-4" /> },
             ]
         },
         {

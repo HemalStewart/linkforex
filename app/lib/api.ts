@@ -135,6 +135,11 @@ export const ENDPOINTS = {
         LIST: `${API_BASE_URL}/relationships`,
         DETAIL: (id: string | number) => `${API_BASE_URL}/relationships/${id}`,
     },
+    DILISENSE_SOURCES: {
+        LIST: `${API_BASE_URL}/dilisense-sources`,
+        DETAIL: (id: string | number) => `${API_BASE_URL}/dilisense-sources/${id}`,
+        SYNC: `${API_BASE_URL}/dilisense-sources/sync`,
+    },
     TRANSACTION_SETTINGS: {
         LIST: `${API_BASE_URL}/transaction-settings`,
         USER_LIMITS: `${API_BASE_URL}/transaction-settings/user-limits`,
