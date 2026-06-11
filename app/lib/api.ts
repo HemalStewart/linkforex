@@ -49,6 +49,10 @@ export const ENDPOINTS = {
         POTENTIAL_MATCHES: `${API_BASE_URL}/remitters/potential-matches`,
         VERIFF_START: (id: string | number) => `${API_BASE_URL}/remitters/${id}/veriff/start`,
         VERIFF_SYNC: (id: string | number) => `${API_BASE_URL}/remitters/${id}/veriff/sync`,
+        DILISENSE_REPORTS_LIST: (id: string | number) => `${API_BASE_URL}/remitters/${id}/dilisense-reports`,
+        DILISENSE_REPORT_GENERATE: (id: string | number) => `${API_BASE_URL}/remitters/${id}/dilisense-reports`,
+        DILISENSE_REPORT_DOWNLOAD: (id: string | number, reportId: string | number) => `${API_BASE_URL}/remitters/${id}/dilisense-reports/${reportId}/download`,
+        DILISENSE_REPORT_DELETE: (id: string | number, reportId: string | number) => `${API_BASE_URL}/remitters/${id}/dilisense-reports/${reportId}`,
     },
     BENEFICIARIES: {
         LIST: `${API_BASE_URL}/beneficiaries`,
