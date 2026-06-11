@@ -112,6 +112,7 @@ export default function EditRemitterPage() {
             remitter_id: string | number;
             session_id: string;
             pdf_path: string;
+            status?: string;
             created_by: string;
             created_at: string;
         }>;
@@ -375,8 +376,8 @@ export default function EditRemitterPage() {
                 }));
                 setConfirmModal({
                     isOpen: true,
-                    title: 'Generation Success',
-                    message: 'A new Veriff KYC PDF report has been generated and saved successfully.',
+                    title: 'Pull Success',
+                    message: 'A new Veriff KYC PDF report has been pulled and saved successfully.',
                     type: 'success',
                     isAlert: true,
                     shouldRedirect: false,
@@ -385,15 +386,15 @@ export default function EditRemitterPage() {
                 setReportsModal((prev) => ({ ...prev, generating: false }));
                 setConfirmModal({
                     isOpen: true,
-                    title: 'Generation Failed',
-                    message: data?.message || 'Failed to generate Veriff PDF report.',
+                    title: 'Pull Failed',
+                    message: data?.message || 'Failed to pull Veriff PDF report.',
                     type: 'danger',
                     isAlert: true,
                     shouldRedirect: false,
                 });
             }
         } catch (error) {
-            console.error('Failed to generate report:', error);
+            console.error('Failed to pull report:', error);
             setReportsModal((prev) => ({ ...prev, generating: false }));
             setConfirmModal({
                 isOpen: true,
@@ -609,7 +610,7 @@ export default function EditRemitterPage() {
                                     Veriff KYC PDF Reports
                                 </h2>
                                 <p className="mt-1 text-sm font-medium text-slate-500 dark:text-slate-400">
-                                    Manage, view, generate, or delete PDF verification reports for {formData.name || '-'}.
+                                    Manage, view, pull, or delete PDF verification reports for {formData.name || '-'}.
                                 </p>
                             </div>
                             <button
@@ -624,7 +625,7 @@ export default function EditRemitterPage() {
                         {/* Actions & Info bar */}
                         <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl bg-teal-50/40 p-4 dark:bg-slate-800/40 border border-teal-100/30 dark:border-slate-700/50">
                             <div className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-                                Session ID: <span className="font-mono text-teal-600 dark:text-teal-400">{formData.veriff_session_id || 'N/A'}</span>
+                                Veriff Key (Session ID): <span className="font-mono text-teal-600 dark:text-teal-400">{formData.veriff_session_id || 'N/A'}</span>
                             </div>
                             <button
                                 type="button"
@@ -635,12 +636,12 @@ export default function EditRemitterPage() {
                                 {reportsModal.generating ? (
                                     <>
                                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                        Generating...
+                                        Pulling...
                                     </>
                                 ) : (
                                     <>
                                         <RefreshCcw className="h-3.5 w-3.5" />
-                                        Generate New Report
+                                        Pull New Reports
                                     </>
                                 )}
                             </button>
@@ -655,9 +656,9 @@ export default function EditRemitterPage() {
                         ) : reportsModal.reports.length === 0 ? (
                             <div className="rounded-2xl border border-dashed border-slate-300 p-12 text-center dark:border-slate-700">
                                 <FileText className="mx-auto h-12 w-12 text-slate-300 dark:text-slate-600 mb-3" />
-                                <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">No reports generated yet</h4>
+                                <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">No reports pulled yet</h4>
                                 <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto">
-                                    Click "Generate New Report" above to compile a fresh KYC verification report.
+                                    Click "Pull New Reports" above to pull a fresh KYC verification report.
                                 </p>
                             </div>
                         ) : (
@@ -666,7 +667,8 @@ export default function EditRemitterPage() {
                                     <thead>
                                         <tr className="border-b border-slate-200 dark:border-slate-800 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
                                             <th className="py-3 px-4">Date Generated</th>
-                                            <th className="py-3 px-4">Session ID</th>
+                                            <th className="py-3 px-4">Veriff Key (Session ID)</th>
+                                            <th className="py-3 px-4">Status</th>
                                             <th className="py-3 px-4">Generated By</th>
                                             <th className="py-3 px-4 text-right">Actions</th>
                                         </tr>
@@ -679,6 +681,16 @@ export default function EditRemitterPage() {
                                                 </td>
                                                 <td className="py-4 px-4 font-mono text-xs text-slate-500 dark:text-slate-400">
                                                     {report.session_id}
+                                                </td>
+                                                <td className="py-4 px-4">
+                                                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${String(report.status || 'not_started').toLowerCase() === 'approved'
+                                                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                                        : String(report.status || 'not_started').toLowerCase() === 'rejected' || String(report.status || 'not_started').toLowerCase() === 'declined'
+                                                            ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                                                            : 'bg-amber-500/10 text-amber-600 dark:text-amber-300'
+                                                        }`}>
+                                                        {report.status || 'Not Started'}
+                                                    </span>
                                                 </td>
                                                 <td className="py-4 px-4 text-xs font-semibold text-slate-600 dark:text-slate-400">
                                                     {report.created_by || 'system'}
@@ -858,7 +870,7 @@ export default function EditRemitterPage() {
 
                     <div className="space-y-3">
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">KYC Status</label>
-                        
+
                         {initialKycStatus === 'pending' && (
                             <div className="flex items-start space-x-3 bg-teal-50/50 dark:bg-slate-800/40 border border-teal-100/50 dark:border-slate-700/60 p-4 rounded-2xl mb-1">
                                 <input
@@ -1176,7 +1188,7 @@ export default function EditRemitterPage() {
             {sanctionReference && (
                 <div className="card-glass p-8 relative overflow-hidden mt-8">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
-                    
+
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-slate-100 dark:border-slate-700/50 pb-4">
                         <div className="flex items-center space-x-3">
                             <div className="p-2 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400">

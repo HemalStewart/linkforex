@@ -607,7 +607,7 @@ export default function EditReceiverPage() {
                                 ) : (
                                     <>
                                         <RefreshCcw className="h-3.5 w-3.5" />
-                                        Run New Dilisense Check
+                                        Pull New Reports
                                     </>
                                 )}
                             </button>
@@ -684,7 +684,7 @@ export default function EditReceiverPage() {
                 </div>
             ) : null}
 
-            
+
 
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -873,12 +873,11 @@ export default function EditReceiverPage() {
                         <div>
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">AML Status</label>
                             <select
-                                className={`input-glass w-full font-semibold transition-colors duration-200 ${
-                                    formData.aml_status === 'passed' || formData.aml_status === 'manually passed' || formData.aml_status === 'clear' ? 'text-emerald-600 dark:text-emerald-400' :
-                                    formData.aml_status === 'review' ? 'text-amber-600 dark:text-amber-400' :
-                                    formData.aml_status === 'hit' ? 'text-rose-600 dark:text-rose-400' :
-                                    'text-slate-600 dark:text-slate-400'
-                                }`}
+                                className={`input-glass w-full font-semibold transition-colors duration-200 ${formData.aml_status === 'passed' || formData.aml_status === 'manually passed' || formData.aml_status === 'clear' ? 'text-emerald-600 dark:text-emerald-400' :
+                                        formData.aml_status === 'review' ? 'text-amber-600 dark:text-amber-400' :
+                                            formData.aml_status === 'hit' ? 'text-rose-600 dark:text-rose-400' :
+                                                'text-slate-600 dark:text-slate-400'
+                                    }`}
                                 value={formData.aml_status}
                                 disabled={initialAmlStatus === 'review' && !enableAmlOverride}
                                 onChange={(e) => setFormData({ ...formData, aml_status: e.target.value })}
@@ -1099,7 +1098,7 @@ export default function EditReceiverPage() {
             {amlReference && (
                 <div className="card-glass p-8 relative overflow-hidden mt-8">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
-                    
+
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-slate-100 dark:border-slate-700/50 pb-4">
                         <div className="flex items-center space-x-3">
                             <div className="p-2 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400">
@@ -1178,7 +1177,7 @@ export default function EditReceiverPage() {
             {registrationSource === 'mobile_app' && veriffSessionId && (
                 <div className="card-glass p-8 relative overflow-hidden mt-8">
                     <div className="absolute top-0 left-0 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl -ml-16 -mt-16 pointer-events-none"></div>
-                    
+
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-slate-100 dark:border-slate-700/50 pb-4">
                         <div className="flex items-center space-x-3">
                             <div className="p-2 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
@@ -1189,12 +1188,11 @@ export default function EditReceiverPage() {
                                 <p className="text-xs text-slate-500 dark:text-slate-400">Watchlist screening via Veriff (Mobile App)</p>
                             </div>
                         </div>
-                        <span className={`inline-flex rounded-full px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider border ${
-                            veriffStatus === 'clear' || veriffStatus === 'passed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' :
-                            veriffStatus === 'review' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-800' :
-                            veriffStatus === 'pending' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800' :
-                            'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700'
-                        }`}>
+                        <span className={`inline-flex rounded-full px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider border ${veriffStatus === 'clear' || veriffStatus === 'passed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' :
+                                veriffStatus === 'review' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-800' :
+                                    veriffStatus === 'pending' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800' :
+                                        'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                            }`}>
                             {veriffStatus ? veriffStatus.replace('_', ' ') : 'N/A'}
                         </span>
                     </div>
