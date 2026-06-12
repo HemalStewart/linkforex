@@ -35,6 +35,7 @@ export default function MobileAppFlowSettingsPage() {
             const provider = String(data?.liveness_provider || next.liveness_provider).toLowerCase();
             next.liveness_provider = provider === 'none' ? 'none' : 'veriff';
             next.veriff_base_url = String(data?.veriff_base_url || next.veriff_base_url || '').trim();
+            next.veriff_aml_base_url = String(data?.veriff_aml_base_url || next.veriff_aml_base_url || next.veriff_base_url || '').trim();
             next.veriff_callback_url = String(data?.veriff_callback_url || next.veriff_callback_url || '').trim();
             next.blacklisted_countries = Array.isArray(data?.blacklisted_countries)
                 ? data.blacklisted_countries.join('\n')
@@ -49,7 +50,10 @@ export default function MobileAppFlowSettingsPage() {
             next.exchange_rate_push_body = String(data?.exchange_rate_push_body || next.exchange_rate_push_body || '').trim();
             next.veriff_api_key = '';
             next.veriff_hmac_secret = '';
+            next.veriff_aml_api_key = '';
+            next.veriff_aml_hmac_secret = '';
             next.veriff_configured = Boolean(data?.veriff_configured);
+            next.veriff_aml_configured = Boolean(data?.veriff_aml_configured);
             setSettings(next);
         } finally {
             setLoading(false);
@@ -407,9 +411,14 @@ export default function MobileAppFlowSettingsPage() {
                 <div className="mt-5 rounded-2xl border border-slate-200/70 bg-white/40 p-4 dark:border-slate-700 dark:bg-slate-900/30">
                     <div className="mb-3 flex items-center justify-between">
                         <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Veriff Integration</h3>
-                        <span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider ${settings.veriff_configured ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}`}>
-                            {settings.veriff_configured ? 'Configured' : 'Not Configured'}
-                        </span>
+                        <div className="flex items-center gap-2">
+                            <span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider ${settings.veriff_configured ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}`}>
+                                {settings.veriff_configured ? 'KYC Ready' : 'KYC Missing'}
+                            </span>
+                            <span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider ${settings.veriff_aml_configured ? 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400' : 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300'}`}>
+                                {settings.veriff_aml_configured ? 'AML Ready' : 'AML Fallback'}
+                            </span>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -448,7 +457,7 @@ export default function MobileAppFlowSettingsPage() {
                         <div className="md:col-span-2 rounded-2xl border border-slate-200/70 bg-white/50 p-3 text-xs text-slate-500 dark:border-slate-700 dark:bg-slate-900/30 dark:text-slate-400">
                             Configure this URL in Veriff Station as the decision webhook:
                             <div className="mt-1 font-mono text-[11px] text-slate-700 dark:text-slate-200">{veriffWebhookUrl}</div>
-                            Veriff requires an HTTPS return URL. This page redirects the user back to the LinkForex mobile app.
+                            Use the same webhook URL for decision and watchlist-screening webhooks. Veriff requires an HTTPS return URL. This page redirects the user back to the LinkForex mobile app.
                         </div>
 
                         <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -470,6 +479,42 @@ export default function MobileAppFlowSettingsPage() {
                                 onChange={(e) => setSettings((prev) => ({ ...prev, veriff_hmac_secret: e.target.value }))}
                                 className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
                                 placeholder={settings.veriff_configured ? 'Leave blank to keep current secret' : 'Enter Veriff HMAC secret'}
+                            />
+                        </label>
+
+                        <div className="md:col-span-2 mt-2 rounded-2xl border border-cyan-200/70 bg-cyan-50/60 p-3 text-xs text-cyan-900 dark:border-cyan-900/40 dark:bg-cyan-950/20 dark:text-cyan-100">
+                            Beneficiary AML screening can use a separate Veriff AML integration. If left blank, beneficiary screening falls back to the main Veriff KYC credentials above.
+                        </div>
+
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 md:col-span-2">
+                            Veriff AML Base URL
+                            <input
+                                value={settings.veriff_aml_base_url}
+                                onChange={(e) => setSettings((prev) => ({ ...prev, veriff_aml_base_url: e.target.value }))}
+                                className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
+                                placeholder="https://stationapi.veriff.com"
+                            />
+                        </label>
+
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                            AML API Key
+                            <input
+                                type="password"
+                                value={settings.veriff_aml_api_key}
+                                onChange={(e) => setSettings((prev) => ({ ...prev, veriff_aml_api_key: e.target.value }))}
+                                className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
+                                placeholder={settings.veriff_aml_configured ? 'Leave blank to keep current AML key' : 'Enter Veriff AML API key'}
+                            />
+                        </label>
+
+                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                            AML HMAC Secret
+                            <input
+                                type="password"
+                                value={settings.veriff_aml_hmac_secret}
+                                onChange={(e) => setSettings((prev) => ({ ...prev, veriff_aml_hmac_secret: e.target.value }))}
+                                className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
+                                placeholder={settings.veriff_aml_configured ? 'Leave blank to keep current AML secret' : 'Enter Veriff AML HMAC secret'}
                             />
                         </label>
                     </div>

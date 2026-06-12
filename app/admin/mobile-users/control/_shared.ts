@@ -39,8 +39,12 @@ export type SettingsData = {
     veriff_base_url: string;
     veriff_api_key: string;
     veriff_hmac_secret: string;
+    veriff_aml_base_url: string;
+    veriff_aml_api_key: string;
+    veriff_aml_hmac_secret: string;
     veriff_callback_url: string;
     veriff_configured?: boolean;
+    veriff_aml_configured?: boolean;
 };
 
 export type YesNoSettingKey = Exclude<
@@ -58,8 +62,12 @@ export type YesNoSettingKey = Exclude<
     | 'veriff_base_url'
     | 'veriff_api_key'
     | 'veriff_hmac_secret'
+    | 'veriff_aml_base_url'
+    | 'veriff_aml_api_key'
+    | 'veriff_aml_hmac_secret'
     | 'veriff_callback_url'
     | 'veriff_configured'
+    | 'veriff_aml_configured'
 >;
 
 export type QueueUser = {
@@ -216,6 +224,10 @@ export const defaultSettings: SettingsData = {
     veriff_base_url: 'https://stationapi.veriff.com',
     veriff_api_key: '',
     veriff_hmac_secret: '',
+    veriff_aml_base_url: 'https://stationapi.veriff.com',
+    veriff_aml_api_key: '',
+    veriff_aml_hmac_secret: '',
     veriff_callback_url: 'https://linkforex.vercel.app/api/veriff-return',
     veriff_configured: false,
+    veriff_aml_configured: false,
 };

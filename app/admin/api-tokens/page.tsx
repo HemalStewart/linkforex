@@ -17,6 +17,8 @@ import {
 type ApiSettings = {
     veriff_api_key: string;
     veriff_hmac_secret: string;
+    veriff_aml_api_key: string;
+    veriff_aml_hmac_secret: string;
     veriff_monthly_limit: number;
     veriff_yearly_limit: number;
     veriff_monthly_usage: number;
@@ -40,6 +42,8 @@ export default function ApiTokensPage() {
     const [settings, setSettings] = useState<ApiSettings>({
         veriff_api_key: '',
         veriff_hmac_secret: '',
+        veriff_aml_api_key: '',
+        veriff_aml_hmac_secret: '',
         veriff_monthly_limit: 0,
         veriff_yearly_limit: 0,
         veriff_monthly_usage: 0,
@@ -58,6 +62,8 @@ export default function ApiTokensPage() {
 
     const [showVeriffKey, setShowVeriffKey] = useState(false);
     const [showVeriffSecret, setShowVeriffSecret] = useState(false);
+    const [showVeriffAmlKey, setShowVeriffAmlKey] = useState(false);
+    const [showVeriffAmlSecret, setShowVeriffAmlSecret] = useState(false);
     const [showDilisenseKey, setShowDilisenseKey] = useState(false);
 
     const [confirmModal, setConfirmModal] = useState({
@@ -84,6 +90,8 @@ export default function ApiTokensPage() {
             setSettings({
                 veriff_api_key: data.veriff_api_key ?? '',
                 veriff_hmac_secret: data.veriff_hmac_secret ?? '',
+                veriff_aml_api_key: data.veriff_aml_api_key ?? '',
+                veriff_aml_hmac_secret: data.veriff_aml_hmac_secret ?? '',
                 veriff_monthly_limit: Number(data.veriff_monthly_limit) || 0,
                 veriff_yearly_limit: Number(data.veriff_yearly_limit) || 0,
                 veriff_monthly_usage: Number(data.veriff_monthly_usage) || 0,
@@ -123,6 +131,8 @@ export default function ApiTokensPage() {
                     acting_user_id: actingUser?.id,
                     veriff_api_key: settings.veriff_api_key,
                     veriff_hmac_secret: settings.veriff_hmac_secret,
+                    veriff_aml_api_key: settings.veriff_aml_api_key,
+                    veriff_aml_hmac_secret: settings.veriff_aml_hmac_secret,
                     veriff_monthly_limit: settings.veriff_monthly_limit,
                     veriff_yearly_limit: settings.veriff_yearly_limit,
                     dilisense_api_key: settings.dilisense_api_key,
@@ -139,7 +149,7 @@ export default function ApiTokensPage() {
             setConfirmModal({
                 isOpen: true,
                 title: 'Saved Successfully',
-                message: 'Veriff and Dilisense API configuration and limit settings updated.',
+                message: 'Veriff KYC, Veriff AML, and Dilisense configuration updated.',
                 type: 'success',
                 isAlert: true,
             });
@@ -341,6 +351,50 @@ export default function ApiTokensPage() {
                                             className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                                         >
                                             {showVeriffSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Veriff AML API Client Key</label>
+                                    <div className="relative">
+                                        <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
+                                            <Lock className="w-4 h-4" />
+                                        </span>
+                                        <input
+                                            type={showVeriffAmlKey ? 'text' : 'password'}
+                                            className="input-glass w-full pl-10 pr-12"
+                                            value={settings.veriff_aml_api_key}
+                                            onChange={(e) => setSettings({ ...settings, veriff_aml_api_key: e.target.value })}
+                                            placeholder="Optional dedicated AML API key"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowVeriffAmlKey(!showVeriffAmlKey)}
+                                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                                        >
+                                            {showVeriffAmlKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Veriff AML HMAC Secret</label>
+                                    <div className="relative">
+                                        <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
+                                            <Lock className="w-4 h-4" />
+                                        </span>
+                                        <input
+                                            type={showVeriffAmlSecret ? 'text' : 'password'}
+                                            className="input-glass w-full pl-10 pr-12"
+                                            value={settings.veriff_aml_hmac_secret}
+                                            onChange={(e) => setSettings({ ...settings, veriff_aml_hmac_secret: e.target.value })}
+                                            placeholder="Optional dedicated AML HMAC secret"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowVeriffAmlSecret(!showVeriffAmlSecret)}
+                                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                                        >
+                                            {showVeriffAmlSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                         </button>
                                     </div>
                                 </div>
