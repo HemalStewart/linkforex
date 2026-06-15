@@ -42,6 +42,9 @@ export const ENDPOINTS = {
     AUTH: {
         LOGIN: `${API_BASE_URL}/login`,
         CHANGE_PASSWORD: `${API_BASE_URL}/auth/change-password`,
+        ADMIN_FORGOT_PASSWORD: `${API_BASE_URL}/auth/admin/forgot-password`,
+        ADMIN_VERIFY_RESET_OTP: `${API_BASE_URL}/auth/admin/verify-reset-otp`,
+        ADMIN_RESET_PASSWORD: `${API_BASE_URL}/auth/admin/reset-password`,
     },
     REMITTERS: {
         LIST: `${API_BASE_URL}/remitters`,

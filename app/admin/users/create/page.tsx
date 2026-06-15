@@ -226,7 +226,8 @@ export default function CreateUserPage() {
                             <input
                                 type="text"
                                 required
-                className="input-glass w-full"
+                                autoComplete="off"
+                                className="input-glass w-full"
                                 placeholder="Username"
                                 value={formData.username}
                                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
@@ -243,7 +244,8 @@ export default function CreateUserPage() {
                             <input
                                 type="email"
                                 required
-                className="input-glass w-full"
+                                autoComplete="off"
+                                className="input-glass w-full"
                                 placeholder="Email address"
                                 value={formData.email}
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -260,7 +262,8 @@ export default function CreateUserPage() {
                             <input
                                 type="password"
                                 required
-                className="input-glass w-full"
+                                autoComplete="new-password"
+                                className="input-glass w-full"
                                 placeholder="••••••••"
                                 value={formData.password}
                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -277,7 +280,8 @@ export default function CreateUserPage() {
                             <input
                                 type="password"
                                 required
-                className="input-glass w-full"
+                                autoComplete="new-password"
+                                className="input-glass w-full"
                                 placeholder="••••••••"
                                 value={formData.confirmPassword}
                                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}

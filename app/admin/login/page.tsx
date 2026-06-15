@@ -3,6 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUserRaw, setStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../components/ConfirmModal';
@@ -223,9 +224,9 @@ export default function AdminLoginPage() {
                   Remember me
                 </span>
               </label>
-              <a href="#" className="text-sm font-bold text-teal-600 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300 transition-colors">
+              <Link href="/admin/forgot-password" className="text-sm font-bold text-teal-600 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300 transition-colors">
                 Forgot password?
-              </a>
+              </Link>
             </div>
 
             {/* Sign In Button */}

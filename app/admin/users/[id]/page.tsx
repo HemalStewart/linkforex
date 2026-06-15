@@ -191,6 +191,7 @@ export default function EditUserPage() {
                             <input
                                 type="text"
                                 required
+                                autoComplete="off"
                                 value={formData.username}
                                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                                 className="input-glass w-full"
@@ -207,6 +208,7 @@ export default function EditUserPage() {
                             <input
                                 type="email"
                                 required
+                                autoComplete="off"
                                 value={formData.email}
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                 className="input-glass w-full"
@@ -285,6 +287,7 @@ export default function EditUserPage() {
                             </span>
                             <input
                                 type="password"
+                                autoComplete="new-password"
                                 value={formData.password}
                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                 className="input-glass w-full"

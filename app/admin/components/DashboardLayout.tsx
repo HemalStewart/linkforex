@@ -120,6 +120,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const pathname = usePathname();
     const router = useRouter();
     const isLoginPage = pathname.startsWith('/admin/login');
+    const isForgotPasswordPage = pathname.startsWith('/admin/forgot-password');
+    const isPublicPage = isLoginPage || isForgotPasswordPage;
 
     const buildSignOffPayload = React.useCallback((note: string) => {
         const stored = getStoredUserRaw();
@@ -225,10 +227,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             }
         };
         // Only fetch if NOT login page and a user is loaded (so branch-scoped headers apply).
-        if (!isLoginPage && currentUser?.id) {
+        if (!isPublicPage && currentUser?.id) {
             fetchCounts();
         }
-    }, [pathname, isLoginPage, currentUser?.id, countsRefreshNonce]);
+    }, [pathname, isPublicPage, currentUser?.id, countsRefreshNonce]);
 
     React.useEffect(() => {
         const handleRefresh = () => setCountsRefreshNonce((value) => value + 1);
@@ -283,12 +285,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }, [currentUser?.id, currentUser?.role, currentUser?.system_defined]);
 
     React.useEffect(() => {
-        if (isLoginPage || !currentUser?.id || isPrivilegedUser) return;
+        if (isPublicPage || !currentUser?.id || isPrivilegedUser) return;
 
         if (pathname.startsWith('/admin/roles') || pathname.startsWith('/admin/permission-groups')) {
             router.replace('/admin/branches');
         }
-    }, [isLoginPage, currentUser?.id, isPrivilegedUser, pathname, router]);
+    }, [isPublicPage, currentUser?.id, isPrivilegedUser, pathname, router]);
 
     React.useEffect(() => {
         if (typeof window === 'undefined') return;
@@ -355,7 +357,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
     // Initial Auth Check
     React.useEffect(() => {
-        if (isLoginPage) {
+        if (isPublicPage) {
             setIsLoadingNav(false);
             return;
         }
@@ -378,7 +380,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             setIsLoadingNav(false);
             router.replace('/admin/login');
         }
-    }, [pathname, router, isLoginPage]);
+    }, [pathname, router, isPublicPage]);
 
     React.useEffect(() => {
         const onStorage = (event: StorageEvent) => {
@@ -472,7 +474,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }, []);
 
     React.useEffect(() => {
-        if (isLoginPage) return;
+        if (isPublicPage) return;
         signOffSentRef.current = false;
 
         const timeoutMs = 30 * 60 * 1000;
@@ -509,9 +511,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             activityEvents.forEach((event) => window.removeEventListener(event, resetTimer));
             window.removeEventListener('beforeunload', handleBeforeUnload);
         };
-    }, [router, isLoginPage, logSignOff]);
+    }, [router, isPublicPage, logSignOff]);
 
-    if (pathname.startsWith('/admin/login')) {
+    if (isPublicPage) {
         return <>{children}</>;
     }
 
