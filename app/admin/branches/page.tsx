@@ -329,7 +329,7 @@ export default function BranchesPage() {
             <div className="card-glass p-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Search</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left">
                                 <Search className="w-4 h-4" />
@@ -359,53 +359,53 @@ export default function BranchesPage() {
                     <table className="table-shell">
                         <thead className="table-head">
                             <tr>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">No.</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">No.</th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('name')} className="flex items-center gap-1">
                                         Branch Name <span className="text-slate-400 dark:text-slate-300">{sortIndicator('name')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('transaction_prefix')} className="flex items-center gap-1">
                                         Transaction Prefix <span className="text-slate-400 dark:text-slate-300">{sortIndicator('transaction_prefix')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('default_transaction_type')} className="flex items-center gap-1">
                                         Branch Type <span className="text-slate-400 dark:text-slate-300">{sortIndicator('default_transaction_type')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('telephone_1')} className="flex items-center gap-1">
                                         Tele 1 <span className="text-slate-400 dark:text-slate-300">{sortIndicator('telephone_1')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('day_transfer_limit')} className="flex items-center gap-1">
                                         Day Transfer Limit <span className="text-slate-400 dark:text-slate-300">{sortIndicator('day_transfer_limit')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('created_by')} className="flex items-center gap-1">
                                         Entered User <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_by')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('created_at')} className="flex items-center gap-1">
                                         Entered Date <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_at')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('updated_by')} className="flex items-center gap-1">
                                         Modified User <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_by')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('updated_at')} className="flex items-center gap-1">
                                         Modified Date <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_at')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Actions</th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="table-body">

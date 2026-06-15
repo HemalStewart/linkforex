@@ -683,7 +683,7 @@ export default function EditRemitterPage() {
                             <div className="max-h-[350px] overflow-y-auto pr-1">
                                 <table className="w-full border-collapse text-left">
                                     <thead>
-                                        <tr className="border-b border-slate-200 dark:border-slate-800 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+                                        <tr className="border-b border-slate-200 dark:border-slate-800 text-[11px] font-extrabold text-slate-400">
                                             <th className="py-3 px-4">Date Checked</th>
                                             <th className="py-3 px-4">Reference</th>
                                             <th className="py-3 px-4">Checked By</th>
@@ -766,31 +766,31 @@ export default function EditRemitterPage() {
             <div className="card-glass p-6 space-y-5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Remitter Overview</p>
+                        <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Remitter Overview</p>
                         <h2 className="mt-1 text-xl font-extrabold text-slate-900 dark:text-white">{displayText(formData.sender_name)}</h2>
                     </div>
-                    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide ${isActive ? 'bg-teal-500/15 text-teal-600 dark:text-teal-300' : 'bg-slate-500/15 text-slate-600 dark:text-slate-300'}`}>
+                    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ${isActive ? 'bg-teal-500/15 text-teal-600 dark:text-teal-300' : 'bg-slate-500/15 text-slate-600 dark:text-slate-300'}`}>
                         {isActive ? 'Active' : 'Inactive'}
                     </span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                     <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Identity</p>
+                        <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Identity</p>
                         <p className="mt-2 text-sm font-semibold text-slate-900 dark:text-white">Sender Id: {displayText(formData.sender_id)}</p>
                         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">DOB: {displayText(formData.dob)}</p>
                         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Place: {displayText(formData.place_of_birth)}</p>
                     </div>
 
                     <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Branch & Use</p>
+                        <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Branch & Use</p>
                         <p className="mt-2 text-sm font-semibold text-slate-900 dark:text-white">{displayText(formData.branch)}</p>
                         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Use In: {displayText(formData.use_in)}</p>
                         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Occupation: {displayText(formData.occupation)}</p>
                     </div>
 
                     <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Compliance</p>
+                        <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Compliance</p>
                         <div className="mt-2 flex items-center justify-between gap-2">
                             <span className="text-sm text-slate-600 dark:text-slate-300">ID Verified</span>
                             <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${yesNoBadge(formData.id_verified)}`}>{yesNoText(formData.id_verified)}</span>
@@ -855,7 +855,7 @@ export default function EditRemitterPage() {
                     </div>
 
                     <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Audit</p>
+                        <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Audit</p>
                         <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Entered: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.created_by)}</span></p>
                         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{formData.created_at ? new Date(formData.created_at).toLocaleString() : '-'}</p>
                         <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Modified: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.updated_by)}</span></p>
@@ -865,7 +865,7 @@ export default function EditRemitterPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Address</p>
+                        <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Address</p>
                         <p className="mt-2 text-sm text-slate-700 dark:text-slate-200">{displayText(formData.address_1)}</p>
                         {displayText(formData.address_2) !== '-' && <p className="text-sm text-slate-700 dark:text-slate-200">{displayText(formData.address_2)}</p>}
                         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
@@ -873,7 +873,7 @@ export default function EditRemitterPage() {
                         </p>
                     </div>
                     <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">ID & AML</p>
+                        <p className="text-xs font-bold text-slate-500 dark:text-slate-300">ID & AML</p>
                         <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">ID Type: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.id_type)}</span></p>
                         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">ID No: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.id_number)}</span></p>
                         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">ID Issued: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.id_issued_date)}</span></p>
@@ -1077,17 +1077,17 @@ export default function EditRemitterPage() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                         <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Screening Reference</span>
+                            <span className="text-xs font-semibold text-slate-400 block mb-1">Screening Reference</span>
                             <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{sanctionReference}</span>
                         </div>
                         <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Checked At</span>
+                            <span className="text-xs font-semibold text-slate-400 block mb-1">Checked At</span>
                             <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
                                 {sanctionCheckedAt ? new Date(sanctionCheckedAt).toLocaleString() : '-'}
                             </span>
                         </div>
                         <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Total Hits</span>
+                            <span className="text-xs font-semibold text-slate-400 block mb-1">Total Hits</span>
                             <div>
                                 <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${sanctionScore > 0 ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'}`}>
                                     {sanctionScore} {sanctionScore > 0 ? 'HITS DETECTED' : 'CLEAR'}

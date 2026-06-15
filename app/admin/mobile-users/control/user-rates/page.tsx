@@ -215,12 +215,12 @@ export default function MobileUserRatesPage() {
                         <table className="table-shell whitespace-nowrap">
                             <thead className="table-head">
                                 <tr>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">User Email</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Currency</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Digital Rate</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Status</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Updated</th>
-                                    <th className="px-4 py-4 text-right text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Action</th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">User Email</th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Currency</th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Digital Rate</th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Status</th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Updated</th>
+                                    <th className="px-4 py-4 text-right text-xs font-bold text-slate-500 dark:text-slate-300">Action</th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">

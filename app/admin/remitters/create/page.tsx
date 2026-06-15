@@ -840,11 +840,11 @@ export default function CreateRemitterPage() {
                                                         Branch: {match.branch || '-'} · Score: {match.score ?? 0}
                                                     </div>
                                                     <div className="mt-1 flex flex-wrap items-center gap-2">
-                                                        <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${verificationBadgeClass(match.verification_state)}`}>
+                                                        <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${verificationBadgeClass(match.verification_state)}`}>
                                                             {verificationLabel(match.verification_state)}
                                                         </span>
                                                         {match.id_expired ? (
-                                                            <span className="inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300">
+                                                            <span className="inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300">
                                                                 ID Expired
                                                             </span>
                                                         ) : null}
@@ -966,7 +966,7 @@ export default function CreateRemitterPage() {
                             </p>
                         </div>
                         {createdRemitterVeriff?.verification_state ? (
-                            <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${verificationBadgeClass(createdRemitterVeriff.verification_state)}`}>
+                            <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold ${verificationBadgeClass(createdRemitterVeriff.verification_state)}`}>
                                 {verificationLabel(createdRemitterVeriff.verification_state)}
                             </span>
                         ) : null}

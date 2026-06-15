@@ -442,7 +442,7 @@ export default function CreateRemitterPage() {
                             </div>
 
                             <div className="border-t border-slate-100 dark:border-slate-800 pt-6">
-                                <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide mb-4">Address Details</h3>
+                                <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4">Address Details</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="md:col-span-2">
                                         <FormInput label="Address Line 1 *" name="address_1" placeholder="House/Flat Number, Street" />
@@ -482,7 +482,7 @@ export default function CreateRemitterPage() {
                             </div>
 
                             <div className="space-y-4 pt-6">
-                                <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide">Document Uploads</h3>
+                                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Document Uploads</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <FormFileUpload label="ID Copy / Passport" name="passport_copy" />
                                     <FormFileUpload label="Proof of Address" name="proof_of_address_doc" />
@@ -515,7 +515,7 @@ export default function CreateRemitterPage() {
                                             </button>
                                         )}
                                     </div>
-                                    <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide mb-4">Receiver #{index + 1}</h3>
+                                    <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4">Receiver #{index + 1}</h3>
 
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                         <div>

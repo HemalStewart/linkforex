@@ -379,7 +379,7 @@ export default function SupportPage() {
             <div className="card-glass p-5">
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
                     <div className="xl:col-span-6">
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Search</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left">
                                 <Search className="w-4 h-4" />
@@ -393,7 +393,7 @@ export default function SupportPage() {
                         </div>
                     </div>
                     <div className="xl:col-span-3">
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Status</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Status</label>
                         <select
                             className="input-glass w-full text-sm"
                             value={statusFilter}
@@ -406,7 +406,7 @@ export default function SupportPage() {
                         </select>
                     </div>
                     <div className="xl:col-span-3">
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Priority</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Priority</label>
                         <select
                             className="input-glass w-full text-sm"
                             value={priorityFilter}
@@ -438,14 +438,14 @@ export default function SupportPage() {
                         <table className="table-shell">
                             <thead className="table-head">
                                 <tr>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Ticket Number</th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Customer</th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Topic</th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Message Type</th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Priority</th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Last Message</th>
-                                    <th className="px-8 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Ticket Number</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Customer</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Topic</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Message Type</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Status</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Priority</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Last Message</th>
+                                    <th className="px-8 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -530,25 +530,25 @@ export default function SupportPage() {
                     <div className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="p-4 rounded-2xl glass-effect border border-white/20">
-                                <p className="text-xs uppercase text-slate-400">Status</p>
+                                <p className="text-xs text-slate-400">Status</p>
                                 <p className="mt-2 font-semibold text-slate-900 dark:text-white">
                                     {toLabelCase(normalizeText(selectedTicket.status, 'open'))}
                                 </p>
                             </div>
                             <div className="p-4 rounded-2xl glass-effect border border-white/20">
-                                <p className="text-xs uppercase text-slate-400">Priority</p>
+                                <p className="text-xs text-slate-400">Priority</p>
                                 <p className="mt-2 font-semibold text-slate-900 dark:text-white">
                                     {toLabelCase(normalizeText(selectedTicket.priority, 'normal'))}
                                 </p>
                             </div>
                             <div className="p-4 rounded-2xl glass-effect border border-white/20">
-                                <p className="text-xs uppercase text-slate-400">Message Type</p>
+                                <p className="text-xs text-slate-400">Message Type</p>
                                 <p className="mt-2 font-semibold text-slate-900 dark:text-white">
                                     {normalizeText(selectedTicket.message_type)}
                                 </p>
                             </div>
                             <div className="p-4 rounded-2xl glass-effect border border-white/20">
-                                <p className="text-xs uppercase text-slate-400">Last message</p>
+                                <p className="text-xs text-slate-400">Last message</p>
                                 <p className="mt-2 font-semibold text-slate-900 dark:text-white">
                                     {formatDateTime(selectedTicket.last_message_at || selectedTicket.updated_at)}
                                 </p>
@@ -557,7 +557,7 @@ export default function SupportPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
-                                <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">Update Status</label>
+                                <label className="block text-xs text-slate-400 mb-2">Update Status</label>
                                 <select
                                     className="input-glass w-full"
                                     value={String(selectedTicket.status || 'open').toLowerCase()}
@@ -569,7 +569,7 @@ export default function SupportPage() {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">Update Priority</label>
+                                <label className="block text-xs text-slate-400 mb-2">Update Priority</label>
                                 <select
                                     className="input-glass w-full"
                                     value={String(selectedTicket.priority || 'normal').toLowerCase()}
@@ -608,7 +608,7 @@ export default function SupportPage() {
 
                                 <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                                     <div>
-                                        <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">Additional 3 Month Limit (GBP)</label>
+                                        <label className="block text-xs text-slate-400 mb-2">Additional 3 Month Limit (GBP)</label>
                                         <input
                                             className="input-glass w-full"
                                             inputMode="decimal"
@@ -619,7 +619,7 @@ export default function SupportPage() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs uppercase tracking-wider text-slate-400 mb-2">Additional Yearly Limit (GBP)</label>
+                                        <label className="block text-xs text-slate-400 mb-2">Additional Yearly Limit (GBP)</label>
                                         <input
                                             className="input-glass w-full"
                                             inputMode="decimal"

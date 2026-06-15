@@ -115,7 +115,7 @@ export default function WalletTransfersPage() {
 
             <div className="card-glass p-5">
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    <label className="text-xs font-bold text-slate-500">
                         Status
                         <select
                             value={statusFilter}
@@ -130,7 +130,7 @@ export default function WalletTransfersPage() {
                         </select>
                     </label>
 
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 md:col-span-2">
+                    <label className="text-xs font-bold text-slate-500 md:col-span-2">
                         Search
                         <div className="relative mt-1.5">
                             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -149,7 +149,7 @@ export default function WalletTransfersPage() {
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
                         <thead className="bg-slate-50/80 dark:bg-slate-900/40">
-                            <tr className="text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                            <tr className="text-left text-xs font-bold text-slate-500">
                                 <th className="px-4 py-3">Transfer</th>
                                 <th className="px-4 py-3">Sender</th>
                                 <th className="px-4 py-3">Recipient</th>
@@ -201,7 +201,7 @@ export default function WalletTransfersPage() {
                                             <div className="mt-1 break-all text-slate-500">{row.wallet_tx_hash || 'No transaction hash supplied'}</div>
                                         </td>
                                         <td className="px-4 py-4 text-sm">
-                                            <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wider ${statusBadge(row.status)}`}>
+                                            <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${statusBadge(row.status)}`}>
                                                 {row.status.replaceAll('_', ' ')}
                                             </span>
                                             <select

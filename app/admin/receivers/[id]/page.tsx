@@ -631,7 +631,7 @@ export default function EditReceiverPage() {
                             <div className="max-h-[350px] overflow-y-auto pr-1">
                                 <table className="w-full border-collapse text-left">
                                     <thead>
-                                        <tr className="border-b border-slate-200 dark:border-slate-800 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+                                        <tr className="border-b border-slate-200 dark:border-slate-800 text-[11px] font-extrabold text-slate-400">
                                             <th className="py-3 px-4">Date Checked</th>
                                             <th className="py-3 px-4">Reference</th>
                                             <th className="py-3 px-4">Checked By</th>
@@ -697,7 +697,7 @@ export default function EditReceiverPage() {
                         <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                             Edit Receiver
                         </h1>
-                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-3 py-1 rounded-full text-xs font-bold uppercase">
+                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-3 py-1 rounded-full text-xs font-bold">
                             ID: {id}
                         </span>
                     </div>
@@ -1122,17 +1122,17 @@ export default function EditReceiverPage() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                         <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Screening Reference</span>
+                            <span className="text-xs font-semibold text-slate-400 block mb-1">Screening Reference</span>
                             <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{amlReference}</span>
                         </div>
                         <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Checked At</span>
+                            <span className="text-xs font-semibold text-slate-400 block mb-1">Checked At</span>
                             <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
                                 {amlCheckedAt ? new Date(amlCheckedAt).toLocaleString() : '-'}
                             </span>
                         </div>
                         <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Total Hits</span>
+                            <span className="text-xs font-semibold text-slate-400 block mb-1">Total Hits</span>
                             <div>
                                 <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${amlHits > 0 ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'}`}>
                                     {amlHits} {amlHits > 0 ? 'HITS DETECTED' : 'CLEAR'}
@@ -1188,7 +1188,7 @@ export default function EditReceiverPage() {
                                 <p className="text-xs text-slate-500 dark:text-slate-400">Watchlist screening via Veriff (Mobile App)</p>
                             </div>
                         </div>
-                        <span className={`inline-flex rounded-full px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider border ${veriffStatus === 'clear' || veriffStatus === 'passed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' :
+                        <span className={`inline-flex rounded-full px-3.5 py-1.5 text-xs font-bold border ${veriffStatus === 'clear' || veriffStatus === 'passed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' :
                                 veriffStatus === 'review' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-800' :
                                     veriffStatus === 'pending' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800' :
                                         'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700'
@@ -1199,17 +1199,17 @@ export default function EditReceiverPage() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                         <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Session ID</span>
+                            <span className="text-xs font-semibold text-slate-400 block mb-1">Session ID</span>
                             <span className="text-sm font-mono font-bold text-slate-800 dark:text-slate-200 break-all">{veriffSessionId || '-'}</span>
                         </div>
                         <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Checked At</span>
+                            <span className="text-xs font-semibold text-slate-400 block mb-1">Checked At</span>
                             <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
                                 {veriffCheckedAt ? new Date(veriffCheckedAt).toLocaleString() : '-'}
                             </span>
                         </div>
                         <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Hits</span>
+                            <span className="text-xs font-semibold text-slate-400 block mb-1">Hits</span>
                             <div>
                                 {(() => {
                                     let hits = 0;

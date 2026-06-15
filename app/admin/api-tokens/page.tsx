@@ -274,7 +274,7 @@ export default function ApiTokensPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="bg-white/40 dark:bg-slate-950/20 border border-white/10 rounded-2xl p-5 space-y-3">
                                 <div className="flex justify-between items-center text-sm font-bold">
-                                    <span className="text-slate-500 dark:text-slate-300 uppercase tracking-wide text-xs">Monthly Token Quota</span>
+                                    <span className="text-slate-500 dark:text-slate-300 text-xs">Monthly Token Quota</span>
                                     <span className="text-slate-800 dark:text-slate-200">{veriffMonthly.text}</span>
                                 </div>
                                 <div className="h-3 w-full bg-slate-200/50 dark:bg-slate-800/50 rounded-full overflow-hidden">
@@ -291,7 +291,7 @@ export default function ApiTokensPage() {
 
                             <div className="bg-white/40 dark:bg-slate-950/20 border border-white/10 rounded-2xl p-5 space-y-3">
                                 <div className="flex justify-between items-center text-sm font-bold">
-                                    <span className="text-slate-500 dark:text-slate-300 uppercase tracking-wide text-xs">Yearly Token Quota</span>
+                                    <span className="text-slate-500 dark:text-slate-300 text-xs">Yearly Token Quota</span>
                                     <span className="text-slate-800 dark:text-slate-200">{veriffYearly.text}</span>
                                 </div>
                                 <div className="h-3 w-full bg-slate-200/50 dark:bg-slate-800/50 rounded-full overflow-hidden">
@@ -311,7 +311,7 @@ export default function ApiTokensPage() {
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Veriff API Client Key</label>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Veriff API Client Key</label>
                                     <div className="relative">
                                         <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
                                             <Lock className="w-4 h-4" />
@@ -333,7 +333,7 @@ export default function ApiTokensPage() {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Veriff HMAC Signature Secret</label>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Veriff HMAC Signature Secret</label>
                                     <div className="relative">
                                         <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
                                             <Lock className="w-4 h-4" />
@@ -355,7 +355,7 @@ export default function ApiTokensPage() {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Veriff AML API Client Key</label>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Veriff AML API Client Key</label>
                                     <div className="relative">
                                         <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
                                             <Lock className="w-4 h-4" />
@@ -377,7 +377,7 @@ export default function ApiTokensPage() {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Veriff AML HMAC Secret</label>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Veriff AML HMAC Secret</label>
                                     <div className="relative">
                                         <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
                                             <Lock className="w-4 h-4" />
@@ -402,7 +402,7 @@ export default function ApiTokensPage() {
 
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Monthly Quota Token Limit (0 for Unlimited)</label>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Monthly Quota Token Limit (0 for Unlimited)</label>
                                     <input
                                         type="number"
                                         min="0"
@@ -413,7 +413,7 @@ export default function ApiTokensPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Yearly Quota Token Limit (0 for Unlimited)</label>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Yearly Quota Token Limit (0 for Unlimited)</label>
                                     <input
                                         type="number"
                                         min="0"
@@ -443,7 +443,7 @@ export default function ApiTokensPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="bg-white/40 dark:bg-slate-950/20 border border-white/10 rounded-2xl p-5 space-y-3">
                                 <div className="flex justify-between items-center text-sm font-bold">
-                                    <span className="text-slate-500 dark:text-slate-300 uppercase tracking-wide text-xs">Monthly Token Quota</span>
+                                    <span className="text-slate-500 dark:text-slate-300 text-xs">Monthly Token Quota</span>
                                     <span className="text-slate-800 dark:text-slate-200">{dilisenseMonthly.text}</span>
                                 </div>
                                 <div className="h-3 w-full bg-slate-200/50 dark:bg-slate-800/50 rounded-full overflow-hidden">
@@ -460,7 +460,7 @@ export default function ApiTokensPage() {
 
                             <div className="bg-white/40 dark:bg-slate-950/20 border border-white/10 rounded-2xl p-5 space-y-3">
                                 <div className="flex justify-between items-center text-sm font-bold">
-                                    <span className="text-slate-500 dark:text-slate-300 uppercase tracking-wide text-xs">Yearly Token Quota</span>
+                                    <span className="text-slate-500 dark:text-slate-300 text-xs">Yearly Token Quota</span>
                                     <span className="text-slate-800 dark:text-slate-200">{dilisenseYearly.text}</span>
                                 </div>
                                 <div className="h-3 w-full bg-slate-200/50 dark:bg-slate-800/50 rounded-full overflow-hidden">
@@ -480,7 +480,7 @@ export default function ApiTokensPage() {
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                             <div className="space-y-4 justify-between flex flex-col">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Dilisense API Key</label>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Dilisense API Key</label>
                                     <div className="relative">
                                         <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
                                             <Lock className="w-4 h-4" />
@@ -509,7 +509,7 @@ export default function ApiTokensPage() {
 
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Monthly Quota Token Limit (0 for Unlimited)</label>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Monthly Quota Token Limit (0 for Unlimited)</label>
                                     <input
                                         type="number"
                                         min="0"
@@ -520,7 +520,7 @@ export default function ApiTokensPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Yearly Quota Token Limit (0 for Unlimited)</label>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Yearly Quota Token Limit (0 for Unlimited)</label>
                                     <input
                                         type="number"
                                         min="0"

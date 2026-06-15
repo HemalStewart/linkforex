@@ -95,7 +95,7 @@ export default function BeneficiariesPage() {
             <div className="card-glass p-5">
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
                     <div className="xl:col-span-12">
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Search</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left">
                                 <Search className="w-4 h-4" />
@@ -128,22 +128,22 @@ export default function BeneficiariesPage() {
                         <table className="table-shell">
                             <thead className="table-head">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">#</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">#</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                         <button onClick={() => toggleSort('name')} className="flex items-center gap-1">Name <span>{sortIndicator('name')}</span></button>
                                     </th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Bank Details</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Customer ID</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Contact</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Payment Mode</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Location</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Bank Details</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Customer ID</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Contact</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Payment Mode</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Location</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Status</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                         <button onClick={() => toggleSort('aml_status')} className="flex items-center gap-1">AML Status <span>{sortIndicator('aml_status')}</span></button>
                                     </th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Source</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Veriff Status</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Source</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Veriff Status</th>
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                         <button onClick={() => toggleSort('created_at')} className="flex items-center gap-1">Date Added <span>{sortIndicator('created_at')}</span></button>
                                     </th>
                                 </tr>
@@ -193,7 +193,7 @@ export default function BeneficiariesPage() {
                                             </Badge>
                                         </td>
                                         <td className="px-6 py-5">
-                                            <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider border ${
+                                            <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold border ${
                                                 (b.aml_status ?? '').toLowerCase() === 'clear' || (b.aml_status ?? '').toLowerCase() === 'passed' || (b.aml_status ?? '').toLowerCase() === 'manually passed'
                                                     ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
                                                     : (b.aml_status ?? '').toLowerCase() === 'review'
@@ -206,7 +206,7 @@ export default function BeneficiariesPage() {
                                             </span>
                                         </td>
                                         <td className="px-8 py-5">
-                                            <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider ${
+                                            <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold ${
                                                 b.registration_source === 'mobile_app' 
                                                     ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-350 border border-purple-200 dark:border-purple-800' 
                                                     : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-350 border border-blue-200 dark:border-blue-800'
@@ -216,7 +216,7 @@ export default function BeneficiariesPage() {
                                         </td>
                                         <td className="px-6 py-5">
                                             <div className="flex items-center space-x-2">
-                                                <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider ${
+                                                <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold ${
                                                     b.veriff_status === 'clear' || b.veriff_status === 'passed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-350 border border-emerald-200 dark:border-emerald-800' :
                                                     b.veriff_status === 'review' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-355 border border-amber-200 dark:border-amber-800' :
                                                     b.veriff_status === 'pending' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-350 border border-blue-200 dark:border-blue-800' :

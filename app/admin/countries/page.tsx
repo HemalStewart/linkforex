@@ -380,7 +380,7 @@ export default function CountriesPage() {
             <div className="card-glass p-5">
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
                     <div className="xl:col-span-5">
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Search</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left">
                                 <Search className="w-4 h-4" />
@@ -554,13 +554,13 @@ export default function CountriesPage() {
                         </div>
                         <div>
                             <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Country Code (Alpha-2)</label>
-                            <input className="input-glass w-full uppercase" value={form.iso_code} onChange={(e) => setForm({ ...form, iso_code: e.target.value.toUpperCase() })} maxLength={2} required />
+                            <input className="input-glass w-full" value={form.iso_code} onChange={(e) => setForm({ ...form, iso_code: e.target.value.toUpperCase() })} maxLength={2} required />
                         </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Currency Code</label>
-                            <input className="input-glass w-full uppercase" value={form.currency_code} onChange={(e) => setForm({ ...form, currency_code: e.target.value.toUpperCase() })} maxLength={10} />
+                            <input className="input-glass w-full" value={form.currency_code} onChange={(e) => setForm({ ...form, currency_code: e.target.value.toUpperCase() })} maxLength={10} />
                         </div>
                         <div>
                             <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Symbol</label>
@@ -710,7 +710,7 @@ function FlagFilter({
 }) {
     return (
         <div>
-            <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">{label}</label>
+            <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">{label}</label>
             <div className="relative">
                 <ShieldAlert className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <select

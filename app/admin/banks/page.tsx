@@ -423,7 +423,7 @@ export default function BanksPage() {
             <div className="card-glass p-5">
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
                     <div className="xl:col-span-12">
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Search</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left">
                                 <Search className="w-4 h-4" />
@@ -456,38 +456,38 @@ export default function BanksPage() {
                         <table className="table-shell">
                             <thead className="table-head">
                                 <tr>
-                                    <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">#</th>
-                                    <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                    <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">#</th>
+                                    <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                         <button onClick={() => toggleSort('bank_code')} className="flex items-center gap-1">
                                             <span>Bank Code</span>
                                             <span>{sortIndicator('bank_code')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                    <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                         <button onClick={() => toggleSort('name')} className="flex items-center gap-1">
                                             <span>Bank Name</span>
                                             <span>{sortIndicator('name')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-6 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                    <th className="px-6 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400">
                                         <button onClick={() => toggleSort('sender_bank')} className="mx-auto flex items-center gap-1">
                                             <span>Sender Bank</span>
                                             <span>{sortIndicator('sender_bank')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-6 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                    <th className="px-6 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400">
                                         <button onClick={() => toggleSort('receiver_bank')} className="mx-auto flex items-center gap-1">
                                             <span>Receiver Bank</span>
                                             <span>{sortIndicator('receiver_bank')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-6 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                    <th className="px-6 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400">
                                         <button onClick={() => toggleSort('pickup_bank')} className="mx-auto flex items-center gap-1">
                                             <span>Cash Pickup Bank</span>
                                             <span>{sortIndicator('pickup_bank')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-6 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
+                                    <th className="px-6 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -499,7 +499,7 @@ export default function BanksPage() {
                                         <td className="px-6 py-5 text-sm font-mono text-slate-700 dark:text-slate-200 whitespace-nowrap">
                                             {editingId === bank.id ? (
                                                 <input
-                                                    className="input-glass py-1 px-3 w-40 uppercase"
+                                                    className="input-glass py-1 px-3 w-40"
                                                     value={editForm.bank_code}
                                                     maxLength={50}
                                                     onChange={(e) => setEditForm({ ...editForm, bank_code: e.target.value.toUpperCase() })}
@@ -640,7 +640,7 @@ export default function BanksPage() {
                     <div>
                         <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Bank Code (Unique)</label>
                         <input
-                            className="input-glass w-full uppercase"
+                            className="input-glass w-full"
                             value={newBank.bank_code}
                             onChange={(e) => setNewBank({ ...newBank, bank_code: e.target.value.toUpperCase() })}
                             maxLength={50}

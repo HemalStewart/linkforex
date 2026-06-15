@@ -606,27 +606,27 @@ export default function LogsPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-4">
                 <div className="card-glass p-4">
-                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Sessions</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Sessions</p>
                     <p className="text-2xl font-black mt-2 text-slate-900 dark:text-white">{summary.total}</p>
                 </div>
                 <div className="card-glass p-4">
-                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Active Now</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Active Now</p>
                     <p className="text-2xl font-black mt-2 text-teal-600 dark:text-teal-300">{summary.active}</p>
                 </div>
                 <div className="card-glass p-4">
-                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Transfer Updates</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Transfer Updates</p>
                     <p className="text-2xl font-black mt-2 text-slate-900 dark:text-white">{summary.transfersTouched}</p>
                 </div>
                 <div className="card-glass p-4">
-                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Approvals</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Approvals</p>
                     <p className="text-2xl font-black mt-2 text-slate-900 dark:text-white">{summary.approvals}</p>
                 </div>
                 <div className="card-glass p-4">
-                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Avg Session Duration</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Avg Session Duration</p>
                     <p className="text-2xl font-black mt-2 text-slate-900 dark:text-white">{formatDuration(summary.avgSessionSeconds)}</p>
                 </div>
                 <div className="card-glass p-4">
-                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Forced Sign-offs</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Forced Sign-offs</p>
                     <p className="text-2xl font-black mt-2 text-amber-600 dark:text-amber-300">{summary.forced}</p>
                 </div>
             </div>
@@ -634,7 +634,7 @@ export default function LogsPage() {
             <div className="card-glass p-5 space-y-4">
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
                     <div className="xl:col-span-4">
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Search</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left">
                                 <Search className="w-4 h-4" />
@@ -650,7 +650,7 @@ export default function LogsPage() {
                     </div>
 
                     <div className="xl:col-span-2">
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Status</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Status</label>
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
@@ -663,7 +663,7 @@ export default function LogsPage() {
                     </div>
 
                     <div className="xl:col-span-2">
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Country</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Country</label>
                         <select
                             value={countryFilter}
                             onChange={(e) => setCountryFilter(e.target.value)}
@@ -678,7 +678,7 @@ export default function LogsPage() {
                     </div>
 
                     <div className="xl:col-span-2">
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Date Range</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Date Range</label>
                         <select
                             value={dateRangeFilter}
                             onChange={(e) => setDateRangeFilter(e.target.value as DateRangeFilter)}

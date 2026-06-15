@@ -730,7 +730,7 @@ export default function TransfersPage() {
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; margin: 24px; color: #0f172a; }
     h1 { margin: 0 0 6px; font-size: 24px; }
-    h2 { margin: 22px 0 10px; font-size: 14px; text-transform: uppercase; letter-spacing: .05em; color: #475569; }
+    h2 { margin: 22px 0 10px; font-size: 14px; text-transform:; letter-spacing: .05em; color: #475569; }
     table { border-collapse: collapse; width: 100%; margin-bottom: 14px; }
     td, th { border: 1px solid #cbd5e1; padding: 8px; font-size: 13px; vertical-align: top; }
     th { background: #f8fafc; text-align: left; width: 260px; }
@@ -1065,7 +1065,7 @@ export default function TransfersPage() {
             className: 'min-w-[180px]',
             render: (row) => (
                 <div className="flex flex-col items-start gap-1">
-                    <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider ${row.channel === 'Mobile App' ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'}`}>
+                    <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold ${row.channel === 'Mobile App' ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'}`}>
                         {row.fundingModel}
                     </span>
                     <span className="text-[11px] text-slate-500 dark:text-slate-300">{row.channel}</span>
@@ -1078,7 +1078,7 @@ export default function TransfersPage() {
             sortable: true,
             className: 'min-w-[160px]',
             render: (row) => (
-                <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider ${statusBadgeClass(row.rawStatus)}`}>
+                <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold ${statusBadgeClass(row.rawStatus)}`}>
                     {row.status}
                 </span>
             )
@@ -1090,7 +1090,7 @@ export default function TransfersPage() {
             className: 'min-w-[140px]',
             render: (row) => (
                 <div className="flex flex-col items-start gap-1">
-                    <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider ${row.amlStatus.toLowerCase() === 'review' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'}`}>
+                    <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold ${row.amlStatus.toLowerCase() === 'review' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'}`}>
                         {row.amlStatus === '-' ? '—' : row.amlStatus}
                     </span>
                     {row.amlHits > 0 && (
@@ -1329,17 +1329,17 @@ export default function TransfersPage() {
                             <div className="rounded-2xl border border-slate-200/70 dark:border-slate-700/70 bg-white/70 dark:bg-slate-900/40 p-4">
                                 <div className="grid gap-3 sm:grid-cols-3 text-sm">
                                     <div>
-                                        <div className="text-xs font-bold uppercase tracking-wide text-slate-400">Transfer</div>
+                                        <div className="text-xs font-bold text-slate-400">Transfer</div>
                                         <div className="font-semibold text-slate-900 dark:text-white">{asString(transfer?.code) || pofReviewTransferId}</div>
                                     </div>
                                     <div>
-                                        <div className="text-xs font-bold uppercase tracking-wide text-slate-400">Status</div>
+                                        <div className="text-xs font-bold text-slate-400">Status</div>
                                         <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${statusBadgeClass(currentStatus)}`}>
                                             {formatStatus(currentStatus)}
                                         </span>
                                     </div>
                                     <div>
-                                        <div className="text-xs font-bold uppercase tracking-wide text-slate-400">Documents</div>
+                                        <div className="text-xs font-bold text-slate-400">Documents</div>
                                         <div className="font-semibold text-slate-900 dark:text-white">{docs.length}</div>
                                     </div>
                                 </div>
@@ -1561,7 +1561,7 @@ export default function TransfersPage() {
                                 {columns.map((column) => (
                                     <th
                                         key={column.key}
-                                        className={`px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 ${column.className || ''}`}
+                                        className={`px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 ${column.className || ''}`}
                                     >
                                         {column.sortable ? (
                                             <button
@@ -1575,11 +1575,11 @@ export default function TransfersPage() {
                                         ) : column.label}
                                     </th>
                                 ))}
-                                <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">POF Review</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Approve</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Cancel</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">View</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Delete</th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">POF Review</th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Approve</th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Cancel</th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">View</th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Delete</th>
                             </tr>
                         </thead>
                         <tbody className="table-body">

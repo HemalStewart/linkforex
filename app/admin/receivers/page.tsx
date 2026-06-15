@@ -301,58 +301,58 @@ export default function ReceiversPage() {
                         <table className="table-shell whitespace-nowrap">
                             <thead className="table-head">
                                 <tr>
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('remitter')} className="flex items-center gap-2">
                                             Remitter <SortIndicator active={sortKey === 'remitter'} dir={sortDir} />
                                         </button>
                                     </th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('name')} className="flex items-center gap-2">
                                             Name <SortIndicator active={sortKey === 'name'} dir={sortDir} />
                                         </button>
                                     </th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('bank')} className="flex items-center gap-2">
                                             Bank <SortIndicator active={sortKey === 'bank'} dir={sortDir} />
                                         </button>
                                     </th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('account')} className="flex items-center gap-2">
                                             Account / IBAN <SortIndicator active={sortKey === 'account'} dir={sortDir} />
                                         </button>
                                     </th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('country')} className="flex items-center gap-2">
                                             Country <SortIndicator active={sortKey === 'country'} dir={sortDir} />
                                         </button>
                                     </th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('status')} className="flex items-center gap-2">
                                             Status <SortIndicator active={sortKey === 'status'} dir={sortDir} />
                                         </button>
                                     </th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('amlStatus')} className="flex items-center gap-2">
                                             AML Status <SortIndicator active={sortKey === 'amlStatus'} dir={sortDir} />
                                         </button>
                                     </th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('source')} className="flex items-center gap-2">
                                             Source <SortIndicator active={sortKey === 'source'} dir={sortDir} />
                                         </button>
                                     </th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('veriffStatus')} className="flex items-center gap-2">
                                             Veriff <SortIndicator active={sortKey === 'veriffStatus'} dir={sortDir} />
                                         </button>
                                     </th>
 
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('createdAt')} className="flex items-center gap-2">
                                             Entered <SortIndicator active={sortKey === 'createdAt'} dir={sortDir} />
                                         </button>
                                     </th>
-                                    <th className="px-4 py-4 text-right text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Actions</th>
+                                    <th className="px-4 py-4 text-right text-xs font-bold text-slate-500 dark:text-slate-300">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -378,23 +378,23 @@ export default function ReceiversPage() {
                                                 {asString(receiver.country) || '-'}
                                             </td>
                                             <td className="px-4 py-4">
-                                                <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider ${statusBadgeClass(receiver.status)}`}>
+                                                <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold ${statusBadgeClass(receiver.status)}`}>
                                                     {formatStatus(receiver.status)}
                                                 </span>
                                             </td>
                                             <td className="px-4 py-4">
-                                                <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider border ${getAmlBadgeClass(String(receiver.aml_status || 'pending'))}`}>
+                                                <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold border ${getAmlBadgeClass(String(receiver.aml_status || 'pending'))}`}>
                                                     {asString(receiver.aml_status || 'pending')}
                                                 </span>
                                             </td>
                                             <td className="px-4 py-4">
-                                                <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider border ${getSourceBadgeClass(String(receiver.registration_source || 'web'))}`}>
+                                                <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold border ${getSourceBadgeClass(String(receiver.registration_source || 'web'))}`}>
                                                     {normalize(receiver.registration_source) === 'mobile_app' ? 'Mobile App' : 'Web'}
                                                 </span>
                                             </td>
                                             <td className="px-4 py-4">
                                                 <div className="inline-flex items-center gap-1.5">
-                                                    <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider border ${getVeriffBadgeClass(String(receiver.veriff_status || 'not_applicable'))}`}>
+                                                    <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold border ${getVeriffBadgeClass(String(receiver.veriff_status || 'not_applicable'))}`}>
                                                         {formatStatus(receiver.veriff_status || 'N/A')}
                                                     </span>
                                                     {receiver.veriff_pep_sanction_match && (

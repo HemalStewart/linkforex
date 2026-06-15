@@ -63,7 +63,7 @@ export default function VeriffDetailsModal({
                         <h4 className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">{beneficiaryName}</h4>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">PEP, Sanctions, and Watchlist Screening</p>
                     </div>
-                    <span className={`inline-flex rounded-full px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider border ${getStatusBadgeClass(veriffStatus)}`}>
+                    <span className={`inline-flex rounded-full px-3.5 py-1.5 text-xs font-bold border ${getStatusBadgeClass(veriffStatus)}`}>
                         {veriffStatus ? veriffStatus.replace('_', ' ') : 'Pending'}
                     </span>
                 </div>
@@ -71,11 +71,11 @@ export default function VeriffDetailsModal({
                 {/* Session details */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-450 dark:text-slate-400 block mb-1">Session ID</span>
+                        <span className="text-[10px] font-bold text-slate-450 dark:text-slate-400 block mb-1">Session ID</span>
                         <span className="text-sm font-mono font-bold text-slate-800 dark:text-slate-250 break-all">{veriffSessionId || '-'}</span>
                     </div>
                     <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-450 dark:text-slate-400 block mb-1">Screening Checked At</span>
+                        <span className="text-[10px] font-bold text-slate-450 dark:text-slate-400 block mb-1">Screening Checked At</span>
                         <span className="text-sm font-bold text-slate-800 dark:text-slate-250">
                             {veriffCheckedAt ? new Date(veriffCheckedAt).toLocaleString() : '-'}
                         </span>
@@ -86,7 +86,7 @@ export default function VeriffDetailsModal({
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
                         <h5 className="text-sm font-bold text-slate-700 dark:text-slate-300">Watchlist Hits ({hits.length})</h5>
-                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide ${hits.length > 0 ? 'bg-rose-500/10 text-rose-600 dark:text-rose-450' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-450'}`}>
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${hits.length > 0 ? 'bg-rose-500/10 text-rose-600 dark:text-rose-450' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-450'}`}>
                             {matchStatus.replace('_', ' ')}
                         </span>
                     </div>

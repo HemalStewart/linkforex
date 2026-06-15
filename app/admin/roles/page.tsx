@@ -8,7 +8,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import Badge from '../components/ui/Badge';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
-import { Search, PlusCircle, Trash2, Eye, Shield, ChevronRight } from 'lucide-react';
+import { Search, PlusCircle, Trash2, Edit3, Shield, ChevronRight } from 'lucide-react';
 
 export default function RolesPage() {
     const [roles, setRoles] = useState<any[]>([]);
@@ -58,6 +58,7 @@ export default function RolesPage() {
         ? roles.filter((r) => {
             const haystack = [
                 r.name,
+                r.description,
                 r.system_defined,
                 r.created_by,
                 r.updated_by,
@@ -81,6 +82,8 @@ export default function RolesPage() {
         switch (key) {
             case 'name':
                 return role.name || '';
+            case 'description':
+                return role.description || '';
             case 'system_defined':
                 return normalizeYesNo(role.system_defined);
             case 'created_by':
@@ -273,7 +276,7 @@ export default function RolesPage() {
             <div className="card-glass p-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Search</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left">
                                 <Search className="w-4 h-4" />
@@ -288,7 +291,7 @@ export default function RolesPage() {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">System Defined</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">System Defined</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left">
                                 <Shield className="w-4 h-4" />
@@ -331,16 +334,6 @@ export default function RolesPage() {
                         >
                             Uncheck All
                         </button>
-                        <span className="text-slate-400 dark:text-slate-300">With selected:</span>
-                        <select className="input-glass px-3 py-1.5 text-sm">
-                            <option>Delete</option>
-                        </select>
-                        <button
-                            onClick={promptBulkDelete}
-                            className="px-3 py-1.5 rounded-full btn-primary text-sm"
-                        >
-                            Apply
-                        </button>
                     </div>
                 </div>
 
@@ -348,40 +341,45 @@ export default function RolesPage() {
                     <table className="table-shell">
                         <thead className="table-head">
                             <tr>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider"></th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">No.</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300"></th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">No.</th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('name')} className="flex items-center gap-1">
                                         Role <span className="text-slate-400 dark:text-slate-300">{sortIndicator('name')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                    <button onClick={() => toggleSort('description')} className="flex items-center gap-1">
+                                        Description <span className="text-slate-400 dark:text-slate-300">{sortIndicator('description')}</span>
+                                    </button>
+                                </th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('system_defined')} className="flex items-center gap-1">
                                         System Defined <span className="text-slate-400 dark:text-slate-300">{sortIndicator('system_defined')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('created_by')} className="flex items-center gap-1">
                                         Entered User <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_by')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('created_at')} className="flex items-center gap-1">
                                         Entered Date <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_at')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('updated_by')} className="flex items-center gap-1">
                                         Modified User <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_by')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('updated_at')} className="flex items-center gap-1">
                                         Modified Date <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_at')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">View</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Delete</th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Edit</th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Delete</th>
                             </tr>
                         </thead>
                         <tbody className="table-body">
@@ -405,6 +403,7 @@ export default function RolesPage() {
                                         </td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
                                         <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{role.name || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{role.description || '-'}</td>
                                         <td className="px-4 py-4">
                                             <Badge type={normalizeYesNo(role.system_defined)}>
                                                 {toYesNoLabel(role.system_defined)}
@@ -415,13 +414,22 @@ export default function RolesPage() {
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{role.updated_by || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{role.updated_at ? new Date(role.updated_at).toLocaleString() : '-'}</td>
                                         <td className="px-4 py-4">
-                                            <Link
-                                                href={`/admin/roles/${role.id}`}
-                                                className="px-3 py-1.5 rounded-full glass-effect text-xs font-semibold text-slate-600 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors flex items-center gap-1"
-                                            >
-                                                <Eye className="w-3.5 h-3.5" />
-                                                View
-                                            </Link>
+                                            {systemDefined ? (
+                                                <span
+                                                    className="px-3 py-1.5 rounded-full bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500 cursor-not-allowed text-xs font-semibold flex items-center gap-1 inline-flex"
+                                                >
+                                                    <Edit3 className="w-3.5 h-3.5" />
+                                                    Edit
+                                                </span>
+                                            ) : (
+                                                <Link
+                                                    href={`/admin/roles/${role.id}`}
+                                                    className="px-3 py-1.5 rounded-full glass-effect text-xs font-semibold text-slate-600 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors flex items-center gap-1"
+                                                >
+                                                    <Edit3 className="w-3.5 h-3.5" />
+                                                    Edit
+                                                </Link>
+                                            )}
                                         </td>
                                         <td className="px-4 py-4">
                                             <button

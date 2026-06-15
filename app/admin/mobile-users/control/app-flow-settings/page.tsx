@@ -292,7 +292,7 @@ export default function MobileAppFlowSettingsPage() {
                     </p>
 
                     <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 md:col-span-2">
+                        <label className="text-xs font-bold text-slate-500 md:col-span-2">
                             Support Email
                             <input
                                 value={settings.support_email}
@@ -302,7 +302,7 @@ export default function MobileAppFlowSettingsPage() {
                             />
                         </label>
 
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                        <label className="text-xs font-bold text-slate-500">
                             Password Rotation Days
                             <input
                                 type="number"
@@ -318,7 +318,7 @@ export default function MobileAppFlowSettingsPage() {
                             Users are prompted to update their password after the configured number of days. New-device verification uses an email code challenge.
                         </div>
 
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 md:col-span-2">
+                        <label className="text-xs font-bold text-slate-500 md:col-span-2">
                             Blacklisted Countries
                             <textarea
                                 value={settings.blacklisted_countries}
@@ -337,7 +337,7 @@ export default function MobileAppFlowSettingsPage() {
                     </p>
 
                     <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                        <label className="text-xs font-bold text-slate-500">
                             Wallet Label
                             <input
                                 value={settings.trust_wallet_label}
@@ -347,7 +347,7 @@ export default function MobileAppFlowSettingsPage() {
                             />
                         </label>
 
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                        <label className="text-xs font-bold text-slate-500">
                             Wallet Network
                             <input
                                 value={settings.trust_wallet_network}
@@ -357,7 +357,7 @@ export default function MobileAppFlowSettingsPage() {
                             />
                         </label>
 
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 md:col-span-2">
+                        <label className="text-xs font-bold text-slate-500 md:col-span-2">
                             Wallet Address
                             <textarea
                                 value={settings.trust_wallet_address}
@@ -367,7 +367,7 @@ export default function MobileAppFlowSettingsPage() {
                             />
                         </label>
 
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 md:col-span-2">
+                        <label className="text-xs font-bold text-slate-500 md:col-span-2">
                             Funding Instructions
                             <textarea
                                 value={settings.trust_wallet_instructions}
@@ -386,7 +386,7 @@ export default function MobileAppFlowSettingsPage() {
                     </p>
 
                     <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                        <label className="text-xs font-bold text-slate-500">
                             Notification Title
                             <input
                                 value={settings.exchange_rate_push_title}
@@ -396,7 +396,7 @@ export default function MobileAppFlowSettingsPage() {
                             />
                         </label>
 
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 md:col-span-2">
+                        <label className="text-xs font-bold text-slate-500 md:col-span-2">
                             Notification Body
                             <textarea
                                 value={settings.exchange_rate_push_body}
@@ -412,17 +412,17 @@ export default function MobileAppFlowSettingsPage() {
                     <div className="mb-3 flex items-center justify-between">
                         <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Veriff Integration</h3>
                         <div className="flex items-center gap-2">
-                            <span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider ${settings.veriff_configured ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}`}>
+                            <span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold ${settings.veriff_configured ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}`}>
                                 {settings.veriff_configured ? 'KYC Ready' : 'KYC Missing'}
                             </span>
-                            <span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider ${settings.veriff_aml_configured ? 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400' : 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300'}`}>
+                            <span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold ${settings.veriff_aml_configured ? 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400' : 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300'}`}>
                                 {settings.veriff_aml_configured ? 'AML Ready' : 'AML Fallback'}
                             </span>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 md:col-span-2">
+                        <label className="text-xs font-bold text-slate-500 md:col-span-2">
                             Provider
                             <select
                                 value={settings.liveness_provider}
@@ -434,7 +434,7 @@ export default function MobileAppFlowSettingsPage() {
                             </select>
                         </label>
 
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 md:col-span-2">
+                        <label className="text-xs font-bold text-slate-500 md:col-span-2">
                             Veriff Base URL
                             <input
                                 value={settings.veriff_base_url}
@@ -444,7 +444,7 @@ export default function MobileAppFlowSettingsPage() {
                             />
                         </label>
 
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 md:col-span-2">
+                        <label className="text-xs font-bold text-slate-500 md:col-span-2">
                             App Return URL
                             <input
                                 value={settings.veriff_callback_url}
@@ -460,7 +460,7 @@ export default function MobileAppFlowSettingsPage() {
                             Use the same webhook URL for decision and watchlist-screening webhooks. Veriff requires an HTTPS return URL. This page redirects the user back to the LinkForex mobile app.
                         </div>
 
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                        <label className="text-xs font-bold text-slate-500">
                             API Key
                             <input
                                 type="password"
@@ -471,7 +471,7 @@ export default function MobileAppFlowSettingsPage() {
                             />
                         </label>
 
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                        <label className="text-xs font-bold text-slate-500">
                             HMAC Secret
                             <input
                                 type="password"
@@ -486,7 +486,7 @@ export default function MobileAppFlowSettingsPage() {
                             Beneficiary AML screening can use a separate Veriff AML integration. If left blank, beneficiary screening falls back to the main Veriff KYC credentials above.
                         </div>
 
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 md:col-span-2">
+                        <label className="text-xs font-bold text-slate-500 md:col-span-2">
                             Veriff AML Base URL
                             <input
                                 value={settings.veriff_aml_base_url}
@@ -496,7 +496,7 @@ export default function MobileAppFlowSettingsPage() {
                             />
                         </label>
 
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                        <label className="text-xs font-bold text-slate-500">
                             AML API Key
                             <input
                                 type="password"
@@ -507,7 +507,7 @@ export default function MobileAppFlowSettingsPage() {
                             />
                         </label>
 
-                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                        <label className="text-xs font-bold text-slate-500">
                             AML HMAC Secret
                             <input
                                 type="password"

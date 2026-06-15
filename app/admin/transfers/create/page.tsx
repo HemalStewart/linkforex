@@ -1922,7 +1922,7 @@ export default function CreateTransferPage() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/60 bg-white/60 dark:bg-slate-900/40 p-4">
-                        <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                        <div className="text-xs font-bold text-slate-500 dark:text-slate-300">
                             Sender Summary
                         </div>
                         <div className="mt-3 space-y-2 text-sm text-slate-700 dark:text-slate-200">
@@ -1946,7 +1946,7 @@ export default function CreateTransferPage() {
                     </div>
                     <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/60 bg-white/60 dark:bg-slate-900/40 p-4">
                         <div className="flex items-center justify-between">
-                            <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                            <div className="text-xs font-bold text-slate-500 dark:text-slate-300">
                                 Recent Transactions
                             </div>
                             {recentTransfersLoading ? (
@@ -2470,7 +2470,7 @@ export default function CreateTransferPage() {
                     <h2 className="text-lg font-bold text-slate-900 dark:text-white">Confirm Transfer</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/60 bg-white/60 dark:bg-slate-900/40 p-4">
-                            <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Sender</div>
+                            <div className="text-xs font-bold text-slate-500 dark:text-slate-300">Sender</div>
                             <div className="mt-2 text-sm text-slate-700 dark:text-slate-200 space-y-1">
                                 <div className="font-semibold">{formData.senderName || '-'}</div>
                                 <div>{formData.senderContacts || '-'}</div>
@@ -2481,7 +2481,7 @@ export default function CreateTransferPage() {
                             </button>
                         </div>
                         <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/60 bg-white/60 dark:bg-slate-900/40 p-4">
-                            <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Beneficiary</div>
+                            <div className="text-xs font-bold text-slate-500 dark:text-slate-300">Beneficiary</div>
                             <div className="mt-2 text-sm text-slate-700 dark:text-slate-200 space-y-1">
                                 <div className="font-semibold">{formData.receiverName || '-'}</div>
                                 <div>{formData.receiverContacts || '-'}</div>
@@ -2492,7 +2492,7 @@ export default function CreateTransferPage() {
                             </button>
                         </div>
                         <div className="md:col-span-2 rounded-2xl border border-slate-100/70 dark:border-slate-700/60 bg-white/60 dark:bg-slate-900/40 p-4">
-                            <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Transfer Details</div>
+                            <div className="text-xs font-bold text-slate-500 dark:text-slate-300">Transfer Details</div>
                             <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-slate-700 dark:text-slate-200">
                                 <div>
                                     <div className="text-[11px] text-slate-500 dark:text-slate-300">To Branch</div>

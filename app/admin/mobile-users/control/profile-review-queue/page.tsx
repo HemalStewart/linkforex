@@ -198,7 +198,7 @@ export default function MobileProfileReviewQueuePage() {
     table { width: 100%; border-collapse: collapse; margin-top: 18px; }
     th, td { text-align: left; vertical-align: top; padding: 10px 12px; border: 1px solid #e5e7eb; font-size: 13px; }
     th { width: 260px; background: #f9fafb; font-weight: 700; }
-    .badge { display: inline-block; padding: 6px 10px; border-radius: 999px; background: #dcfce7; color: #166534; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+    .badge { display: inline-block; padding: 6px 10px; border-radius: 999px; background: #dcfce7; color: #166534; font-size: 12px; font-weight: 700; text-transform:; }
     .actions { margin-top: 20px; }
     button { border: 0; border-radius: 999px; background: #111827; color: white; padding: 10px 16px; font-weight: 700; cursor: pointer; }
     @media print { .actions { display: none; } body { margin: 18px; } }
@@ -365,12 +365,12 @@ export default function MobileProfileReviewQueuePage() {
                                         <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">{u.name || '-'}</div>
                                         <div className="text-xs text-slate-500">{u.email || '-'}</div>
                                     </td>
-                                    <td className="text-xs font-bold uppercase text-slate-600">{u.kyc_status || '-'}</td>
-                                    <td className="text-xs font-bold uppercase text-slate-600">{u.status || '-'}</td>
-                                    <td className="text-[11px] font-bold uppercase text-slate-600">{u.mobile_verified_at ? 'Verified' : 'Pending'}</td>
+                                    <td className="text-xs font-bold text-slate-600">{u.kyc_status || '-'}</td>
+                                    <td className="text-xs font-bold text-slate-600">{u.status || '-'}</td>
+                                    <td className="text-[11px] font-bold text-slate-600">{u.mobile_verified_at ? 'Verified' : 'Pending'}</td>
                                     <td>
-                                        <div className="text-[11px] font-bold uppercase text-slate-600">{u.veriff_status || '-'}</div>
-                                        <div className="text-[10px] uppercase text-slate-400">{u.veriff_decision || '-'}</div>
+                                        <div className="text-[11px] font-bold text-slate-600">{u.veriff_status || '-'}</div>
+                                        <div className="text-[10px] text-slate-400">{u.veriff_decision || '-'}</div>
                                         {u.veriff_person_name ? (
                                             <div className="mt-1 text-[10px] text-slate-500">{u.veriff_person_name}</div>
                                         ) : null}
@@ -384,8 +384,8 @@ export default function MobileProfileReviewQueuePage() {
                                         ) : null}
                                     </td>
                                     <td>
-                                        <div className="text-[11px] font-bold uppercase text-slate-600">{u.sanction_status || '-'}</div>
-                                        <div className="text-[10px] uppercase text-slate-400">{u.sanction_checked_at || '-'}</div>
+                                        <div className="text-[11px] font-bold text-slate-600">{u.sanction_status || '-'}</div>
+                                        <div className="text-[10px] text-slate-400">{u.sanction_checked_at || '-'}</div>
                                     </td>
                                     <td className="text-right">
                                         <div className="inline-flex items-center gap-2">

@@ -214,7 +214,7 @@ className="card-glass p-8 hover:shadow-lg transition-all duration-300 group"
                                     </p>
                                 </div>
                             </div>
-                            <span className={`badge-glass px-3 py-1 rounded-full uppercase tracking-wider text-[10px] font-extrabold ${getStatusBadge(app.status)}`}>
+                            <span className={`badge-glass px-3 py-1 rounded-full text-[10px] font-extrabold ${getStatusBadge(app.status)}`}>
                                 {formatStatus(app.status)}
                             </span>
                         </div>
@@ -239,14 +239,14 @@ className="card-glass p-8 hover:shadow-lg transition-all duration-300 group"
                   <AlertCircle className="w-4 h-4 mr-2" />
                                     Risk Level
                                 </span>
-                                <span className={`badge-glass px-3 py-1 rounded-full text-[10px] font-extrabold uppercase ${getRiskBadge(app.riskLevel)}`}>
+                                <span className={`badge-glass px-3 py-1 rounded-full text-[10px] font-extrabold ${getRiskBadge(app.riskLevel)}`}>
                                     {app.riskLevel}
                                 </span>
                             </div>
                         </div>
 
             <div className="mb-8">
-              <p className="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-3 ml-2">Documents</p>
+              <p className="text-xs font-extrabold text-slate-400st mb-3 ml-2">Documents</p>
               <div className="flex flex-wrap gap-2">
                                 {app.documents.map((doc: string, idx: number) => (
                                     <span

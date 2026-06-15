@@ -245,7 +245,7 @@ export default function BranchCurrencyRatesPage() {
                         <table className="table-shell whitespace-nowrap">
                             <thead className="table-head">
                                 <tr>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">No.</th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">No.</th>
                                     {[
                                         ['branch_name', 'Branch'],
                                         ['currency_display', 'Currency'],
@@ -256,7 +256,7 @@ export default function BranchCurrencyRatesPage() {
                                         ['modified_user', 'Modified User'],
                                         ['updated_at', 'Modified Date'],
                                     ].map(([key, label]) => (
-                                        <th key={key} className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                                        <th key={key} className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                             <button onClick={() => toggleSort(key as SortKey)} className="flex items-center gap-1">
                                                 {label}
                                                 <span className="text-slate-400 dark:text-slate-300">{sortIndicator(key as SortKey)}</span>

@@ -147,7 +147,7 @@ export default function EditUserPage() {
                         <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                             Edit User
                         </h1>
-                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-3 py-1 rounded-full text-xs font-bold uppercase">
+                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-3 py-1 rounded-full text-xs font-bold">
                             ID: {id}
                         </span>
                     </div>

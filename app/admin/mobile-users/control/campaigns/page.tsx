@@ -198,8 +198,8 @@ export default function MobileCampaignsPage() {
                             {campaigns.slice(0, 100).map((campaign) => (
                                 <tr key={campaign.id}>
                                     <td className="text-sm font-semibold text-slate-800 dark:text-slate-200">{campaign.title}</td>
-                                    <td className="text-xs uppercase text-slate-600">{campaign.channel}</td>
-                                    <td className="text-xs uppercase text-slate-600">{campaign.status}</td>
+                                    <td className="text-xs text-slate-600">{campaign.channel}</td>
+                                    <td className="text-xs text-slate-600">{campaign.status}</td>
                                     <td className="text-right">
                                         {campaign.status === 'draft' && (
                                             <button

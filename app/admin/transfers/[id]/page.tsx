@@ -259,7 +259,7 @@ function DetailCard({ title, rows }: { title: string; rows: FieldRow[] }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {rows.map((row) => (
                     <div key={row.field} className="rounded-2xl bg-white/50 dark:bg-slate-800/40 border border-slate-100/70 dark:border-slate-700/60 px-4 py-3">
-                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">{row.field}</p>
+                        <p className="text-xs font-bold text-slate-500 dark:text-slate-300">{row.field}</p>
                         <div className="mt-1 text-sm font-medium text-slate-700 dark:text-slate-200 break-words">{row.value}</div>
                     </div>
                 ))}
@@ -569,17 +569,17 @@ export default function TransferDetailsPage() {
                 </Link>
                 <div className="flex flex-wrap items-center gap-3">
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Transfer Details</h1>
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${statusBadgeClass(transfer.status)}`}>
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${statusBadgeClass(transfer.status)}`}>
                         {formatStatus(fieldValue(transfer.status, 'Pending'))}
                     </span>
                     {mobileWalletTransfer && (
                         <>
-                            <span className="px-3 py-1 rounded-full bg-teal-500/15 text-teal-700 dark:text-teal-300 text-xs font-bold uppercase tracking-wider">
+                            <span className="px-3 py-1 rounded-full bg-teal-500/15 text-teal-700 dark:text-teal-300 text-xs font-bold">
                                 Mobile Wallet
                             </span>
                             <Link
                                 href="/admin/mobile-users/control/wallet-transfers"
-                                className="px-3 py-1 rounded-full bg-white/70 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-200 hover:text-teal-600"
+                                className="px-3 py-1 rounded-full bg-white/70 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 text-xs font-bold text-slate-600 dark:text-slate-200 hover:text-teal-600"
                             >
                                 Wallet Queue
                             </Link>
@@ -595,7 +595,7 @@ export default function TransferDetailsPage() {
                 <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
                     {quickSummary.map((item) => (
                         <div key={item.field} className="rounded-2xl bg-white/50 dark:bg-slate-800/40 border border-slate-100/70 dark:border-slate-700/60 px-3 py-3">
-                            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">{item.field}</p>
+                            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300">{item.field}</p>
                             <div className="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{item.value}</div>
                         </div>
                     ))}
@@ -625,7 +625,7 @@ export default function TransferDetailsPage() {
                                     >
                                         <div className="flex flex-wrap items-center gap-2 justify-between">
                                             <div className="flex flex-wrap items-center gap-2">
-                                                <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider ${statusBadgeClass(status)}`}>
+                                                <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold ${statusBadgeClass(status)}`}>
                                                     {formatStatus(status)}
                                                 </span>
                                                 <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
@@ -656,7 +656,7 @@ export default function TransferDetailsPage() {
                 <div className="rounded-2xl bg-white/50 dark:bg-slate-800/30 border border-slate-100/70 dark:border-slate-700/60 p-4 md:p-5 mb-5">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
                         <div>
-                            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-1">Action</p>
+                            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 mb-1">Action</p>
                             <select
                                 value={auditAction}
                                 onChange={(e) => {
@@ -674,7 +674,7 @@ export default function TransferDetailsPage() {
                         </div>
 
                         <div>
-                            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-1">User</p>
+                            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 mb-1">User</p>
                             <div className="relative">
                                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                                 <input
@@ -691,7 +691,7 @@ export default function TransferDetailsPage() {
                         </div>
 
                         <div>
-                            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-1">From Date</p>
+                            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 mb-1">From Date</p>
                             <input
                                 type="date"
                                 value={auditDateFrom}
@@ -704,7 +704,7 @@ export default function TransferDetailsPage() {
                         </div>
 
                         <div>
-                            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-1">To Date</p>
+                            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 mb-1">To Date</p>
                             <input
                                 type="date"
                                 value={auditDateTo}
@@ -717,7 +717,7 @@ export default function TransferDetailsPage() {
                         </div>
 
                         <div>
-                            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300 mb-1">Rows</p>
+                            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 mb-1">Rows</p>
                             <div className="flex items-center gap-2">
                                 <select
                                     value={auditPageSize}
@@ -761,7 +761,7 @@ export default function TransferDetailsPage() {
                             >
                                 <div className="flex flex-wrap items-center gap-2 justify-between">
                                     <div className="flex flex-wrap items-center gap-2">
-                                        <span className="text-xs font-bold uppercase tracking-wider text-teal-700 dark:text-teal-300">
+                                        <span className="text-xs font-bold text-teal-700 dark:text-teal-300">
                                             {normalizeAction(log.action)}
                                         </span>
                                         <span className="text-xs text-slate-400">•</span>

@@ -404,7 +404,7 @@ export default function DilisenseSourcesPage() {
             <div className="card-glass p-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="lg:col-span-2">
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Search</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left">
                                 <Search className="w-4 h-4" />
@@ -418,7 +418,7 @@ export default function DilisenseSourcesPage() {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Source Type</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Source Type</label>
                         <select
                             className="input-glass w-full text-sm"
                             value={typeFilter}
@@ -431,7 +431,7 @@ export default function DilisenseSourcesPage() {
                         </select>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Region</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Region</label>
                         <select
                             className="input-glass w-full text-sm"
                             value={regionFilter}
@@ -444,7 +444,7 @@ export default function DilisenseSourcesPage() {
                         </select>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Status</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Status</label>
                         <select
                             className="input-glass w-full text-sm"
                             value={activeFilter}
@@ -470,28 +470,28 @@ export default function DilisenseSourcesPage() {
                     <table className="table-shell">
                         <thead className="table-head">
                             <tr>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">#</th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">#</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                     <button onClick={() => toggleSort('dilisense_source_type')} className="flex items-center gap-1">Source Type {sortIndicator('dilisense_source_type')}</button>
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                     <button onClick={() => toggleSort('dilisense_source')} className="flex items-center gap-1">Source Code {sortIndicator('dilisense_source')}</button>
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                     <button onClick={() => toggleSort('dilisense_name')} className="flex items-center gap-1">Source Name {sortIndicator('dilisense_name')}</button>
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Record Count</th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Record Count</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                     <button onClick={() => toggleSort('dilisense_status')} className="flex items-center gap-1">Active {sortIndicator('dilisense_status')}</button>
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                     <button onClick={() => toggleSort('dilisense_country_name')} className="flex items-center gap-1">Country {sortIndicator('dilisense_country_name')}</button>
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                     <button onClick={() => toggleSort('dilisense_region')} className="flex items-center gap-1">Region {sortIndicator('dilisense_region')}</button>
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Issuer Name</th>
-                                <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Issuer Name</th>
+                                <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 dark:text-slate-400">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="table-body">
@@ -695,35 +695,35 @@ export default function DilisenseSourcesPage() {
                     <div className="space-y-6 max-h-[80vh] overflow-y-auto pr-2">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Source Name</span>
+                                <span className="text-xs font-bold text-slate-400">Source Name</span>
                                 <p className="text-base font-bold text-slate-900 dark:text-white mt-0.5">{viewRow.dilisense_name}</p>
                             </div>
                             <div>
-                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Source Code</span>
+                                <span className="text-xs font-bold text-slate-400">Source Code</span>
                                 <p className="text-sm font-mono text-slate-700 dark:text-slate-300 mt-0.5">{viewRow.dilisense_source}</p>
                             </div>
                             <div>
-                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Source Type</span>
+                                <span className="text-xs font-bold text-slate-400">Source Type</span>
                                 <p className="text-sm text-slate-700 dark:text-slate-300 mt-0.5 capitalize">{viewRow.dilisense_source_type}</p>
                             </div>
                             <div>
-                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Region / Continent</span>
+                                <span className="text-xs font-bold text-slate-400">Region / Continent</span>
                                 <p className="text-sm text-slate-700 dark:text-slate-300 mt-0.5 capitalize">{viewRow.dilisense_region}</p>
                             </div>
                             <div>
-                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Country Name</span>
+                                <span className="text-xs font-bold text-slate-400">Country Name</span>
                                 <p className="text-sm text-slate-700 dark:text-slate-300 mt-0.5">{viewRow.dilisense_country_name} ({viewRow.dilisense_country_code?.toUpperCase() || '—'})</p>
                             </div>
                             <div>
-                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Issuer Name</span>
+                                <span className="text-xs font-bold text-slate-400">Issuer Name</span>
                                 <p className="text-sm text-slate-700 dark:text-slate-300 mt-0.5">{viewRow.dilisense_issuer_name || '—'}</p>
                             </div>
                             <div>
-                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Record Count</span>
+                                <span className="text-xs font-bold text-slate-400">Record Count</span>
                                 <p className="text-sm text-slate-700 dark:text-slate-300 mt-0.5">{viewRow.dilisense_size ?? 0}</p>
                             </div>
                             <div>
-                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Screening Status</span>
+                                <span className="text-xs font-bold text-slate-400">Screening Status</span>
                                 <div className="mt-1">
                                     <Badge type={Number(viewRow.dilisense_status) === 1 ? 'yes' : 'no'}>
                                         {Number(viewRow.dilisense_status) === 1 ? 'Active' : 'Inactive'}
@@ -733,13 +733,13 @@ export default function DilisenseSourcesPage() {
                         </div>
 
                         <div>
-                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Description</span>
+                            <span className="text-xs font-bold text-slate-400">Description</span>
                             <p className="text-sm text-slate-700 dark:text-slate-300 mt-1 leading-relaxed">{viewRow.dilisense_description || 'No description provided.'}</p>
                         </div>
 
                         {viewRow.dilisense_link && (
                             <div>
-                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Official Webpage</span>
+                                <span className="text-xs font-bold text-slate-400">Official Webpage</span>
                                 <a 
                                     href={viewRow.dilisense_link} 
                                     target="_blank" 

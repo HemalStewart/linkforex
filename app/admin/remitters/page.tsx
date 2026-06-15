@@ -319,7 +319,7 @@ export default function RemittersPage() {
             <div className="card-glass p-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Search</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Search className="w-4 h-4" /></span>
                             <input
@@ -332,7 +332,7 @@ export default function RemittersPage() {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Status</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Status</label>
                         <div className="relative input-icon">
                             <select
                                 className="input-glass w-full appearance-none pr-10 text-sm"
@@ -348,7 +348,7 @@ export default function RemittersPage() {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Source</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Source</label>
                         <div className="relative input-icon">
                             <select
                                 className="input-glass w-full appearance-none pr-10 text-sm"
@@ -382,16 +382,16 @@ export default function RemittersPage() {
                         <table className="table-shell whitespace-nowrap">
                             <thead className="table-head">
                                 <tr>
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">No.</th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">No.</th>
                                     {columns.map((col) => (
-                                        <th key={col.key} className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                        <th key={col.key} className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                             <button onClick={() => toggleSort(col.key)} className="flex items-center gap-1">
                                                 {col.label} <span className="text-slate-400 dark:text-slate-300">{sortIndicator(col.key)}</span>
                                             </button>
                                         </th>
                                     ))}
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">View</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Delete</th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">View</th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Delete</th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -428,7 +428,7 @@ export default function RemittersPage() {
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.id_no || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.id_expire_date || '-'}</td>
                                         <td className="px-4 py-4 text-sm">
-                                            <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                                            <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${
                                                 row.verification_state === 'verified'
                                                     ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300'
                                                     : row.verification_state === 'pending'

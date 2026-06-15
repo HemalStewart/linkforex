@@ -281,7 +281,7 @@ export default function PurposesPage() {
             <div className="card-glass p-5">
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
                     <div className="xl:col-span-6">
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Search</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left">
                                 <Search className="w-4 h-4" />
@@ -295,7 +295,7 @@ export default function PurposesPage() {
                         </div>
                     </div>
                     <div className="xl:col-span-3">
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Active</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Active</label>
                         <select
                             className="input-glass w-full"
                             value={activeFilter}
@@ -322,14 +322,14 @@ export default function PurposesPage() {
                     <table className="table-shell">
                         <thead className="table-head">
                             <tr>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">#</th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">#</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                     <button onClick={() => toggleSort('name')} className="flex items-center gap-1">Name <span>{sortIndicator('name')}</span></button>
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                     <button onClick={() => toggleSort('active')} className="flex items-center gap-1">Active <span>{sortIndicator('active')}</span></button>
                                 </th>
-                                <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
+                                <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 dark:text-slate-400">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="table-body">

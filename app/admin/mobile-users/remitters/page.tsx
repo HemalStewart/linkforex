@@ -191,7 +191,7 @@ export default function RemittersPage() {
             <div className="card-glass p-5">
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 items-end">
                     <div className="xl:col-span-6">
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Search</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left">
                                 <Search className="w-4 h-4" />
@@ -249,11 +249,11 @@ export default function RemittersPage() {
                         <table className="table-shell">
                             <thead className="table-head">
                                 <tr>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Profile</th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Contact</th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">KYC</th>
-                                    <th className="px-8 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Profile</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Contact</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Status</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">KYC</th>
+                                    <th className="px-8 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -275,12 +275,12 @@ export default function RemittersPage() {
                                             </div>
                                         </td>
                                         <td className="px-8 py-5">
-                                            <span className={`badge-glass px-3 py-1 rounded-full uppercase tracking-wider text-[10px] font-extrabold ${getStatusBadge(remitter.status || 'inactive')}`}>
+                                            <span className={`badge-glass px-3 py-1 rounded-full text-[10px] font-extrabold ${getStatusBadge(remitter.status || 'inactive')}`}>
                                                 {remitter.status || 'Unknown'}
                                             </span>
                                         </td>
                                         <td className="px-8 py-5">
-                                            <span className={`badge-glass px-3 py-1 rounded-full uppercase tracking-wider text-[10px] font-extrabold ${getKycBadge(remitter.kycStatus || 'pending')}`}>
+                                            <span className={`badge-glass px-3 py-1 rounded-full text-[10px] font-extrabold ${getKycBadge(remitter.kycStatus || 'pending')}`}>
                                                 {remitter.kycStatus || 'PENDING'}
                                             </span>
                                         </td>

@@ -543,7 +543,7 @@ export default function EditBranchPage() {
                 <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2 lg:grid-cols-3">
                     {summaryRows.map((row) => (
                         <div key={row.label} className="rounded-2xl border border-slate-100/70 bg-slate-50/40 px-4 py-3 dark:border-slate-700/50 dark:bg-slate-900/30">
-                            <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">{row.label}</div>
+                            <div className="text-xs font-bold text-slate-500 dark:text-slate-300">{row.label}</div>
                             <div className={`mt-1 font-semibold text-slate-800 dark:text-slate-100 ${row.nowrap ? 'whitespace-nowrap' : 'break-words'}`}>{row.value || '-'}</div>
                         </div>
                     ))}
@@ -593,7 +593,7 @@ export default function EditBranchPage() {
                                         required
                                         maxLength={3}
                                         disabled={isReadOnly}
-                                        className="input-glass w-full uppercase disabled:cursor-not-allowed disabled:opacity-70"
+                                        className="input-glass w-full disabled:cursor-not-allowed disabled:opacity-70"
                                         value={formData.transaction_prefix}
                                         onChange={(e) => updateField('transaction_prefix', normalizeBranchPrefix(e.target.value))}
                                         placeholder="e.g. LON"

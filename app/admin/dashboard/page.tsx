@@ -647,7 +647,7 @@ export default function DashboardPage() {
                                         <p className="mt-0.5 text-xs font-medium text-slate-500">{formatCurrency(transferAmount(activity))}</p>
                                     </div>
                                 </div>
-                                <span className="badge-glass rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                                <span className="badge-glass rounded-full px-3 py-1 text-[10px] font-extrabold text-slate-600 dark:text-slate-300">
                                     {getStatusLabel(activity.status)}
                                 </span>
                             </div>
@@ -674,7 +674,7 @@ export default function DashboardPage() {
                         ) : <EmptyChart />}
                         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
                             <span className="text-3xl font-black text-slate-900 dark:text-white">{filteredTransfers.length}</span>
-                            <span className="text-xs uppercase tracking-wide text-slate-500">Transfers</span>
+                            <span className="text-xs text-slate-500">Transfers</span>
                         </div>
                     </div>
                     <div className="mt-4 grid grid-cols-2 gap-2">
@@ -785,7 +785,7 @@ export default function DashboardPage() {
                             </ResponsiveContainer>
                             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
                                 <span className="text-3xl font-black text-slate-900 dark:text-white">{customers.length}</span>
-                                <span className="text-xs uppercase tracking-wide text-slate-500">Customers</span>
+                                <span className="text-xs text-slate-500">Customers</span>
                             </div>
                         </div>
                         <div className="space-y-4">

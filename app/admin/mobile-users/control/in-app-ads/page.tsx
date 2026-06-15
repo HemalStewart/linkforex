@@ -288,7 +288,7 @@ export default function MobileInAppAdsPage() {
 
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                         <label className="md:col-span-2">
-                            <span className="mb-1.5 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-slate-500">
+                            <span className="mb-1.5 flex items-center gap-2 text-xs font-bold text-slate-500">
                                 <Rows3 className="h-3.5 w-3.5" />
                                 Placement
                             </span>
@@ -314,7 +314,7 @@ export default function MobileInAppAdsPage() {
                             className="input-glass min-h-24 py-2.5 text-sm md:col-span-2"
                         />
                         <label className="md:col-span-2">
-                            <span className="mb-1.5 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-slate-500">
+                            <span className="mb-1.5 flex items-center gap-2 text-xs font-bold text-slate-500">
                                 <Upload className="h-3.5 w-3.5" />
                                 Upload Image
                             </span>
@@ -443,10 +443,10 @@ export default function MobileInAppAdsPage() {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                                        <td className="text-xs font-bold text-slate-600 dark:text-slate-300">
                                             {placementLabels[ad.placement] ?? ad.placement}
                                         </td>
-                                        <td className="text-xs uppercase text-slate-600 dark:text-slate-300">{ad.status}</td>
+                                        <td className="text-xs text-slate-600 dark:text-slate-300">{ad.status}</td>
                                         <td className="text-xs text-slate-600 dark:text-slate-300">{ad.priority}</td>
                                         <td className="text-right">
                                             <div className="flex justify-end gap-2">

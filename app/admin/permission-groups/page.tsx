@@ -574,7 +574,7 @@ export default function PermissionGroupsPage() {
                     <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Add Role Permission</h2>
                     <form onSubmit={submitCreatePermission} className="grid grid-cols-1 md:grid-cols-5 gap-4">
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Role</label>
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Role</label>
                             <select
                                 value={createForm.role_name}
                                 onChange={(e) => setCreateForm((prev) => ({ ...prev, role_name: e.target.value }))}
@@ -590,13 +590,13 @@ export default function PermissionGroupsPage() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Page Section</label>
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Page Section</label>
                             <input
                                 list="page-section-options"
                                 value={createForm.page_section}
                                 onChange={(e) => setCreateForm((prev) => ({ ...prev, page_section: e.target.value.toUpperCase() }))}
                                 placeholder="Page section code"
-                                className="input-glass w-full text-sm uppercase"
+                                className="input-glass w-full text-sm"
                                 required
                             />
                             <datalist id="page-section-options">
@@ -606,7 +606,7 @@ export default function PermissionGroupsPage() {
                             </datalist>
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Operation</label>
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Operation</label>
                             <select
                                 value={createForm.operation}
                                 onChange={(e) => setCreateForm((prev) => ({ ...prev, operation: e.target.value }))}
@@ -621,7 +621,7 @@ export default function PermissionGroupsPage() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Active</label>
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Active</label>
                             <select
                                 value={createForm.active}
                                 onChange={(e) => setCreateForm((prev) => ({ ...prev, active: e.target.value as 'yes' | 'no' }))}
@@ -646,7 +646,7 @@ export default function PermissionGroupsPage() {
 
             <div className="card-glass p-6">
                 <div>
-                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Global Search</label>
+                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Global Search</label>
                     <div className="relative input-icon">
                         <span className="input-icon-left">
                             <Search className="w-4 h-4" />
@@ -662,7 +662,7 @@ export default function PermissionGroupsPage() {
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mt-4">
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Role</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Role</label>
                         <input
                             list="role-filter-options"
                             value={roleFilter}
@@ -677,7 +677,7 @@ export default function PermissionGroupsPage() {
                         </datalist>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Page Section</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Page Section</label>
                         <select
                             value={pageSectionFilter}
                             onChange={(e) => setPageSectionFilter(e.target.value)}
@@ -690,7 +690,7 @@ export default function PermissionGroupsPage() {
                         </select>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Operation</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Operation</label>
                         <select
                             value={operationFilter}
                             onChange={(e) => setOperationFilter(e.target.value)}
@@ -703,7 +703,7 @@ export default function PermissionGroupsPage() {
                         </select>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Status</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Status</label>
                         <div className="flex items-center gap-2">
                             <select
                                 value={activeFilter}
@@ -750,40 +750,40 @@ export default function PermissionGroupsPage() {
                     <table className="table-shell">
                         <thead className="table-head">
                             <tr>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">No.</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">No.</th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('role_name')} className="flex items-center gap-1">
                                         Role <span className="text-slate-400 dark:text-slate-300">{sortIndicator('role_name')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('page_section')} className="flex items-center gap-1">
                                         Page Section <span className="text-slate-400 dark:text-slate-300">{sortIndicator('page_section')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('operation')} className="flex items-center gap-1">
                                         Operation <span className="text-slate-400 dark:text-slate-300">{sortIndicator('operation')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('system_defined')} className="flex items-center gap-1">
                                         System Defined <span className="text-slate-400 dark:text-slate-300">{sortIndicator('system_defined')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                <th className="px-4 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('active')} className="mx-auto flex items-center gap-1">
                                         Active <span className="text-slate-400 dark:text-slate-300">{sortIndicator('active')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Entered User</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Entered User</th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('created_at')} className="flex items-center gap-1">
                                         Entered Date <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_at')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Modified User</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Modified User</th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('updated_at')} className="flex items-center gap-1">
                                         Modified Date <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_at')}</span>
                                     </button>
@@ -805,7 +805,7 @@ export default function PermissionGroupsPage() {
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.page_section}</td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.operation}</td>
                                         <td className="px-4 py-4 text-sm">
-                                            <span className={`px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${badgeClass(row.system_defined)}`}>
+                                            <span className={`px-3 py-1 rounded-full text-[11px] font-bold ${badgeClass(row.system_defined)}`}>
                                                 {toYesNoLabel(row.system_defined)}
                                             </span>
                                         </td>
@@ -819,7 +819,7 @@ export default function PermissionGroupsPage() {
                                                     className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-50"
                                                 />
                                             </label>
-                                            <div className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
+                                            <div className="mt-1 text-[11px] font-semibold text-slate-500 dark:text-slate-300">
                                                 {toYesNoLabel(row.active)}
                                             </div>
                                         </td>

@@ -568,7 +568,7 @@ export default function BranchRatesPage() {
             <div className="card-glass p-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="md:col-span-2">
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Search</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Search</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Search className="w-4 h-4" /></span>
                             <input
@@ -583,7 +583,7 @@ export default function BranchRatesPage() {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Status</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Status</label>
                         <select
                             className="input-glass w-full text-sm"
                             value={activeFilter}
@@ -600,7 +600,7 @@ export default function BranchRatesPage() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Branch</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Branch</label>
                         <select
                             className="input-glass w-full text-sm"
                             value={branchFilter}
@@ -621,7 +621,7 @@ export default function BranchRatesPage() {
                         </select>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Currency</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Currency</label>
                         <select
                             className="input-glass w-full text-sm"
                             value={currencyFilter}
@@ -659,43 +659,43 @@ export default function BranchRatesPage() {
                         <table className="table-shell">
                             <thead className="table-head">
                                 <tr>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">No.</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">No.</th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('branch')} className="flex items-center gap-1">
                                             Branch <span className="text-slate-400 dark:text-slate-300">{sortIndicator('branch')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('currency')} className="flex items-center gap-1">
                                             Currency <span className="text-slate-400 dark:text-slate-300">{sortIndicator('currency')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('cash')} className="flex items-center gap-1">
                                             Customer Cash Rate <span className="text-slate-400 dark:text-slate-300">{sortIndicator('cash')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('digital')} className="flex items-center gap-1">
                                             Customer Digital Rate <span className="text-slate-400 dark:text-slate-300">{sortIndicator('digital')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('branchRate')} className="flex items-center gap-1">
                                             Branch Rate <span className="text-slate-400 dark:text-slate-300">{sortIndicator('branchRate')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('status')} className="flex items-center gap-1">
                                             Status <span className="text-slate-400 dark:text-slate-300">{sortIndicator('status')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('updatedAt')} className="flex items-center gap-1">
                                             Modified Date <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updatedAt')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('updatedUser')} className="flex items-center gap-1">
                                             Entered User <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updatedUser')}</span>
                                         </button>

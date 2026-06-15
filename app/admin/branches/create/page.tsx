@@ -377,7 +377,7 @@ export default function CreateBranchPage() {
                                 <input
                                     required
                                     maxLength={3}
-                                    className="input-glass w-full uppercase"
+                                    className="input-glass w-full"
                                     value={formData.transaction_prefix}
                                     onChange={(e) => updateField('transaction_prefix', normalizeBranchPrefix(e.target.value))}
                                     placeholder="e.g. LON"

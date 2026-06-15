@@ -665,7 +665,7 @@ export default function EditRemitterPage() {
                             <div className="max-h-[350px] overflow-y-auto pr-1">
                                 <table className="w-full border-collapse text-left">
                                     <thead>
-                                        <tr className="border-b border-slate-200 dark:border-slate-800 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+                                        <tr className="border-b border-slate-200 dark:border-slate-800 text-[11px] font-extrabold text-slate-400">
                                             <th className="py-3 px-4">Date Generated</th>
                                             <th className="py-3 px-4">Veriff Key (Session ID)</th>
                                             <th className="py-3 px-4">Status</th>
@@ -1040,7 +1040,7 @@ export default function EditRemitterPage() {
                                     ['Session ID', formData.veriff_session_id],
                                 ].map(([label, data]) => (
                                     <div key={label} className="rounded-2xl border border-slate-200/70 bg-slate-50/80 p-4 dark:border-slate-700/60 dark:bg-slate-800/40">
-                                        <div className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">{label}</div>
+                                        <div className="text-[11px] font-extrabold text-slate-400">{label}</div>
                                         <div className="mt-1 break-words text-sm font-bold text-slate-800 dark:text-slate-100">{value(data)}</div>
                                     </div>
                                 ))}
@@ -1215,17 +1215,17 @@ export default function EditRemitterPage() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                         <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Screening Reference</span>
+                            <span className="text-xs font-semibold text-slate-400 block mb-1">Screening Reference</span>
                             <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{sanctionReference}</span>
                         </div>
                         <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Checked At</span>
+                            <span className="text-xs font-semibold text-slate-400 block mb-1">Checked At</span>
                             <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
                                 {sanctionCheckedAt ? new Date(sanctionCheckedAt).toLocaleString() : '-'}
                             </span>
                         </div>
                         <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Total Hits</span>
+                            <span className="text-xs font-semibold text-slate-400 block mb-1">Total Hits</span>
                             <div>
                                 <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${sanctionScore > 0 ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'}`}>
                                     {sanctionScore} {sanctionScore > 0 ? 'HITS DETECTED' : 'CLEAR'}

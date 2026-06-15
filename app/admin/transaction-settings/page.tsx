@@ -198,7 +198,7 @@ export default function TransactionSettingsPage() {
                                 <div className="text-sm font-bold text-slate-900 dark:text-white">App Limits (GBP)</div>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">3 Month Limit</label>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">3 Month Limit</label>
                                 <div className="relative input-icon">
                                     <span className="input-icon-left">
                                         <PoundSterling className="w-4 h-4" />
@@ -214,7 +214,7 @@ export default function TransactionSettingsPage() {
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Yearly Limit</label>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Yearly Limit</label>
                                 <div className="relative input-icon">
                                     <span className="input-icon-left">
                                         <PoundSterling className="w-4 h-4" />
@@ -236,7 +236,7 @@ export default function TransactionSettingsPage() {
                                 <div className="text-sm font-bold text-slate-900 dark:text-white">Backend Limits (GBP)</div>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">3 Month Limit</label>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">3 Month Limit</label>
                                 <div className="relative input-icon">
                                     <span className="input-icon-left">
                                         <PoundSterling className="w-4 h-4" />
@@ -252,7 +252,7 @@ export default function TransactionSettingsPage() {
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2 uppercase tracking-wider">Yearly Limit</label>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Yearly Limit</label>
                                 <div className="relative input-icon">
                                     <span className="input-icon-left">
                                         <PoundSterling className="w-4 h-4" />

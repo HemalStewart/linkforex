@@ -170,11 +170,11 @@ export default function ExchangeRatesPage() {
                         <table className="table-shell">
                             <thead className="table-head">
                                 <tr>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Currency</th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Code</th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Rate (Base: GBP)</th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Last Updated</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Currency</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Code</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Rate (Base: GBP)</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Status</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Last Updated</th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -263,7 +263,7 @@ export default function ExchangeRatesPage() {
                                     type="text"
                                     required
                                     placeholder="Currency code"
-                                    className="input-glass w-full pl-10 uppercase font-mono"
+                                    className="input-glass w-full pl-10 font-mono"
                                     value={newCurrency.code}
                                     onChange={e => setNewCurrency({ ...newCurrency, code: e.target.value.toUpperCase() })}
                                 />

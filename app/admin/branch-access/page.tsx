@@ -185,7 +185,7 @@ export default function BranchAccessPage() {
                     <div className="table-scroll rounded-2xl border border-slate-200/70 dark:border-slate-700/60">
                         <table className="min-w-full">
                             <thead className="bg-slate-50/80 dark:bg-slate-800/60">
-                                <tr className="text-left text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-300">
+                                <tr className="text-left text-xs text-slate-500 dark:text-slate-300">
                                     <th className="px-4 py-3">Sender</th>
                                     <th className="px-4 py-3">Previous Branch</th>
                                     <th className="px-4 py-3">Requested Branch</th>

@@ -43,7 +43,7 @@ export default function Badge({ children, type = 'neutral', className = '' }: Ba
 
     return (
         <span
-            className={`inline-flex items-center rounded-full font-extrabold uppercase ${sizeClass} ${getBadgeClasses(
+            className={`inline-flex items-center rounded-full font-extrabold ${sizeClass} ${getBadgeClasses(
                 type
             )} ${className}`}
         >

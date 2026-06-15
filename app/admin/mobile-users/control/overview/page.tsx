@@ -76,7 +76,7 @@ export default function MobileControlOverviewPage() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3 xl:grid-cols-9">
                 {cards.map((card) => (
                     <div key={card.label} className="card-glass p-4">
-                        <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500">
+                        <div className="mb-2 flex items-center gap-2 text-xs font-bold text-slate-500">
                             {card.icon}
                             {card.label}
                         </div>
