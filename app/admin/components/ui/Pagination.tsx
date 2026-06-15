@@ -15,6 +15,8 @@ export default function Pagination({
     onPageChange,
     onRowsPerPageChange
 }: PaginationProps) {
+    const options = Array.from(new Set([10, 25, 50, 100, 500, 1000, rowsPerPage])).sort((a, b) => a - b);
+
     return (
         <div className="px-6 py-4 border-t border-slate-100/70 dark:border-slate-700/60 flex flex-wrap items-center gap-3 text-sm">
             <span className="text-slate-400 dark:text-slate-300 font-medium">Rows per page</span>
@@ -23,11 +25,9 @@ export default function Pagination({
                 value={rowsPerPage}
                 onChange={(e) => onRowsPerPageChange(Number(e.target.value))}
             >
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-                <option value={500}>500</option>
-                <option value={1000}>1000</option>
+                {options.map((opt) => (
+                    <option key={opt} value={opt}>{opt}</option>
+                ))}
             </select>
             
             <button

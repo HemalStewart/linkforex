@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
+import { useRowsPerPage } from '@/app/lib/uiPreferences';
 import { ENDPOINTS } from '@/app/lib/api';
 import Badge from '../components/ui/Badge';
 import Pagination from '../components/ui/Pagination';
@@ -14,7 +15,7 @@ export default function BeneficiariesPage() {
     const [sortKey, setSortKey] = useState('created_at');
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
     const [page, setPage] = useState(1);
-    const [rowsPerPage, setRowsPerPage] = useState(25);
+    const [rowsPerPage, setRowsPerPage] = useRowsPerPage(10);
     const [selectedBeneficiary, setSelectedBeneficiary] = useState<any | null>(null);
 
     useEffect(() => {

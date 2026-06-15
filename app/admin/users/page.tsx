@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
+import { useRowsPerPage } from '@/app/lib/uiPreferences';
 import ConfirmModal from '../components/ConfirmModal';
 import Badge from '../components/ui/Badge';
 import Pagination from '../components/ui/Pagination';
@@ -15,7 +16,7 @@ export default function UsersPage() {
     const [sortKey, setSortKey] = useState<string>('created_at');
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
     const [page, setPage] = useState(1);
-    const [rowsPerPage, setRowsPerPage] = useState(25);
+    const [rowsPerPage, setRowsPerPage] = useRowsPerPage(10);
 
     const [users, setUsers] = useState<any[]>([]);
     const [currentUserName, setCurrentUserName] = useState('');

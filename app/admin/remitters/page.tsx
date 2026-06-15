@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import { useRowsPerPage } from '@/app/lib/uiPreferences';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getCurrentAdminUser, withActingUserParam } from '@/app/lib/adminUserScope';
@@ -20,7 +21,7 @@ export default function RemittersPage() {
     const [sourceFilter, setSourceFilter] = useState('all');
     const [sortKey, setSortKey] = useState('created_at');
     const [sortDir, setSortDir] = useState<SortDir>('desc');
-    const [rowsPerPage, setRowsPerPage] = useState(50);
+    const [rowsPerPage, setRowsPerPage] = useRowsPerPage(10);
     const [page, setPage] = useState(1);
 
     const [confirmModal, setConfirmModal] = useState({

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
+import { useRowsPerPage } from '@/app/lib/uiPreferences';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
 import Badge from '../components/ui/Badge';
@@ -138,7 +139,7 @@ export default function BanksPage() {
     const [sortKey, setSortKey] = useState<SortKey>('name');
     const [sortDir, setSortDir] = useState<SortDir>('asc');
     const [page, setPage] = useState(1);
-    const [rowsPerPage, setRowsPerPage] = useState(25);
+    const [rowsPerPage, setRowsPerPage] = useRowsPerPage(10);
 
     useEffect(() => {
         void fetchBanks();

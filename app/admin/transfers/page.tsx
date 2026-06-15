@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useRowsPerPage } from '@/app/lib/uiPreferences';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
@@ -289,7 +290,7 @@ export default function TransfersPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [sortKey, setSortKey] = useState<keyof TransferRow>('invoiceDate');
     const [sortDir, setSortDir] = useState<SortDir>('desc');
-    const [rowsPerPage, setRowsPerPage] = useState(15);
+    const [rowsPerPage, setRowsPerPage] = useRowsPerPage(10);
     const [page, setPage] = useState(1);
     const [signModalOpen, setSignModalOpen] = useState(false);
     const [signingTransferId, setSigningTransferId] = useState<string | null>(null);

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useRowsPerPage } from '@/app/lib/uiPreferences';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import Modal from '@/app/admin/components/Modal';
@@ -125,7 +126,7 @@ export default function BranchRatesPage() {
     const [modalOpen, setModalOpen] = useState(false);
     const [form, setForm] = useState<FormState>(EMPTY_FORM);
     const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(10);
+    const [pageSize, setPageSize] = useRowsPerPage(10);
     const [sortKey, setSortKey] = useState<SortKey>('updatedAt');
     const [sortDir, setSortDir] = useState<SortDir>('desc');
     const [toast, setToast] = useState({

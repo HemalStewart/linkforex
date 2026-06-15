@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useRowsPerPage } from '@/app/lib/uiPreferences';
 import { PlusCircle, Search, Key, Save, X } from 'lucide-react';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
@@ -55,7 +56,7 @@ export default function PermissionGroupsPage() {
     const [sortKey, setSortKey] = useState<string>('role_name');
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
     const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(50);
+    const [pageSize, setPageSize] = useRowsPerPage(10);
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [creating, setCreating] = useState(false);
     const [createForm, setCreateForm] = useState({

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRowsPerPage } from '@/app/lib/uiPreferences';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../components/ConfirmModal';
@@ -17,7 +18,7 @@ export default function RolesPage() {
     const [sortKey, setSortKey] = useState<string>('created_at');
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
     const [page, setPage] = useState(1);
-    const [rowsPerPage, setRowsPerPage] = useState(25);
+    const [rowsPerPage, setRowsPerPage] = useRowsPerPage(10);
 
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [roleToDelete, setRoleToDelete] = useState<any | null>(null);

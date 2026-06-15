@@ -123,6 +123,7 @@ export default function SettingsPage() {
     const [uiSettings, setUiSettings] = useState<UiSettings>({
         tableFontSizePx: 14,
         toastMessageTimerMs: 3000,
+        rowsPerPage: 10,
     });
     const [profile, setProfile] = useState<ProfileData | null>(null);
     const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -223,6 +224,14 @@ export default function SettingsPage() {
         const parsed = Number(rawValue);
         const nextTimer = Number.isFinite(parsed) ? Math.max(1000, Math.min(10000, Math.round(parsed / 500) * 500)) : 3000;
         const next = { ...uiSettings, toastMessageTimerMs: nextTimer };
+        setUiSettings(next);
+        applyUiSettings(next);
+    };
+
+    const updateRowsPerPageSetting = (rawValue: string) => {
+        const parsed = Number(rawValue);
+        const nextRows = Number.isFinite(parsed) ? Math.max(5, Math.min(100, Math.round(parsed))) : 10;
+        const next = { ...uiSettings, rowsPerPage: nextRows };
         setUiSettings(next);
         applyUiSettings(next);
     };
@@ -719,6 +728,31 @@ export default function SettingsPage() {
                                                         step={500}
                                                         value={uiSettings.toastMessageTimerMs}
                                                         onChange={(e) => updateToastTimer(e.target.value)}
+                                                        className="input-glass w-full"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                                                    Default Rows Per Page ({uiSettings.rowsPerPage})
+                                                </label>
+                                                <div className="space-y-3">
+                                                    <input
+                                                        type="range"
+                                                        min={5}
+                                                        max={100}
+                                                        step={1}
+                                                        value={uiSettings.rowsPerPage ?? 10}
+                                                        onChange={(e) => updateRowsPerPageSetting(e.target.value)}
+                                                        className="w-full accent-teal-500"
+                                                    />
+                                                    <input
+                                                        type="number"
+                                                        min={5}
+                                                        max={100}
+                                                        step={1}
+                                                        value={uiSettings.rowsPerPage ?? 10}
+                                                        onChange={(e) => updateRowsPerPageSetting(e.target.value)}
                                                         className="input-glass w-full"
                                                     />
                                                 </div>

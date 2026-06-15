@@ -1,8 +1,11 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+
 export type UiSettings = {
     tableFontSizePx: number;
     toastMessageTimerMs: number;
+    rowsPerPage: number;
 };
 
 const UI_SETTINGS_KEY = 'uiSettings';
@@ -10,6 +13,7 @@ const UI_SETTINGS_KEY = 'uiSettings';
 const defaultSettings: UiSettings = {
     tableFontSizePx: 14,
     toastMessageTimerMs: 3000,
+    rowsPerPage: 10,
 };
 
 const LEGACY_PRESET_TO_PX: Record<string, number> = {
@@ -24,6 +28,7 @@ const normalizeToastTimerMs = (value: unknown): number => {
     if (!Number.isFinite(num)) return defaultSettings.toastMessageTimerMs;
     return Math.max(1000, Math.min(10000, Math.round(num / 500) * 500));
 };
+
 const normalizeTableFontPx = (value: unknown): number => {
     if (typeof value === 'string' && value in LEGACY_PRESET_TO_PX) {
         return LEGACY_PRESET_TO_PX[value];
@@ -31,6 +36,12 @@ const normalizeTableFontPx = (value: unknown): number => {
     const num = typeof value === 'number' ? value : Number(value);
     if (!Number.isFinite(num)) return defaultSettings.tableFontSizePx;
     return Math.max(10, Math.min(20, Math.round(num)));
+};
+
+const normalizeRowsPerPage = (value: unknown): number => {
+    const num = typeof value === 'number' ? value : Number(value);
+    if (!Number.isFinite(num)) return defaultSettings.rowsPerPage;
+    return Math.max(5, Math.min(100, Math.round(num)));
 };
 
 export const getStoredUiSettings = (): UiSettings => {
@@ -43,6 +54,7 @@ export const getStoredUiSettings = (): UiSettings => {
         return {
             tableFontSizePx: normalizeTableFontPx((parsed as Record<string, unknown>)?.tableFontSizePx ?? (parsed as Record<string, unknown>)?.tableFontSize),
             toastMessageTimerMs: normalizeToastTimerMs((parsed as Record<string, unknown>)?.toastMessageTimerMs ?? (parsed as Record<string, unknown>)?.toastTimerMs),
+            rowsPerPage: normalizeRowsPerPage((parsed as Record<string, unknown>)?.rowsPerPage ?? defaultSettings.rowsPerPage),
         };
     } catch {
         return defaultSettings;
@@ -55,6 +67,7 @@ export const applyUiSettings = (settings: UiSettings): void => {
     const normalized: UiSettings = {
         tableFontSizePx: normalizeTableFontPx(settings.tableFontSizePx),
         toastMessageTimerMs: normalizeToastTimerMs(settings.toastMessageTimerMs),
+        rowsPerPage: normalizeRowsPerPage(settings.rowsPerPage),
     };
 
     const root = document.documentElement;
@@ -66,3 +79,20 @@ export const applyUiSettings = (settings: UiSettings): void => {
     window.localStorage.setItem(UI_SETTINGS_KEY, JSON.stringify(normalized));
     window.dispatchEvent(new Event('ui-settings-change'));
 };
+
+export const useRowsPerPage = (initialDefault = 10) => {
+    const [rowsPerPage, setRowsPerPage] = useState(initialDefault);
+
+    useEffect(() => {
+        const syncRowsPerPage = () => {
+            setRowsPerPage(getStoredUiSettings().rowsPerPage);
+        };
+
+        syncRowsPerPage();
+        window.addEventListener('ui-settings-change', syncRowsPerPage);
+        return () => window.removeEventListener('ui-settings-change', syncRowsPerPage);
+    }, []);
+
+    return [rowsPerPage, setRowsPerPage] as const;
+};
+

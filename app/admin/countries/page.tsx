@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import { isPrivilegedUser } from '@/app/lib/permissions';
+import { useRowsPerPage } from '@/app/lib/uiPreferences';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
 import Badge from '../components/ui/Badge';
@@ -72,7 +73,7 @@ export default function CountriesPage() {
     const [sortKey, setSortKey] = useState<SortKey>('name');
     const [sortDir, setSortDir] = useState<SortDir>('asc');
     const [page, setPage] = useState(1);
-    const [rowsPerPage, setRowsPerPage] = useState(25);
+    const [rowsPerPage, setRowsPerPage] = useRowsPerPage(10);
     const [modalOpen, setModalOpen] = useState(false);
     const [editingId, setEditingId] = useState<number | string | null>(null);
     const [form, setForm] = useState<CountryFormState>(EMPTY_FORM);

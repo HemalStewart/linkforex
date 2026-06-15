@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import { useRowsPerPage } from '@/app/lib/uiPreferences';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import Badge from '../components/ui/Badge';
@@ -44,7 +45,7 @@ export default function BranchCurrencyRatesPage() {
     const [branchFilter, setBranchFilter] = useState('all');
     const [sortKey, setSortKey] = useState<SortKey>('created_at');
     const [sortDir, setSortDir] = useState<SortDir>('desc');
-    const [rowsPerPage, setRowsPerPage] = useState(50);
+    const [rowsPerPage, setRowsPerPage] = useRowsPerPage(10);
     const [page, setPage] = useState(1);
 
     const fetchData = async () => {

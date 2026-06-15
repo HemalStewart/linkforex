@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import { useRowsPerPage } from '@/app/lib/uiPreferences';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import Pagination from '../components/ui/Pagination';
@@ -65,7 +66,7 @@ export default function ReceiversPage() {
     const [sortKey, setSortKey] = useState<ColumnKey>('createdAt');
     const [sortDir, setSortDir] = useState<SortDir>('desc');
     const [page, setPage] = useState(1);
-    const [rowsPerPage, setRowsPerPage] = useState(50);
+    const [rowsPerPage, setRowsPerPage] = useRowsPerPage(10);
     const [selectedReceiver, setSelectedReceiver] = useState<Receiver | null>(null);
 
     const handleAmlStatusChange = async (id: string | number, newStatus: string) => {

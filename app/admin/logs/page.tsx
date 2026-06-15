@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Activity, AlertCircle, Clock3, Download, FilterX, RefreshCw, Search, ShieldAlert, UserCheck } from 'lucide-react';
 import { ENDPOINTS } from '@/app/lib/api';
+import { useRowsPerPage } from '@/app/lib/uiPreferences';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
 
@@ -172,18 +173,18 @@ const deriveRisk = (
 ): Pick<SessionLog, 'risk' | 'riskScore' | 'riskReasons'> => {
     const reasons: string[] = [];
     let score = 0;
-
+ 
     if (row.forcedSignOff) {
         score += 70;
         reasons.push('Forced/automatic sign-off detected');
     }
-
+ 
     const noteScore = riskSignalsFromNote(row.signOffNote);
     if (noteScore > 0) {
         score += noteScore;
         reasons.push('Sign-off note contains security warning terms');
     }
-
+ 
     if (row.activityScore >= 30) {
         score += 30;
         reasons.push('Very high session activity');
@@ -191,12 +192,12 @@ const deriveRisk = (
         score += 15;
         reasons.push('Elevated session activity');
     }
-
+ 
     if (row.activityScore > 0 && row.sessionSeconds > 0 && row.sessionSeconds < 120) {
         score += 15;
         reasons.push('High activity in unusually short session');
     }
-
+ 
     if (row.status === 'Active' && row.signInEpoch > 0) {
         const activeForMs = Date.now() - row.signInEpoch;
         if (activeForMs > 12 * 60 * 60 * 1000) {
@@ -204,24 +205,24 @@ const deriveRisk = (
             reasons.push('Long-running active session');
         }
     }
-
+ 
     if (previousSession) {
         if (row.logCountry && previousSession.logCountry && row.logCountry !== previousSession.logCountry) {
             score += 25;
             reasons.push('Country changed from previous session');
         }
-
+ 
         if (row.ip && previousSession.ip && row.ip !== previousSession.ip) {
             score += 10;
             reasons.push('IP changed from previous session');
         }
     }
-
+ 
     // Respect explicit backend labels when present.
     const backendRisk = row.riskLabel.trim().toLowerCase();
     if (backendRisk === 'high') score = Math.max(score, 70);
     if (backendRisk === 'medium') score = Math.max(score, 35);
-
+ 
     const risk: SessionLog['risk'] = score >= 70 ? 'High' : score >= 35 ? 'Medium' : 'Low';
     return { risk, riskScore: score, riskReasons: reasons.length ? reasons : ['Normal session pattern'] };
 };
@@ -248,7 +249,7 @@ export default function LogsPage() {
     const [sortKey, setSortKey] = useState<SortKey>('signInTs');
     const [sortDir, setSortDir] = useState<SortDir>('desc');
     const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(50);
+    const [pageSize, setPageSize] = useRowsPerPage(10);
 
     const fetchLogs = useCallback(async () => {
         setLoading(true);

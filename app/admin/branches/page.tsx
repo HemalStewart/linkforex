@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import { isPrivilegedUser } from '@/app/lib/permissions';
+import { useRowsPerPage } from '@/app/lib/uiPreferences';
 import ConfirmModal from '../components/ConfirmModal';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
@@ -17,7 +18,7 @@ export default function BranchesPage() {
     const [sortKey, setSortKey] = useState('created_at');
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
     const [page, setPage] = useState(1);
-    const [rowsPerPage, setRowsPerPage] = useState(50);
+    const [rowsPerPage, setRowsPerPage] = useRowsPerPage(10);
     const [canEditBranch, setCanEditBranch] = useState(false);
     const [canDeleteBranch, setCanDeleteBranch] = useState(false);
 
