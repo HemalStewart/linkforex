@@ -77,7 +77,7 @@ export default function RemittersPage() {
             inactive: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
             suspended: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
         };
-        return styles[status as keyof typeof styles] || styles.inactive;
+        return styles[status.toLowerCase() as keyof typeof styles] || styles.inactive;
     };
 
     const getKycBadge = (status: string) => {
@@ -86,7 +86,7 @@ export default function RemittersPage() {
             pending: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
             rejected: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
         };
-        return styles[status as keyof typeof styles] || styles.pending;
+        return styles[status.toLowerCase() as keyof typeof styles] || styles.pending;
     };
 
     // No client-side filtering needed as API handles it
@@ -286,12 +286,12 @@ export default function RemittersPage() {
                                         </td>
                                         <td className="px-8 py-5">
                                             <span className={`badge-glass px-3 py-1 rounded-full text-[10px] font-extrabold ${getStatusBadge(remitter.status || 'inactive')}`}>
-                                                {remitter.status || 'Unknown'}
+                                                {remitter.status ? (remitter.status.charAt(0).toUpperCase() + remitter.status.slice(1).toLowerCase()) : 'Unknown'}
                                             </span>
                                         </td>
                                         <td className="px-8 py-5">
                                             <span className={`badge-glass px-3 py-1 rounded-full text-[10px] font-extrabold ${getKycBadge(remitter.kycStatus || 'pending')}`}>
-                                                {remitter.kycStatus || 'PENDING'}
+                                                {remitter.kycStatus ? (remitter.kycStatus.charAt(0).toUpperCase() + remitter.kycStatus.slice(1).toLowerCase()) : 'Pending'}
                                             </span>
                                         </td>
                                         <td className="px-2 py-4 text-center">

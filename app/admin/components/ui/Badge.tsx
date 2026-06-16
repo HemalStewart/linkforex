@@ -6,6 +6,22 @@ type BadgeProps = {
     className?: string;
 };
 
+const normalizeText = (text: string): string => {
+    const trimmed = text.trim();
+    if (!trimmed) return '';
+    
+    // Keep ISO and currency codes uppercase (e.g. USD, GB, BTC)
+    if (trimmed.length <= 3 && trimmed === trimmed.toUpperCase()) {
+        return trimmed;
+    }
+    
+    // Otherwise Title Case each word
+    return trimmed
+        .split(/\s+/)
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+};
+
 export default function Badge({ children, type = 'neutral', className = '' }: BadgeProps) {
     const normalizedType = type.toLowerCase();
     const getBadgeClasses = (type: string) => {
@@ -41,13 +57,15 @@ export default function Badge({ children, type = 'neutral', className = '' }: Ba
             ? 'px-2 py-0.5 text-[8px] leading-none tracking-wide'
             : 'px-3 py-1 text-[10px] leading-none';
 
+    const renderedContent = typeof children === 'string' ? normalizeText(children) : children;
+
     return (
         <span
-            className={`inline-flex items-center rounded-full font-extrabold ${sizeClass} ${getBadgeClasses(
+            className={`inline-flex items-center rounded-full font-extrabold normal-case ${sizeClass} ${getBadgeClasses(
                 type
             )} ${className}`}
         >
-            {children}
+            {renderedContent}
         </span>
     );
 }

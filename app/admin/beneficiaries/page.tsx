@@ -202,7 +202,7 @@ export default function BeneficiariesPage() {
                                                     ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300 border-rose-200 dark:border-rose-800'
                                                     : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700'
                                             }`}>
-                                                {b.aml_status || 'pending'}
+                                                {b.aml_status ? (b.aml_status.split('_').map((part: string) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()).join(' ')) : 'Pending'}
                                             </span>
                                         </td>
                                         <td className="px-8 py-5">

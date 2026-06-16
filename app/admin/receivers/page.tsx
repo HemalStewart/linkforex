@@ -394,7 +394,7 @@ export default function ReceiversPage() {
                                             </td>
                                             <td className="px-4 py-4">
                                                 <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold border ${getAmlBadgeClass(String(receiver.aml_status || 'pending'))}`}>
-                                                    {asString(receiver.aml_status || 'pending')}
+                                                    {formatStatus(receiver.aml_status || 'pending')}
                                                 </span>
                                             </td>
                                             <td className="px-4 py-4">
