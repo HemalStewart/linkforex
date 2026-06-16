@@ -7,6 +7,7 @@ import { ENDPOINTS } from '@/app/lib/api';
 import { ArrowLeft, User, Building, CreditCard, Save, Loader2, ChevronRight, Search, MapPin, Phone, ShieldCheck, Landmark, ChevronDown, ChevronUp, FileText, ExternalLink, X, RefreshCcw, Trash2, Download } from 'lucide-react';
 import { resolveUploadsUrl } from '@/app/lib/uploads';
 import ConfirmModal from '../../components/ConfirmModal';
+import { formatDateTime } from '@/app/lib/dateUtils';
 
 const normalizeCountryLabel = (value: string) => {
     const normalized = value.trim().toLowerCase();
@@ -641,8 +642,8 @@ export default function EditReceiverPage() {
                                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                                         {reportsModal.reports.map((report) => (
                                             <tr key={report.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
-                                                <td className="py-4 px-4 text-sm font-bold text-slate-800 dark:text-slate-100">
-                                                    {new Date(report.created_at).toLocaleString()}
+                                                <td className="py-4 px-4 text-sm font-bold text-slate-800 dark:text-slate-100 whitespace-nowrap">
+                                                    {formatDateTime(report.created_at)}
                                                 </td>
                                                 <td className="py-4 px-4 font-mono text-xs text-slate-500 dark:text-slate-400">
                                                     {report.reference}
@@ -1128,7 +1129,7 @@ export default function EditReceiverPage() {
                         <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
                             <span className="text-xs font-semibold text-slate-400 block mb-1">Checked At</span>
                             <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                                {amlCheckedAt ? new Date(amlCheckedAt).toLocaleString() : '-'}
+                                {formatDateTime(amlCheckedAt)}
                             </span>
                         </div>
                         <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
@@ -1205,7 +1206,7 @@ export default function EditReceiverPage() {
                         <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
                             <span className="text-xs font-semibold text-slate-400 block mb-1">Checked At</span>
                             <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                                {veriffCheckedAt ? new Date(veriffCheckedAt).toLocaleString() : '-'}
+                                {formatDateTime(veriffCheckedAt)}
                             </span>
                         </div>
                         <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">

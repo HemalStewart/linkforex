@@ -7,6 +7,7 @@ import { isPrivilegedUser as getIsPrivilegedUser } from '@/app/lib/permissions';
 import ConfirmModal from '../components/ConfirmModal';
 import Badge from '../components/ui/Badge';
 import { CheckCircle2, XCircle, RefreshCcw, AlertTriangle } from 'lucide-react';
+import { formatDateTime } from '@/app/lib/dateUtils';
 
 type BranchAccessRow = {
     id: number;
@@ -192,7 +193,7 @@ export default function BranchAccessPage() {
                                     <th className="px-4 py-3">Requested Branch</th>
                                     <th className="px-4 py-3">Status</th>
                                     <th className="px-4 py-3">Requested By</th>
-                                    <th className="px-4 py-3">Created</th>
+                                    <th className="px-4 py-3">Created At</th>
                                     <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Reject"><XCircle className="w-4 h-4 mx-auto text-slate-400" /></th>
                                 </tr>
                             </thead>
@@ -227,8 +228,8 @@ export default function BranchAccessPage() {
                                             ) : null}
                                         </td>
                                         <td className="px-4 py-3 text-slate-500 dark:text-slate-300">{row.requested_by_username || '-'}</td>
-                                        <td className="px-4 py-3 text-slate-500 dark:text-slate-300">
-                                            {row.created_at ? new Date(row.created_at).toLocaleString() : '-'}
+                                        <td className="px-4 py-3 text-slate-500 dark:text-slate-300 whitespace-nowrap">
+                                            {formatDateTime(row.created_at)}
                                         </td>
                                         <td className="px-2 py-4 text-center">
                                             <button

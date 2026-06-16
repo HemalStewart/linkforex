@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
 import { resolveUploadsUrl } from '@/app/lib/uploads';
 import { ArrowLeft, Download, History, Search, RotateCcw } from 'lucide-react';
+import { formatDateTime as globalFormatDateTime } from '@/app/lib/dateUtils';
 
 type Transfer = {
     id: string | number;
@@ -152,13 +153,9 @@ const normalizeAction = (value: unknown): string => {
         .replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
-const formatDateTime = (value: unknown): string => {
-    const raw = asString(value);
-    if (!raw) return '-';
-    const date = new Date(raw);
-    if (Number.isNaN(date.getTime())) return raw;
-    return date.toLocaleString();
-};
+const formatDateTime = (value: unknown): string => globalFormatDateTime(value as any);
+
+
 
 const yesNo = (value: unknown): string => {
     const v = asString(value).trim().toLowerCase();

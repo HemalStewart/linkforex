@@ -6,6 +6,7 @@ import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import Modal from '@/app/admin/components/Modal';
 import ConfirmModal from '@/app/admin/components/ConfirmModal';
+import { formatDateTime } from '@/app/lib/dateUtils';
 import Badge from '../components/ui/Badge';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
@@ -692,12 +693,12 @@ export default function BranchRatesPage() {
                                     </th>
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('updatedAt')} className="flex items-center gap-1">
-                                            Modified Date <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updatedAt')}</span>
+                                            Updated At <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updatedAt')}</span>
                                         </button>
                                     </th>
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('updatedUser')} className="flex items-center gap-1">
-                                            Entered User <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updatedUser')}</span>
+                                            Updated By <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updatedUser')}</span>
                                         </button>
                                     </th>
                                 </tr>
@@ -742,7 +743,7 @@ export default function BranchRatesPage() {
                                                 </Badge>
                                             </td>
                                             <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">
-                                                {row.updated_at ? new Date(row.updated_at).toLocaleString() : '-'}
+                                                {formatDateTime(row.updated_at)}
                                             </td>
                                             <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{updatedUser}</td>
                                         </tr>

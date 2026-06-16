@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
 import Badge from '@/app/admin/components/ui/Badge';
 import { RefreshCcw, Search, Plus, Trash2 } from 'lucide-react';
+import { formatDateTime } from '@/app/lib/dateUtils';
 
 type MobileExchangeRate = {
     id: number;
@@ -219,7 +220,7 @@ export default function MobileUserRatesPage() {
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Currency</th>
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Digital Rate</th>
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Status</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Updated</th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Updated At</th>
                                     <th className="px-4 py-4 text-right text-xs font-bold text-slate-500 dark:text-slate-300">Action</th>
                                 </tr>
                             </thead>
@@ -236,7 +237,7 @@ export default function MobileUserRatesPage() {
                                                 <Badge type={status === 'Active' ? 'active' : 'inactive'}>{status}</Badge>
                                             </td>
                                             <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">
-                                                {row.updated_at ? new Date(row.updated_at).toLocaleString() : '-'}
+                                                {formatDateTime(row.updated_at)}
                                             </td>
                                             <td className="px-4 py-4 text-right text-sm">
                                                 <button

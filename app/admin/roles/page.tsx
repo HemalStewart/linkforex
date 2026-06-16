@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../components/ConfirmModal';
 import Badge from '../components/ui/Badge';
+import { formatDateTime } from '@/app/lib/dateUtils';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
 import { Search, PlusCircle, Trash2, Edit3, Shield, ChevronRight } from 'lucide-react';
@@ -361,22 +362,22 @@ export default function RolesPage() {
                                 </th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('created_by')} className="flex items-center gap-1">
-                                        Entered User <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_by')}</span>
+                                        Created By <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_by')}</span>
                                     </button>
                                 </th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('created_at')} className="flex items-center gap-1">
-                                        Entered Date <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_at')}</span>
+                                        Created At <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_at')}</span>
                                     </button>
                                 </th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('updated_by')} className="flex items-center gap-1">
-                                        Modified User <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_by')}</span>
+                                        Updated By <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_by')}</span>
                                     </button>
                                 </th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('updated_at')} className="flex items-center gap-1">
-                                        Modified Date <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_at')}</span>
+                                        Updated At <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_at')}</span>
                                     </button>
                                 </th>
                                 <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-300" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
@@ -425,9 +426,9 @@ export default function RolesPage() {
                                             </Badge>
                                         </td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{role.created_by || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{role.created_at ? new Date(role.created_at).toLocaleString() : '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime(role.created_at)}</td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{role.updated_by || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{role.updated_at ? new Date(role.updated_at).toLocaleString() : '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime(role.updated_at)}</td>
                                         <td className="px-2 py-4 text-center">
                                             <button
                                                 onClick={() => promptDelete(role)}

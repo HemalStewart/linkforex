@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { RefreshCcw, Save, Search } from 'lucide-react';
 import { ENDPOINTS } from '@/app/lib/api';
+import { formatDateTime } from '@/app/lib/dateUtils';
 import type { WalletTransfer } from '../_shared';
 
 const STATUS_OPTIONS = [
@@ -178,7 +179,7 @@ export default function WalletTransfersPage() {
                                     <tr key={row.id} className="align-top">
                                         <td className="px-4 py-4 text-sm">
                                             <div className="font-bold text-slate-900 dark:text-white">{row.code}</div>
-                                            <div className="text-slate-500">{row.created_at ? new Date(row.created_at).toLocaleString() : '-'}</div>
+                                            <div className="text-slate-500 whitespace-nowrap">{formatDateTime(row.created_at)}</div>
                                             <div className="mt-1 text-xs text-slate-500">{row.payment_mode || 'trust_wallet'}</div>
                                         </td>
                                         <td className="px-4 py-4 text-sm">

@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
 import Badge from '@/app/admin/components/ui/Badge';
 import { RefreshCcw, Search } from 'lucide-react';
+import { formatDateTime } from '@/app/lib/dateUtils';
 
 type MobileExchangeRate = {
     id: number;
@@ -122,7 +123,7 @@ export default function MobileExchangeRatesPage() {
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Customer Digital Rate</th>
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Status</th>
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Source Branch</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Updated</th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Updated At</th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -147,7 +148,7 @@ export default function MobileExchangeRatesPage() {
                                             </td>
                                             <td className="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">{branchLabel}</td>
                                             <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">
-                                                {row.updated_at ? new Date(row.updated_at).toLocaleString() : '-'}
+                                                {formatDateTime(row.updated_at)}
                                             </td>
                                         </tr>
                                     );

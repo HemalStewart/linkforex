@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Activity, AlertCircle, Clock3, Download, FilterX, RefreshCw, Search, ShieldAlert, UserCheck } from 'lucide-react';
+import { formatDateTime } from '@/app/lib/dateUtils';
 import { ENDPOINTS } from '@/app/lib/api';
 import { useRowsPerPage } from '@/app/lib/uiPreferences';
 import Pagination from '../components/ui/Pagination';
@@ -98,23 +99,7 @@ const mapApiLog = (log: Record<string, unknown>): LogRow => ({
     rawStatus: firstNonEmpty(log, ['status', 'session_status', 'log_status']).toLowerCase()
 });
 
-const formatDateTime = (value: string | null): string => {
-    const epoch = toEpoch(value);
-    if (!epoch) return '-';
-    const date = new Date(epoch);
-    const datePart = new Intl.DateTimeFormat('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-    }).format(date);
-    const timePart = new Intl.DateTimeFormat('en-GB', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-    }).format(date);
-    return `${datePart} ${timePart}`;
-};
+
 
 const getSessionSeconds = (signInTs: string, signOffTs: string | null): number => {
     const start = toEpoch(signInTs);

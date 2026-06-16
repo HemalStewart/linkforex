@@ -5,6 +5,7 @@ import { ENDPOINTS } from '@/app/lib/api';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
 import { RefreshCw, PlusCircle, Edit2, Save, X, Info, Globe, Coins } from 'lucide-react';
+import { formatDateTime } from '@/app/lib/dateUtils';
 
 export default function CurrenciesPage() {
     const [currencies, setCurrencies] = useState<any[]>([]);
@@ -168,7 +169,7 @@ export default function CurrenciesPage() {
                                     <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Code</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Rate (Base: GBP)</th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Last Updated</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated At</th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -214,8 +215,8 @@ export default function CurrenciesPage() {
                                                 </span>
                                             )}
                                         </td>
-                                        <td className="px-8 py-5 text-sm text-slate-500 font-medium">
-                                            {new Date(currency.updated_at).toLocaleString()}
+                                        <td className="px-8 py-5 text-sm text-slate-500 font-medium whitespace-nowrap">
+                                            {formatDateTime(currency.updated_at)}
                                         </td>
                                     </tr>
                                 ))}

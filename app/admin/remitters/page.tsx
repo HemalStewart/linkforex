@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getCurrentAdminUser, withActingUserParam } from '@/app/lib/adminUserScope';
 import ConfirmModal from '../components/ConfirmModal';
+import { formatDateTime } from '@/app/lib/dateUtils';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
 import { Search, UserPlus, Edit2, Trash2, ChevronRight, Users } from 'lucide-react';
@@ -285,10 +286,10 @@ export default function RemittersPage() {
         { key: 'sender_aml_doc', label: 'Sender AML Document' },
         { key: 'sender_aml_result', label: 'Sender AML Result' },
         { key: 'rescreening_sender', label: 'Re/screening Sender' },
-        { key: 'entered_user', label: 'Entered User' },
-        { key: 'entered_date', label: 'Entered Date' },
-        { key: 'modified_user', label: 'Modified User' },
-        { key: 'modified_date', label: 'Modified Date' },
+        { key: 'entered_user', label: 'Created By' },
+        { key: 'entered_date', label: 'Created At' },
+        { key: 'modified_user', label: 'Updated By' },
+        { key: 'modified_date', label: 'Updated At' },
     ];
 
     return (
@@ -463,9 +464,9 @@ export default function RemittersPage() {
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.sender_aml_result || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.rescreening_sender || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.entered_user || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.entered_date ? new Date(row.entered_date).toLocaleString() : '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatDateTime(row.entered_date)}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.modified_user || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.modified_date ? new Date(row.modified_date).toLocaleString() : '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatDateTime(row.modified_date)}</td>
                                         <td className="px-2 py-4 text-center">
                                             <button
                                                 onClick={() => promptDelete(row)}

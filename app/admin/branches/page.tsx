@@ -7,6 +7,7 @@ import { getStoredUser } from '@/app/lib/authStorage';
 import { isPrivilegedUser } from '@/app/lib/permissions';
 import { useRowsPerPage } from '@/app/lib/uiPreferences';
 import ConfirmModal from '../components/ConfirmModal';
+import { formatDateTime } from '@/app/lib/dateUtils';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
 import { Search, PlusCircle, Trash2, Eye, RefreshCw, Tag, Phone, ArrowRightLeft, GitBranch, Edit2 } from 'lucide-react';
@@ -388,22 +389,22 @@ export default function BranchesPage() {
                                 </th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('created_by')} className="flex items-center gap-1">
-                                        Entered User <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_by')}</span>
+                                        Created By <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_by')}</span>
                                     </button>
                                 </th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('created_at')} className="flex items-center gap-1">
-                                        Entered Date <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_at')}</span>
+                                        Created At <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_at')}</span>
                                     </button>
                                 </th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('updated_by')} className="flex items-center gap-1">
-                                        Modified User <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_by')}</span>
+                                        Updated By <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_by')}</span>
                                     </button>
                                 </th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('updated_at')} className="flex items-center gap-1">
-                                        Modified Date <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_at')}</span>
+                                        Updated At <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_at')}</span>
                                     </button>
                                 </th>
                                 <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-300" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
@@ -455,9 +456,9 @@ export default function BranchesPage() {
                                         {formatCurrency(branch.day_transfer_limit)}
                                     </td>
                                     <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{branch.created_by || '-'}</td>
-                                    <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{branch.created_at ? new Date(branch.created_at).toLocaleString() : '-'}</td>
+                                    <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime(branch.created_at)}</td>
                                     <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{branch.updated_by || '-'}</td>
-                                    <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{branch.updated_at ? new Date(branch.updated_at).toLocaleString() : '-'}</td>
+                                    <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime(branch.updated_at)}</td>
                                     <td className="px-2 py-4 text-center">
                                         <button
                                             type="button"

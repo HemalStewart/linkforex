@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
 import { ShieldCheck, Calendar, FileText, ChevronDown, ChevronUp, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { formatDateTime } from '@/app/lib/dateUtils';
 
 interface VeriffDetailsModalProps {
     isOpen: boolean;
@@ -77,7 +78,7 @@ export default function VeriffDetailsModal({
                     <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
                         <span className="text-[10px] font-bold text-slate-450 dark:text-slate-400 block mb-1">Screening Checked At</span>
                         <span className="text-sm font-bold text-slate-800 dark:text-slate-250">
-                            {veriffCheckedAt ? new Date(veriffCheckedAt).toLocaleString() : '-'}
+                            {formatDateTime(veriffCheckedAt)}
                         </span>
                     </div>
                 </div>

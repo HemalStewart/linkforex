@@ -6,6 +6,7 @@ import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
 import Badge from '../components/ui/Badge';
 import { RefreshCw, PlusCircle, Globe, Coins, DollarSign } from 'lucide-react';
+import { formatDateTime } from '@/app/lib/dateUtils';
 
 export default function ExchangeRatesPage() {
     const [currencies, setCurrencies] = useState<any[]>([]);
@@ -174,7 +175,7 @@ export default function ExchangeRatesPage() {
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Code</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Rate (Base: GBP)</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Status</th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Last Updated</th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated At</th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -199,8 +200,8 @@ export default function ExchangeRatesPage() {
                                                 {String(currency.status || 'active').toLowerCase() === 'active' ? 'Active' : 'Inactive'}
                                             </Badge>
                                         </td>
-                                        <td className="px-8 py-5 text-sm font-medium text-slate-400">
-                                            {new Date(currency.updated_at).toLocaleString()}
+                                        <td className="px-8 py-5 text-sm font-medium text-slate-400 whitespace-nowrap">
+                                            {formatDateTime(currency.updated_at)}
                                         </td>
                                     </tr>
                                 ))}

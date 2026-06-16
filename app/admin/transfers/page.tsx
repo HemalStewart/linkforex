@@ -7,6 +7,7 @@ import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import Modal from '../components/Modal';
 import SortIndicator from '../components/SortIndicator';
+import { formatDateTime } from '@/app/lib/dateUtils';
 import { CheckCircle2, Download, Eye, FileCheck2, FileText, FileX2, ImageUp, PenLine, PlusCircle, Printer, RotateCcw, Save, Search, XCircle } from 'lucide-react';
 
 type SortDir = 'asc' | 'desc';
@@ -168,12 +169,7 @@ type ColumnDef = {
     render?: (row: TransferRow) => React.ReactNode;
 };
 
-const formatDateTime = (value: string): string => {
-    if (!value) return '-';
-    const d = new Date(value);
-    if (Number.isNaN(d.getTime())) return value;
-    return d.toLocaleString();
-};
+
 
 const formatStatus = (value: string): string => {
     if (!value) return '-';
@@ -1181,10 +1177,10 @@ export default function TransfersPage() {
                 return <span className="text-slate-400 dark:text-slate-500">-</span>;
             }
         },
-        { key: 'enteredUser', label: 'Entered User', sortable: true },
-        { key: 'enteredDate', label: 'Entered Date', sortable: true, render: (row) => formatDateTime(row.enteredDate) },
-        { key: 'modifiedUser', label: 'Modified User', sortable: true },
-        { key: 'modifiedDate', label: 'Modified Date', sortable: true, render: (row) => formatDateTime(row.modifiedDate) },
+        { key: 'enteredUser', label: 'Created By', sortable: true },
+        { key: 'enteredDate', label: 'Created At', sortable: true, render: (row) => formatDateTime(row.enteredDate) },
+        { key: 'modifiedUser', label: 'Updated By', sortable: true },
+        { key: 'modifiedDate', label: 'Updated At', sortable: true, render: (row) => formatDateTime(row.modifiedDate) },
         { key: 'historyLog', label: 'History Log', sortable: true }
     ];
 

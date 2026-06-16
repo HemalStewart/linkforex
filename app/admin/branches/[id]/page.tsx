@@ -7,6 +7,7 @@ import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import { isPrivilegedUser } from '@/app/lib/permissions';
 import ConfirmModal from '../../components/ConfirmModal';
+import { formatDateTime } from '@/app/lib/dateUtils';
 import {
     ArrowLeft,
     ArrowRightLeft,
@@ -493,10 +494,10 @@ export default function EditBranchPage() {
         { label: 'Daily Transfer Limit', value: formData.day_transfer_limit ? `£${Number(formData.day_transfer_limit).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-' },
         { label: 'Primary Contact', value: formData.telephone_1 || '-' },
         { label: 'Primary Email', value: formData.email_1 || '-' },
-        { label: 'Entered User', value: formData.created_by || '-' },
-        { label: 'Entered Date', value: formData.created_at ? new Date(formData.created_at).toLocaleString() : '-' },
-        { label: 'Modified User', value: formData.updated_by || '-' },
-        { label: 'Modified Date', value: formData.updated_at ? new Date(formData.updated_at).toLocaleString() : '-' },
+        { label: 'Created By', value: formData.created_by || '-' },
+        { label: 'Created At', value: formatDateTime(formData.created_at) },
+        { label: 'Updated By', value: formData.updated_by || '-' },
+        { label: 'Updated At', value: formatDateTime(formData.updated_at) },
     ];
 
     return (

@@ -8,6 +8,7 @@ import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
 import { Building2, Edit2, Eye, Plus, Search, Trash2, Users } from 'lucide-react';
 import VeriffDetailsModal from '../components/VeriffDetailsModal';
+import { formatDateTime } from '@/app/lib/dateUtils';
 
 type SortDir = 'asc' | 'desc';
 
@@ -350,7 +351,7 @@ export default function ReceiversPage() {
 
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('createdAt')} className="flex items-center gap-2">
-                                            Entered <SortIndicator active={sortKey === 'createdAt'} dir={sortDir} />
+                                            Created At <SortIndicator active={sortKey === 'createdAt'} dir={sortDir} />
                                         </button>
                                     </th>
                                     <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
@@ -419,8 +420,8 @@ export default function ReceiversPage() {
                                                     )}
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
-                                                {receiver.created_at ? new Date(receiver.created_at).toLocaleString() : '-'}
+                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                                                {formatDateTime(receiver.created_at)}
                                             </td>
                                             <td className="px-2 py-4 text-center">
                                                 <button

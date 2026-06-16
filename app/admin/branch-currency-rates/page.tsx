@@ -5,6 +5,7 @@ import { useRowsPerPage } from '@/app/lib/uiPreferences';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import Badge from '../components/ui/Badge';
+import { formatDateTime } from '@/app/lib/dateUtils';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
 import { Search, PlusCircle, RefreshCcw } from 'lucide-react';
@@ -251,10 +252,10 @@ export default function BranchCurrencyRatesPage() {
                                         ['currency_display', 'Currency'],
                                         ['active', 'Active'],
                                         ['customer_rate', 'Customer Cash Rate For £'],
-                                        ['entered_user', 'Entered User'],
-                                        ['created_at', 'Entered Date'],
-                                        ['modified_user', 'Modified User'],
-                                        ['updated_at', 'Modified Date'],
+                                        ['entered_user', 'Created By'],
+                                        ['created_at', 'Created At'],
+                                        ['modified_user', 'Updated By'],
+                                        ['updated_at', 'Updated At'],
                                     ].map(([key, label]) => (
                                         <th key={key} className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                             <button onClick={() => toggleSort(key as SortKey)} className="flex items-center gap-1">
@@ -285,9 +286,9 @@ export default function BranchCurrencyRatesPage() {
                                             {Number(row.customer_rate || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.entered_user || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.created_at ? new Date(row.created_at).toLocaleString() : '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatDateTime(row.created_at)}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.modified_user || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.updated_at ? new Date(row.updated_at).toLocaleString() : '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatDateTime(row.updated_at)}</td>
                                     </tr>
                                 ))}
                                 {!loading && pagedRows.length === 0 && (

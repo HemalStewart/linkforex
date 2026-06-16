@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Download, FileText, Image, RefreshCcw, Search, X } from 'lucide-react';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../../components/ConfirmModal';
+import { formatDateTime } from '@/app/lib/dateUtils';
 import type { QueueUser } from '../_shared';
 
 export default function MobileProfileReviewQueuePage() {
@@ -208,7 +209,7 @@ export default function MobileProfileReviewQueuePage() {
   <header>
     <div>
       <h1>LinkForex Identity Verification Report</h1>
-      <p>Generated ${new Date().toLocaleString()}</p>
+      <p>Generated ${formatDateTime(new Date())}</p>
       <p>Use browser print to save this report as PDF.</p>
     </div>
     <span class="badge">${value(user.kyc_status)}</span>

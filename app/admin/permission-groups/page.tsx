@@ -6,6 +6,7 @@ import { PlusCircle, Search, Key, Save, X } from 'lucide-react';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../components/ConfirmModal';
+import { formatDateTime } from '@/app/lib/dateUtils';
 import Badge from '../components/ui/Badge';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
@@ -33,11 +34,6 @@ const OPERATION_OPTIONS = ['VIEW', 'ADD', 'EDIT', 'DELETE', 'APPROVE', 'CANCEL']
 const normalizeDate = (value?: string | null) => {
     if (!value) return '';
     return value.includes('T') ? value : value.replace(' ', 'T');
-};
-
-const formatDateTime = (value?: string | null) => {
-    if (!value) return '';
-    return value;
 };
 
 const normalizeYesNo = (value?: string | null) => (String(value || '').toLowerCase() === 'yes' ? 'yes' : 'no');
@@ -776,16 +772,16 @@ export default function PermissionGroupsPage() {
                                         Active <span className="text-slate-400 dark:text-slate-300">{sortIndicator('active')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Entered User</th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Created By</th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('created_at')} className="flex items-center gap-1">
-                                        Entered Date <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_at')}</span>
+                                        Created At <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_at')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Modified User</th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Updated By</th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('updated_at')} className="flex items-center gap-1">
-                                        Modified Date <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_at')}</span>
+                                        Updated At <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_at')}</span>
                                     </button>
                                 </th>
                             </tr>

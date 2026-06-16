@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import { useRowsPerPage } from '@/app/lib/uiPreferences';
+import { formatDateTime } from '@/app/lib/dateUtils';
 import ConfirmModal from '../components/ConfirmModal';
 import Badge from '../components/ui/Badge';
 import Pagination from '../components/ui/Pagination';
@@ -392,22 +393,22 @@ export default function UsersPage() {
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">View 2FA QR</th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('created_by')} className="flex items-center gap-1">
-                                        Entered User <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_by')}</span>
+                                        Created By <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_by')}</span>
                                     </button>
                                 </th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('created_at')} className="flex items-center gap-1">
-                                        Entered Date <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_at')}</span>
+                                        Created At <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_at')}</span>
                                     </button>
                                 </th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('updated_by')} className="flex items-center gap-1">
-                                        Modified User <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_by')}</span>
+                                        Updated By <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_by')}</span>
                                     </button>
                                 </th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('updated_at')} className="flex items-center gap-1">
-                                        Modified Date <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_at')}</span>
+                                        Updated At <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_at')}</span>
                                     </button>
                                 </th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
@@ -473,9 +474,9 @@ export default function UsersPage() {
                                             </button>
                                         </td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{user.created_by || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{user.created_at ? new Date(user.created_at).toLocaleString() : '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime(user.created_at)}</td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{user.updated_by || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{user.updated_at ? new Date(user.updated_at).toLocaleString() : '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime(user.updated_at)}</td>
                                         <td className="px-4 py-4">
                                             <Badge type={user.signature ? 'yes' : 'no'}>
                                                 {user.signature ? 'Yes' : 'No'}

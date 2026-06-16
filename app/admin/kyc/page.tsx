@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
 import { Filter, Download, Clock, Search, AlertCircle, CheckCircle, XCircle, User, Phone, Calendar, FileText, Shield, RefreshCcw } from 'lucide-react';
+import { formatDateTime } from '@/app/lib/dateUtils';
 
 export default function KYCPage() {
     const [filterStatus, setFilterStatus] = useState('all');
@@ -61,9 +62,7 @@ export default function KYCPage() {
     };
 
     const formatDate = (value?: string): string => {
-        if (!value) return '-';
-        const date = new Date(value);
-        return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString();
+        return formatDateTime(value);
     };
 
     const processedApplications = remitters.map(r => ({

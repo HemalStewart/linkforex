@@ -7,6 +7,7 @@ import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
 import Pagination from '../components/ui/Pagination';
 import { Edit2, Mail, MessageCircle, Phone, RefreshCw, Search, Send, Trash2, User, Save } from 'lucide-react';
+import { formatDateTime } from '@/app/lib/dateUtils';
 
 type SupportTicket = {
     id: number;
@@ -61,20 +62,7 @@ const toLabelCase = (value?: string | null): string => {
         .join(' ');
 };
 
-const formatDateTime = (value?: string | null): string => {
-    const normalized = normalizeDate(value);
-    if (!normalized) return '—';
-    const date = new Date(normalized);
-    if (Number.isNaN(date.getTime())) return '—';
-    return new Intl.DateTimeFormat('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-    }).format(date);
-};
+
 
 const statusStyles: Record<string, string> = {
     open: 'bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200',
@@ -492,7 +480,7 @@ export default function SupportPage() {
                                                 {toLabelCase(normalizeText(ticket.priority, 'normal'))}
                                             </span>
                                         </td>
-                                        <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300">
+                                        <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">
                                             {formatDateTime(ticket.last_message_at || ticket.updated_at || ticket.created_at)}
                                         </td>
                                         <td className="px-2 py-4 text-center">

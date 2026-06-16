@@ -6,6 +6,7 @@ import { ENDPOINTS } from '@/app/lib/api';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
 import Badge from '../components/ui/Badge';
+import { formatDateTime } from '@/app/lib/dateUtils';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
 import { PlusCircle, RefreshCw, Search, Trash2, Edit2, ListChecks, Save, Database, Globe, ExternalLink, Info, Check, X } from 'lucide-react';
@@ -758,12 +759,12 @@ export default function DilisenseSourcesPage() {
 
                         <div className="border-t border-slate-100 dark:border-slate-800 pt-4 grid grid-cols-2 gap-4 text-xs text-slate-400">
                             <div>
-                                <p>Entered User: <span className="font-semibold text-slate-600 dark:text-slate-300">{viewRow.entered_user}</span></p>
-                                <p className="mt-0.5">Entered Date: <span className="font-semibold text-slate-600 dark:text-slate-300">{viewRow.entered_date}</span></p>
+                                <p>Created By: <span className="font-semibold text-slate-600 dark:text-slate-300">{viewRow.entered_user}</span></p>
+                                <p className="mt-0.5 whitespace-nowrap">Created At: <span className="font-semibold text-slate-600 dark:text-slate-300">{formatDateTime(viewRow.entered_date)}</span></p>
                             </div>
                             <div>
-                                <p>Modified User: <span className="font-semibold text-slate-600 dark:text-slate-300">{viewRow.modified_user}</span></p>
-                                <p className="mt-0.5">Modified Date: <span className="font-semibold text-slate-600 dark:text-slate-300">{viewRow.modified_date}</span></p>
+                                <p>Updated By: <span className="font-semibold text-slate-600 dark:text-slate-300">{viewRow.modified_user}</span></p>
+                                <p className="mt-0.5 whitespace-nowrap">Updated At: <span className="font-semibold text-slate-600 dark:text-slate-300">{formatDateTime(viewRow.modified_date)}</span></p>
                             </div>
                         </div>
 
