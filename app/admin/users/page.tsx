@@ -380,16 +380,6 @@ export default function UsersPage() {
                                     </button>
                                 </th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
-                                    <button onClick={() => toggleSort('signature')} className="flex items-center gap-1">
-                                        Signature <span className="text-slate-400 dark:text-slate-300">{sortIndicator('signature')}</span>
-                                    </button>
-                                </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
-                                    <button onClick={() => toggleSort('system_defined')} className="flex items-center gap-1">
-                                        System Defined <span className="text-slate-400 dark:text-slate-300">{sortIndicator('system_defined')}</span>
-                                    </button>
-                                </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('twofa_status')} className="flex items-center gap-1">
                                         2FA Status <span className="text-slate-400 dark:text-slate-300">{sortIndicator('twofa_status')}</span>
                                     </button>
@@ -418,6 +408,16 @@ export default function UsersPage() {
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('updated_at')} className="flex items-center gap-1">
                                         Modified Date <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_at')}</span>
+                                    </button>
+                                </th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                    <button onClick={() => toggleSort('signature')} className="flex items-center gap-1">
+                                        Signature <span className="text-slate-400 dark:text-slate-300">{sortIndicator('signature')}</span>
+                                    </button>
+                                </th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                    <button onClick={() => toggleSort('system_defined')} className="flex items-center gap-1">
+                                        System Defined <span className="text-slate-400 dark:text-slate-300">{sortIndicator('system_defined')}</span>
                                     </button>
                                 </th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Reset Password</th>
@@ -456,16 +456,6 @@ export default function UsersPage() {
                                             </Badge>
                                         </td>
                                         <td className="px-4 py-4">
-                                            <Badge type={user.signature ? 'yes' : 'no'}>
-                                                {user.signature ? 'Yes' : 'No'}
-                                            </Badge>
-                                        </td>
-                                        <td className="px-4 py-4">
-                                            <Badge type={normalizeYesNo(user.system_defined)}>
-                                                {toYesNoLabel(user.system_defined)}
-                                            </Badge>
-                                        </td>
-                                        <td className="px-4 py-4">
                                             <Badge type={(user.twofa_status || 'inactive').toLowerCase()}>
                                                 {toTitleLabel(String(user.twofa_status || 'inactive'))}
                                             </Badge>
@@ -486,6 +476,16 @@ export default function UsersPage() {
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{user.created_at ? new Date(user.created_at).toLocaleString() : '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{user.updated_by || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{user.updated_at ? new Date(user.updated_at).toLocaleString() : '-'}</td>
+                                        <td className="px-4 py-4">
+                                            <Badge type={user.signature ? 'yes' : 'no'}>
+                                                {user.signature ? 'Yes' : 'No'}
+                                            </Badge>
+                                        </td>
+                                        <td className="px-4 py-4">
+                                            <Badge type={normalizeYesNo(user.system_defined)}>
+                                                {toYesNoLabel(user.system_defined)}
+                                            </Badge>
+                                        </td>
                                         <td className="px-4 py-4">
                                             <button
                                                 onClick={() => promptReset(user)}
