@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../components/ConfirmModal';
-import { ArrowLeft, User, Mail, Shield, Building, Lock, Save, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, User, Mail, Shield, Building, Save, Loader2, ChevronRight } from 'lucide-react';
 
 export default function EditUserPage() {
     const router = useRouter();
@@ -14,14 +14,14 @@ export default function EditUserPage() {
 
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+    const [branches, setBranches] = useState<any[]>([]);
     const [formData, setFormData] = useState({
         name: '',
         username: '',
         email: '',
         role: 'agent',
         status: 'active',
-        branch: '',
-        password: ''
+        branch: ''
     });
 
     const [confirmModal, setConfirmModal] = useState({
@@ -35,9 +35,25 @@ export default function EditUserPage() {
 
     useEffect(() => {
         if (id) {
-            fetchUser();
+            const loadData = async () => {
+                setLoading(true);
+                await Promise.all([fetchUser(), fetchBranches()]);
+                setLoading(false);
+            };
+            loadData();
         }
     }, [id]);
+
+    const fetchBranches = async () => {
+        try {
+            const res = await fetch(ENDPOINTS.BRANCHES.LIST);
+            if (res.ok) {
+                setBranches(await res.json());
+            }
+        } catch (error) {
+            console.error('Failed to fetch branches:', error);
+        }
+    };
 
     const fetchUser = async () => {
         try {
@@ -50,14 +66,11 @@ export default function EditUserPage() {
                     email: data.email || '',
                     role: data.role || 'agent',
                     status: data.status || 'active',
-                    branch: data.branch || '',
-                    password: ''
+                    branch: data.branch || ''
                 });
             }
         } catch (error) {
             console.error('Failed to fetch user:', error);
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -65,17 +78,13 @@ export default function EditUserPage() {
         e.preventDefault();
         setSubmitting(true);
 
-        // Don't send password if empty
-        const { password, ...restData } = formData;
-        let dataToSend: any = password ? formData : restData;
-
         try {
             const res = await fetch(ENDPOINTS.USERS.DETAIL(id), {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(dataToSend),
+                body: JSON.stringify(formData),
             });
 
             if (res.ok) {
@@ -222,12 +231,19 @@ export default function EditUserPage() {
                             <span className="input-icon-left">
                                 <Building className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
                             </span>
-                            <input
-                                type="text"
+                            <select
                                 value={formData.branch}
                                 onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
-                                className="input-glass w-full"
-                            />
+                                className="input-glass w-full pr-10 appearance-none cursor-pointer"
+                            >
+                                <option value="">Select Branch...</option>
+                                {branches.map((b: any) => (
+                                    <option key={b.id} value={b.code || b.name}>
+                                        {b.name} ({b.code})
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
                         </div>
                     </div>
 
@@ -273,26 +289,6 @@ export default function EditUserPage() {
                                 <option value="inactive">Inactive</option>
                                 <option value="suspended">Suspended</option>
                             </select>
-                        </div>
-                    </div>
-
-                    <div className="md:col-span-2">
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
-                            Reset Password
-                            <span className="text-xs text-slate-400 ml-2 font-normal">(leave empty to keep current)</span>
-                        </label>
-                        <div className="relative input-icon group">
-                            <span className="input-icon-left">
-                                <Lock className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
-                            </span>
-                            <input
-                                type="password"
-                                autoComplete="new-password"
-                                value={formData.password}
-                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                className="input-glass w-full"
-                                placeholder="New password"
-                            />
                         </div>
                     </div>
                 </div>
