@@ -71,7 +71,7 @@ export const applyUiSettings = (settings: UiSettings): void => {
     };
 
     const root = document.documentElement;
-    const headPx = Math.max(10, normalized.tableFontSizePx - 2);
+    const headPx = normalized.tableFontSizePx + 2;
 
     root.style.setProperty('--table-font-size', `${normalized.tableFontSizePx}px`);
     root.style.setProperty('--table-head-font-size', `${headPx}px`);

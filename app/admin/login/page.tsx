@@ -21,7 +21,6 @@ export default function AdminLoginPage() {
     type: 'info' as 'info' | 'danger' | 'warning' | 'success',
     isAlert: true
   });
-  const [rememberMe, setRememberMe] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
   const [identifierValue, setIdentifierValue] = React.useState('');
   const [footerText, setFooterText] = React.useState(defaultFooterText);
@@ -31,12 +30,6 @@ export default function AdminLoginPage() {
     const user = getStoredUserRaw();
     if (user) {
       router.replace('/admin/dashboard');
-    }
-
-    const rememberedLogin = localStorage.getItem('remembered_login') || localStorage.getItem('remembered_email');
-    if (rememberedLogin) {
-      setIdentifierValue(rememberedLogin);
-      setRememberMe(true);
     }
 
     const savedGeneral = localStorage.getItem('generalSettings');
@@ -76,12 +69,7 @@ export default function AdminLoginPage() {
       const data = await response.json();
 
       if (response.ok) {
-        setStoredUser(data.user, rememberMe);
-        if (rememberMe) {
-          localStorage.setItem('remembered_login', identifier);
-        } else {
-          localStorage.removeItem('remembered_login');
-        }
+        setStoredUser(data.user, true);
         // Redirect
         router.push('/admin/dashboard');
       } else {
@@ -184,9 +172,14 @@ export default function AdminLoginPage() {
 
             {/* Password Input */}
             <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-bold text-slate-700 dark:text-slate-200 ml-1">
-                Password
-              </label>
+              <div className="flex items-center justify-between ml-1">
+                <label htmlFor="password" className="block text-sm font-bold text-slate-700 dark:text-slate-200">
+                  Password
+                </label>
+                <Link href="/admin/forgot-password" className="text-sm font-bold text-teal-600 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300 transition-colors">
+                  Forgot password?
+                </Link>
+              </div>
               <div className="relative input-icon group">
                 <span className="input-icon-left">
                   <Lock className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
@@ -209,24 +202,6 @@ export default function AdminLoginPage() {
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
-            </div>
-
-            {/* Remember Me & Forgot Password */}
-            <div className="flex items-center justify-between pt-1 px-1">
-              <label className="flex items-center gap-2.5 cursor-pointer group leading-none">
-                <input
-                  type="checkbox"
-                  className="checkbox-glass"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                />
-                <span className="text-sm font-bold text-slate-600 dark:text-slate-400 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
-                  Remember me
-                </span>
-              </label>
-              <Link href="/admin/forgot-password" className="text-sm font-bold text-teal-600 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300 transition-colors">
-                Forgot password?
-              </Link>
             </div>
 
             {/* Sign In Button */}

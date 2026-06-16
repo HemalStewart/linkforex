@@ -45,7 +45,7 @@
 
   /* Table typography controls (overridable from settings) */
   --table-font-size: 0.875rem;
-  --table-head-font-size: 0.7rem;
+  --table-head-font-size: 1rem;
 }
 
 :root.dark {
@@ -780,28 +780,24 @@ html {
 }
 
 /* Dynamic table font-size overrides (used by Settings > General) */
-.table-shell tbody td,
-.table-scroll tbody td {
+.table-shell td,
+.table-scroll td {
   font-size: var(--table-font-size) !important;
 }
 
-.table-shell thead th,
-.table-scroll thead th {
+.table-shell th,
+.table-scroll th {
   font-size: var(--table-head-font-size) !important;
 }
 
-.table-scroll table :is(td, th) {
-  font-size: inherit !important;
-}
-
-.table-scroll table :is(td, th) * {
+.table-shell :is(td, th) *,
+.table-scroll :is(td, th) * {
   font-size: inherit !important;
 }
 
 /* Admin density: old admin full-width screens should show more data with less empty space. */
 .admin-density-compact {
-  --table-font-size: 0.8125rem;
-  --table-head-font-size: 0.65rem;
+  /* Inherit custom dynamic table font sizes from root settings */
 }
 
 @media (min-width: 1024px) {

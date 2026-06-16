@@ -51,7 +51,7 @@ export default function RootLayout({
           var size = Number(settings && settings.tableFontSizePx);
           if (!isFinite(size)) size = 14;
           size = Math.max(10, Math.min(20, Math.round(size)));
-          var headSize = Math.max(10, size - 2);
+          var headSize = size + 2;
           var root = document.documentElement;
           root.style.setProperty('--table-font-size', size + 'px');
           root.style.setProperty('--table-head-font-size', headSize + 'px');

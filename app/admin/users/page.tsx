@@ -10,7 +10,8 @@ import ConfirmModal from '../components/ConfirmModal';
 import Badge from '../components/ui/Badge';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
-import { Search, UserPlus, Trash2, Users, UserCheck, User, Shield, QrCode, Eye, RotateCcw, ChevronRight, Edit2 } from 'lucide-react';
+import { Search, UserPlus, Trash2, Users, UserCheck, User, Shield, QrCode, Eye, RotateCcw, ChevronRight, Edit2, Lock, EyeOff } from 'lucide-react';
+import Modal from '../components/Modal';
 
 export default function UsersPage() {
     const [searchQuery, setSearchQuery] = useState('');
@@ -26,12 +27,20 @@ export default function UsersPage() {
         isOpen: false,
         title: '',
         message: '',
-        type: 'info' as 'info' | 'danger' | 'warning',
+        type: 'info' as 'info' | 'danger' | 'warning' | 'success',
         isAlert: false
     });
     const [userToDelete, setUserToDelete] = useState<number | null>(null);
     const [userToReset, setUserToReset] = useState<any | null>(null);
-    const [confirmAction, setConfirmAction] = useState<'delete' | 'reset' | null>(null);
+    const [confirmAction, setConfirmAction] = useState<'delete' | null>(null);
+
+    const [isResetPasswordModalOpen, setIsResetPasswordModalOpen] = useState(false);
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [resetError, setResetError] = useState('');
+    const [resetLoading, setResetLoading] = useState(false);
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -72,14 +81,12 @@ export default function UsersPage() {
 
     const promptReset = (user: any) => {
         setUserToReset(user);
-        setConfirmAction('reset');
-        setConfirmModal({
-            isOpen: true,
-            title: 'Reset Password',
-            message: `Reset password for ${user.username || user.name}? A temporary password will be generated.`,
-            type: 'warning',
-            isAlert: false
-        });
+        setNewPassword('');
+        setConfirmPassword('');
+        setResetError('');
+        setShowPassword(false);
+        setShowConfirmPassword(false);
+        setIsResetPasswordModalOpen(true);
     };
 
     const executeDelete = async () => {
@@ -122,49 +129,56 @@ export default function UsersPage() {
         }
     };
 
-    const executeReset = async () => {
+    const handleResetPasswordSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
         if (!userToReset) return;
 
-        const tempPassword = `${Math.random().toString(36).slice(2, 6)}${Math.random().toString(36).slice(2, 6)}!`;
+        if (newPassword.length < 8) {
+            setResetError('Password must be at least 8 characters long.');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            setResetError('Passwords do not match.');
+            return;
+        }
+
+        setResetLoading(true);
+        setResetError('');
 
         try {
             const res = await fetch(ENDPOINTS.USERS.DETAIL(userToReset.id), {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    password: tempPassword,
+                    password: newPassword,
                     updated_by: currentUserName || undefined
                 })
             });
 
             if (res.ok) {
+                setIsResetPasswordModalOpen(false);
                 setConfirmModal({
                     isOpen: true,
-                    title: 'Password Reset',
-                    message: `Temporary password: ${tempPassword}`,
-                    type: 'info',
+                    title: 'Success',
+                    message: `Password set successfully for ${userToReset.username || userToReset.name}.`,
+                    type: 'success',
                     isAlert: true
                 });
             } else {
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Error',
-                    message: 'Failed to reset password',
-                    type: 'danger',
-                    isAlert: true
-                });
+                let msg = 'Failed to reset password';
+                try {
+                    const data = await res.json();
+                    if (data?.message) msg = data.message;
+                    else if (data?.messages) msg = Object.values(data.messages).join(', ');
+                } catch {}
+                setResetError(msg);
             }
         } catch (error) {
             console.error('Error resetting password:', error);
-            setConfirmModal({
-                isOpen: true,
-                title: 'Error',
-                message: 'Error resetting password',
-                type: 'danger',
-                isAlert: true
-            });
+            setResetError('Network error while resetting password.');
         } finally {
-            setUserToReset(null);
+            setResetLoading(false);
         }
     };
 
@@ -173,7 +187,6 @@ export default function UsersPage() {
             setConfirmModal({ ...confirmModal, isOpen: false });
         } else {
             if (confirmAction === 'delete') executeDelete();
-            if (confirmAction === 'reset') executeReset();
         }
     };
 
@@ -289,11 +302,90 @@ export default function UsersPage() {
                 onConfirm={handleConfirm}
                 title={confirmModal.title}
                 message={confirmModal.message}
-                type={confirmModal.type}
+                type={confirmModal.type as any}
                 isAlert={confirmModal.isAlert}
                 confirmText={confirmModal.isAlert ? "OK" : "Delete"}
                 cancelText="Cancel"
             />
+
+            {/* Reset Password Modal */}
+            <Modal
+                isOpen={isResetPasswordModalOpen}
+                onClose={() => setIsResetPasswordModalOpen(false)}
+                title={`Set Password for ${userToReset?.username || userToReset?.name || 'User'}`}
+                size="sm"
+            >
+                <form onSubmit={handleResetPasswordSubmit} className="space-y-4">
+                    {resetError && (
+                        <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-xs font-semibold text-red-600 dark:text-red-400">
+                            {resetError}
+                        </div>
+                    )}
+                    <div className="space-y-2">
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300">New Password</label>
+                        <div className="relative input-icon group">
+                            <span className="input-icon-left">
+                                <Lock className="w-4 h-4 text-slate-400" />
+                            </span>
+                            <input
+                                type={showPassword ? 'text' : 'password'}
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                placeholder="••••••••"
+                                className="input-glass w-full text-sm"
+                                required
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                            >
+                                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300">Confirm Password</label>
+                        <div className="relative input-icon group">
+                            <span className="input-icon-left">
+                                <Lock className="w-4 h-4 text-slate-400" />
+                            </span>
+                            <input
+                                type={showConfirmPassword ? 'text' : 'password'}
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                placeholder="••••••••"
+                                className="input-glass w-full text-sm"
+                                required
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                            >
+                                {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                        </div>
+                    </div>
+                    <div className="flex justify-end gap-2 pt-2">
+                        <button
+                            type="button"
+                            onClick={() => setIsResetPasswordModalOpen(false)}
+                            disabled={resetLoading}
+                            className="px-4 py-2 rounded-full text-xs font-semibold glass-effect text-slate-600 dark:text-slate-300 disabled:opacity-50"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={resetLoading}
+                            className="btn-primary px-4 py-2 rounded-full text-xs font-semibold disabled:opacity-50 flex items-center gap-1.5"
+                        >
+                            {resetLoading ? 'Setting...' : 'Set Password'}
+                        </button>
+                    </div>
+                </form>
+            </Modal>
             {/* Page Header */}
             <div className="flex items-center justify-between">
                 <div>
