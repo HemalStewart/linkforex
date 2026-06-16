@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../components/ConfirmModal';
-import { ArrowLeft, User, Mail, Shield, Building, Save, Loader2, ChevronRight } from 'lucide-react';
+import { ArrowLeft, User, Mail, Shield, Building, Save, Loader2, ChevronRight, Lock } from 'lucide-react';
 
 export default function EditUserPage() {
     const router = useRouter();
@@ -167,15 +167,15 @@ export default function EditUserPage() {
                 <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Personal Info */}
+                    {/* Personal Details */}
                     <div className="md:col-span-2">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center border-b border-slate-100 dark:border-slate-700/50 pb-2">
                             <User className="w-5 h-5 mr-2 text-teal-500" />
-                            Personal Information
+                            Personal Details
                         </h3>
                     </div>
 
-                    <div>
+                    <div className="md:col-span-2">
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Full Name <span className="text-red-500">*</span></label>
                         <div className="relative input-icon group">
                             <span className="input-icon-left">
@@ -189,6 +189,14 @@ export default function EditUserPage() {
                                 className="input-glass w-full"
                             />
                         </div>
+                    </div>
+
+                    {/* Account Credentials */}
+                    <div className="md:col-span-2 mt-4">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center border-b border-slate-100 dark:border-slate-700/50 pb-2">
+                            <Lock className="w-5 h-5 mr-2 text-teal-500" />
+                            Account Credentials
+                        </h3>
                     </div>
 
                     <div>
@@ -225,33 +233,11 @@ export default function EditUserPage() {
                         </div>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Branch</label>
-                        <div className="relative input-icon group">
-                            <span className="input-icon-left">
-                                <Building className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
-                            </span>
-                            <select
-                                value={formData.branch}
-                                onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
-                                className="input-glass w-full pr-10 appearance-none cursor-pointer"
-                            >
-                                <option value="">Select Branch...</option>
-                                {branches.map((b: any) => (
-                                    <option key={b.id} value={b.code || b.name}>
-                                        {b.name} ({b.code})
-                                    </option>
-                                ))}
-                            </select>
-                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
-                        </div>
-                    </div>
-
-                    {/* Role & Status */}
+                    {/* Access Details */}
                     <div className="md:col-span-2 mt-4">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center border-b border-slate-100 dark:border-slate-700/50 pb-2">
                             <Shield className="w-5 h-5 mr-2 text-teal-500" />
-                            Access Control
+                            Access Details
                         </h3>
                     </div>
 
@@ -271,6 +257,28 @@ export default function EditUserPage() {
                                 <option value="agent">Agent</option>
                                 <option value="support">Support</option>
                             </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Branch</label>
+                        <div className="relative input-icon group">
+                            <span className="input-icon-left">
+                                <Building className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
+                            </span>
+                            <select
+                                value={formData.branch}
+                                onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
+                                className="input-glass w-full pr-10 appearance-none cursor-pointer"
+                            >
+                                <option value="">Select Branch...</option>
+                                {branches.map((b: any) => (
+                                    <option key={b.id} value={b.code || b.name}>
+                                        {b.name} ({b.code})
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
                         </div>
                     </div>
 
