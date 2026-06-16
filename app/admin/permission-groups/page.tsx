@@ -754,7 +754,7 @@ export default function PermissionGroupsPage() {
                                 </th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('page_section')} className="flex items-center gap-1">
-                                        Page Section <span className="text-slate-400 dark:text-slate-300">{sortIndicator('page_section')}</span>
+                                        Page <span className="text-slate-400 dark:text-slate-300">{sortIndicator('page_section')}</span>
                                     </button>
                                 </th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
