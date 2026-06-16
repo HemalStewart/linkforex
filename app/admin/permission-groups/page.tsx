@@ -46,7 +46,7 @@ export default function PermissionGroupsPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [roleFilter, setRoleFilter] = useState('');
     const [pageSectionFilter, setPageSectionFilter] = useState('all');
-    const [operationFilter, setOperationFilter] = useState('all');
+    const [operationFilter, setOperationFilter] = useState('');
     const [activeFilter, setActiveFilter] = useState('all');
     const [systemDefinedFilter, setSystemDefinedFilter] = useState('all');
     const [sortKey, setSortKey] = useState<string>('role_name');
@@ -160,18 +160,12 @@ export default function PermissionGroupsPage() {
         );
     }, [rows]);
 
-    const operationOptions = useMemo(() => {
-        return Array.from(new Set([...OPERATION_OPTIONS, ...rows.map((row) => (row.operation || '').trim().toUpperCase()).filter(Boolean)])).sort(
-            (a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })
-        );
-    }, [rows]);
-
     const filtered = useMemo(() => {
         const normalizedRoleFilter = roleFilter.trim().toLowerCase();
         return searched.filter((row) => {
             if (normalizedRoleFilter && !(row.role_name || '').toLowerCase().includes(normalizedRoleFilter)) return false;
             if (pageSectionFilter !== 'all' && row.page_section !== pageSectionFilter) return false;
-            if (operationFilter !== 'all' && row.operation.toUpperCase() !== operationFilter.toUpperCase()) return false;
+            if (operationFilter.trim() && !row.operation.toLowerCase().includes(operationFilter.trim().toLowerCase())) return false;
             if (activeFilter !== 'all' && normalizeYesNo(row.active) !== activeFilter) return false;
             if (systemDefinedFilter !== 'all' && normalizeYesNo(row.system_defined) !== systemDefinedFilter) return false;
             return true;
@@ -512,7 +506,7 @@ export default function PermissionGroupsPage() {
     const hasActiveFilters = Boolean(
         roleFilter.trim() ||
         pageSectionFilter !== 'all' ||
-        operationFilter !== 'all' ||
+        operationFilter.trim() ||
         activeFilter !== 'all' ||
         systemDefinedFilter !== 'all'
     );
@@ -520,7 +514,7 @@ export default function PermissionGroupsPage() {
     const clearFilters = () => {
         setRoleFilter('');
         setPageSectionFilter('all');
-        setOperationFilter('all');
+        setOperationFilter('');
         setActiveFilter('all');
         setSystemDefinedFilter('all');
     };
@@ -687,16 +681,13 @@ export default function PermissionGroupsPage() {
                     </div>
                     <div>
                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Operation</label>
-                        <select
+                        <input
+                            type="text"
+                            placeholder="Search operation"
                             value={operationFilter}
                             onChange={(e) => setOperationFilter(e.target.value)}
                             className="input-glass w-full text-sm"
-                        >
-                            <option value="all">All</option>
-                            {operationOptions.map((operation) => (
-                                <option key={operation} value={operation}>{operation}</option>
-                            ))}
-                        </select>
+                        />
                     </div>
                     <div>
                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Status</label>
