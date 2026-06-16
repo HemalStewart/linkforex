@@ -471,6 +471,7 @@ export default function DilisenseSourcesPage() {
                         <thead className="table-head">
                             <tr>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">#</th>
+                                <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                     <button onClick={() => toggleSort('dilisense_source_type')} className="flex items-center gap-1">Source Type {sortIndicator('dilisense_source_type')}</button>
                                 </th>
@@ -491,16 +492,26 @@ export default function DilisenseSourcesPage() {
                                     <button onClick={() => toggleSort('dilisense_region')} className="flex items-center gap-1">Region {sortIndicator('dilisense_region')}</button>
                                 </th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Issuer Name</th>
-                                <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 dark:text-slate-400">Actions</th>
+                                <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Info"><Info className="w-4 h-4 mx-auto text-slate-400" /></th>
+                                <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                             </tr>
                         </thead>
                         <tbody className="table-body">
                             {loading && (
-                                <tr><td colSpan={10} className="px-6 py-10 text-center text-slate-500 animate-pulse">Loading…</td></tr>
+                                <tr><td colSpan={12} className="px-6 py-10 text-center text-slate-500 animate-pulse">Loading…</td></tr>
                             )}
                             {!loading && pagedRows.map((row, idx) => (
                                 <tr key={row.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
                                     <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
+                                    <td className="px-2 py-4 text-center">
+                                        <button
+                                            className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all"
+                                            title="Edit"
+                                            onClick={() => openEditModal(row)}
+                                        >
+                                            <Edit2 className="w-5 h-5" />
+                                        </button>
+                                    </td>
                                     <td className="px-6 py-4 text-sm text-slate-800 dark:text-slate-100 font-semibold">{row.dilisense_source_type || '—'}</td>
                                     <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400 font-mono">{row.dilisense_source || '—'}</td>
                                     <td className="px-6 py-4 text-sm font-semibold text-slate-800 dark:text-slate-100 max-w-xs truncate" title={row.dilisense_name || ''}>{row.dilisense_name || '—'}</td>
@@ -518,35 +529,28 @@ export default function DilisenseSourcesPage() {
                                     <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{row.dilisense_country_name || '—'}</td>
                                     <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{row.dilisense_region || '—'}</td>
                                     <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300 max-w-xs truncate" title={row.dilisense_issuer_name || ''}>{row.dilisense_issuer_name || '—'}</td>
-                                    <td className="px-6 py-4 text-right">
-                                        <div className="inline-flex items-center gap-2">
-                                            <button
-                                                className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all"
-                                                title="View details"
-                                                onClick={() => setViewRow(row)}
-                                            >
-                                                <Info className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all"
-                                                title="Edit"
-                                                onClick={() => openEditModal(row)}
-                                            >
-                                                <Edit2 className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all"
-                                                title="Delete"
-                                                onClick={() => setDeleteId(row.id)}
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
+                                    <td className="px-2 py-4 text-center">
+                                        <button
+                                            className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all"
+                                            title="View details"
+                                            onClick={() => setViewRow(row)}
+                                        >
+                                            <Info className="w-5 h-5" />
+                                        </button>
+                                    </td>
+                                    <td className="px-2 py-4 text-center">
+                                        <button
+                                            className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all"
+                                            title="Delete"
+                                            onClick={() => setDeleteId(row.id)}
+                                        >
+                                            <Trash2 className="w-5 h-5" />
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
                             {!loading && pagedRows.length === 0 && (
-                                <tr><td colSpan={10} className="px-6 py-10 text-center text-slate-500 font-semibold">No Dilisense sources found.</td></tr>
+                                <tr><td colSpan={12} className="px-6 py-10 text-center text-slate-500 font-semibold">No Dilisense sources found.</td></tr>
                             )}
                         </tbody>
                     </table>

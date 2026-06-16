@@ -165,10 +165,10 @@ export default function CurrenciesPage() {
                             <thead className="table-head">
                                 <tr>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Currency</th>
+                                    <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Code</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Rate (Base: GBP)</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Last Updated</th>
-                                    <th className="px-8 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -179,6 +179,22 @@ export default function CurrenciesPage() {
                                                 {currency.symbol || '$'}
                                             </div>
                                             <span>{currency.name}</span>
+                                        </td>
+                                        <td className="px-2 py-4 text-center">
+                                            {editingId === currency.id ? (
+                                                <div className="flex items-center justify-center space-x-2">
+                                                    <button onClick={() => handleSave(currency.id)} className="p-2 rounded-full bg-teal-100 text-teal-600 hover:bg-teal-200 transition-colors" title="Save">
+                                                        <Save className="w-4 h-4" />
+                                                    </button>
+                                                    <button onClick={() => setEditingId(null)} className="p-2 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors" title="Cancel">
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <button onClick={() => handleEdit(currency)} className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all" title="Edit">
+                                                    <Edit2 className="w-5 h-5" />
+                                                </button>
+                                            )}
                                         </td>
                                         <td className="px-8 py-5 font-mono text-sm font-semibold text-slate-500">{currency.code}</td>
                                         <td className="px-8 py-5">
@@ -200,22 +216,6 @@ export default function CurrenciesPage() {
                                         </td>
                                         <td className="px-8 py-5 text-sm text-slate-500 font-medium">
                                             {new Date(currency.updated_at).toLocaleString()}
-                                        </td>
-                                        <td className="px-8 py-5 text-center">
-                                            {editingId === currency.id ? (
-                                                <div className="flex items-center justify-center space-x-2">
-                                                    <button onClick={() => handleSave(currency.id)} className="p-2 rounded-full bg-teal-100 text-teal-600 hover:bg-teal-200 transition-colors">
-                                                        <Save className="w-4 h-4" />
-                                                    </button>
-                                                    <button onClick={() => setEditingId(null)} className="p-2 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors">
-                                                        <X className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <button onClick={() => handleEdit(currency)} className="p-2 rounded-full hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all">
-                                                    <Edit2 className="w-5 h-5" />
-                                                </button>
-                                            )}
                                         </td>
                                     </tr>
                                 ))}

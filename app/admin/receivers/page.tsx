@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
-import { Building2, Eye, Plus, Search, Trash2, Users } from 'lucide-react';
+import { Building2, Edit2, Eye, Plus, Search, Trash2, Users } from 'lucide-react';
 import VeriffDetailsModal from '../components/VeriffDetailsModal';
 
 type SortDir = 'asc' | 'desc';
@@ -306,6 +306,7 @@ export default function ReceiversPage() {
                                             Remitter <SortIndicator active={sortKey === 'remitter'} dir={sortDir} />
                                         </button>
                                     </th>
+                                    <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('name')} className="flex items-center gap-2">
                                             Name <SortIndicator active={sortKey === 'name'} dir={sortDir} />
@@ -352,7 +353,7 @@ export default function ReceiversPage() {
                                             Entered <SortIndicator active={sortKey === 'createdAt'} dir={sortDir} />
                                         </button>
                                     </th>
-                                    <th className="px-4 py-4 text-right text-xs font-bold text-slate-500 dark:text-slate-300">Actions</th>
+                                    <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -361,6 +362,15 @@ export default function ReceiversPage() {
                                         <tr key={String(receiver.id)} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
                                             <td className="px-4 py-4 text-sm font-semibold text-slate-900 dark:text-white">
                                                 {asString(receiver.remitter_name) || '-'}
+                                            </td>
+                                            <td className="px-2 py-4 text-center">
+                                                <Link
+                                                    href={`/admin/receivers/${receiver.id}`}
+                                                    className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
+                                                    title="Edit"
+                                                >
+                                                    <Edit2 className="w-5 h-5" />
+                                                </Link>
                                             </td>
                                             <td className="px-4 py-4 text-sm font-semibold text-slate-900 dark:text-white">
                                                 {asString(receiver.name) || '-'}
@@ -412,29 +422,20 @@ export default function ReceiversPage() {
                                             <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
                                                 {receiver.created_at ? new Date(receiver.created_at).toLocaleString() : '-'}
                                             </td>
-                                            <td className="px-4 py-4">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <Link
-                                                        href={`/admin/receivers/${receiver.id}`}
-                                                        className="p-2 rounded-full glass-effect text-slate-600 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300"
-                                                        title="View receiver"
-                                                    >
-                                                        <Eye className="w-4 h-4" />
-                                                    </Link>
-                                                    <button
-                                                        onClick={() => handleDelete(Number(receiver.id))}
-                                                        className="p-2 rounded-full glass-effect text-slate-600 dark:text-slate-200 hover:text-red-600"
-                                                        title="Delete receiver"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </div>
+                                            <td className="px-2 py-4 text-center">
+                                                <button
+                                                    onClick={() => handleDelete(Number(receiver.id))}
+                                                    className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all"
+                                                    title="Delete"
+                                                >
+                                                    <Trash2 className="w-5 h-5" />
+                                                </button>
                                             </td>
                                         </tr>
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={11} className="py-20 text-center">
+                                        <td colSpan={12} className="py-20 text-center">
                                             <div className="w-24 h-24 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
                                                 <Users className="w-10 h-10 text-slate-400" />
                                             </div>

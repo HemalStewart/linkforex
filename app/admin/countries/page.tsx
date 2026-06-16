@@ -369,7 +369,7 @@ export default function CountriesPage() {
                     </button>
                     <button
                         onClick={openAddModal}
-                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0"
+                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 whitespace-nowrap"
                     >
                         <PlusCircle className="w-5 h-5" />
                         <span>Add Country</span>
@@ -422,103 +422,104 @@ export default function CountriesPage() {
                         <table className="table-shell">
                             <thead className="table-head">
                                 <tr>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide">#</th>
-                                    <th className="px-8 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide">Actions</th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide">
+                                    <th className="px-4 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">#</th>
+                                    <th className="px-2 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>
+                                    <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                         <span>Country Code</span>
                                     </th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide">
+                                    <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                         <button onClick={() => toggleSort('name')} className="flex items-center gap-1">
                                             <span>Country Name</span>
                                             <span>{sortIndicator('name')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide">
+                                    <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                         <button onClick={() => toggleSort('high_risk_country')} className="flex items-center gap-1">
                                             <span>High Risk Country</span>
                                             <span>{sortIndicator('high_risk_country')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide">
+                                    <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                         <button onClick={() => toggleSort('black_list_country')} className="flex items-center gap-1">
                                             <span>Black List Country</span>
                                             <span>{sortIndicator('black_list_country')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide">
+                                    <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                         <button onClick={() => toggleSort('currency_code')} className="flex items-center gap-1">
                                             <span>Currency Code</span>
                                             <span>{sortIndicator('currency_code')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide">
+                                    <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                         <button onClick={() => toggleSort('currency_symbol')} className="flex items-center gap-1">
                                             <span>Symbol</span>
                                             <span>{sortIndicator('currency_symbol')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide">
+                                    <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                         <button onClick={() => toggleSort('currency_name')} className="flex items-center gap-1">
                                             <span>Currency Name</span>
                                             <span>{sortIndicator('currency_name')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide">
+                                    <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                         <button onClick={() => toggleSort('payout_currency')} className="flex items-center gap-1">
                                             <span>Payout Currency</span>
                                             <span>{sortIndicator('payout_currency')}</span>
                                         </button>
                                     </th>
+                                    <th className="px-2 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
                                 {pagedCountries.map((country, idx) => (
                                     <tr key={country.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
-                                        <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
-                                        <td className="px-8 py-5 text-center">
-                                            <div className="flex items-center justify-center space-x-2">
-                                                <button onClick={() => openEditModal(country)} className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all" title="Edit country">
-                                                    <Edit2 className="w-5 h-5" />
-                                                </button>
-                                                <button
-                                                    onClick={() => setDeleteCountryId(Number(country.id))}
-                                                    disabled={!canDeleteCountry}
-                                                    title={canDeleteCountry ? 'Delete country' : 'Delete permission required'}
-                                                    className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:shadow-none"
-                                                >
-                                                    <Trash2 className="w-5 h-5" />
-                                                </button>
-                                            </div>
+                                        <td className="px-4 py-5 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
+                                        <td className="px-2 py-5 text-center">
+                                            <button onClick={() => openEditModal(country)} className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all" title="Edit country">
+                                                <Edit2 className="w-5 h-5" />
+                                            </button>
                                         </td>
-                                        <td className="px-8 py-5 text-sm font-mono text-slate-500 dark:text-slate-300 whitespace-nowrap">
+                                        <td className="px-6 py-5 text-sm font-mono text-slate-500 dark:text-slate-300 whitespace-nowrap">
                                             {String(country.iso_code || '').toUpperCase() || '—'}
                                         </td>
-                                        <td className="px-8 py-5 font-bold text-slate-900 dark:text-white min-w-[220px]">
+                                        <td className="px-6 py-5 font-bold text-slate-900 dark:text-white min-w-[220px]">
                                             {country.name || '—'}
                                         </td>
-                                        <td className="px-8 py-5 text-sm whitespace-nowrap">
+                                        <td className="px-6 py-5 text-sm whitespace-nowrap">
                                             <Badge type={normalizeYesNo(country.high_risk_country) === 'yes' ? 'yes' : 'no'} className="min-w-[44px] justify-center">
                                                 {toYesNoLabel(normalizeYesNo(country.high_risk_country))}
                                             </Badge>
                                         </td>
-                                        <td className="px-8 py-5 text-sm whitespace-nowrap">
+                                        <td className="px-6 py-5 text-sm whitespace-nowrap">
                                             <Badge type={normalizeYesNo(country.black_list_country) === 'yes' ? 'yes' : 'no'} className="min-w-[44px] justify-center">
                                                 {toYesNoLabel(normalizeYesNo(country.black_list_country))}
                                             </Badge>
                                         </td>
-                                        <td className="px-8 py-5 text-sm font-mono text-slate-500 dark:text-slate-300 whitespace-nowrap">
+                                        <td className="px-6 py-5 text-sm font-mono text-slate-500 dark:text-slate-300 whitespace-nowrap">
                                             {country.currency_code || '—'}
                                         </td>
-                                        <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">
+                                        <td className="px-6 py-5 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">
                                             {country.currency_symbol || '—'}
                                         </td>
-                                        <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 min-w-[220px]">
+                                        <td className="px-6 py-5 text-sm text-slate-500 dark:text-slate-300 min-w-[220px]">
                                             {country.currency_name || '—'}
                                         </td>
-                                        <td className="px-8 py-5 text-sm whitespace-nowrap">
+                                        <td className="px-6 py-5 text-sm whitespace-nowrap">
                                             <Badge type={normalizeYesNo(country.payout_currency) === 'yes' ? 'yes' : 'no'} className="min-w-[44px] justify-center">
                                                 {toYesNoLabel(normalizeYesNo(country.payout_currency))}
                                             </Badge>
+                                        </td>
+                                        <td className="px-2 py-5 text-center">
+                                            <button
+                                                onClick={() => setDeleteCountryId(Number(country.id))}
+                                                disabled={!canDeleteCountry}
+                                                title={canDeleteCountry ? 'Delete country' : 'Delete permission required'}
+                                                className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:shadow-none"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}

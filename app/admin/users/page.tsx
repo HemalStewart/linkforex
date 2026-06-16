@@ -9,7 +9,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import Badge from '../components/ui/Badge';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
-import { Search, UserPlus, Download, Trash2, Users, UserCheck, User, Shield, QrCode, Eye, RotateCcw, ChevronRight } from 'lucide-react';
+import { Search, UserPlus, Download, Trash2, Users, UserCheck, User, Shield, QrCode, Eye, RotateCcw, ChevronRight, Edit2 } from 'lucide-react';
 
 export default function UsersPage() {
     const [searchQuery, setSearchQuery] = useState('');
@@ -369,6 +369,7 @@ export default function UsersPage() {
                         <thead className="table-head">
                             <tr>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">No.</th>
+                                <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('username')} className="flex items-center gap-1">
                                         Username <span className="text-slate-400 dark:text-slate-300">{sortIndicator('username')}</span>
@@ -426,8 +427,7 @@ export default function UsersPage() {
                                     </button>
                                 </th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Reset Password</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">View</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Delete</th>
+                                <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                             </tr>
                         </thead>
                         <tbody className="table-body">
@@ -439,6 +439,21 @@ export default function UsersPage() {
                                         className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200"
                                     >
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
+                                        <td className="px-2 py-4 text-center">
+                                            {systemDefined ? (
+                                                <span className="p-2 rounded-xl text-slate-400 opacity-35 cursor-not-allowed inline-flex" title="System defined user, edit disabled">
+                                                    <Edit2 className="w-5 h-5" />
+                                                </span>
+                                            ) : (
+                                                <Link
+                                                    href={`/admin/users/${user.id}`}
+                                                    className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
+                                                    title="Edit"
+                                                >
+                                                    <Edit2 className="w-5 h-5" />
+                                                </Link>
+                                            )}
+                                        </td>
                                         <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{user.username || '-'}</td>
                                         <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{user.name || '-'}</td>
                                         <td className="px-4 py-4">
@@ -486,26 +501,14 @@ export default function UsersPage() {
                                                 Reset Password
                                             </button>
                                         </td>
-                                        <td className="px-4 py-4">
-                                            <Link
-                                                href={`/admin/users/${user.id}`}
-                                                className="px-3 py-1.5 rounded-full glass-effect text-xs font-semibold text-slate-600 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors flex items-center gap-1"
-                                            >
-                                                <Eye className="w-3.5 h-3.5" />
-                                                View
-                                            </Link>
-                                        </td>
-                                        <td className="px-4 py-4">
+                                        <td className="px-2 py-4 text-center">
                                             <button
                                                 onClick={() => promptDelete(user.id)}
                                                 disabled={systemDefined}
-                                                className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 transition-colors ${systemDefined
-                                                    ? 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500 cursor-not-allowed'
-                                                    : 'glass-effect text-slate-600 dark:text-slate-200 hover:text-red-600'
-                                                    }`}
+                                                className="p-2 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 transition-all disabled:opacity-35 disabled:cursor-not-allowed"
+                                                title="Delete"
                                             >
-                                                <Trash2 className="w-3.5 h-3.5" />
-                                                Delete
+                                                <Trash2 className="w-5 h-5" />
                                             </button>
                                         </td>
                                     </tr>

@@ -8,7 +8,7 @@ import { getCurrentAdminUser, withActingUserParam } from '@/app/lib/adminUserSco
 import ConfirmModal from '../components/ConfirmModal';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
-import { Search, UserPlus, Eye, Trash2, ChevronRight, Users } from 'lucide-react';
+import { Search, UserPlus, Edit2, Trash2, ChevronRight, Users } from 'lucide-react';
 
 type SortDir = 'asc' | 'desc';
 
@@ -383,6 +383,7 @@ export default function RemittersPage() {
                             <thead className="table-head">
                                 <tr>
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">No.</th>
+                                    <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                                     {columns.map((col) => (
                                         <th key={col.key} className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                             <button onClick={() => toggleSort(col.key)} className="flex items-center gap-1">
@@ -390,14 +391,22 @@ export default function RemittersPage() {
                                             </button>
                                         </th>
                                     ))}
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">View</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Delete</th>
+                                    <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
                                 {pagedRows.map((row: any, idx: number) => (
                                     <tr key={row.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
+                                        <td className="px-2 py-4 text-center">
+                                            <Link
+                                                href={`/admin/remitters/${row.id}`}
+                                                className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
+                                                title="Edit"
+                                            >
+                                                <Edit2 className="w-5 h-5" />
+                                            </Link>
+                                        </td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.company || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
                                             <div className="flex items-center gap-2">
@@ -457,24 +466,14 @@ export default function RemittersPage() {
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.entered_date ? new Date(row.entered_date).toLocaleString() : '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.modified_user || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.modified_date ? new Date(row.modified_date).toLocaleString() : '-'}</td>
-                                        <td className="px-4 py-4">
-                                            <Link
-                                                href={`/admin/remitters/${row.id}`}
-                                                className="px-3 py-1.5 rounded-full glass-effect text-xs font-semibold text-slate-600 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors flex items-center gap-1"
-                                            >
-                                                <Eye className="w-3.5 h-3.5" />
-                                                View
-                                            </Link>
-                                        </td>
-                                        <td className="px-4 py-4">
+                                        <td className="px-2 py-4 text-center">
                                             <button
                                                 onClick={() => promptDelete(row)}
                                                 disabled={row.shared_access}
-                                                title={row.shared_access ? 'Shared remitters can only be deleted by the owner branch.' : 'Delete remitter'}
-                                                className="px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 transition-colors glass-effect text-slate-600 dark:text-slate-200 hover:text-red-600 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-slate-600 dark:disabled:hover:text-slate-200"
+                                                title={row.shared_access ? 'Shared remitters can only be deleted by the owner branch.' : 'Delete'}
+                                                className="p-2 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 transition-all disabled:opacity-35 disabled:cursor-not-allowed"
                                             >
-                                                <Trash2 className="w-3.5 h-3.5" />
-                                                Delete
+                                                <Trash2 className="w-5 h-5" />
                                             </button>
                                         </td>
                                     </tr>

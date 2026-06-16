@@ -343,6 +343,7 @@ export default function RolesPage() {
                             <tr>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300"></th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">No.</th>
+                                <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-300" title="Edit"><Edit3 className="w-4 h-4 mx-auto text-slate-400" /></th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('name')} className="flex items-center gap-1">
                                         Role <span className="text-slate-400 dark:text-slate-300">{sortIndicator('name')}</span>
@@ -378,8 +379,7 @@ export default function RolesPage() {
                                         Modified Date <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_at')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Edit</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Delete</th>
+                                <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-300" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                             </tr>
                         </thead>
                         <tbody className="table-body">
@@ -402,6 +402,21 @@ export default function RolesPage() {
                                             />
                                         </td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
+                                        <td className="px-2 py-4 text-center">
+                                            {systemDefined ? (
+                                                <span className="p-2 rounded-xl text-slate-400 opacity-35 cursor-not-allowed inline-flex items-center justify-center" title="System defined">
+                                                    <Edit3 className="w-5 h-5" />
+                                                </span>
+                                            ) : (
+                                                <Link
+                                                    href={`/admin/roles/${role.id}`}
+                                                    className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex items-center justify-center"
+                                                    title="Edit role"
+                                                >
+                                                    <Edit3 className="w-5 h-5" />
+                                                </Link>
+                                            )}
+                                        </td>
                                         <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{role.name || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{role.description || '-'}</td>
                                         <td className="px-4 py-4">
@@ -413,35 +428,17 @@ export default function RolesPage() {
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{role.created_at ? new Date(role.created_at).toLocaleString() : '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{role.updated_by || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{role.updated_at ? new Date(role.updated_at).toLocaleString() : '-'}</td>
-                                        <td className="px-4 py-4">
-                                            {systemDefined ? (
-                                                <span
-                                                    className="px-3 py-1.5 rounded-full bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500 cursor-not-allowed text-xs font-semibold flex items-center gap-1 inline-flex"
-                                                >
-                                                    <Edit3 className="w-3.5 h-3.5" />
-                                                    Edit
-                                                </span>
-                                            ) : (
-                                                <Link
-                                                    href={`/admin/roles/${role.id}`}
-                                                    className="px-3 py-1.5 rounded-full glass-effect text-xs font-semibold text-slate-600 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors flex items-center gap-1"
-                                                >
-                                                    <Edit3 className="w-3.5 h-3.5" />
-                                                    Edit
-                                                </Link>
-                                            )}
-                                        </td>
-                                        <td className="px-4 py-4">
+                                        <td className="px-2 py-4 text-center">
                                             <button
                                                 onClick={() => promptDelete(role)}
                                                 disabled={systemDefined}
-                                                className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 transition-colors ${systemDefined
-                                                    ? 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500 cursor-not-allowed'
-                                                    : 'glass-effect text-slate-600 dark:text-slate-200 hover:text-red-600'
+                                                className={`p-2 rounded-xl transition-all ${systemDefined
+                                                    ? 'text-slate-400 opacity-35 cursor-not-allowed'
+                                                    : 'hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600'
                                                     }`}
+                                                title={systemDefined ? 'System defined' : 'Delete role'}
                                             >
-                                                <Trash2 className="w-3.5 h-3.5" />
-                                                Delete
+                                                <Trash2 className="w-5 h-5" />
                                             </button>
                                         </td>
                                     </tr>

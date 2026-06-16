@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../components/ConfirmModal';
-import { Search, UserPlus, Eye, Download, Trash2 } from 'lucide-react';
+import { Search, UserPlus, Edit2, Download, Trash2 } from 'lucide-react';
 
 type MobileRemitter = {
     id: string | number;
@@ -250,10 +250,11 @@ export default function RemittersPage() {
                             <thead className="table-head">
                                 <tr>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Profile</th>
+                                    <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Contact</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Status</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">KYC</th>
-                                    <th className="px-8 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400">Actions</th>
+                                    <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -267,6 +268,15 @@ export default function RemittersPage() {
                                                 <p className="font-bold text-slate-900 dark:text-white text-[15px]">{remitter.name}</p>
                                                 <p className="text-xs text-slate-500 font-medium mt-0.5">Joined: {remitter.joinedDate}</p>
                                             </div>
+                                        </td>
+                                        <td className="px-2 py-4 text-center">
+                                            <Link
+                                                href={`/admin/mobile-profiles/${remitter.id}`}
+                                                className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
+                                                title="Edit"
+                                            >
+                                                <Edit2 className="w-5 h-5" />
+                                            </Link>
                                         </td>
                                         <td className="px-8 py-5">
                                             <div className="text-sm">
@@ -284,19 +294,12 @@ export default function RemittersPage() {
                                                 {remitter.kycStatus || 'PENDING'}
                                             </span>
                                         </td>
-                                        <td className="px-8 py-5 text-center">
-                                            <Link
-                                                href={`/admin/mobile-profiles/${remitter.id}`}
-                                                className="p-2 rounded-full hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
-                                                title="View/Edit Profile"
-                                            >
-                                                <Eye className="w-5 h-5" />
-                                            </Link>
+                                        <td className="px-2 py-4 text-center">
                                             <button
                                                 type="button"
                                                 onClick={() => promptDelete(remitter)}
-                                                className="p-2 rounded-full hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all inline-flex"
-                                                title="Delete Mobile User"
+                                                className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all inline-flex"
+                                                title="Delete"
                                             >
                                                 <Trash2 className="w-5 h-5" />
                                             </button>

@@ -323,48 +323,51 @@ export default function PurposesPage() {
                         <thead className="table-head">
                             <tr>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">#</th>
+                                <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                     <button onClick={() => toggleSort('name')} className="flex items-center gap-1">Name <span>{sortIndicator('name')}</span></button>
                                 </th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                     <button onClick={() => toggleSort('active')} className="flex items-center gap-1">Active <span>{sortIndicator('active')}</span></button>
                                 </th>
-                                <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 dark:text-slate-400">Actions</th>
+                                <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                             </tr>
                         </thead>
                         <tbody className="table-body">
                             {loading && (
-                                <tr><td colSpan={4} className="px-6 py-10 text-center text-slate-500 animate-pulse">Loading…</td></tr>
+                                <tr><td colSpan={5} className="px-6 py-10 text-center text-slate-500 animate-pulse">Loading…</td></tr>
                             )}
                             {!loading && pagedRows.map((row, idx) => (
                                 <tr key={row.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
                                     <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
+                                    <td className="px-2 py-4 text-center">
+                                        <button
+                                            className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all"
+                                            onClick={() => openEditModal(row)}
+                                            title="Edit"
+                                        >
+                                            <Edit2 className="w-5 h-5" />
+                                        </button>
+                                    </td>
                                     <td className="px-6 py-4 font-semibold text-slate-800 dark:text-slate-100">{row.name || '—'}</td>
                                     <td className="px-6 py-4">
                                         <Badge type={normalizeYesNo(row.active) === 'yes' ? 'yes' : 'no'}>
                                             {normalizeYesNo(row.active) === 'yes' ? 'Yes' : 'No'}
                                         </Badge>
                                     </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <div className="inline-flex items-center gap-2">
-                                            <button
-                                                className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all"
-                                                onClick={() => openEditModal(row)}
-                                            >
-                                                <Edit2 className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all"
-                                                onClick={() => setDeleteId(Number(row.id))}
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
+                                    <td className="px-2 py-4 text-center">
+                                        <button
+                                            className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all"
+                                            onClick={() => setDeleteId(Number(row.id))}
+                                            title="Delete"
+                                        >
+                                            <Trash2 className="w-5 h-5" />
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
                             {!loading && pagedRows.length === 0 && (
-                                <tr><td colSpan={4} className="px-6 py-10 text-center text-slate-500">No purposes found.</td></tr>
+                                <tr><td colSpan={5} className="px-6 py-10 text-center text-slate-500">No purposes found.</td></tr>
                             )}
                         </tbody>
                     </table>

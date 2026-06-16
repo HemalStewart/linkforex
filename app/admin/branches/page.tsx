@@ -360,6 +360,7 @@ export default function BranchesPage() {
                         <thead className="table-head">
                             <tr>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">No.</th>
+                                <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-300" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('name')} className="flex items-center gap-1">
                                         Branch Name <span className="text-slate-400 dark:text-slate-300">{sortIndicator('name')}</span>
@@ -405,7 +406,7 @@ export default function BranchesPage() {
                                         Modified Date <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_at')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Actions</th>
+                                <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-300" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                             </tr>
                         </thead>
                         <tbody className="table-body">
@@ -413,6 +414,21 @@ export default function BranchesPage() {
                                 <tr key={branch.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
                                     <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">
                                         {startIndex + idx + 1}
+                                    </td>
+                                    <td className="px-2 py-4 text-center">
+                                        {canEditBranch ? (
+                                            <Link
+                                                href={`/admin/branches/${branch.id}`}
+                                                className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex items-center justify-center"
+                                                title="Edit branch"
+                                            >
+                                                <Edit2 className="w-5 h-5" />
+                                            </Link>
+                                        ) : (
+                                            <span className="p-2 rounded-xl text-slate-400 opacity-50 cursor-not-allowed inline-flex items-center justify-center" title="Edit permission required">
+                                                <Edit2 className="w-5 h-5" />
+                                            </span>
+                                        )}
                                     </td>
                                     <td className="px-4 py-4">
                                         <div className="text-sm font-semibold text-slate-700 dark:text-slate-200">{branch.name || '-'}</div>
@@ -442,36 +458,16 @@ export default function BranchesPage() {
                                     <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{branch.created_at ? new Date(branch.created_at).toLocaleString() : '-'}</td>
                                     <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{branch.updated_by || '-'}</td>
                                     <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{branch.updated_at ? new Date(branch.updated_at).toLocaleString() : '-'}</td>
-                                    <td className="px-4 py-4">
-                                        <div className="flex items-center gap-2">
-                                            <Link
-                                                href={`/admin/branches/${branch.id}?mode=view`}
-                                                className="inline-flex h-9 w-9 items-center justify-center rounded-full glass-effect text-slate-600 transition-colors hover:text-teal-600 dark:text-slate-200 dark:hover:text-teal-300"
-                                                title="View branch"
-                                                aria-label="View branch"
-                                            >
-                                                <Eye className="h-4 w-4" />
-                                            </Link>
-                                            <Link
-                                                href={`/admin/branches/${branch.id}`}
-                                                className={`inline-flex h-9 w-9 items-center justify-center rounded-full glass-effect transition-colors ${canEditBranch ? 'text-slate-600 hover:text-teal-600 dark:text-slate-200 dark:hover:text-teal-300' : 'cursor-not-allowed opacity-50 text-slate-400 dark:text-slate-500 pointer-events-none'}`}
-                                                title={canEditBranch ? 'Edit branch' : 'Edit permission required'}
-                                                aria-label="Edit branch"
-                                                aria-disabled={!canEditBranch}
-                                            >
-                                                <Edit2 className="h-4 w-4" />
-                                            </Link>
-                                            <button
-                                                type="button"
-                                                onClick={() => promptDelete(branch)}
-                                                disabled={!canDeleteBranch}
-                                                className={`inline-flex h-9 w-9 items-center justify-center rounded-full glass-effect transition-colors ${canDeleteBranch ? 'text-slate-600 hover:text-red-600 dark:text-slate-200 dark:hover:text-red-400' : 'cursor-not-allowed opacity-50 text-slate-400 dark:text-slate-500'}`}
-                                                title={canDeleteBranch ? 'Delete branch' : 'Delete permission required'}
-                                                aria-label="Delete branch"
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </button>
-                                        </div>
+                                    <td className="px-2 py-4 text-center">
+                                        <button
+                                            type="button"
+                                            onClick={() => promptDelete(branch)}
+                                            disabled={!canDeleteBranch}
+                                            className={`p-2 rounded-xl transition-all ${canDeleteBranch ? 'hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600' : 'cursor-not-allowed opacity-50 text-slate-400'}`}
+                                            title={canDeleteBranch ? 'Delete branch' : 'Delete permission required'}
+                                        >
+                                            <Trash2 className="w-5 h-5" />
+                                        </button>
                                     </td>
                                 </tr>
                             ))}

@@ -766,8 +766,8 @@ export default function PermissionGroupsPage() {
                                         Operation <span className="text-slate-400 dark:text-slate-300">{sortIndicator('operation')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
-                                    <button onClick={() => toggleSort('system_defined')} className="flex items-center gap-1">
+                                <th className="px-4 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-300">
+                                    <button onClick={() => toggleSort('system_defined')} className="mx-auto flex items-center gap-1">
                                         System Defined <span className="text-slate-400 dark:text-slate-300">{sortIndicator('system_defined')}</span>
                                     </button>
                                 </th>
@@ -804,10 +804,15 @@ export default function PermissionGroupsPage() {
                                         <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{row.role_name}</td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.page_section}</td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.operation}</td>
-                                        <td className="px-4 py-4 text-sm">
-                                            <span className={`px-3 py-1 rounded-full text-[11px] font-bold ${badgeClass(row.system_defined)}`}>
-                                                {toYesNoLabel(row.system_defined)}
-                                            </span>
+                                        <td className="px-4 py-4 text-sm text-center">
+                                            <label className="inline-flex items-center justify-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={normalizeYesNo(row.system_defined) === 'yes'}
+                                                    disabled
+                                                    className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-50"
+                                                />
+                                            </label>
                                         </td>
                                         <td className="px-4 py-4 text-sm text-center">
                                             <label className="inline-flex items-center justify-center">
@@ -819,9 +824,6 @@ export default function PermissionGroupsPage() {
                                                     className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-50"
                                                 />
                                             </label>
-                                            <div className="mt-1 text-[11px] font-semibold text-slate-500 dark:text-slate-300">
-                                                {toYesNoLabel(row.active)}
-                                            </div>
                                         </td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.created_by || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime(row.created_at)}</td>

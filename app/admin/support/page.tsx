@@ -6,7 +6,7 @@ import { ENDPOINTS } from '@/app/lib/api';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
 import Pagination from '../components/ui/Pagination';
-import { Eye, Mail, MessageCircle, Phone, RefreshCw, Search, Send, Trash2, User, Save } from 'lucide-react';
+import { Edit2, Mail, MessageCircle, Phone, RefreshCw, Search, Send, Trash2, User, Save } from 'lucide-react';
 
 type SupportTicket = {
     id: number;
@@ -439,13 +439,14 @@ export default function SupportPage() {
                             <thead className="table-head">
                                 <tr>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Ticket Number</th>
+                                    <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Customer</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Topic</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Message Type</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Status</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Priority</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Last Message</th>
-                                    <th className="px-8 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400">Actions</th>
+                                    <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -453,6 +454,15 @@ export default function SupportPage() {
                                     <tr key={ticket.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
                                         <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 font-medium">
                                             {normalizeText(ticket.ticket_number, `#${ticket.id}`)}
+                                        </td>
+                                        <td className="px-2 py-4 text-center">
+                                            <button
+                                                onClick={() => openTicket(ticket)}
+                                                className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all"
+                                                title="Edit"
+                                            >
+                                                <Edit2 className="w-5 h-5" />
+                                            </button>
                                         </td>
                                         <td className="px-8 py-5 text-sm text-slate-600 dark:text-slate-300">
                                             <div className="flex flex-col gap-1">
@@ -485,22 +495,13 @@ export default function SupportPage() {
                                         <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300">
                                             {formatDateTime(ticket.last_message_at || ticket.updated_at || ticket.created_at)}
                                         </td>
-                                        <td className="px-8 py-5 text-center">
-                                            <button
-                                                onClick={() => openTicket(ticket)}
-                                                title="View"
-                                                aria-label="View support ticket"
-                                                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-teal-200/70 bg-teal-500/10 text-teal-600 transition-colors hover:bg-teal-500/20 dark:border-teal-500/30 dark:text-teal-300"
-                                            >
-                                                <Eye className="w-4 h-4" />
-                                            </button>
+                                        <td className="px-2 py-4 text-center">
                                             <button
                                                 onClick={() => setDeleteState({ open: true, ticket, loading: false })}
+                                                className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all"
                                                 title="Delete"
-                                                aria-label="Delete support ticket"
-                                                className="ml-2 inline-flex h-10 w-10 items-center justify-center rounded-full border border-rose-200/70 bg-rose-500/10 text-rose-600 transition-colors hover:bg-rose-500/20 dark:border-rose-500/30 dark:text-rose-300"
                                             >
-                                                <Trash2 className="w-4 h-4" />
+                                                <Trash2 className="w-5 h-5" />
                                             </button>
                                         </td>
                                     </tr>
