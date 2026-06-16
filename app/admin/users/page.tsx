@@ -9,7 +9,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import Badge from '../components/ui/Badge';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
-import { Search, UserPlus, Download, Trash2, Users, UserCheck, User, Shield, QrCode, Eye, RotateCcw, ChevronRight, Edit2 } from 'lucide-react';
+import { Search, UserPlus, Trash2, Users, UserCheck, User, Shield, QrCode, Eye, RotateCcw, ChevronRight, Edit2 } from 'lucide-react';
 
 export default function UsersPage() {
     const [searchQuery, setSearchQuery] = useState('');
@@ -300,12 +300,6 @@ export default function UsersPage() {
                     <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">Manage users and assign roles</p>
                 </div>
                 <div className="flex items-center space-x-4">
-                    <button className="px-5 py-3 rounded-full border-0 glass-effect text-slate-700 dark:text-slate-300 font-bold hover:shadow-lg transition-all">
-                        <span className="flex items-center space-x-2">
-                            <Download className="w-5 h-5" />
-                            <span>Export</span>
-                        </span>
-                    </button>
                     <Link href="/admin/users/create" className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 rounded-full px-6">
                         <UserPlus className="w-5 h-5" />
                         <span>Add User</span>
