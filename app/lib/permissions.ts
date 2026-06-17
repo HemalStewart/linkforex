@@ -114,7 +114,8 @@ export const ADMIN_PAGES_CONFIG: AdminCategoryInfo[] = [
     {
         category: 'Configuration',
         pages: [
-            { name: 'Configuration', section: 'SETTINGS', operations: ['VIEW', 'EDIT'] }
+            { name: 'Configuration', section: 'SETTINGS', operations: ['VIEW', 'EDIT'] },
+            { name: 'My Profile', section: 'PROFILE', operations: ['VIEW', 'EDIT'] }
         ]
     }
 ];

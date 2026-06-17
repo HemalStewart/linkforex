@@ -124,11 +124,18 @@ export default function PermissionGroupsPage() {
         setCurrentUserName(parsed?.username || parsed?.name || parsed?.email || '');
     }, []);
 
-    // Set default selected role for grid view
+    // Set default selected role for grid view to the logged-in user's role
     useEffect(() => {
         if (roles.length > 0 && !selectedRole) {
-            const defaultRole = roles.find(r => r.name !== 'Admin' && r.name !== 'Super Admin')?.name || roles[0].name;
-            setSelectedRole(defaultRole);
+            const parsed = getStoredUser<{ role?: string }>();
+            const currentUserRole = parsed?.role ? String(parsed.role).trim() : '';
+            const matchedRole = roles.find(r => r.name.toLowerCase() === currentUserRole.toLowerCase());
+            
+            if (matchedRole) {
+                setSelectedRole(matchedRole.name);
+            } else {
+                setSelectedRole(roles[0].name);
+            }
         }
     }, [roles, selectedRole]);
 

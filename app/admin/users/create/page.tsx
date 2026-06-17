@@ -450,12 +450,13 @@ export default function CreateUserPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Assigned Branch</label>
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Assigned Branch <span className="text-red-500">*</span></label>
             <div className="relative input-icon">
               <span className="input-icon-left">
                 <Building className="w-5 h-5" />
               </span>
               <select
+                required
                 className="input-glass w-full pr-10 appearance-none cursor-pointer"
                 value={formData.branch}
                 onChange={(e) => setFormData({ ...formData, branch: e.target.value })}

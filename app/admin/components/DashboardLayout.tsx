@@ -696,7 +696,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         {
             name: 'My Profile',
             icon: <User className="w-5 h-5" />,
-            href: '/admin/profile'
+            href: '/admin/profile',
+            sections: ['PROFILE']
         }
     ];
 
