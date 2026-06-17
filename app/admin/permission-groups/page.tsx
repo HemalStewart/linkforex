@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRowsPerPage } from '@/app/lib/uiPreferences';
-import { PlusCircle, Search, Key, Save, X } from 'lucide-react';
+import { PlusCircle, Search, Key, Save, X, Shield, Lock, AlertCircle, Info, RefreshCw } from 'lucide-react';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../components/ConfirmModal';
@@ -10,6 +10,7 @@ import { formatDateTime } from '@/app/lib/dateUtils';
 import Badge from '../components/ui/Badge';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
+import { ADMIN_PAGES_CONFIG } from '@/app/lib/permissions';
 
 type PermissionGroupRow = {
     id: number;
@@ -40,6 +41,10 @@ const normalizeYesNo = (value?: string | null) => (String(value || '').toLowerCa
 const toYesNoLabel = (value?: string | null) => (normalizeYesNo(value) === 'yes' ? 'Yes' : 'No');
 
 export default function PermissionGroupsPage() {
+    const [activeTab, setActiveTab] = useState<'grid' | 'list'>('grid');
+    const [selectedRole, setSelectedRole] = useState<string>('');
+    const [toggling, setToggling] = useState<string>(''); // section|op
+
     const [rows, setRows] = useState<PermissionGroupRow[]>([]);
     const [roles, setRoles] = useState<RoleOption[]>([]);
     const [loading, setLoading] = useState(true);
@@ -118,6 +123,131 @@ export default function PermissionGroupsPage() {
         const parsed = getStoredUser<{ username?: string; name?: string; email?: string }>();
         setCurrentUserName(parsed?.username || parsed?.name || parsed?.email || '');
     }, []);
+
+    // Set default selected role for grid view
+    useEffect(() => {
+        if (roles.length > 0 && !selectedRole) {
+            const defaultRole = roles.find(r => r.name !== 'Admin' && r.name !== 'Super Admin')?.name || roles[0].name;
+            setSelectedRole(defaultRole);
+        }
+    }, [roles, selectedRole]);
+
+    // Helpers for checking permission state
+    const getPermissionState = useCallback((section: string, op: string) => {
+        const isAdmin = selectedRole.toLowerCase().includes('admin') || selectedRole.toLowerCase().includes('super');
+        if (isAdmin) {
+            return { active: true, record: null };
+        }
+
+        const match = rows.find(r =>
+            r.role_name === selectedRole &&
+            r.page_section === section &&
+            r.operation === op
+        );
+        return {
+            active: match ? normalizeYesNo(match.active) === 'yes' : false,
+            record: match || null
+        };
+    }, [selectedRole, rows]);
+
+    const togglePermission = async (section: string, op: string) => {
+        const isAdmin = selectedRole.toLowerCase().includes('admin') || selectedRole.toLowerCase().includes('super');
+        if (isAdmin) return;
+
+        const { active, record } = getPermissionState(section, op);
+        const nextActive = active ? 'no' : 'yes';
+
+        const key = `${section}|${op}`;
+        setToggling(key);
+
+        try {
+            if (record) {
+                const res = await fetch(ENDPOINTS.PERMISSION_GROUPS.DETAIL(record.id), {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        role_name: record.role_name,
+                        page_section: record.page_section,
+                        operation: record.operation,
+                        system_defined: record.system_defined,
+                        active: nextActive,
+                        updated_by: currentUserName || 'Admin'
+                    })
+                });
+
+                if (res.ok) {
+                    setRows(prev => prev.map(r => r.id === record.id ? { ...r, active: nextActive, updated_by: currentUserName || 'Admin', updated_at: new Date().toISOString() } : r));
+                } else {
+                    throw new Error('Failed to update permission');
+                }
+            } else {
+                const roleObj = roles.find(r => r.name === selectedRole);
+                const res = await fetch(ENDPOINTS.PERMISSION_GROUPS.LIST, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        role_id: roleObj?.id,
+                        role_name: selectedRole,
+                        page_section: section,
+                        operation: op,
+                        system_defined: 'no',
+                        active: nextActive,
+                        created_by: currentUserName || 'Admin',
+                        updated_by: currentUserName || 'Admin'
+                    })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    const newRecord = data?.data || data;
+                    if (newRecord && typeof newRecord === 'object' && newRecord.id) {
+                        setRows(prev => [...prev, newRecord]);
+                    } else {
+                        await fetchRows();
+                    }
+                } else {
+                    throw new Error('Failed to create permission');
+                }
+            }
+
+            // Enforce View Rule: If View is set to "no", deactivate all other operations on this section
+            if (op === 'VIEW' && nextActive === 'no') {
+                const activeOps = ADMIN_PAGES_CONFIG.flatMap(cat => cat.pages)
+                    .find(p => p.section === section)
+                    ?.operations.filter(o => o !== 'VIEW') || [];
+
+                for (const otherOp of activeOps) {
+                    const opState = getPermissionState(section, otherOp);
+                    if (opState.active && opState.record) {
+                        await fetch(ENDPOINTS.PERMISSION_GROUPS.DETAIL(opState.record.id), {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                role_name: opState.record.role_name,
+                                page_section: opState.record.page_section,
+                                operation: opState.record.operation,
+                                system_defined: opState.record.system_defined,
+                                active: 'no',
+                                updated_by: currentUserName || 'Admin'
+                            })
+                        });
+                    }
+                }
+                await fetchRows();
+            }
+        } catch (e) {
+            console.error(e);
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'Failed to save permission change. Please try again.',
+                type: 'danger',
+                isAlert: true
+            });
+        } finally {
+            setToggling('');
+        }
+    };
 
     const searched = useMemo(() => {
         if (!searchQuery.trim()) return rows;
@@ -535,301 +665,522 @@ export default function PermissionGroupsPage() {
                 confirmText={confirmModal.isAlert ? 'OK' : 'Confirm'}
                 isAlert={confirmModal.isAlert}
             />
+
             <div className="flex items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Role Permissions</h1>
                     <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">Manage role permissions by page section and operation</p>
                 </div>
+                {activeTab === 'list' && (
+                    <button
+                        type="button"
+                        onClick={() => setShowCreateForm((prev) => !prev)}
+                        className="btn-primary px-5 py-3 rounded-full text-sm font-semibold inline-flex items-center gap-2"
+                    >
+                        {showCreateForm ? (
+                            <>
+                                <X className="w-4 h-4" />
+                                Close
+                            </>
+                        ) : (
+                            <>
+                                <PlusCircle className="w-4 h-4" />
+                                Add Permission
+                            </>
+                        )}
+                    </button>
+                )}
+            </div>
+
+            {/* Tab Navigation */}
+            <div className="flex border-b border-slate-200/60 dark:border-slate-700/60 mb-2">
                 <button
-                    type="button"
-                    onClick={() => setShowCreateForm((prev) => !prev)}
-                    className="btn-primary px-5 py-3 rounded-full text-sm font-semibold inline-flex items-center gap-2"
+                    onClick={() => setActiveTab('grid')}
+                    className={`py-3 px-6 font-bold text-sm border-b-2 transition-all duration-300 flex items-center gap-2 ${activeTab === 'grid'
+                        ? 'border-teal-500 text-teal-600 dark:text-teal-400 font-extrabold'
+                        : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                        }`}
                 >
-                    {showCreateForm ? (
-                        <>
-                            <X className="w-4 h-4" />
-                            Close
-                        </>
-                    ) : (
-                        <>
-                            <PlusCircle className="w-4 h-4" />
-                            Add Permission
-                        </>
-                    )}
+                    <Shield className="w-4 h-4" />
+                    Permissions Grid Matrix
+                </button>
+                <button
+                    onClick={() => setActiveTab('list')}
+                    className={`py-3 px-6 font-bold text-sm border-b-2 transition-all duration-300 flex items-center gap-2 ${activeTab === 'list'
+                        ? 'border-teal-500 text-teal-600 dark:text-teal-400 font-extrabold'
+                        : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                        }`}
+                >
+                    <Key className="w-4 h-4" />
+                    Advanced Logs & Imports
                 </button>
             </div>
 
-            {showCreateForm && (
-                <div className="card-glass p-6">
-                    <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Add Role Permission</h2>
-                    <form onSubmit={submitCreatePermission} className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Role</label>
+            {activeTab === 'grid' ? (
+                /* Tab 1: Permissions Grid View */
+                <div className="space-y-6 animate-fade-in-up">
+                    <div className="card-glass p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-md">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full flex items-center justify-center text-teal-600 bg-teal-100 dark:text-teal-300 dark:bg-teal-900/40">
+                                <Shield className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Active Management Role</h3>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">Select a role to view and customize page access rules</p>
+                            </div>
+                        </div>
+                        <div className="w-full md:w-72">
                             <select
-                                value={createForm.role_name}
-                                onChange={(e) => setCreateForm((prev) => ({ ...prev, role_name: e.target.value }))}
-                                className="input-glass w-full text-sm"
-                                required
+                                value={selectedRole}
+                                onChange={(e) => setSelectedRole(e.target.value)}
+                                className="input-glass w-full font-semibold text-slate-800 dark:text-slate-200"
                             >
-                                <option value="">Select role</option>
-                                {roles.map((role) => (
-                                    <option key={role.id} value={role.name}>
-                                        {role.name}
-                                    </option>
+                                <option value="" disabled>Select role</option>
+                                {roles.map((r) => (
+                                    <option key={r.id} value={r.name}>{r.name}</option>
                                 ))}
                             </select>
                         </div>
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Page Section</label>
-                            <input
-                                list="page-section-options"
-                                value={createForm.page_section}
-                                onChange={(e) => setCreateForm((prev) => ({ ...prev, page_section: e.target.value.toUpperCase() }))}
-                                placeholder="Page section code"
-                                className="input-glass w-full text-sm"
-                                required
-                            />
-                            <datalist id="page-section-options">
-                                {sectionOptions.map((section) => (
-                                    <option key={section} value={section} />
-                                ))}
-                            </datalist>
+                    </div>
+
+                    {selectedRole && (selectedRole.toLowerCase().includes('admin') || selectedRole.toLowerCase().includes('super')) && (
+                        <div className="p-4 bg-teal-500/10 border border-teal-500/30 text-teal-800 dark:text-teal-300 rounded-2xl flex items-start gap-3 animate-fade-in">
+                            <Info className="w-5 h-5 mt-0.5 shrink-0" />
+                            <div>
+                                <span className="font-bold">Privileged Role Detected:</span> All permissions are automatically active for the <span className="font-semibold">{selectedRole}</span> role. Permissions cannot be disabled or customized for system admins to prevent security locks.
+                            </div>
                         </div>
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Operation</label>
-                            <select
-                                value={createForm.operation}
-                                onChange={(e) => setCreateForm((prev) => ({ ...prev, operation: e.target.value }))}
-                                className="input-glass w-full text-sm"
-                                required
-                            >
-                                {OPERATION_OPTIONS.map((option) => (
-                                    <option key={option} value={option}>
-                                        {option}
-                                    </option>
-                                ))}
-                            </select>
+                    )}
+
+                    {selectedRole && (
+                        <div className="grid grid-cols-1 gap-6">
+                            {ADMIN_PAGES_CONFIG.map((cat) => (
+                                <div key={cat.category} className="card-glass overflow-hidden shadow-lg border border-white/20 dark:border-white/10 rounded-2xl">
+                                    <div className="px-6 py-4 bg-slate-50/50 dark:bg-slate-800/40 border-b border-slate-100/70 dark:border-slate-700/60 flex items-center justify-between">
+                                        <h2 className="text-md font-bold text-slate-800 dark:text-white tracking-wide">{cat.category}</h2>
+                                        <Badge type="info" className="text-xs font-semibold">{`${cat.pages.length} Pages`}</Badge>
+                                    </div>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full border-collapse">
+                                            <thead>
+                                                <tr className="bg-slate-100/30 dark:bg-slate-800/20 text-slate-500 dark:text-slate-400 text-xs font-bold border-b border-slate-100/60 dark:border-slate-800/40">
+                                                    <th className="px-6 py-3.5 text-left">Page Name</th>
+                                                    <th className="px-6 py-3.5 text-left">Section Code</th>
+                                                    <th className="px-6 py-3.5 text-center">VIEW</th>
+                                                    <th className="px-6 py-3.5 text-center">CREATE</th>
+                                                    <th className="px-6 py-3.5 text-center">EDIT</th>
+                                                    <th className="px-6 py-3.5 text-center">DELETE</th>
+                                                    <th className="px-6 py-3.5 text-center">OTHER ACTIONS</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-100/60 dark:divide-slate-800/40">
+                                                {cat.pages.map((page) => {
+                                                    const viewPerm = getPermissionState(page.section, 'VIEW');
+                                                    const isViewActive = viewPerm.active;
+                                                    const isAdmin = selectedRole.toLowerCase().includes('admin') || selectedRole.toLowerCase().includes('super');
+
+                                                    return (
+                                                        <tr key={page.name} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/30 transition-colors duration-150">
+                                                            <td className="px-6 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{page.name}</td>
+                                                            <td className="px-6 py-4 text-xs font-mono text-slate-400 dark:text-slate-500 uppercase">{page.section}</td>
+                                                            
+                                                            {/* VIEW CHECKBOX */}
+                                                            <td className="px-6 py-4 text-center">
+                                                                <div className="flex justify-center">
+                                                                    {toggling === `${page.section}|VIEW` ? (
+                                                                        <RefreshCw className="w-4 h-4 animate-spin text-teal-500" />
+                                                                    ) : (
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            checked={isViewActive}
+                                                                            disabled={isAdmin}
+                                                                            onChange={() => togglePermission(page.section, 'VIEW')}
+                                                                            className="h-4.5 w-4.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-50 transition-all cursor-pointer"
+                                                                        />
+                                                                    )}
+                                                                </div>
+                                                            </td>
+
+                                                            {/* CREATE (ADD) CHECKBOX */}
+                                                            <td className="px-6 py-4 text-center">
+                                                                {page.operations.includes('ADD') ? (
+                                                                    <div className="flex justify-center">
+                                                                        {toggling === `${page.section}|ADD` ? (
+                                                                            <RefreshCw className="w-4 h-4 animate-spin text-teal-500" />
+                                                                        ) : (
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                checked={isViewActive && getPermissionState(page.section, 'ADD').active}
+                                                                                disabled={isAdmin || !isViewActive}
+                                                                                onChange={() => togglePermission(page.section, 'ADD')}
+                                                                                className="h-4.5 w-4.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-40 transition-all cursor-pointer"
+                                                                                title={!isViewActive ? 'VIEW permission must be active first' : ''}
+                                                                            />
+                                                                        )}
+                                                                    </div>
+                                                                ) : (
+                                                                    <span className="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
+                                                                )}
+                                                            </td>
+
+                                                            {/* EDIT CHECKBOX */}
+                                                            <td className="px-6 py-4 text-center">
+                                                                {page.operations.includes('EDIT') ? (
+                                                                    <div className="flex justify-center">
+                                                                        {toggling === `${page.section}|EDIT` ? (
+                                                                            <RefreshCw className="w-4 h-4 animate-spin text-teal-500" />
+                                                                        ) : (
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                checked={isViewActive && getPermissionState(page.section, 'EDIT').active}
+                                                                                disabled={isAdmin || !isViewActive}
+                                                                                onChange={() => togglePermission(page.section, 'EDIT')}
+                                                                                className="h-4.5 w-4.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-40 transition-all cursor-pointer"
+                                                                                title={!isViewActive ? 'VIEW permission must be active first' : ''}
+                                                                            />
+                                                                        )}
+                                                                    </div>
+                                                                ) : (
+                                                                    <span className="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
+                                                                )}
+                                                            </td>
+
+                                                            {/* DELETE CHECKBOX */}
+                                                            <td className="px-6 py-4 text-center">
+                                                                {page.operations.includes('DELETE') ? (
+                                                                    <div className="flex justify-center">
+                                                                        {toggling === `${page.section}|DELETE` ? (
+                                                                            <RefreshCw className="w-4 h-4 animate-spin text-teal-500" />
+                                                                        ) : (
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                checked={isViewActive && getPermissionState(page.section, 'DELETE').active}
+                                                                                disabled={isAdmin || !isViewActive}
+                                                                                onChange={() => togglePermission(page.section, 'DELETE')}
+                                                                                className="h-4.5 w-4.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-40 transition-all cursor-pointer"
+                                                                                title={!isViewActive ? 'VIEW permission must be active first' : ''}
+                                                                            />
+                                                                        )}
+                                                                    </div>
+                                                                ) : (
+                                                                    <span className="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
+                                                                )}
+                                                            </td>
+
+                                                            {/* OTHER OPERATIONS */}
+                                                            <td className="px-6 py-4 text-center">
+                                                                <div className="flex justify-center gap-3">
+                                                                    {page.operations.filter(o => !['VIEW', 'ADD', 'EDIT', 'DELETE'].includes(o)).map((otherOp) => {
+                                                                        const otherState = getPermissionState(page.section, otherOp);
+                                                                        return (
+                                                                            <label key={otherOp} className="flex items-center gap-1.5 cursor-pointer" title={!isViewActive ? 'VIEW permission must be active first' : ''}>
+                                                                                {toggling === `${page.section}|${otherOp}` ? (
+                                                                                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-teal-500" />
+                                                                                ) : (
+                                                                                    <input
+                                                                                        type="checkbox"
+                                                                                        checked={isViewActive && otherState.active}
+                                                                                        disabled={isAdmin || !isViewActive}
+                                                                                        onChange={() => togglePermission(page.section, otherOp)}
+                                                                                        className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-40 transition-all cursor-pointer"
+                                                                                    />
+                                                                                )}
+                                                                                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 capitalize">{otherOp.toLowerCase()}</span>
+                                                                            </label>
+                                                                        );
+                                                                    })}
+                                                                    {page.operations.filter(o => !['VIEW', 'ADD', 'EDIT', 'DELETE'].includes(o)).length === 0 && (
+                                                                        <span className="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
+                                                                    )}
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Active</label>
-                            <select
-                                value={createForm.active}
-                                onChange={(e) => setCreateForm((prev) => ({ ...prev, active: e.target.value as 'yes' | 'no' }))}
-                                className="input-glass w-full text-sm"
-                            >
-                                <option value="yes">Yes</option>
-                                <option value="no">No</option>
-                            </select>
+                    )}
+                </div>
+            ) : (
+                /* Tab 2: Advanced List View (Original search table & forms) */
+                <div className="space-y-8 animate-fade-in-up">
+                    {showCreateForm && (
+                        <div className="card-glass p-6">
+                            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Add Role Permission</h2>
+                            <form onSubmit={submitCreatePermission} className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Role</label>
+                                    <select
+                                        value={createForm.role_name}
+                                        onChange={(e) => setCreateForm((prev) => ({ ...prev, role_name: e.target.value }))}
+                                        className="input-glass w-full text-sm"
+                                        required
+                                    >
+                                        <option value="">Select role</option>
+                                        {roles.map((role) => (
+                                            <option key={role.id} value={role.name}>
+                                                {role.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Page Section</label>
+                                    <input
+                                        list="page-section-options"
+                                        value={createForm.page_section}
+                                        onChange={(e) => setCreateForm((prev) => ({ ...prev, page_section: e.target.value.toUpperCase() }))}
+                                        placeholder="Page section code"
+                                        className="input-glass w-full text-sm"
+                                        required
+                                    />
+                                    <datalist id="page-section-options">
+                                        {sectionOptions.map((section) => (
+                                            <option key={section} value={section} />
+                                        ))}
+                                    </datalist>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Operation</label>
+                                    <select
+                                        value={createForm.operation}
+                                        onChange={(e) => setCreateForm((prev) => ({ ...prev, operation: e.target.value }))}
+                                        className="input-glass w-full text-sm"
+                                        required
+                                    >
+                                        {OPERATION_OPTIONS.map((option) => (
+                                            <option key={option} value={option}>
+                                                {option}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Active</label>
+                                    <select
+                                        value={createForm.active}
+                                        onChange={(e) => setCreateForm((prev) => ({ ...prev, active: e.target.value as 'yes' | 'no' }))}
+                                        className="input-glass w-full text-sm"
+                                    >
+                                        <option value="yes">Yes</option>
+                                        <option value="no">No</option>
+                                    </select>
+                                </div>
+                                <div className="flex items-end justify-end">
+                                    <button
+                                        type="submit"
+                                        disabled={creating}
+                                        className="btn-primary px-5 py-2.5 rounded-full text-sm font-semibold disabled:opacity-60 flex items-center justify-center gap-2"
+                                    >  <Save className="w-4 h-4" />
+                                        {creating ? 'Saving...' : 'Save'}
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-                        <div className="flex items-end justify-end">
+                    )}
+
+                    <div className="card-glass p-6">
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Global Search</label>
+                            <div className="relative input-icon">
+                                <span className="input-icon-left">
+                                    <Search className="w-4 h-4" />
+                                </span>
+                                <input
+                                    type="text"
+                                    placeholder="Search all columns"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="input-glass w-full text-sm"
+                                />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mt-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Role</label>
+                                <input
+                                    list="role-filter-options"
+                                    value={roleFilter}
+                                    onChange={(e) => setRoleFilter(e.target.value)}
+                                    placeholder="Search role"
+                                    className="input-glass w-full text-sm"
+                                />
+                                <datalist id="role-filter-options">
+                                    {roleOptions.map((role) => (
+                                        <option key={role} value={role} />
+                                    ))}
+                                </datalist>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Page Section</label>
+                                <select
+                                    value={pageSectionFilter}
+                                    onChange={(e) => setPageSectionFilter(e.target.value)}
+                                    className="input-glass w-full text-sm"
+                                >
+                                    <option value="all">All</option>
+                                    {sectionOptions.map((section) => (
+                                        <option key={section} value={section}>{section}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Operation</label>
+                                <input
+                                    type="text"
+                                    placeholder="Search operation"
+                                    value={operationFilter}
+                                    onChange={(e) => setOperationFilter(e.target.value)}
+                                    className="input-glass w-full text-sm"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Status</label>
+                                <div className="flex items-center gap-2">
+                                    <select
+                                        value={activeFilter}
+                                        onChange={(e) => setActiveFilter(e.target.value)}
+                                        className="input-glass w-full text-sm"
+                                    >
+                                        <option value="all">All Active</option>
+                                        <option value="yes">Active</option>
+                                        <option value="no">Inactive</option>
+                                    </select>
+                                    <select
+                                        value={systemDefinedFilter}
+                                        onChange={(e) => setSystemDefinedFilter(e.target.value)}
+                                        className="input-glass w-full text-sm"
+                                    >
+                                        <option value="all">All System</option>
+                                        <option value="yes">System Yes</option>
+                                        <option value="no">System No</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="mt-4 flex justify-end">
                             <button
-                                type="submit"
-                                disabled={creating}
-                                className="btn-primary px-5 py-2.5 rounded-full text-sm font-semibold disabled:opacity-60 flex items-center justify-center gap-2"
-                            >  <Save className="w-4 h-4" />
-                                {creating ? 'Saving...' : 'Save'}
+                                type="button"
+                                onClick={clearFilters}
+                                disabled={!hasActiveFilters}
+                                className="px-4 py-2 rounded-full text-xs font-semibold glass-effect text-slate-600 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Clear Filters
                             </button>
                         </div>
-                    </form>
+                    </div>
+
+                    <div className="card-glass overflow-hidden shadow-xl">
+                        <div className="px-6 py-4 border-b border-slate-100/70 dark:border-slate-700/60 flex items-center space-x-3">
+                            <Key className="w-6 h-6 text-slate-400" />
+                            <div>
+                                <h2 className="text-xl font-bold text-slate-900 dark:text-white">Permission Groups</h2>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Showing {sorted.length === 0 ? 0 : startIndex + 1} to {endIndex} of {sorted.length}</p>
+                            </div>
+                        </div>
+                        <div className="table-scroll">
+                            <table className="table-shell">
+                                <thead className="table-head">
+                                    <tr>
+                                        <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">No.</th>
+                                        <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                            <button onClick={() => toggleSort('role_name')} className="flex items-center gap-1">
+                                                Role <span className="text-slate-400 dark:text-slate-300">{sortIndicator('role_name')}</span>
+                                            </button>
+                                        </th>
+                                        <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                            <button onClick={() => toggleSort('page_section')} className="flex items-center gap-1">
+                                                Page <span className="text-slate-400 dark:text-slate-300">{sortIndicator('page_section')}</span>
+                                            </button>
+                                        </th>
+                                        <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                            <button onClick={() => toggleSort('operation')} className="flex items-center gap-1">
+                                                Operation <span className="text-slate-400 dark:text-slate-300">{sortIndicator('operation')}</span>
+                                            </button>
+                                        </th>
+                                        <th className="px-4 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-300">
+                                            <button onClick={() => toggleSort('system_defined')} className="mx-auto flex items-center gap-1">
+                                                System Defined <span className="text-slate-400 dark:text-slate-300">{sortIndicator('system_defined')}</span>
+                                            </button>
+                                        </th>
+                                        <th className="px-4 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-300">
+                                            <button onClick={() => toggleSort('active')} className="mx-auto flex items-center gap-1">
+                                                Active <span className="text-slate-400 dark:text-slate-300">{sortIndicator('active')}</span>
+                                            </button>
+                                        </th>
+                                        <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Created By</th>
+                                        <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                            <button onClick={() => toggleSort('created_at')} className="flex items-center gap-1">
+                                                Created At <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_at')}</span>
+                                            </button>
+                                        </th>
+                                        <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Updated By</th>
+                                        <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                            <button onClick={() => toggleSort('updated_at')} className="flex items-center gap-1">
+                                                Updated At <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_at')}</span>
+                                            </button>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="table-body">
+                                    {loading ? (
+                                        <tr>
+                                            <td colSpan={10} className="px-6 py-10 text-center text-slate-500 dark:text-slate-300">
+                                                Loading role permissions...
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        paged.map((row, idx) => (
+                                            <tr key={row.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
+                                                <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
+                                                <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{row.role_name}</td>
+                                                <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.page_section}</td>
+                                                <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.operation}</td>
+                                                <td className="px-4 py-4 text-sm text-center">
+                                                    <label className="inline-flex items-center justify-center">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={normalizeYesNo(row.system_defined) === 'yes'}
+                                                            disabled
+                                                            className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-50"
+                                                        />
+                                                    </label>
+                                                </td>
+                                                <td className="px-4 py-4 text-sm text-center">
+                                                    <label className="inline-flex items-center justify-center">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={normalizeYesNo(row.active) === 'yes'}
+                                                            onChange={(e) => promptToggle(row, e.target.checked ? 'yes' : 'no')}
+                                                            disabled={savingId === row.id}
+                                                            className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-50"
+                                                        />
+                                                    </label>
+                                                </td>
+                                                <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.created_by || '-'}</td>
+                                                <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime(row.created_at)}</td>
+                                                <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.updated_by || '-'}</td>
+                                                <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime(row.updated_at)}</td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                        <Pagination
+                            currentPage={page}
+                            totalPages={totalPages}
+                            rowsPerPage={pageSize}
+                            onPageChange={setPage}
+                            onRowsPerPageChange={(rows) => { setPageSize(rows); setPage(1); }}
+                        />
+                    </div>
                 </div>
             )}
-
-            <div className="card-glass p-6">
-                <div>
-                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Global Search</label>
-                    <div className="relative input-icon">
-                        <span className="input-icon-left">
-                            <Search className="w-4 h-4" />
-                        </span>
-                        <input
-                            type="text"
-                            placeholder="Search all columns"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="input-glass w-full text-sm"
-                        />
-                    </div>
-                </div>
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mt-4">
-                    <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Role</label>
-                        <input
-                            list="role-filter-options"
-                            value={roleFilter}
-                            onChange={(e) => setRoleFilter(e.target.value)}
-                            placeholder="Search role"
-                            className="input-glass w-full text-sm"
-                        />
-                        <datalist id="role-filter-options">
-                            {roleOptions.map((role) => (
-                                <option key={role} value={role} />
-                            ))}
-                        </datalist>
-                    </div>
-                    <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Page Section</label>
-                        <select
-                            value={pageSectionFilter}
-                            onChange={(e) => setPageSectionFilter(e.target.value)}
-                            className="input-glass w-full text-sm"
-                        >
-                            <option value="all">All</option>
-                            {sectionOptions.map((section) => (
-                                <option key={section} value={section}>{section}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Operation</label>
-                        <input
-                            type="text"
-                            placeholder="Search operation"
-                            value={operationFilter}
-                            onChange={(e) => setOperationFilter(e.target.value)}
-                            className="input-glass w-full text-sm"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Status</label>
-                        <div className="flex items-center gap-2">
-                            <select
-                                value={activeFilter}
-                                onChange={(e) => setActiveFilter(e.target.value)}
-                                className="input-glass w-full text-sm"
-                            >
-                                <option value="all">All Active</option>
-                                <option value="yes">Active</option>
-                                <option value="no">Inactive</option>
-                            </select>
-                            <select
-                                value={systemDefinedFilter}
-                                onChange={(e) => setSystemDefinedFilter(e.target.value)}
-                                className="input-glass w-full text-sm"
-                            >
-                                <option value="all">All System</option>
-                                <option value="yes">System Yes</option>
-                                <option value="no">System No</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div className="mt-4 flex justify-end">
-                    <button
-                        type="button"
-                        onClick={clearFilters}
-                        disabled={!hasActiveFilters}
-                        className="px-4 py-2 rounded-full text-xs font-semibold glass-effect text-slate-600 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        Clear Filters
-                    </button>
-                </div>
-            </div>
-
-            <div className="card-glass overflow-hidden shadow-xl">
-                <div className="px-6 py-4 border-b border-slate-100/70 dark:border-slate-700/60 flex items-center space-x-3">
-                    <Key className="w-6 h-6 text-slate-400" />
-                    <div>
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Permission Groups</h2>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Showing {sorted.length === 0 ? 0 : startIndex + 1} to {endIndex} of {sorted.length}</p>
-                    </div>
-                </div>
-                <div className="table-scroll">
-                    <table className="table-shell">
-                        <thead className="table-head">
-                            <tr>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">No.</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
-                                    <button onClick={() => toggleSort('role_name')} className="flex items-center gap-1">
-                                        Role <span className="text-slate-400 dark:text-slate-300">{sortIndicator('role_name')}</span>
-                                    </button>
-                                </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
-                                    <button onClick={() => toggleSort('page_section')} className="flex items-center gap-1">
-                                        Page <span className="text-slate-400 dark:text-slate-300">{sortIndicator('page_section')}</span>
-                                    </button>
-                                </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
-                                    <button onClick={() => toggleSort('operation')} className="flex items-center gap-1">
-                                        Operation <span className="text-slate-400 dark:text-slate-300">{sortIndicator('operation')}</span>
-                                    </button>
-                                </th>
-                                <th className="px-4 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-300">
-                                    <button onClick={() => toggleSort('system_defined')} className="mx-auto flex items-center gap-1">
-                                        System Defined <span className="text-slate-400 dark:text-slate-300">{sortIndicator('system_defined')}</span>
-                                    </button>
-                                </th>
-                                <th className="px-4 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-300">
-                                    <button onClick={() => toggleSort('active')} className="mx-auto flex items-center gap-1">
-                                        Active <span className="text-slate-400 dark:text-slate-300">{sortIndicator('active')}</span>
-                                    </button>
-                                </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Created By</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
-                                    <button onClick={() => toggleSort('created_at')} className="flex items-center gap-1">
-                                        Created At <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_at')}</span>
-                                    </button>
-                                </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Updated By</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
-                                    <button onClick={() => toggleSort('updated_at')} className="flex items-center gap-1">
-                                        Updated At <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_at')}</span>
-                                    </button>
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="table-body">
-                            {loading ? (
-                                <tr>
-                                    <td colSpan={10} className="px-6 py-10 text-center text-slate-500 dark:text-slate-300">
-                                        Loading role permissions...
-                                    </td>
-                                </tr>
-                            ) : (
-                                paged.map((row, idx) => (
-                                    <tr key={row.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
-                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
-                                        <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{row.role_name}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.page_section}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.operation}</td>
-                                        <td className="px-4 py-4 text-sm text-center">
-                                            <label className="inline-flex items-center justify-center">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={normalizeYesNo(row.system_defined) === 'yes'}
-                                                    disabled
-                                                    className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-50"
-                                                />
-                                            </label>
-                                        </td>
-                                        <td className="px-4 py-4 text-sm text-center">
-                                            <label className="inline-flex items-center justify-center">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={normalizeYesNo(row.active) === 'yes'}
-                                                    onChange={(e) => promptToggle(row, e.target.checked ? 'yes' : 'no')}
-                                                    disabled={savingId === row.id}
-                                                    className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-50"
-                                                />
-                                            </label>
-                                        </td>
-                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.created_by || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime(row.created_at)}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.updated_by || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime(row.updated_at)}</td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-                <Pagination
-                    currentPage={page}
-                    totalPages={totalPages}
-                    rowsPerPage={pageSize}
-                    onPageChange={setPage}
-                    onRowsPerPageChange={(rows) => { setPageSize(rows); setPage(1); }}
-                />
-            </div>
         </div>
     );
 }

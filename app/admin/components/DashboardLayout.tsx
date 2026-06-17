@@ -116,6 +116,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const [countsRefreshNonce, setCountsRefreshNonce] = useState(0);
     const [isPrivilegedUser, setIsPrivilegedUser] = useState(false);
     const [viewSections, setViewSections] = useState<Set<string>>(new Set());
+    const [permissionsLoaded, setPermissionsLoaded] = useState(false);
 
     const pathname = usePathname();
     const router = useRouter();
@@ -242,6 +243,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         if (!currentUser?.id) {
             setIsPrivilegedUser(false);
             setViewSections(new Set());
+            setPermissionsLoaded(false);
             return;
         }
 
@@ -251,10 +253,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
         if (privileged) {
             setViewSections(new Set());
+            setPermissionsLoaded(true);
             return;
         }
 
         const fetchPermissions = async () => {
+            setPermissionsLoaded(false);
             try {
                 const res = await fetch(`${ENDPOINTS.PERMISSION_GROUPS.LIST}?role=${encodeURIComponent(role)}&active=yes`);
                 if (!res.ok) {
@@ -278,6 +282,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 setViewSections(sections);
             } catch {
                 setViewSections(new Set());
+            } finally {
+                setPermissionsLoaded(true);
             }
         };
 
@@ -285,12 +291,40 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }, [currentUser?.id, currentUser?.role, currentUser?.system_defined]);
 
     React.useEffect(() => {
-        if (isPublicPage || !currentUser?.id || isPrivilegedUser) return;
+        if (isPublicPage || !currentUser?.id || isPrivilegedUser || !permissionsLoaded) return;
 
-        if (pathname.startsWith('/admin/roles') || pathname.startsWith('/admin/permission-groups')) {
-            router.replace('/admin/branches');
+        // Flatten the navigation items to get a list of all routes and their sections
+        const flatItems: Array<{ href: string; sections?: string[] }> = [];
+        navigation.forEach(item => {
+            if (item.href) {
+                flatItems.push({ href: item.href, sections: item.sections });
+            }
+            if (item.children) {
+                item.children.forEach(child => {
+                    if (child.href) {
+                        flatItems.push({ href: child.href, sections: child.sections });
+                    }
+                });
+            }
+        });
+
+        // Find if the current pathname matches a navigation link
+        const matched = flatItems.find(item => {
+            const href = item.href;
+            const hashIndex = href.indexOf('#');
+            const queryIndex = href.indexOf('?');
+            const cutIndex = [hashIndex, queryIndex].filter((value) => value >= 0).sort((a, b) => a - b)[0];
+            const basePath = cutIndex !== undefined ? href.slice(0, cutIndex) : href;
+            return pathname === basePath || pathname.startsWith(`${basePath}/`);
+        });
+
+        // If the path is matched and the user cannot view this section, redirect them to a safe landing page
+        if (matched && !canViewSections(matched.sections)) {
+            // Find a safe page that they DO have permission to view, default to /admin/dashboard
+            const firstAllowed = flatItems.find(item => canViewSections(item.sections));
+            router.replace(firstAllowed?.href || '/admin/dashboard');
         }
-    }, [isPublicPage, currentUser?.id, isPrivilegedUser, pathname, router]);
+    }, [isPublicPage, currentUser?.id, isPrivilegedUser, pathname, router, viewSections, permissionsLoaded]);
 
     React.useEffect(() => {
         if (typeof window === 'undefined') return;
@@ -587,7 +621,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         {
             name: 'Dashboard',
             icon: <LayoutGrid className="w-5 h-5" />,
-            href: '/admin/dashboard'
+            href: '/admin/dashboard',
+            sections: ['DASHBOARD']
         },
         {
             name: 'Operations',
@@ -596,9 +631,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 { name: 'Transfers', href: '/admin/transfers', icon: <ArrowRightLeft className="w-4 h-4" />, sections: ['MONEY_CHANGER', 'TELEX_TRANSFER', 'ACCOUNT_TRANSACTIONS', 'TRANSFERS'] },
                 { name: 'Remitters', href: '/admin/remitters', icon: <Users className="w-4 h-4" />, sections: ['SENDER_DETAILS', 'CUSTOMER', 'REMITTERS'] },
                 { name: 'Receivers', href: '/admin/receivers', icon: <UserCheck className="w-4 h-4" />, sections: ['RECEIVER_DETAILS', 'BENEFICIARIES', 'CUSTOMER', 'RECEIVERS'] },
-                { name: 'KYC Reviews', href: '/admin/kyc', badge: counts.kyc > 0 ? counts.kyc.toString() : undefined, icon: <ShieldCheck className="w-4 h-4" /> },
-                { name: 'Branch Access Flags', href: '/admin/branch-access', badge: counts.branchAccessFlags > 0 ? counts.branchAccessFlags.toString() : undefined, icon: <AlertTriangle className="w-4 h-4" /> },
-                { name: 'Support', href: '/admin/support', icon: <MessageCircle className="w-4 h-4" />, badge: counts.supportOpen > 0 ? counts.supportOpen.toString() : undefined },
+                { name: 'KYC Reviews', href: '/admin/kyc', badge: counts.kyc > 0 ? counts.kyc.toString() : undefined, icon: <ShieldCheck className="w-4 h-4" />, sections: ['KYC_REVIEWS'] },
+                { name: 'Branch Access Flags', href: '/admin/branch-access', badge: counts.branchAccessFlags > 0 ? counts.branchAccessFlags.toString() : undefined, icon: <AlertTriangle className="w-4 h-4" />, sections: ['BRANCH_ACCESS_REQUESTS'] },
+                { name: 'Support', href: '/admin/support', icon: <MessageCircle className="w-4 h-4" />, badge: counts.supportOpen > 0 ? counts.supportOpen.toString() : undefined, sections: ['SUPPORT'] },
                 { name: 'Branch Rates', href: '/admin/branch-rates', icon: <Coins className="w-4 h-4" />, sections: ['BRANCH_CURRENCY_RATE', 'BRANCH_CURRENCY_RATES', 'MOBILE_EXCHANGE_RATES', 'MOBILE_APP_FLOW_SETTINGS'] },
             ]
         },
@@ -607,9 +642,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             icon: <Database className="w-5 h-5" />,
             children: [
                 { name: 'Branches', href: '/admin/branches', icon: <Building2 className="w-4 h-4" />, sections: ['BRANCH', 'BRANCHES'] },
-                { name: 'Transaction Settings', href: '/admin/transaction-settings', icon: <SlidersHorizontal className="w-4 h-4" /> },
-                { name: 'API Tokens', href: '/admin/api-tokens', icon: <Key className="w-4 h-4" />, sections: ['MOBILE_APP_FLOW_SETTINGS'] },
-                { name: 'Dilisense Sources', href: '/admin/dilisense-sources', icon: <Database className="w-4 h-4" /> },
+                { name: 'Transaction Settings', href: '/admin/transaction-settings', icon: <SlidersHorizontal className="w-4 h-4" />, sections: ['TRANSACTION_SETTINGS'] },
+                { name: 'API Tokens', href: '/admin/api-tokens', icon: <Key className="w-4 h-4" />, sections: ['API_TOKENS', 'MOBILE_APP_FLOW_SETTINGS'] },
+                { name: 'Dilisense Sources', href: '/admin/dilisense-sources', icon: <Database className="w-4 h-4" />, sections: ['DILISENSE_SOURCES'] },
             ]
         },
         {
@@ -622,11 +657,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             name: 'Mobile Controls',
             icon: <Smartphone className="w-5 h-5" />,
             children: [
-                { name: 'Overview', href: '/admin/mobile-users/control/overview', icon: <Info className="w-4 h-4" /> },
-                { name: 'Mobile Profiles', href: '/admin/mobile-profiles', icon: <User className="w-4 h-4" /> },
-                { name: 'App Flow Settings', href: '/admin/mobile-users/control/app-flow-settings', icon: <SlidersHorizontal className="w-4 h-4" />, sections: ['MOBILE_APP_FLOW_SETTINGS'] },
-                { name: 'Customer Digital Rates', href: '/admin/mobile-users/control/exchange-rates', icon: <TrendingUp className="w-4 h-4" /> },
-                { name: 'User Rates', href: '/admin/mobile-users/control/user-rates', icon: <User className="w-4 h-4" /> },
+                { name: 'Overview', href: '/admin/mobile-users/control/overview', icon: <Info className="w-4 h-4" />, sections: ['MOBILE_OVERVIEW'] },
+                { name: 'Mobile Profiles', href: '/admin/mobile-profiles', icon: <User className="w-4 h-4" />, sections: ['MOBILE_PROFILES'] },
+                { name: 'App Flow Settings', href: '/admin/mobile-users/control/app-flow-settings', icon: <SlidersHorizontal className="w-4 h-4" />, sections: ['MOBILE_FLOW_SETTINGS'] },
+                { name: 'Customer Digital Rates', href: '/admin/mobile-users/control/exchange-rates', icon: <TrendingUp className="w-4 h-4" />, sections: ['MOBILE_DIGITAL_RATES'] },
+                { name: 'User Rates', href: '/admin/mobile-users/control/user-rates', icon: <User className="w-4 h-4" />, sections: ['MOBILE_USER_RATES'] },
                 { name: 'Profile Review Queue', href: '/admin/mobile-users/control/profile-review-queue', icon: <UserCheck className="w-4 h-4" />, sections: ['MOBILE_PROFILE_REVIEW_QUEUE'] },
                 { name: 'Campaigns', href: '/admin/mobile-users/control/campaigns', icon: <Megaphone className="w-4 h-4" />, sections: ['MOBILE_CAMPAIGNS'] },
                 { name: 'Onboarding & Carousel', href: '/admin/mobile-users/control/in-app-ads', icon: <ImageIcon className="w-4 h-4" />, sections: ['MOBILE_ADS'] },
@@ -636,10 +671,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             name: 'Application Basic Data',
             icon: <Globe className="w-5 h-5" />,
             children: [
-                { name: 'Countries', href: '/admin/countries', icon: <Globe className="w-4 h-4" /> },
-                { name: 'Banks', href: '/admin/banks', icon: <Building2 className="w-4 h-4" /> },
-                { name: 'Relationships', href: '/admin/relationships', icon: <Users className="w-4 h-4" /> },
-                { name: 'Purposes', href: '/admin/purposes', icon: <ListChecks className="w-4 h-4" /> },
+                { name: 'Countries', href: '/admin/countries', icon: <Globe className="w-4 h-4" />, sections: ['COUNTRIES'] },
+                { name: 'Banks', href: '/admin/banks', icon: <Building2 className="w-4 h-4" />, sections: ['BANKS'] },
+                { name: 'Relationships', href: '/admin/relationships', icon: <Users className="w-4 h-4" />, sections: ['RELATIONSHIPS'] },
+                { name: 'Purposes', href: '/admin/purposes', icon: <ListChecks className="w-4 h-4" />, sections: ['PURPOSES'] },
             ]
         },
         {
@@ -655,7 +690,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         {
             name: 'Configuration',
             icon: <Settings className="w-5 h-5" />,
-            href: '/admin/settings'
+            href: '/admin/settings',
+            sections: ['SETTINGS']
+        },
+        {
+            name: 'My Profile',
+            icon: <User className="w-5 h-5" />,
+            href: '/admin/profile'
         }
     ];
 
@@ -944,7 +985,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                 <div className="absolute right-0 mt-2 w-56 glass-effect-strong rounded-[16px] shadow-lg overflow-hidden animate-scale-in border border-white/20 dark:border-white/10 z-30">
                                     <div className="p-2">
                                         <Link
-                                            href="/admin/settings"
+                                            href="/admin/profile"
                                             onClick={() => setHeaderUserMenuOpen(false)}
                                             className="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-white/5 transition-all"
                                         >
