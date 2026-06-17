@@ -65,6 +65,27 @@ export default function EditUserPage() {
     const [signatureFile, setSignatureFile] = useState<File | null>(null);
     const [signatureClear, setSignatureClear] = useState(false);
     const [existingSignature, setExistingSignature] = useState<string | null>(null);
+    const [showSignatureModal, setShowSignatureModal] = useState(false);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (signatureFile) {
+            const url = URL.createObjectURL(signatureFile);
+            setPreviewUrl(url);
+            return () => {
+                URL.revokeObjectURL(url);
+            };
+        } else {
+            setPreviewUrl(url => {
+                if (url) URL.revokeObjectURL(url);
+                return null;
+            });
+        }
+    }, [signatureFile]);
+
+    const activePreview = signatureFile 
+        ? previewUrl 
+        : (existingSignature && !signatureClear ? existingSignature : null);
 
     const handleRegenerateSecret = async () => {
         const newSecret = generateBase32Secret();
@@ -406,9 +427,13 @@ export default function EditUserPage() {
                                 </div>
                             </div>
 
-                            {existingSignature && !signatureFile && !signatureClear && (
-                                <div className="h-12 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden bg-white px-2 py-1 flex items-center shrink-0">
-                                    <img src={existingSignature} alt="User signature" className="h-full w-auto object-contain max-w-[120px]" />
+                            {activePreview && (
+                                <div 
+                                    onClick={() => setShowSignatureModal(true)}
+                                    className="h-12 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden bg-white px-2 py-1 flex items-center shrink-0 cursor-pointer hover:ring-2 hover:ring-teal-500/50 hover:scale-105 transition-all duration-300"
+                                    title="Click to zoom signature"
+                                >
+                                    <img src={activePreview} alt="User signature" className="h-full w-auto object-contain max-w-[120px]" />
                                 </div>
                             )}
 
@@ -710,6 +735,30 @@ export default function EditUserPage() {
                     </div>
                     <div className="w-full flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
                         <button type="button" onClick={() => setShowQrModal(false)} className="btn-secondary py-2 px-6">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Signature Preview Modal */}
+            <Modal isOpen={showSignatureModal} onClose={() => setShowSignatureModal(false)} title="Signature Preview" size="md">
+                <div className="space-y-6 flex flex-col items-center py-4">
+                    <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-inner border border-slate-100 dark:border-slate-800/80 w-full flex items-center justify-center min-h-[220px]">
+                        {activePreview ? (
+                            <img
+                                src={activePreview}
+                                alt="User signature full size"
+                                className="max-w-full max-h-[380px] object-contain rounded-lg shadow-sm"
+                            />
+                        ) : (
+                            <div className="text-slate-400 text-xs">
+                                No signature preview available
+                            </div>
+                        )}
+                    </div>
+                    <div className="w-full flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
+                        <button type="button" onClick={() => setShowSignatureModal(false)} className="btn-secondary py-2 px-6">
                             Close
                         </button>
                     </div>
