@@ -92,10 +92,12 @@ export default function AdminForgotPasswordPage() {
           }
         });
       } else {
+        const rawMsg = data.messages?.error || data.message || 'Failed to send OTP. Please check the email.';
+        const msg = String(rawMsg).toLowerCase() === 'admin user not found' ? 'User not found' : rawMsg;
         setConfirmModal({
           isOpen: true,
           title: 'Request Failed',
-          message: data.messages?.error || data.message || 'Failed to send OTP. Please check the email.',
+          message: msg,
           type: 'danger',
           isAlert: true,
           onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
@@ -145,10 +147,12 @@ export default function AdminForgotPasswordPage() {
           onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
         });
       } else {
+        const rawMsg = data.messages?.error || data.message || 'Failed to resend OTP. Please try again.';
+        const msg = String(rawMsg).toLowerCase() === 'admin user not found' ? 'User not found' : rawMsg;
         setConfirmModal({
           isOpen: true,
           title: 'Request Failed',
-          message: data.messages?.error || data.message || 'Failed to resend OTP. Please try again.',
+          message: msg,
           type: 'danger',
           isAlert: true,
           onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
