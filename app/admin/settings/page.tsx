@@ -26,7 +26,7 @@ export default function SettingsPage() {
         footerText: defaultFooterText,
     });
     const [securitySettings, setSecuritySettings] = useState({
-        twoFactor: true,
+        twoFactor: false,
     });
     const [uiSettings, setUiSettings] = useState<UiSettings>({
         tableFontSizePx: 14,
@@ -54,10 +54,10 @@ export default function SettingsPage() {
             try {
                 const parsed = JSON.parse(savedSecurity);
                 setSecuritySettings({
-                    twoFactor: parsed?.twoFactor !== false,
+                    twoFactor: false,
                 });
             } catch {
-                // Keep defaults
+                setSecuritySettings({ twoFactor: false });
             }
         }
 
@@ -84,7 +84,6 @@ export default function SettingsPage() {
 
     const tabs = [
         { id: 'general', label: 'General', icon: Settings },
-        { id: 'security', label: 'Security', icon: Shield },
     ];
 
     return (
