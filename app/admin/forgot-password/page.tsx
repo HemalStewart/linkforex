@@ -355,7 +355,7 @@ export default function AdminForgotPasswordPage() {
             {step === 'RESET' && 'New Password'}
           </h2>
           <p className="text-slate-500 dark:text-slate-400 font-medium">
-            {step === 'EMAIL' && 'Enter your admin email to verify your identity'}
+            {step === 'EMAIL' && "No problem! Just enter your email address below and we'll help you reset your password"}
             {step === 'RESET' && 'Set a strong password for your admin account'}
           </p>
         </div>
@@ -413,7 +413,7 @@ export default function AdminForgotPasswordPage() {
           {step === 'OTP' && (
             <form className="space-y-6" onSubmit={handleVerifyOtp}>
               <p className="text-sm text-slate-600 dark:text-slate-400 font-medium text-center leading-relaxed">
-                Don&apos;t worry, please check your email. We sent you a verification code to <span className="font-bold text-slate-800 dark:text-slate-200">{email}</span>.
+                We sent you a verification code to <span className="font-bold text-slate-800 dark:text-slate-200">{email}</span>, please check your email.
               </p>
               <div className="space-y-2">
                 <label htmlFor="otp" className="block text-sm font-bold text-slate-700 dark:text-slate-200 ml-1">

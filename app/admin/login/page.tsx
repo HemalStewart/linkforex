@@ -176,9 +176,6 @@ export default function AdminLoginPage() {
                 <label htmlFor="password" className="block text-sm font-bold text-slate-700 dark:text-slate-200">
                   Password
                 </label>
-                <Link href="/admin/forgot-password" className="text-sm font-bold text-teal-600 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300 transition-colors">
-                  Forgot password?
-                </Link>
               </div>
               <div className="relative input-icon group">
                 <span className="input-icon-left">
@@ -217,6 +214,12 @@ export default function AdminLoginPage() {
                 </span>
               ) : 'Sign In'}
             </button>
+
+            <div className="text-center pt-2">
+              <Link href="/admin/forgot-password" className="text-sm font-bold text-teal-600 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300 transition-colors">
+                Forgot password?
+              </Link>
+            </div>
           </form>
 
         </div>
