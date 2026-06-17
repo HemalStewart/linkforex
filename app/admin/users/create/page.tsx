@@ -70,33 +70,25 @@ export default function CreateUserPage() {
     const signatureInputRef = useRef<HTMLInputElement | null>(null);
     const [signatureFile, setSignatureFile] = useState<File | null>(null);
     const [signatureClear, setSignatureClear] = useState(false);
+    const [passwordErrorState, setPasswordErrorState] = useState('');
+    const [confirmPasswordErrorState, setConfirmPasswordErrorState] = useState('');
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         const passwordError = validatePassword(formData.password);
         if (passwordError) {
-            setConfirmModal({
-                isOpen: true,
-                title: 'Invalid Password',
-                message: passwordError,
-                type: 'warning',
-                isAlert: true,
-                shouldRedirect: false
-            });
+            setPasswordErrorState(passwordError);
             return;
+        } else {
+            setPasswordErrorState('');
         }
 
         if (formData.password !== formData.confirmPassword) {
-            setConfirmModal({
-                isOpen: true,
-                title: 'Error',
-                message: 'Passwords do not match!',
-                type: 'danger',
-                isAlert: true,
-                shouldRedirect: false
-            });
+            setConfirmPasswordErrorState('Passwords do not match!');
             return;
+        } else {
+            setConfirmPasswordErrorState('');
         }
 
         try {
@@ -398,9 +390,15 @@ export default function CreateUserPage() {
                 className="input-glass w-full"
                 placeholder="••••••••"
                 value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, password: e.target.value });
+                  if (passwordErrorState) setPasswordErrorState('');
+                }}
               />
             </div>
+            {passwordErrorState && (
+              <p className="text-xs text-rose-500 font-semibold mt-1.5 ml-1">{passwordErrorState}</p>
+            )}
           </div>
 
           <div>
@@ -416,9 +414,15 @@ export default function CreateUserPage() {
                 className="input-glass w-full"
                 placeholder="••••••••"
                 value={formData.confirmPassword}
-                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, confirmPassword: e.target.value });
+                  if (confirmPasswordErrorState) setConfirmPasswordErrorState('');
+                }}
               />
             </div>
+            {confirmPasswordErrorState && (
+              <p className="text-xs text-rose-500 font-semibold mt-1.5 ml-1">{confirmPasswordErrorState}</p>
+            )}
           </div>
 
           {/* Access Details */}

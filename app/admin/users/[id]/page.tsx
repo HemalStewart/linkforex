@@ -131,7 +131,9 @@ export default function EditUserPage() {
         if (id) {
             const loadData = async () => {
                 setLoading(true);
-                await Promise.all([fetchUser(), fetchBranches(), fetchRoles()]);
+                const loadedRoles = await fetchRoles();
+                await fetchBranches();
+                await fetchUser(loadedRoles);
                 setLoading(false);
             };
             loadData();
@@ -153,23 +155,39 @@ export default function EditUserPage() {
         try {
             const res = await fetch(ENDPOINTS.ROLES.LIST);
             if (res.ok) {
-                setRoles(await res.json());
+                const data = await res.json();
+                setRoles(data);
+                return data;
             }
         } catch (error) {
             console.error('Failed to fetch roles:', error);
         }
+        return [];
     };
 
-    const fetchUser = async () => {
+    const fetchUser = async (loadedRoles: any[] = []) => {
         try {
             const res = await fetch(ENDPOINTS.USERS.DETAIL(id));
             if (res.ok) {
                 const data = await res.json();
+
+                let resolvedRoleId = '';
+                if (data.role_id) {
+                    resolvedRoleId = String(data.role_id);
+                } else if (data.role && loadedRoles.length > 0) {
+                    const match = loadedRoles.find(
+                        r => r.name.toLowerCase() === data.role.toLowerCase()
+                    );
+                    if (match) {
+                        resolvedRoleId = String(match.id);
+                    }
+                }
+
                 setFormData({
                     name: data.name || '',
                     username: data.username || '',
                     email: data.email || '',
-                    roleId: data.role_id ? String(data.role_id) : '',
+                    roleId: resolvedRoleId,
                     status: data.status || 'active',
                     branch: data.branch || '',
                     phone: data.phone || '',

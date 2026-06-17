@@ -23,6 +23,8 @@ export default function AdminForgotPasswordPage() {
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   const [footerText, setFooterText] = React.useState(defaultFooterText);
   const [resendCooldown, setResendCooldown] = React.useState(30);
+  const [passwordErrorState, setPasswordErrorState] = React.useState('');
+  const [confirmPasswordErrorState, setConfirmPasswordErrorState] = React.useState('');
 
   const [confirmModal, setConfirmModal] = React.useState({
     isOpen: false,
@@ -236,29 +238,19 @@ export default function AdminForgotPasswordPage() {
 
     const passwordError = validatePassword(password);
     if (passwordError) {
-      setConfirmModal({
-        isOpen: true,
-        title: 'Invalid Password',
-        message: passwordError,
-        type: 'warning',
-        isAlert: true,
-        onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
-      });
+      setPasswordErrorState(passwordError);
       setLoading(false);
       return;
+    } else {
+      setPasswordErrorState('');
     }
 
     if (password !== confirmPassword) {
-      setConfirmModal({
-        isOpen: true,
-        title: 'Passwords Mismatch',
-        message: 'Passwords do not match.',
-        type: 'warning',
-        isAlert: true,
-        onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
-      });
+      setConfirmPasswordErrorState('Passwords do not match.');
       setLoading(false);
       return;
+    } else {
+      setConfirmPasswordErrorState('');
     }
 
     try {
@@ -497,6 +489,9 @@ export default function AdminForgotPasswordPage() {
                     name="password"
                     placeholder="••••••••"
                     className="input-glass w-full py-3.5 pr-12 text-base font-medium shadow-inner"
+                    onChange={() => {
+                      if (passwordErrorState) setPasswordErrorState('');
+                    }}
                     required
                   />
                   <button
@@ -507,6 +502,9 @@ export default function AdminForgotPasswordPage() {
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
+                {passwordErrorState && (
+                  <p className="text-xs text-rose-500 font-semibold mt-1.5 ml-1">{passwordErrorState}</p>
+                )}
               </div>
 
               {/* Confirm New Password */}
@@ -524,6 +522,9 @@ export default function AdminForgotPasswordPage() {
                     name="confirm_password"
                     placeholder="••••••••"
                     className="input-glass w-full py-3.5 pr-12 text-base font-medium shadow-inner"
+                    onChange={() => {
+                      if (confirmPasswordErrorState) setConfirmPasswordErrorState('');
+                    }}
                     required
                   />
                   <button
@@ -534,6 +535,9 @@ export default function AdminForgotPasswordPage() {
                     {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
+                {confirmPasswordErrorState && (
+                  <p className="text-xs text-rose-500 font-semibold mt-1.5 ml-1">{confirmPasswordErrorState}</p>
+                )}
               </div>
 
               <button

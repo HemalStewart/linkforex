@@ -43,6 +43,8 @@ export default function UsersPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [resetError, setResetError] = useState('');
+    const [passwordErrorState, setPasswordErrorState] = useState('');
+    const [confirmPasswordErrorState, setConfirmPasswordErrorState] = useState('');
     const [resetLoading, setResetLoading] = useState(false);
 
     useEffect(() => {
@@ -87,6 +89,8 @@ export default function UsersPage() {
         setNewPassword('');
         setConfirmPassword('');
         setResetError('');
+        setPasswordErrorState('');
+        setConfirmPasswordErrorState('');
         setShowPassword(false);
         setShowConfirmPassword(false);
         setIsResetPasswordModalOpen(true);
@@ -138,13 +142,17 @@ export default function UsersPage() {
 
         const passwordErr = validatePassword(newPassword);
         if (passwordErr) {
-            setResetError(passwordErr);
+            setPasswordErrorState(passwordErr);
             return;
+        } else {
+            setPasswordErrorState('');
         }
 
         if (newPassword !== confirmPassword) {
-            setResetError('Passwords do not match.');
+            setConfirmPasswordErrorState('Passwords do not match.');
             return;
+        } else {
+            setConfirmPasswordErrorState('');
         }
 
         setResetLoading(true);
@@ -395,7 +403,10 @@ export default function UsersPage() {
                             <input
                                 type={showPassword ? 'text' : 'password'}
                                 value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
+                                onChange={(e) => {
+                                    setNewPassword(e.target.value);
+                                    if (passwordErrorState) setPasswordErrorState('');
+                                }}
                                 placeholder="••••••••"
                                 className="input-glass w-full text-sm"
                                 required
@@ -408,6 +419,9 @@ export default function UsersPage() {
                                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                             </button>
                         </div>
+                        {passwordErrorState && (
+                            <p className="text-xs text-rose-500 font-semibold mt-1 ml-1">{passwordErrorState}</p>
+                        )}
                     </div>
                     <div className="space-y-2">
                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-300">Confirm Password</label>
@@ -418,7 +432,10 @@ export default function UsersPage() {
                             <input
                                 type={showConfirmPassword ? 'text' : 'password'}
                                 value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                onChange={(e) => {
+                                    setConfirmPassword(e.target.value);
+                                    if (confirmPasswordErrorState) setConfirmPasswordErrorState('');
+                                }}
                                 placeholder="••••••••"
                                 className="input-glass w-full text-sm"
                                 required
@@ -431,6 +448,9 @@ export default function UsersPage() {
                                 {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                             </button>
                         </div>
+                        {confirmPasswordErrorState && (
+                            <p className="text-xs text-rose-500 font-semibold mt-1 ml-1">{confirmPasswordErrorState}</p>
+                        )}
                     </div>
                     <div className="flex justify-end gap-2 pt-2">
                         <button

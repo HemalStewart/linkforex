@@ -139,6 +139,8 @@ export default function ProfilePage() {
         newPassword: '',
         confirmPassword: '',
     });
+    const [passwordErrorState, setPasswordErrorState] = useState('');
+    const [confirmPasswordErrorState, setConfirmPasswordErrorState] = useState('');
 
     useEffect(() => {
         const loadedUiSettings = getStoredUiSettings();
@@ -369,13 +371,17 @@ export default function ProfilePage() {
 
         const passwordError = validatePassword(passwordForm.newPassword);
         if (passwordError) {
-            setMessage({ text: passwordError, tone: 'error' });
+            setPasswordErrorState(passwordError);
             return;
+        } else {
+            setPasswordErrorState('');
         }
 
         if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-            setMessage({ text: 'New passwords do not match.', tone: 'error' });
+            setConfirmPasswordErrorState('New passwords do not match.');
             return;
+        } else {
+            setConfirmPasswordErrorState('');
         }
 
         setPasswordLoading(true);
@@ -404,6 +410,8 @@ export default function ProfilePage() {
                 newPassword: '',
                 confirmPassword: '',
             });
+            setPasswordErrorState('');
+            setConfirmPasswordErrorState('');
             setMessage({ text: data?.message || 'Password changed successfully.', tone: 'success' });
         } catch {
             setMessage({ text: 'Failed to change password.', tone: 'error' });
@@ -741,18 +749,30 @@ export default function ProfilePage() {
                                 <input
                                     type="password"
                                     value={passwordForm.newPassword}
-                                    onChange={(e) => setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }))}
+                                    onChange={(e) => {
+                                        setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }));
+                                        if (passwordErrorState) setPasswordErrorState('');
+                                    }}
                                     className="input-glass w-full text-sm"
                                 />
+                                {passwordErrorState && (
+                                    <p className="text-xs text-rose-500 font-semibold mt-1.5 ml-1">{passwordErrorState}</p>
+                                )}
                             </div>
                             <div>
                                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Confirm Password</label>
                                 <input
                                     type="password"
                                     value={passwordForm.confirmPassword}
-                                    onChange={(e) => setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+                                    onChange={(e) => {
+                                        setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }));
+                                        if (confirmPasswordErrorState) setConfirmPasswordErrorState('');
+                                    }}
                                     className="input-glass w-full text-sm"
                                 />
+                                {confirmPasswordErrorState && (
+                                    <p className="text-xs text-rose-500 font-semibold mt-1.5 ml-1">{confirmPasswordErrorState}</p>
+                                )}
                             </div>
                         </div>
                         <div className="mt-4 flex justify-end">
