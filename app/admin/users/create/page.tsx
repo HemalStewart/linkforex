@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../../components/ConfirmModal';
+import { validatePassword } from '@/app/lib/validation';
 import { ArrowLeft, User, Mail, Lock, Shield, Building, Save, MapPin, Phone, FileSignature, ChevronRight } from 'lucide-react';
 
 export default function CreateUserPage() {
@@ -72,6 +73,19 @@ export default function CreateUserPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        const passwordError = validatePassword(formData.password);
+        if (passwordError) {
+            setConfirmModal({
+                isOpen: true,
+                title: 'Invalid Password',
+                message: passwordError,
+                type: 'warning',
+                isAlert: true,
+                shouldRedirect: false
+            });
+            return;
+        }
 
         if (formData.password !== formData.confirmPassword) {
             setConfirmModal({

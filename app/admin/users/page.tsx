@@ -7,6 +7,7 @@ import { getStoredUser } from '@/app/lib/authStorage';
 import { useRowsPerPage } from '@/app/lib/uiPreferences';
 import { formatDateTime } from '@/app/lib/dateUtils';
 import ConfirmModal from '../components/ConfirmModal';
+import { validatePassword } from '@/app/lib/validation';
 import Badge from '../components/ui/Badge';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
@@ -133,8 +134,9 @@ export default function UsersPage() {
         e.preventDefault();
         if (!userToReset) return;
 
-        if (newPassword.length < 8) {
-            setResetError('Password must be at least 8 characters long.');
+        const passwordErr = validatePassword(newPassword);
+        if (passwordErr) {
+            setResetError(passwordErr);
             return;
         }
 

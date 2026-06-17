@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../components/ConfirmModal';
+import { validatePassword } from '@/app/lib/validation';
 import { Mail, Lock, Loader2, Eye, EyeOff, Key, ArrowLeft, CheckCircle2 } from 'lucide-react';
 
 type Step = 'EMAIL' | 'OTP' | 'RESET';
@@ -229,11 +230,12 @@ export default function AdminForgotPasswordPage() {
     const password = String(formData.get('password') || '');
     const confirmPassword = String(formData.get('confirm_password') || '');
 
-    if (password.length < 8) {
+    const passwordError = validatePassword(password);
+    if (passwordError) {
       setConfirmModal({
         isOpen: true,
         title: 'Invalid Password',
-        message: 'Password must be at least 8 characters long.',
+        message: passwordError,
         type: 'warning',
         isAlert: true,
         onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))

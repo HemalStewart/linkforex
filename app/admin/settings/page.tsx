@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import { applyUiSettings, getStoredUiSettings, type UiSettings } from '@/app/lib/uiPreferences';
+import { validatePassword } from '@/app/lib/validation';
 import { resolveUploadsUrl } from '@/app/lib/uploads';
 import Modal from '@/app/admin/components/Modal';
 import {
@@ -412,6 +413,17 @@ export default function SettingsPage() {
         const email = String(profile?.email || storedUser?.email || '').trim();
         if (!email || !passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
             setMessage({ text: 'Complete all password fields first.', tone: 'error' });
+            return;
+        }
+
+        const passwordError = validatePassword(passwordForm.newPassword);
+        if (passwordError) {
+            setMessage({ text: passwordError, tone: 'error' });
+            return;
+        }
+
+        if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+            setMessage({ text: 'New passwords do not match.', tone: 'error' });
             return;
         }
 
