@@ -41,6 +41,7 @@ export const isApiRequestUrl = (rawUrl: string, origin = 'http://localhost'): bo
 export const ENDPOINTS = {
     AUTH: {
         LOGIN: `${API_BASE_URL}/login`,
+        VERIFY_2FA: `${API_BASE_URL}/verify-2fa`,
         CHANGE_PASSWORD: `${API_BASE_URL}/auth/change-password`,
         ADMIN_FORGOT_PASSWORD: `${API_BASE_URL}/auth/admin/forgot-password`,
         ADMIN_VERIFY_RESET_OTP: `${API_BASE_URL}/auth/admin/verify-reset-otp`,

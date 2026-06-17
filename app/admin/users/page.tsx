@@ -34,6 +34,8 @@ export default function UsersPage() {
     const [userToDelete, setUserToDelete] = useState<number | null>(null);
     const [userToReset, setUserToReset] = useState<any | null>(null);
     const [confirmAction, setConfirmAction] = useState<'delete' | null>(null);
+    const [showQrModal, setShowQrModal] = useState(false);
+    const [activeQrUser, setActiveQrUser] = useState<any | null>(null);
 
     const [isResetPasswordModalOpen, setIsResetPasswordModalOpen] = useState(false);
     const [newPassword, setNewPassword] = useState('');
@@ -310,6 +312,67 @@ export default function UsersPage() {
                 cancelText="Cancel"
             />
 
+            {/* 2FA QR Code Modal */}
+            <Modal
+                isOpen={showQrModal}
+                onClose={() => {
+                    setShowQrModal(false);
+                    setActiveQrUser(null);
+                }}
+                title={`2FA QR Setup for ${activeQrUser?.username || activeQrUser?.name || 'User'}`}
+                size="md"
+            >
+                <div className="space-y-6 flex flex-col items-center py-4">
+                    <div className="bg-white p-4 rounded-2xl shadow-inner border border-slate-100">
+                        {activeQrUser?.twofa_qr_code ? (
+                            <img
+                                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+                                    `otpauth://totp/LinkForex:${activeQrUser.email || ''}?secret=${activeQrUser.twofa_qr_code}&issuer=LinkForex`
+                                )}`}
+                                alt="2FA QR Code"
+                                width={200}
+                                height={200}
+                                className="rounded-lg"
+                            />
+                        ) : (
+                            <div className="w-[200px] h-[200px] flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-400 text-xs">
+                                No secret generated
+                            </div>
+                        )}
+                    </div>
+                    <div className="text-center space-y-2 max-w-sm">
+                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                            Scan to configure authenticator app
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                            Scan the QR code with Google Authenticator, Authy, or any other TOTP-compliant app.
+                        </p>
+                    </div>
+                    <div className="w-full space-y-2">
+                        <p className="text-center text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                            Secret key (Manual config)
+                        </p>
+                        <div className="flex justify-center">
+                            <code className="px-4 py-2 bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-teal-400 rounded-lg text-base font-mono font-bold tracking-wider select-all border border-slate-200 dark:border-slate-800">
+                                {activeQrUser?.twofa_qr_code || '—'}
+                            </code>
+                        </div>
+                    </div>
+                    <div className="w-full flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setShowQrModal(false);
+                                setActiveQrUser(null);
+                            }}
+                            className="btn-secondary py-2 px-6"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </Modal>
+
             {/* Reset Password Modal */}
             <Modal
                 isOpen={isResetPasswordModalOpen}
@@ -480,11 +543,11 @@ export default function UsersPage() {
                                     </button>
                                 </th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
-                                    <button onClick={() => toggleSort('twofa_qr_code')} className="flex items-center gap-1">
-                                        2FA QR Code <span className="text-slate-400 dark:text-slate-300">{sortIndicator('twofa_qr_code')}</span>
-                                    </button>
+                                    <div className="flex items-center gap-1">
+                                        <span>2FA QR</span>
+                                        <QrCode className="w-4 h-4 text-slate-400" />
+                                    </div>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">View 2FA QR</th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('created_by')} className="flex items-center gap-1">
                                         Created By <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_by')}</span>
@@ -555,17 +618,23 @@ export default function UsersPage() {
                                                 {toTitleLabel(String(user.twofa_status || 'inactive'))}
                                             </Badge>
                                         </td>
-                                        <td className="px-4 py-4">
-                                            <button className="px-3 py-1.5 rounded-full glass-effect text-xs font-semibold text-slate-600 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors flex items-center gap-1">
-                                                <QrCode className="w-3.5 h-3.5" />
-                                                New QR
-                                            </button>
-                                        </td>
-                                        <td className="px-4 py-4">
-                                            <button className="px-3 py-1.5 rounded-full glass-effect text-xs font-semibold text-slate-600 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors flex items-center gap-1">
-                                                <Eye className="w-3.5 h-3.5" />
-                                                View QR
-                                            </button>
+                                        <td className="px-4 py-4 text-left">
+                                            {user.twofa_qr_code ? (
+                                                <button
+                                                    onClick={() => {
+                                                        setActiveQrUser(user);
+                                                        setShowQrModal(true);
+                                                    }}
+                                                    className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
+                                                    title="View 2FA QR"
+                                                >
+                                                    <QrCode className="w-5 h-5" />
+                                                </button>
+                                            ) : (
+                                                <span className="p-2 rounded-xl text-slate-400 opacity-35 cursor-not-allowed inline-flex" title="2FA QR code not generated">
+                                                    <QrCode className="w-5 h-5" />
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{user.created_by || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime(user.created_at)}</td>

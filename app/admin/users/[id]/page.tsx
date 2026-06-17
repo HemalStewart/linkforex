@@ -6,8 +6,26 @@ import { useRouter, useParams } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../../components/ConfirmModal';
+import Modal from '../../components/Modal';
 import { resolveUploadsUrl } from '@/app/lib/uploads';
 import { ArrowLeft, User, Mail, Shield, Building, Save, Loader2, ChevronRight, Lock, MapPin, Phone, FileSignature } from 'lucide-react';
+
+const generateBase32Secret = (length = 16): string => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    let secret = '';
+    const array = new Uint32Array(length);
+    if (typeof window !== 'undefined' && window.crypto) {
+        window.crypto.getRandomValues(array);
+    } else {
+        for (let i = 0; i < length; i++) {
+            array[i] = Math.floor(Math.random() * 32);
+        }
+    }
+    for (let i = 0; i < length; i++) {
+        secret += chars[array[i] % 32];
+    }
+    return secret;
+};
 
 export default function EditUserPage() {
     const router = useRouter();
@@ -19,6 +37,7 @@ export default function EditUserPage() {
     const [branches, setBranches] = useState<any[]>([]);
     const [roles, setRoles] = useState<any[]>([]);
     const [enteredBy, setEnteredBy] = useState('');
+    const [showQrModal, setShowQrModal] = useState(false);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -29,7 +48,8 @@ export default function EditUserPage() {
         branch: '',
         phone: '',
         address: '',
-        twofaStatus: 'active'
+        twofaStatus: 'active',
+        twofaQrCode: ''
     });
 
     const [confirmModal, setConfirmModal] = useState({
@@ -45,6 +65,62 @@ export default function EditUserPage() {
     const [signatureFile, setSignatureFile] = useState<File | null>(null);
     const [signatureClear, setSignatureClear] = useState(false);
     const [existingSignature, setExistingSignature] = useState<string | null>(null);
+
+    const handleRegenerateSecret = async () => {
+        const newSecret = generateBase32Secret();
+        setSubmitting(true);
+        try {
+            const payload = new FormData();
+            payload.append('_method', 'PUT'); // Spoof PUT
+            payload.append('twofa_qr_code', newSecret);
+            if (enteredBy) {
+                payload.append('updated_by', enteredBy);
+            }
+
+            const res = await fetch(ENDPOINTS.USERS.DETAIL(id), {
+                method: 'POST', // Spoofed to PUT
+                body: payload,
+            });
+
+            if (res.ok) {
+                setFormData(prev => ({ ...prev, twofaQrCode: newSecret }));
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Success',
+                    message: '2FA Secret generated and automatically saved to database successfully.',
+                    type: 'success',
+                    isAlert: true,
+                    shouldRedirect: false
+                });
+            } else {
+                let errMsg = `Unknown error (HTTP ${res.status} ${res.statusText})`;
+                try {
+                    const err = await res.json();
+                    if (err?.message) errMsg = err.message;
+                } catch {}
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: 'Failed to auto-save 2FA secret: ' + errMsg,
+                    type: 'danger',
+                    isAlert: true,
+                    shouldRedirect: false
+                });
+            }
+        } catch (error) {
+            console.error('Failed to auto-save secret:', error);
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'An error occurred while saving the secret key to the database.',
+                type: 'danger',
+                isAlert: true,
+                shouldRedirect: false
+            });
+        } finally {
+            setSubmitting(false);
+        }
+    };
 
     useEffect(() => {
         const parsed = getStoredUser<{ username?: string; name?: string }>();
@@ -98,7 +174,8 @@ export default function EditUserPage() {
                     branch: data.branch || '',
                     phone: data.phone || '',
                     address: data.address || '',
-                    twofaStatus: data.twofa_status || 'active'
+                    twofaStatus: data.twofa_status || 'active',
+                    twofaQrCode: data.twofa_qr_code || ''
                 });
                 if (data.signature) {
                     setExistingSignature(resolveUploadsUrl(data.signature) || null);
@@ -127,6 +204,7 @@ export default function EditUserPage() {
             if (formData.branch) payload.append('branch', formData.branch);
             payload.append('status', formData.status);
             payload.append('twofa_status', formData.twofaStatus);
+            payload.append('twofa_qr_code', formData.twofaQrCode);
             if (enteredBy) {
                 payload.append('updated_by', enteredBy);
             }
@@ -497,6 +575,55 @@ export default function EditUserPage() {
                             <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
                         </div>
                     </div>
+
+                    {/* 2FA Secret Key management */}
+                    <div className="md:col-span-2 p-6 rounded-[24px] bg-slate-100/50 dark:bg-slate-800/30 border border-slate-200/50 dark:border-slate-700/50 space-y-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                                    Two-Factor Authentication Secret & QR Code
+                                </h4>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                    {formData.twofaQrCode ? '2FA secret key is generated and stored.' : 'Warning: 2FA secret is missing.'}
+                                </p>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2">
+                                {!formData.twofaQrCode && (
+                                    <button
+                                        type="button"
+                                        onClick={handleRegenerateSecret}
+                                        className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-colors inline-flex items-center gap-1.5"
+                                    >
+                                        <Lock className="w-3.5 h-3.5" />
+                                        Generate Secret
+                                    </button>
+                                )}
+                                {formData.twofaQrCode && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowQrModal(true)}
+                                        className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-xl transition-colors inline-flex items-center gap-1.5"
+                                    >
+                                        <Shield className="w-3.5 h-3.5" />
+                                        View QR Code
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+
+                        {formData.twofaQrCode ? (
+                            <div className="flex items-center gap-3">
+                                <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Secret Key:</span>
+                                <code className="px-3 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-teal-400 rounded-lg text-xs font-mono font-bold tracking-wider select-all">
+                                    {formData.twofaQrCode}
+                                </code>
+                            </div>
+                        ) : (
+                            <div className="text-xs text-rose-500 font-semibold">
+                                No secret key exists in form. Click Generate to configure one.
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 <div className="flex justify-end space-x-4 pt-8 mt-8 border-t border-slate-100 dark:border-slate-700/50">
@@ -525,6 +652,51 @@ export default function EditUserPage() {
                     </button>
                 </div>
             </form>
+
+            <Modal isOpen={showQrModal} onClose={() => setShowQrModal(false)} title="Authenticator App QR Setup" size="md">
+                <div className="space-y-6 flex flex-col items-center py-4">
+                    <div className="bg-white p-4 rounded-2xl shadow-inner border border-slate-100">
+                        {formData.twofaQrCode ? (
+                            <img
+                                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+                                    `otpauth://totp/LinkForex:${formData.email || ''}?secret=${formData.twofaQrCode}&issuer=LinkForex`
+                                )}`}
+                                alt="2FA QR Code"
+                                width={200}
+                                height={200}
+                                className="rounded-lg"
+                            />
+                        ) : (
+                            <div className="w-[200px] h-[200px] flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-400 text-xs">
+                                No secret generated
+                            </div>
+                        )}
+                    </div>
+                    <div className="text-center space-y-2 max-w-sm">
+                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                            Scan to configure authenticator app
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                            Scan the QR code with Google Authenticator, Authy, or any other TOTP-compliant app.
+                        </p>
+                    </div>
+                    <div className="w-full space-y-2">
+                        <p className="text-center text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                            Secret key (Manual config)
+                        </p>
+                        <div className="flex justify-center">
+                            <code className="px-4 py-2 bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-teal-400 rounded-lg text-base font-mono font-bold tracking-wider select-all border border-slate-200 dark:border-slate-800">
+                                {formData.twofaQrCode || '—'}
+                            </code>
+                        </div>
+                    </div>
+                    <div className="w-full flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
+                        <button type="button" onClick={() => setShowQrModal(false)} className="btn-secondary py-2 px-6">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 }
