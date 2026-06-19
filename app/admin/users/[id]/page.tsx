@@ -8,7 +8,7 @@ import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../../components/ConfirmModal';
 import Modal from '../../components/Modal';
 import { resolveUploadsUrl } from '@/app/lib/uploads';
-import { ArrowLeft, User, Mail, Shield, Building, Save, Loader2, ChevronRight, Lock, MapPin, Phone, FileSignature } from 'lucide-react';
+import { ArrowLeft, User, Mail, Shield, Building, Save, Loader2, ChevronRight, Lock, MapPin, Phone, FileSignature, RotateCcw } from 'lucide-react';
 
 const generateBase32Secret = (length = 16): string => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
@@ -52,13 +52,22 @@ export default function EditUserPage() {
         twofaQrCode: ''
     });
 
-    const [confirmModal, setConfirmModal] = useState({
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'info' | 'danger' | 'warning' | 'success';
+        isAlert: boolean;
+        shouldRedirect: boolean;
+        onConfirm?: (() => void) | null;
+    }>({
         isOpen: false,
         title: '',
         message: '',
-        type: 'info' as 'info' | 'danger' | 'warning' | 'success',
+        type: 'info',
         isAlert: true,
-        shouldRedirect: false
+        shouldRedirect: false,
+        onConfirm: null
     });
 
     const signatureInputRef = useRef<HTMLInputElement | null>(null);
@@ -141,6 +150,21 @@ export default function EditUserPage() {
         } finally {
             setSubmitting(false);
         }
+    };
+
+    const promptRegenerate = () => {
+        setConfirmModal({
+            isOpen: true,
+            title: 'Regenerate 2FA Secret',
+            message: 'Are you sure you want to generate a new 2FA secret? The user will need to scan the new QR code to log in, and their current authenticator configuration will stop working.',
+            type: 'warning',
+            isAlert: false,
+            shouldRedirect: false,
+            onConfirm: () => {
+                setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                handleRegenerateSecret();
+            }
+        });
     };
 
     useEffect(() => {
@@ -328,12 +352,13 @@ export default function EditUserPage() {
             <ConfirmModal
                 isOpen={confirmModal.isOpen}
                 onClose={handleModalClose}
-                onConfirm={handleModalClose}
+                onConfirm={confirmModal.onConfirm || handleModalClose}
                 title={confirmModal.title}
                 message={confirmModal.message}
                 type={confirmModal.type as any}
                 isAlert={confirmModal.isAlert}
-                confirmText="OK"
+                confirmText={confirmModal.isAlert ? "OK" : "Proceed"}
+                cancelText="Cancel"
             />
 
             {/* Header */}
@@ -630,7 +655,7 @@ export default function EditUserPage() {
                                 </p>
                             </div>
                             <div className="flex flex-wrap items-center gap-2">
-                                {!formData.twofaQrCode && (
+                                {!formData.twofaQrCode ? (
                                     <button
                                         type="button"
                                         onClick={handleRegenerateSecret}
@@ -639,16 +664,25 @@ export default function EditUserPage() {
                                         <Lock className="w-3.5 h-3.5" />
                                         Generate Secret
                                     </button>
-                                )}
-                                {formData.twofaQrCode && (
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowQrModal(true)}
-                                        className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-xl transition-colors inline-flex items-center gap-1.5"
-                                    >
-                                        <Shield className="w-3.5 h-3.5" />
-                                        View QR Code
-                                    </button>
+                                ) : (
+                                    <>
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowQrModal(true)}
+                                            className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-xl transition-colors inline-flex items-center gap-1.5"
+                                        >
+                                            <Shield className="w-3.5 h-3.5" />
+                                            View QR Code
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={promptRegenerate}
+                                            className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-colors inline-flex items-center gap-1.5"
+                                        >
+                                            <RotateCcw className="w-3.5 h-3.5" />
+                                            Regenerate Secret
+                                        </button>
+                                    </>
                                 )}
                             </div>
                         </div>

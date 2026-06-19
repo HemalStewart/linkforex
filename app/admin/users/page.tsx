@@ -114,10 +114,11 @@ export default function UsersPage() {
                     isAlert: true
                 });
             } else {
+                const message = await readErrorMessage(res, 'Failed to delete user');
                 setConfirmModal({
                     isOpen: true,
                     title: 'Error',
-                    message: 'Failed to delete user',
+                    message,
                     type: 'danger',
                     isAlert: true
                 });
@@ -709,4 +710,23 @@ export default function UsersPage() {
             </div>
         </div>
     );
+}
+
+async function readErrorMessage(res: Response, fallback: string): Promise<string> {
+    try {
+        const data = await res.json();
+        if (typeof data?.message === 'string' && data.message.trim() !== '') {
+            return data.message;
+        }
+        if (data?.messages && typeof data.messages === 'object') {
+            const joined = Object.values(data.messages)
+                .flat()
+                .filter(Boolean)
+                .join(' ');
+            if (joined) return joined;
+        }
+    } catch {
+        // Ignore parse errors.
+    }
+    return fallback;
 }

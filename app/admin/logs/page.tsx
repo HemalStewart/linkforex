@@ -12,24 +12,17 @@ type LogRow = {
     id: number;
     logId: number;
     username: string;
-    transfersImpact: number;
-    transfersApproveImpact: number;
     logCountry: string;
     ip: string;
     signInTs: string;
     signOffTs: string | null;
     signOffNote: string;
-    riskLabel: string;
     rawStatus: string;
 };
 
 type SessionLog = LogRow & {
     status: 'Active' | 'Closed';
     forcedSignOff: boolean;
-    risk: 'Low' | 'Medium' | 'High';
-    riskScore: number;
-    riskReasons: string[];
-    activityScore: number;
     sessionSeconds: number;
     sessionPeriod: string;
     signInEpoch: number;
@@ -47,11 +40,7 @@ type SortKey =
     | 'signOffTs'
     | 'duration'
     | 'logCountry'
-    | 'ip'
-    | 'transfersImpact'
-    | 'transfersApproveImpact'
-    | 'activityScore'
-    | 'risk';
+    | 'ip';
 
 const normalizeDate = (value?: string | null): string => {
     if (!value) return '';
@@ -88,14 +77,11 @@ const mapApiLog = (log: Record<string, unknown>): LogRow => ({
     id: Number(log.id ?? 0),
     logId: Number(log.id ?? 0),
     username: firstNonEmpty(log, ['username', 'user_name', 'user', 'email']) || '-',
-    transfersImpact: Number(log.transfers_impact ?? 0),
-    transfersApproveImpact: Number(log.transfers_approve_impact ?? 0),
     logCountry: firstNonEmpty(log, ['log_country', 'country', 'logCountry', 'country_name']),
     ip: firstNonEmpty(log, ['log_ip', 'ip', 'ip_address', 'logIp']),
     signInTs: normalizeTimestampOrNull(firstNonEmpty(log, ['sign_in', 'signin', 'signed_in_at', 'created_at'])) || '',
     signOffTs: normalizeTimestampOrNull(firstNonEmpty(log, ['sign_off', 'signoff', 'signed_off_at'])),
     signOffNote: firstNonEmpty(log, ['sign_off_note', 'signoff_note', 'note', 'remarks']),
-    riskLabel: firstNonEmpty(log, ['risk', 'risk_level', 'log_risk', 'riskLabel']),
     rawStatus: firstNonEmpty(log, ['status', 'session_status', 'log_status']).toLowerCase()
 });
 
@@ -142,75 +128,6 @@ const isLikelyIpAddress = (value: string): boolean => {
     return /^[0-9a-fA-F:.]+$/.test(text) && (text.includes('.') || text.includes(':'));
 };
 
-const riskSignalsFromNote = (note: string): number => {
-    const text = note.toLowerCase();
-    if (!text) return 0;
-    const criticalTerms = ['suspicious', 'blocked', 'locked', 'fraud', 'compromised', 'multiple failed'];
-    const warningTerms = ['failed', 'invalid', 'denied', 'retry', 'timeout'];
-    if (criticalTerms.some((term) => text.includes(term))) return 50;
-    if (warningTerms.some((term) => text.includes(term))) return 25;
-    return 0;
-};
-
-const deriveRisk = (
-    row: Omit<SessionLog, 'risk' | 'riskScore' | 'riskReasons'>,
-    previousSession: Omit<SessionLog, 'risk' | 'riskScore' | 'riskReasons'> | null
-): Pick<SessionLog, 'risk' | 'riskScore' | 'riskReasons'> => {
-    const reasons: string[] = [];
-    let score = 0;
- 
-    if (row.forcedSignOff) {
-        score += 70;
-        reasons.push('Forced/automatic sign-off detected');
-    }
- 
-    const noteScore = riskSignalsFromNote(row.signOffNote);
-    if (noteScore > 0) {
-        score += noteScore;
-        reasons.push('Sign-off note contains security warning terms');
-    }
- 
-    if (row.activityScore >= 30) {
-        score += 30;
-        reasons.push('Very high session activity');
-    } else if (row.activityScore >= 10) {
-        score += 15;
-        reasons.push('Elevated session activity');
-    }
- 
-    if (row.activityScore > 0 && row.sessionSeconds > 0 && row.sessionSeconds < 120) {
-        score += 15;
-        reasons.push('High activity in unusually short session');
-    }
- 
-    if (row.status === 'Active' && row.signInEpoch > 0) {
-        const activeForMs = Date.now() - row.signInEpoch;
-        if (activeForMs > 12 * 60 * 60 * 1000) {
-            score += 10;
-            reasons.push('Long-running active session');
-        }
-    }
- 
-    if (previousSession) {
-        if (row.logCountry && previousSession.logCountry && row.logCountry !== previousSession.logCountry) {
-            score += 25;
-            reasons.push('Country changed from previous session');
-        }
- 
-        if (row.ip && previousSession.ip && row.ip !== previousSession.ip) {
-            score += 10;
-            reasons.push('IP changed from previous session');
-        }
-    }
- 
-    // Respect explicit backend labels when present.
-    const backendRisk = row.riskLabel.trim().toLowerCase();
-    if (backendRisk === 'high') score = Math.max(score, 70);
-    if (backendRisk === 'medium') score = Math.max(score, 35);
- 
-    const risk: SessionLog['risk'] = score >= 70 ? 'High' : score >= 35 ? 'Medium' : 'Low';
-    return { risk, riskScore: score, riskReasons: reasons.length ? reasons : ['Normal session pattern'] };
-};
 
 const escapeCsv = (value: unknown): string => {
     const text = String(value ?? '');
@@ -260,19 +177,17 @@ export default function LogsPage() {
     }, [fetchLogs]);
 
     const sessionLogs = useMemo<SessionLog[]>(() => {
-        const baseRows = logs.map((row) => {
+        return logs.map((row) => {
             const signInEpoch = toEpoch(row.signInTs);
             const signOffEpoch = toEpoch(row.signOffTs);
             const sessionSeconds = getSessionSeconds(row.signInTs, row.signOffTs);
             const forcedSignOff = looksForcedSignOff(row.signOffNote);
             const status: SessionLog['status'] = deriveStatus(row);
-            const activityScore = row.transfersImpact + row.transfersApproveImpact * 2;
 
-            const base: Omit<SessionLog, 'risk' | 'riskScore' | 'riskReasons'> = {
+            const base: SessionLog = {
                 ...row,
                 status,
                 forcedSignOff,
-                activityScore,
                 sessionSeconds,
                 sessionPeriod: formatDuration(sessionSeconds),
                 signInEpoch,
@@ -280,24 +195,6 @@ export default function LogsPage() {
             };
 
             return base;
-        });
-
-        const byUser = new Map<string, typeof baseRows>();
-        baseRows.forEach((row) => {
-            const key = (row.username || '-').toLowerCase();
-            const list = byUser.get(key) ?? [];
-            list.push(row);
-            byUser.set(key, list);
-        });
-
-        byUser.forEach((list) => list.sort((a, b) => a.signInEpoch - b.signInEpoch));
-
-        return baseRows.map((row) => {
-            const key = (row.username || '-').toLowerCase();
-            const list = byUser.get(key) ?? [];
-            const idx = list.findIndex((entry) => entry.id === row.id && entry.signInEpoch === row.signInEpoch);
-            const previousSession = idx > 0 ? list[idx - 1] : null;
-            return { ...row, ...deriveRisk(row, previousSession) };
         });
     }, [logs]);
 
@@ -335,12 +232,6 @@ export default function LogsPage() {
                 row.logId,
                 row.username,
                 row.status,
-                row.risk,
-                row.riskScore,
-                row.riskReasons.join(' '),
-                row.transfersImpact,
-                row.transfersApproveImpact,
-                row.activityScore,
                 row.logCountry,
                 row.ip,
                 row.signOffNote,
@@ -356,7 +247,6 @@ export default function LogsPage() {
     }, [countryFilter, dateRangeFilter, searchQuery, sessionLogs, statusFilter]);
 
     const sorted = useMemo(() => {
-        const rankRisk: Record<SessionLog['risk'], number> = { Low: 1, Medium: 2, High: 3 };
         const rankStatus: Record<SessionLog['status'], number> = { Closed: 1, Active: 2 };
         const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
 
@@ -378,14 +268,6 @@ export default function LogsPage() {
                     return row.logCountry;
                 case 'ip':
                     return row.ip;
-                case 'transfersImpact':
-                    return row.transfersImpact;
-                case 'transfersApproveImpact':
-                    return row.transfersApproveImpact;
-                case 'activityScore':
-                    return row.activityScore;
-                case 'risk':
-                    return rankRisk[row.risk];
                 default:
                     return row.logId;
             }
@@ -406,11 +288,6 @@ export default function LogsPage() {
         const total = filtered.length;
         const active = filtered.filter((row) => row.status === 'Active').length;
         const forced = filtered.filter((row) => row.forcedSignOff).length;
-        const high = filtered.filter((row) => row.risk === 'High').length;
-        const medium = filtered.filter((row) => row.risk === 'Medium').length;
-        const low = filtered.filter((row) => row.risk === 'Low').length;
-        const transfersTouched = filtered.reduce((sum, row) => sum + row.transfersImpact, 0);
-        const approvals = filtered.reduce((sum, row) => sum + row.transfersApproveImpact, 0);
         const now = Date.now();
         const sessionDurations = filtered
             .map((row) => {
@@ -429,11 +306,6 @@ export default function LogsPage() {
             total,
             active,
             forced,
-            high,
-            medium,
-            low,
-            transfersTouched,
-            approvals,
             avgSessionSeconds
         };
     }, [filtered]);
@@ -479,15 +351,11 @@ export default function LogsPage() {
             'Session ID',
             'User',
             'Status',
-            'Risk',
             'Sign In',
             'Sign Off',
             'Duration',
             'Country',
             'IP',
-            'Transfer Updates',
-            'Approval Actions',
-            'Activity Score',
             'Sign Off Note'
         ];
 
@@ -495,15 +363,11 @@ export default function LogsPage() {
             row.logId,
             row.username,
             row.status,
-            row.risk,
             formatDateTime(row.signInTs),
             formatDateTime(row.signOffTs),
             row.sessionPeriod,
             row.logCountry || '-',
             row.ip || '-',
-            row.transfersImpact,
-            row.transfersApproveImpact,
-            row.activityScore,
             row.signOffNote || '-'
         ]);
 
@@ -528,14 +392,6 @@ export default function LogsPage() {
                 </div>
                 <div className="flex items-center gap-3">
                     <button
-                        onClick={() => setShowRiskGuide((current) => !current)}
-                        className="glass-effect rounded-full px-4 py-2.5 text-slate-600 dark:text-slate-300 hover:text-amber-500 dark:hover:text-amber-300 transition-all duration-300 flex items-center space-x-2"
-                        title="Risk & forced sign-off guide"
-                    >
-                        <AlertCircle className="w-4 h-4" />
-                        <span className="text-sm font-semibold">Risk Guide</span>
-                    </button>
-                    <button
                         onClick={fetchLogs}
                         className="glass-effect rounded-full px-4 py-2.5 text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 flex items-center space-x-2"
                     >
@@ -553,43 +409,7 @@ export default function LogsPage() {
                 </div>
             </div>
 
-            {showRiskGuide && (
-                <div className="card-glass p-5 border border-amber-200/70 dark:border-amber-900/40">
-                    <div className="flex items-start gap-3">
-                        <AlertCircle className="w-5 h-5 text-amber-500 mt-0.5" />
-                        <div className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
-                            <p className="font-semibold text-slate-900 dark:text-white">
-                                Risk guidance for operations team
-                            </p>
-                            <p>
-                                <span className="font-semibold text-red-600 dark:text-red-300">High</span>: Unusual or potentially unsafe session behavior.
-                                Review this user immediately and verify actions.
-                            </p>
-                            <p>
-                                <span className="font-semibold text-amber-600 dark:text-amber-300">Medium</span>: Session needs review, but no immediate block required.
-                                Check activity and approve if valid.
-                            </p>
-                            <p>
-                                <span className="font-semibold text-emerald-600 dark:text-emerald-300">Low</span>: Session appears normal.
-                                Keep under routine monitoring.
-                            </p>
-                            <p>
-                                <span className="font-semibold">Forced sign-off</span> means the session ended unexpectedly
-                                (for example timeout, browser closed, or system termination) instead of normal user logout.
-                            </p>
-                            <p>
-                                Filtered results:
-                                <span className="font-semibold"> High {summary.high}</span>,
-                                <span className="font-semibold"> Medium {summary.medium}</span>,
-                                <span className="font-semibold"> Low {summary.low}</span>,
-                                <span className="font-semibold"> Forced sign-offs {summary.forced}</span>.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                 <div className="card-glass p-4">
                     <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Sessions</p>
                     <p className="text-2xl font-black mt-2 text-slate-900 dark:text-white">{summary.total}</p>
@@ -597,14 +417,6 @@ export default function LogsPage() {
                 <div className="card-glass p-4">
                     <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Active Now</p>
                     <p className="text-2xl font-black mt-2 text-teal-600 dark:text-teal-300">{summary.active}</p>
-                </div>
-                <div className="card-glass p-4">
-                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Transfer Updates</p>
-                    <p className="text-2xl font-black mt-2 text-slate-900 dark:text-white">{summary.transfersTouched}</p>
-                </div>
-                <div className="card-glass p-4">
-                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Approvals</p>
-                    <p className="text-2xl font-black mt-2 text-slate-900 dark:text-white">{summary.approvals}</p>
                 </div>
                 <div className="card-glass p-4">
                     <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Avg Session Duration</p>
@@ -696,9 +508,6 @@ export default function LogsPage() {
                         <h2 className="text-xl font-bold text-slate-900 dark:text-white">User Logs</h2>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Showing {sorted.length === 0 ? 0 : startIndex + 1} to {endIndex} of {sorted.length}</p>
                     </div>
-                    <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                        Sorted by {sortKey} ({sortDir.toUpperCase()})
-                    </div>
                 </div>
 
                 <div className="table-scroll">
@@ -719,11 +528,6 @@ export default function LogsPage() {
                                 <th>
                                     <button onClick={() => toggleSort('status')} className="flex items-center gap-1">
                                         Status <span className="text-slate-400 dark:text-slate-300">{sortIndicator('status')}</span>
-                                    </button>
-                                </th>
-                                <th>
-                                    <button onClick={() => toggleSort('risk')} className="flex items-center gap-1">
-                                        Risk <span className="text-slate-400 dark:text-slate-300">{sortIndicator('risk')}</span>
                                     </button>
                                 </th>
                                 <th>
@@ -751,40 +555,25 @@ export default function LogsPage() {
                                         IP <span className="text-slate-400 dark:text-slate-300">{sortIndicator('ip')}</span>
                                     </button>
                                 </th>
-                                <th>
-                                    <button onClick={() => toggleSort('transfersImpact')} className="flex items-center gap-1">
-                                        Transfer Updates <span className="text-slate-400 dark:text-slate-300">{sortIndicator('transfersImpact')}</span>
-                                    </button>
-                                </th>
-                                <th>
-                                    <button onClick={() => toggleSort('transfersApproveImpact')} className="flex items-center gap-1">
-                                        Approvals <span className="text-slate-400 dark:text-slate-300">{sortIndicator('transfersApproveImpact')}</span>
-                                    </button>
-                                </th>
-                                <th>
-                                    <button onClick={() => toggleSort('activityScore')} className="flex items-center gap-1">
-                                        Activity Score <span className="text-slate-400 dark:text-slate-300">{sortIndicator('activityScore')}</span>
-                                    </button>
-                                </th>
                                 <th>Sign-off Note</th>
                             </tr>
                         </thead>
                         <tbody className="table-body">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={14} className="px-6 py-12 text-center text-slate-500 dark:text-slate-300">
+                                    <td colSpan={10} className="px-6 py-12 text-center text-slate-500 dark:text-slate-300">
                                         Loading session logs...
                                     </td>
                                 </tr>
                             ) : error ? (
                                 <tr>
-                                    <td colSpan={14} className="px-6 py-12 text-center text-red-500 font-semibold">
+                                    <td colSpan={10} className="px-6 py-12 text-center text-red-500 font-semibold">
                                         {error}
                                     </td>
                                 </tr>
                             ) : paged.length === 0 ? (
                                 <tr>
-                                    <td colSpan={14} className="px-6 py-12 text-center text-slate-500 dark:text-slate-300">
+                                    <td colSpan={10} className="px-6 py-12 text-center text-slate-500 dark:text-slate-300">
                                         No logs found for the selected filters.
                                     </td>
                                 </tr>
@@ -804,21 +593,6 @@ export default function LogsPage() {
                                             >
                                                 <UserCheck className="w-3 h-3" />
                                                 {row.status}
-                                            </span>
-                                        </td>
-                                    <td>
-                                            <span
-                                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-bold ${
-                                                    row.risk === 'High'
-                                                        ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300'
-                                                    : row.risk === 'Medium'
-                                                            ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300'
-                                                            : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
-                                                }`}
-                                                title={`${row.riskReasons.join(' • ')} (score ${row.riskScore})`}
-                                            >
-                                                <ShieldAlert className="w-3 h-3" />
-                                                {row.risk}
                                             </span>
                                         </td>
                                         <td className="text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatDateTime(row.signInTs)}</td>
@@ -842,14 +616,6 @@ export default function LogsPage() {
                                                     {row.ip}
                                                 </a>
                                             ) : (row.ip || '-')}
-                                        </td>
-                                        <td className="text-sm text-slate-700 dark:text-slate-200 font-semibold">{row.transfersImpact}</td>
-                                        <td className="text-sm text-slate-700 dark:text-slate-200 font-semibold">{row.transfersApproveImpact}</td>
-                                        <td className="text-sm text-slate-700 dark:text-slate-200">
-                                            <span className="inline-flex items-center gap-1 font-semibold">
-                                                <Activity className="w-3.5 h-3.5" />
-                                                {row.activityScore}
-                                            </span>
                                         </td>
                                         <td className="text-sm text-slate-600 dark:text-slate-300 min-w-[280px]">{row.signOffNote || '-'}</td>
                                     </tr>
