@@ -9,7 +9,7 @@ import Badge from '../components/ui/Badge';
 import { formatDateTime } from '@/app/lib/dateUtils';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
-import { Search, PlusCircle, Trash2, Edit3, Shield, ChevronRight } from 'lucide-react';
+import { Search, PlusCircle, Trash2, Edit3, Shield, ChevronRight, Loader2, CheckSquare } from 'lucide-react';
 import { useAuditColumns } from '@/app/lib/permissions';
 
 export default function RolesPage() {
@@ -31,9 +31,55 @@ export default function RolesPage() {
         isOpen: false,
         title: '',
         message: '',
-        type: 'info' as 'info' | 'danger' | 'warning',
+        type: 'info' as 'info' | 'danger' | 'warning' | 'success',
         isAlert: false
     });
+
+    const [validating, setValidating] = useState(false);
+
+    const handleValidateRoles = async () => {
+        setValidating(true);
+        try {
+            const res = await fetch(`${ENDPOINTS.ROLES.LIST}/validate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Validation Complete',
+                    message: data.message || 'Roles validated and updated successfully.',
+                    type: 'success',
+                    isAlert: true
+                });
+            } else {
+                let errMsg = 'Failed to validate roles';
+                try {
+                    const err = await res.json();
+                    if (err?.message) errMsg = err.message;
+                } catch {}
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: errMsg,
+                    type: 'danger',
+                    isAlert: true
+                });
+            }
+        } catch (error) {
+            console.error('Error validating roles:', error);
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'A network error occurred while validating roles.',
+                type: 'danger',
+                isAlert: true
+            });
+        } finally {
+            setValidating(false);
+        }
+    };
 
     useEffect(() => {
         const fetchRoles = async () => {
@@ -269,10 +315,24 @@ export default function RolesPage() {
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Roles</h1>
                     <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">Manage roles for system users</p>
                 </div>
-                <Link href="/admin/roles/create" className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 rounded-full px-6">
-                    <PlusCircle className="w-5 h-5" />
-                    <span>Add Role</span>
-                </Link>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={handleValidateRoles}
+                        disabled={validating}
+                        className="px-5 py-3 rounded-full text-sm font-bold transition-all flex items-center space-x-2 glass-effect text-slate-700 dark:text-slate-200 hover:text-teal-600 disabled:opacity-50"
+                    >
+                        {validating ? (
+                            <Loader2 className="w-4 h-4 animate-spin text-teal-500" />
+                        ) : (
+                            <CheckSquare className="w-4 h-4 text-teal-500" />
+                        )}
+                        <span>{validating ? 'Validating...' : 'Validate Roles'}</span>
+                    </button>
+                    <Link href="/admin/roles/create" className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 rounded-full px-6 py-3">
+                        <PlusCircle className="w-5 h-5" />
+                        <span>Add Role</span>
+                    </Link>
+                </div>
             </div>
 
             {/* Filters */}

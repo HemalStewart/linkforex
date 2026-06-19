@@ -7,7 +7,6 @@ import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../../components/ConfirmModal';
 import { ArrowLeft, Shield, Save, ChevronRight } from 'lucide-react';
-import ToggleSwitch from '../../components/ToggleSwitch';
 
 export default function CreateRolePage() {
     const router = useRouter();
@@ -154,25 +153,6 @@ export default function CreateRolePage() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1"></label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left">
-                            </span>
-                            <ToggleSwitch
-                                label="System Defined"
-                                value={formData.system_defined as 'yes' | 'no'}
-                                onChange={(value) =>
-                                    setFormData({
-                                        ...formData,
-                                        system_defined: value,
-                                    })
-                                }
-                            />
-                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-200 pointer-events-none">⌄</span>
-                        </div>
-                    </div>
-
-                    <div>
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Duplicate/Copy from existing role</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left">
@@ -192,10 +172,6 @@ export default function CreateRolePage() {
                             </select>
                             <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
                         </div>
-                    </div>
-
-                    <div>
-                        {/* Spacing alignment */}
                     </div>
 
                     <div className="md:col-span-2">
