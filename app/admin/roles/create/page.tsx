@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../../components/ConfirmModal';
-import { ArrowLeft, Shield, Save } from 'lucide-react';
+import { ArrowLeft, Shield, Save, ChevronRight } from 'lucide-react';
 import ToggleSwitch from '../../components/ToggleSwitch';
 
 export default function CreateRolePage() {
@@ -17,8 +17,11 @@ export default function CreateRolePage() {
     const [formData, setFormData] = useState({
         name: '',
         description: '',
-        system_defined: 'no'
+        system_defined: 'no',
+        copy_from_role_id: ''
     });
+
+    const [existingRoles, setExistingRoles] = useState<{ id: number; name: string }[]>([]);
 
     const [confirmModal, setConfirmModal] = useState({
         isOpen: false,
@@ -32,6 +35,23 @@ export default function CreateRolePage() {
     useEffect(() => {
         const parsed = getStoredUser<{ username?: string; name?: string }>();
         setEnteredBy(parsed?.username || parsed?.name || '');
+    }, []);
+
+    useEffect(() => {
+        const fetchExistingRoles = async () => {
+            try {
+                const res = await fetch(ENDPOINTS.ROLES.LIST);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (Array.isArray(data)) {
+                        setExistingRoles(data);
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to fetch existing roles:', err);
+            }
+        };
+        fetchExistingRoles();
     }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -150,6 +170,32 @@ export default function CreateRolePage() {
                             />
                             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-200 pointer-events-none">⌄</span>
                         </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Duplicate/Copy from existing role</label>
+                        <div className="relative input-icon">
+                            <span className="input-icon-left">
+                                <Shield className="w-5 h-5" />
+                            </span>
+                            <select
+                                className="input-glass w-full pr-10 appearance-none cursor-pointer text-slate-700 dark:text-slate-200 font-semibold"
+                                value={formData.copy_from_role_id}
+                                onChange={(e) => setFormData({ ...formData, copy_from_role_id: e.target.value })}
+                            >
+                                <option value="" className="text-slate-900 dark:text-slate-900">None (Create empty role)</option>
+                                {existingRoles.map((role) => (
+                                    <option key={role.id} value={role.id} className="text-slate-900 dark:text-slate-900">
+                                        {role.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
+                        </div>
+                    </div>
+
+                    <div>
+                        {/* Spacing alignment */}
                     </div>
 
                     <div className="md:col-span-2">

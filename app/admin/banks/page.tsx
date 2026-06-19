@@ -124,10 +124,9 @@ export default function BanksPage() {
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [deleteBankId, setDeleteBankId] = useState<number | null>(null);
     const [editingId, setEditingId] = useState<string | number | null>(null);
-    const [editForm, setEditForm] = useState<BankFormState>(EMPTY_FORM);
-    const [addModalOpen, setAddModalOpen] = useState(false);
+    const [modalOpen, setModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [newBank, setNewBank] = useState<BankFormState>(EMPTY_FORM);
+    const [form, setForm] = useState<BankFormState>(EMPTY_FORM);
     const [confirmModal, setConfirmModal] = useState({
         isOpen: false,
         title: '',
@@ -211,19 +210,37 @@ export default function BanksPage() {
         }
     }, [page, currentPage]);
 
-    const handleEdit = (bank: BankRow) => {
+    const openAddModal = () => {
+        setEditingId(null);
+        setForm(EMPTY_FORM);
+        setModalOpen(true);
+    };
+
+    const openEditModal = (bank: BankRow) => {
         setEditingId(bank.id);
-        setEditForm({
+        setForm({
             name: String(bank.name || ''),
             bank_code: normalizeCode(bank.bank_code),
             sender_bank: senderFlag(bank),
             receiver_bank: receiverFlag(bank),
             pickup_bank: pickupFlag(bank),
         });
+        setModalOpen(true);
     };
 
-    const handleSave = async (id: number | string) => {
-        if (editForm.pickup_bank && !editForm.receiver_bank) {
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!form.name.trim() || !form.bank_code.trim()) {
+            setConfirmModal({
+                isOpen: true,
+                title: 'Missing data',
+                message: 'Bank name and unique bank code are required.',
+                type: 'warning',
+                isAlert: true,
+            });
+            return;
+        }
+        if (form.pickup_bank && !form.receiver_bank) {
             setConfirmModal({
                 isOpen: true,
                 title: 'Receiver bank required',
@@ -233,25 +250,34 @@ export default function BanksPage() {
             });
             return;
         }
+        setIsSubmitting(true);
         try {
-            const payload = normalizeForm(editForm);
-            const res = await fetch(ENDPOINTS.BANKS.DETAIL(id), {
-                method: 'PUT',
+            const payload = normalizeForm(form);
+            const endpoint = editingId == null ? ENDPOINTS.BANKS.LIST : ENDPOINTS.BANKS.DETAIL(editingId);
+            const method = editingId == null ? 'POST' : 'PUT';
+
+            const res = await fetch(endpoint, {
+                method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
             });
 
             if (res.ok) {
-                const updated = await res.json().catch(() => null);
-                if (updated && typeof updated === 'object') {
-                    setBanks((current) => current.map((bank) => (String(bank.id) === String(id) ? { ...bank, ...(updated as BankRow) } : bank)));
-                }
+                setModalOpen(false);
+                setForm(EMPTY_FORM);
                 setEditingId(null);
                 await fetchBanks();
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Success',
+                    message: editingId == null ? 'Bank added successfully.' : 'Bank updated successfully.',
+                    type: 'info',
+                    isAlert: true,
+                });
                 return;
             }
 
-            const message = await readErrorMessage(res, 'Failed to update bank.');
+            const message = await readErrorMessage(res, editingId == null ? 'Failed to add bank.' : 'Failed to update bank.');
             setConfirmModal({
                 isOpen: true,
                 title: 'Error',
@@ -260,14 +286,16 @@ export default function BanksPage() {
                 isAlert: true,
             });
         } catch (error) {
-            console.error('Failed to update bank', error);
+            console.error('Failed to save bank', error);
             setConfirmModal({
                 isOpen: true,
                 title: 'Error',
-                message: 'An error occurred while updating the bank.',
+                message: 'An error occurred while saving the bank.',
                 type: 'danger',
                 isAlert: true,
             });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -310,73 +338,6 @@ export default function BanksPage() {
         }
     };
 
-    const handleAddSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newBank.name.trim() || !newBank.bank_code.trim()) {
-            setConfirmModal({
-                isOpen: true,
-                title: 'Missing data',
-                message: 'Bank name and unique bank code are required.',
-                type: 'warning',
-                isAlert: true,
-            });
-            return;
-        }
-        if (newBank.pickup_bank && !newBank.receiver_bank) {
-            setConfirmModal({
-                isOpen: true,
-                title: 'Receiver bank required',
-                message: 'Cash Pickup Bank must also be marked as Receiver Bank.',
-                type: 'warning',
-                isAlert: true,
-            });
-            return;
-        }
-        setIsSubmitting(true);
-        try {
-            const payload = normalizeForm(newBank);
-            const res = await fetch(ENDPOINTS.BANKS.LIST, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-            });
-
-            if (res.ok) {
-                setAddModalOpen(false);
-                setNewBank(EMPTY_FORM);
-                await fetchBanks();
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Success',
-                    message: 'Bank added successfully.',
-                    type: 'info',
-                    isAlert: true,
-                });
-                return;
-            }
-
-            const message = await readErrorMessage(res, 'Failed to add bank.');
-            setConfirmModal({
-                isOpen: true,
-                title: 'Error',
-                message,
-                type: 'danger',
-                isAlert: true,
-            });
-        } catch (error) {
-            console.error(error);
-            setConfirmModal({
-                isOpen: true,
-                title: 'Error',
-                message: 'An error occurred while adding the bank.',
-                type: 'danger',
-                isAlert: true,
-            });
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
     const toggleSort = (key: SortKey) => {
         if (sortKey === key) {
             setSortDir((current) => (current === 'asc' ? 'desc' : 'asc'));
@@ -411,7 +372,7 @@ export default function BanksPage() {
                         </span>
                     </button>
                     <button
-                        onClick={() => setAddModalOpen(true)}
+                        onClick={openAddModal}
                         className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0"
                     >
                         <PlusCircle className="w-5 h-5" />
@@ -498,116 +459,30 @@ export default function BanksPage() {
                                             {startIndex + idx + 1}
                                         </td>
                                         <td className="px-2 py-5 text-center">
-                                            {editingId === bank.id ? (
-                                                <div className="flex items-center justify-center space-x-1">
-                                                    <button type="button" onClick={() => void handleSave(bank.id)} className="p-2 rounded-xl bg-teal-100 text-teal-600 hover:bg-teal-200 transition-colors" title="Save">
-                                                        <Save className="w-4 h-4" />
-                                                    </button>
-                                                    <button type="button" onClick={() => setEditingId(null)} className="p-2 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors" title="Cancel">
-                                                        <X className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <button onClick={() => handleEdit(bank)} className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all" title="Edit">
-                                                    <Edit2 className="w-5 h-5" />
-                                                </button>
-                                            )}
+                                            <button onClick={() => openEditModal(bank)} className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all" title="Edit">
+                                                <Edit2 className="w-5 h-5" />
+                                            </button>
                                         </td>
                                         <td className="px-6 py-5 text-sm font-mono text-slate-700 dark:text-slate-200 whitespace-nowrap">
-                                            {editingId === bank.id ? (
-                                                <input
-                                                    className="input-glass py-1 px-3 w-40"
-                                                    value={editForm.bank_code}
-                                                    maxLength={50}
-                                                    onChange={(e) => setEditForm({ ...editForm, bank_code: e.target.value.toUpperCase() })}
-                                                />
-                                            ) : (
-                                                normalizeCode(bank.bank_code) || '—'
-                                            )}
+                                            {normalizeCode(bank.bank_code) || '—'}
                                         </td>
                                         <td className="px-6 py-5 font-bold text-slate-900 dark:text-white min-w-[240px]">
-                                            {editingId === bank.id ? (
-                                                <input
-                                                    className="input-glass py-1 px-3 w-full"
-                                                    value={editForm.name}
-                                                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                                                    autoFocus
-                                                />
-                                            ) : (
-                                                <span>{bank.name || '—'}</span>
-                                            )}
+                                            {bank.name || '—'}
                                         </td>
                                         <td className="px-6 py-5 text-center">
-                                            {editingId === bank.id ? (
-                                                // <input
-                                                //     type="checkbox"
-                                                //     className="checkbox-glass"
-                                                //     checked={Boolean(editForm.sender_bank)}
-                                                //     onChange={(e) => setEditForm({ ...editForm, sender_bank: e.target.checked ? 1 : 0 })}
-                                                // />
-                                                <ToggleSwitch
-                                                    label=""
-                                                    value={editForm.sender_bank ? 'yes' : 'no'}
-                                                    onChange={(value) =>
-                                                        setEditForm({
-                                                            ...editForm,
-                                                            sender_bank: value === 'yes' ? 1 : 0,
-                                                        })
-                                                    }
-                                                />
-                                            ) : (
-                                                <Badge type={senderFlag(bank) ? 'yes' : 'no'}>
-                                                    {senderFlag(bank) ? 'Yes' : 'No'}
-                                                </Badge>
-                                            )}
+                                            <Badge type={senderFlag(bank) ? 'yes' : 'no'}>
+                                                {senderFlag(bank) ? 'Yes' : 'No'}
+                                            </Badge>
                                         </td>
                                         <td className="px-6 py-5 text-center">
-                                            {editingId === bank.id ? (
-                                                // <input
-                                                //     type="checkbox"
-                                                //     className="checkbox-glass"
-                                                //     checked={Boolean(editForm.receiver_bank)}
-                                                //     onChange={(e) => setEditForm({ ...editForm, receiver_bank: e.target.checked ? 1 : 0 })}
-                                                // />
-                                                <ToggleSwitch
-                                                    label=""
-                                                    value={editForm.receiver_bank ? 'yes' : 'no'}
-                                                    onChange={(value) =>
-                                                        setEditForm({
-                                                            ...editForm,
-                                                            receiver_bank: value === 'yes' ? 1 : 0,
-                                                        })
-                                                    }
-                                                />
-                                            ) : (
-                                                <Badge type={receiverFlag(bank) ? 'yes' : 'no'}>
-                                                    {receiverFlag(bank) ? 'Yes' : 'No'}
-                                                </Badge>
-                                            )}
+                                            <Badge type={receiverFlag(bank) ? 'yes' : 'no'}>
+                                                {receiverFlag(bank) ? 'Yes' : 'No'}
+                                            </Badge>
                                         </td>
                                         <td className="px-6 py-5 text-center">
-                                            {editingId === bank.id ? (
-                                                // <input
-                                                //     type="checkbox"
-                                                //     className="checkbox-glass"
-                                                //     checked={Boolean(editForm.pickup_bank)}
-                                                //     onChange={(e) => setEditForm({ ...editForm, pickup_bank: e.target.checked ? 1 : 0 })}
-                                                // />
-                                                <ToggleSwitch
-                                                    label=""
-                                                    value={editForm.pickup_bank ? 'yes' : 'no'}
-                                                    onChange={(value) =>
-                                                        setEditForm({
-                                                            ...editForm,
-                                                            pickup_bank: value === 'yes' ? 1 : 0,
-                                                        })
-                                                    }
-                                                />
-                                            ) : (
-                                                <Badge type={pickupFlag(bank) ? 'yes' : 'no'}>
-                                                    {pickupFlag(bank) ? 'Yes' : 'No'}
-                                                </Badge>
-                                            )}
+                                            <Badge type={pickupFlag(bank) ? 'yes' : 'no'}>
+                                                {pickupFlag(bank) ? 'Yes' : 'No'}
+                                            </Badge>
                                         </td>
                                         <td className="px-2 py-5 text-center">
                                             <button onClick={() => setDeleteBankId(Number(bank.id))} className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all" title="Delete">
@@ -636,80 +511,83 @@ export default function BanksPage() {
                 />
             </div>
 
-            <Modal isOpen={addModalOpen} onClose={() => setAddModalOpen(false)} title="Add Bank">
-                <form onSubmit={handleAddSubmit} className="space-y-5">
-                    <div>
-                        <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Bank Code (Unique)</label>
-                        <input
-                            className="input-glass w-full"
-                            value={newBank.bank_code}
-                            onChange={(e) => setNewBank({ ...newBank, bank_code: e.target.value.toUpperCase() })}
-                            maxLength={50}
-                            required
-                        />
+            <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editingId == null ? 'Add Bank' : 'Edit Bank'}>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Bank Name</label>
+                            <input
+                                className="input-glass w-full"
+                                value={form.name}
+                                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Bank Code (Unique)</label>
+                            <input
+                                className="input-glass w-full"
+                                value={form.bank_code}
+                                onChange={(e) => setForm({ ...form, bank_code: e.target.value.toUpperCase() })}
+                                maxLength={50}
+                                required
+                            />
+                        </div>
                     </div>
-                    <div>
-                        <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Bank Name</label>
-                        <input
-                            className="input-glass w-full"
-                            value={newBank.name}
-                            onChange={(e) => setNewBank({ ...newBank, name: e.target.value })}
-                            required
-                        />
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <label className="inline-flex items-center gap-2 rounded-2xl border border-slate-200/70 dark:border-slate-700 px-3 py-2 text-sm font-medium">
-                            {/* <input
-                                type="checkbox"
-                                checked={Boolean(newBank.sender_bank)}
-                                onChange={(e) => setNewBank({ ...newBank, sender_bank: e.target.checked ? 1 : 0 })}
-                            /> */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300"></label>
                             <ToggleSwitch
                                 label="Sender Bank"
-                                value={newBank.sender_bank ? 'yes' : 'no'}
+                                value={form.sender_bank ? 'yes' : 'no'}
                                 onChange={(value) =>
-                                    setNewBank({
-                                        ...newBank,
+                                    setForm({
+                                        ...form,
                                         sender_bank: value === 'yes' ? 1 : 0,
                                     })
                                 }
                             />
-                        </label>
-                        <label className="inline-flex items-center gap-2 rounded-2xl border border-slate-200/70 dark:border-slate-700 px-3 py-2 text-sm font-medium">
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300"></label>
                             <ToggleSwitch
                                 label="Receiver Bank"
-                                value={newBank.receiver_bank ? 'yes' : 'no'}
+                                value={form.receiver_bank ? 'yes' : 'no'}
                                 onChange={(value) =>
-                                    setNewBank({
-                                        ...newBank,
+                                    setForm({
+                                        ...form,
                                         receiver_bank: value === 'yes' ? 1 : 0,
                                     })
                                 }
                             />
-                        </label>
-                        <label className="inline-flex items-center gap-2 rounded-2xl border border-slate-200/70 dark:border-slate-700 px-3 py-2 text-sm font-medium">
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300"></label>
                             <ToggleSwitch
                                 label="Cash Pickup Bank"
-                                value={newBank.pickup_bank ? 'yes' : 'no'}
+                                value={form.pickup_bank ? 'yes' : 'no'}
                                 onChange={(value) =>
-                                    setNewBank({
-                                        ...newBank,
+                                    setForm({
+                                        ...form,
                                         pickup_bank: value === 'yes' ? 1 : 0,
                                     })
                                 }
                             />
-                        </label>
+                        </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        <span className="text-sm text-slate-500 dark:text-slate-300">
+                        <span className="text-xs text-slate-500 dark:text-slate-400">
                             `Receiver Bank` is used for beneficiary bank list in app. `Cash Pickup Bank` is used for pickup bank list.
                         </span>
                     </div>
-                    <div className="dialog-actions pt-3">
-                        <button type="button" onClick={() => setAddModalOpen(false)} className="btn-secondary text-sm">Cancel</button>
-                        <button type="submit" className="btn-primary flex items-center gap-2 text-sm disabled:opacity-60" disabled={isSubmitting}>
-                            <Save className="w-4 h-4" />
-                            {isSubmitting ? 'Saving...' : 'Save'}
+                    <div className="dialog-actions pt-4">
+                        <button type="button" onClick={() => setModalOpen(false)} className="btn-secondary text-sm">Cancel</button>
+                        <button type="submit" className="btn-primary glass-effect hover-lift text-sm disabled:opacity-60" disabled={isSubmitting}>
+                            {isSubmitting ? (
+                                <span className="flex items-center gap-2"><Save className="w-4 h-4" /> Saving...</span>
+                            ) : (
+                                <span className="flex items-center gap-2"><Save className="w-4 h-4" /> Save</span>
+                            )}
                         </button>
                     </div>
                 </form>
