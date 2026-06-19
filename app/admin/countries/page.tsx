@@ -3,7 +3,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
-import { isPrivilegedUser } from '@/app/lib/permissions';
+import { isPrivilegedUser, useAuditColumns } from '@/app/lib/permissions';
+import { formatDateTime } from '@/app/lib/dateUtils';
 import { useRowsPerPage } from '@/app/lib/uiPreferences';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
@@ -63,6 +64,7 @@ const EMPTY_FORM: CountryFormState = {
 const YES_NO_OPTIONS: YesNo[] = ['yes', 'no'];
 
 export default function CountriesPage() {
+    const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('COUNTRIES');
     const [countries, setCountries] = useState<CountryRow[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -469,6 +471,10 @@ export default function CountriesPage() {
                                             <span>{sortIndicator('payout_currency')}</span>
                                         </button>
                                     </th>
+                                    {showCreatedBy && <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Created By</th>}
+                                    {showCreatedAt && <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Created At</th>}
+                                    {showUpdatedBy && <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated By</th>}
+                                    {showUpdatedAt && <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated At</th>}
                                     <th className="px-2 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                                 </tr>
                             </thead>
@@ -511,6 +517,10 @@ export default function CountriesPage() {
                                                 {toYesNoLabel(normalizeYesNo(country.payout_currency))}
                                             </Badge>
                                         </td>
+                                        {showCreatedBy && <td className="px-6 py-5 text-sm text-slate-500 dark:text-slate-300">{(country as any).created_by || '—'}</td>}
+                                        {showCreatedAt && <td className="px-6 py-5 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime((country as any).created_at)}</td>}
+                                        {showUpdatedBy && <td className="px-6 py-5 text-sm text-slate-500 dark:text-slate-300">{(country as any).updated_by || '—'}</td>}
+                                        {showUpdatedAt && <td className="px-6 py-5 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime((country as any).updated_at)}</td>}
                                         <td className="px-2 py-5 text-center">
                                             <button
                                                 onClick={() => setDeleteCountryId(Number(country.id))}
@@ -525,7 +535,7 @@ export default function CountriesPage() {
                                 ))}
                                 {!loading && pagedCountries.length === 0 && (
                                     <tr>
-                                        <td colSpan={11} className="px-8 py-12 text-center text-slate-500 dark:text-slate-400">
+                                        <td colSpan={11 + (showCreatedBy ? 1 : 0) + (showCreatedAt ? 1 : 0) + (showUpdatedBy ? 1 : 0) + (showUpdatedAt ? 1 : 0)} className="px-8 py-12 text-center text-slate-500 dark:text-slate-400">
                                             No countries found for the current filters.
                                         </td>
                                     </tr>

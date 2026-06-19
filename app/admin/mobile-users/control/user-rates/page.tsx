@@ -3,8 +3,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
 import Badge from '@/app/admin/components/ui/Badge';
-import { RefreshCcw, Search, Plus, Trash2 } from 'lucide-react';
+import { RefreshCw, Search, Plus, Trash2 } from 'lucide-react';
 import { formatDateTime } from '@/app/lib/dateUtils';
+import { useAuditColumns } from '@/app/lib/permissions';
 
 type MobileExchangeRate = {
     id: number;
@@ -25,6 +26,10 @@ type UserRateOverride = {
     status: 'active' | 'inactive';
     updated_by?: string;
     updated_at?: string | null;
+    created_by?: string | null;
+    entered_user?: string | null;
+    modified_user?: string | null;
+    created_at?: string | null;
 };
 
 function normalizeCurrencyLabel(row: MobileExchangeRate) {
@@ -40,6 +45,7 @@ function normalizeCurrencyLabel(row: MobileExchangeRate) {
 }
 
 export default function MobileUserRatesPage() {
+    const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('MOBILE_USER_RATES');
     const [currencies, setCurrencies] = useState<MobileExchangeRate[]>([]);
     const [rows, setRows] = useState<UserRateOverride[]>([]);
     const [loading, setLoading] = useState(true);
@@ -158,7 +164,7 @@ export default function MobileUserRatesPage() {
                         onClick={() => void fetchData()}
                         className="glass-effect inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-slate-600 transition hover:text-teal-600 dark:text-slate-200 dark:hover:text-teal-300"
                     >
-                        <RefreshCcw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                        <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                         Refresh
                     </button>
                     <button
@@ -203,7 +209,7 @@ export default function MobileUserRatesPage() {
                             onClick={() => void fetchData()}
                             className="glass-effect inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-slate-600 transition hover:text-teal-600 dark:text-slate-200 dark:hover:text-teal-300"
                         >
-                            <RefreshCcw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                             Apply
                         </button>
                     </div>
@@ -220,7 +226,10 @@ export default function MobileUserRatesPage() {
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Currency</th>
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Digital Rate</th>
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Status</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Updated At</th>
+                                    {showCreatedBy && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Created By</th>}
+                                    {showCreatedAt && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Created At</th>}
+                                    {showUpdatedBy && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Updated By</th>}
+                                    {showUpdatedAt && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Updated At</th>}
                                     <th className="px-4 py-4 text-right text-xs font-bold text-slate-500 dark:text-slate-300">Action</th>
                                 </tr>
                             </thead>
@@ -236,9 +245,14 @@ export default function MobileUserRatesPage() {
                                             <td className="px-4 py-4 text-sm">
                                                 <Badge type={status === 'Active' ? 'active' : 'inactive'}>{status}</Badge>
                                             </td>
-                                            <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">
-                                                {formatDateTime(row.updated_at)}
-                                            </td>
+                                            {showCreatedBy && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{row.created_by || row.entered_user || '—'}</td>}
+                                            {showCreatedAt && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{row.created_at ? formatDateTime(row.created_at) : '—'}</td>}
+                                            {showUpdatedBy && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{row.updated_by || row.modified_user || '—'}</td>}
+                                            {showUpdatedAt && (
+                                                <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">
+                                                    {row.updated_at ? formatDateTime(row.updated_at) : '—'}
+                                                </td>
+                                            )}
                                             <td className="px-4 py-4 text-right text-sm">
                                                 <button
                                                     type="button"
@@ -254,7 +268,7 @@ export default function MobileUserRatesPage() {
                                 })}
                                 {sortedRows.length === 0 && (
                                     <tr>
-                                        <td colSpan={6} className="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
+                                        <td colSpan={6 + (showCreatedBy ? 1 : 0) + (showCreatedAt ? 1 : 0) + (showUpdatedBy ? 1 : 0) + (showUpdatedAt ? 1 : 0)} className="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
                                             No overrides found.
                                         </td>
                                     </tr>

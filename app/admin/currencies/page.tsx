@@ -6,8 +6,10 @@ import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
 import { RefreshCw, PlusCircle, Edit2, Save, X, Info, Globe, Coins } from 'lucide-react';
 import { formatDateTime } from '@/app/lib/dateUtils';
+import { useAuditColumns } from '@/app/lib/permissions';
 
 export default function CurrenciesPage() {
+    const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('CURRENCIES');
     const [currencies, setCurrencies] = useState<any[]>([]);
     const [countries, setCountries] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -169,7 +171,10 @@ export default function CurrenciesPage() {
                                     <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Code</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Rate (Base: GBP)</th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated At</th>
+                                    {showCreatedBy && <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Created By</th>}
+                                    {showCreatedAt && <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Created At</th>}
+                                    {showUpdatedBy && <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated By</th>}
+                                    {showUpdatedAt && <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated At</th>}
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -215,9 +220,14 @@ export default function CurrenciesPage() {
                                                 </span>
                                             )}
                                         </td>
-                                        <td className="px-8 py-5 text-sm text-slate-500 font-medium whitespace-nowrap">
-                                            {formatDateTime(currency.updated_at)}
-                                        </td>
+                                        {showCreatedBy && <td className="px-8 py-5 text-sm text-slate-500 font-medium whitespace-nowrap">{currency.entered_user || currency.created_by || '—'}</td>}
+                                        {showCreatedAt && <td className="px-8 py-5 text-sm text-slate-500 font-medium whitespace-nowrap">{currency.created_at ? formatDateTime(currency.created_at) : '—'}</td>}
+                                        {showUpdatedBy && <td className="px-8 py-5 text-sm text-slate-500 font-medium whitespace-nowrap">{currency.modified_user || currency.updated_by || '—'}</td>}
+                                        {showUpdatedAt && (
+                                            <td className="px-8 py-5 text-sm text-slate-500 font-medium whitespace-nowrap">
+                                                {currency.updated_at ? formatDateTime(currency.updated_at) : '—'}
+                                            </td>
+                                        )}
                                     </tr>
                                 ))}
                             </tbody>

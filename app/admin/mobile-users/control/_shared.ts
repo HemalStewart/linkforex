@@ -98,6 +98,10 @@ export type QueueUser = {
     sanction_checked_at?: string;
     created_at?: string;
     updated_at?: string;
+    created_by?: string | null;
+    entered_user?: string | null;
+    updated_by?: string | null;
+    modified_user?: string | null;
 };
 
 export type WalletTransfer = {
@@ -130,6 +134,10 @@ export type WalletTransfer = {
     completed_at?: string | null;
     rejected_at?: string | null;
     status_history?: Array<{ status: string; note?: string; updated_at?: string; updated_by?: string }>;
+    created_by?: string | null;
+    entered_user?: string | null;
+    updated_by?: string | null;
+    modified_user?: string | null;
 };
 
 export type Campaign = {
@@ -141,6 +149,12 @@ export type Campaign = {
     include_exchange_rate: 'yes' | 'no';
     status: 'draft' | 'sent';
     sent_at?: string | null;
+    created_by?: string | null;
+    entered_user?: string | null;
+    updated_by?: string | null;
+    modified_user?: string | null;
+    created_at?: string | null;
+    updated_at?: string | null;
 };
 
 export type MobileAd = {
@@ -152,6 +166,12 @@ export type MobileAd = {
     placement: 'onboarding' | 'home_carousel';
     priority: number;
     status: 'active' | 'inactive';
+    created_by?: string | null;
+    entered_user?: string | null;
+    updated_by?: string | null;
+    modified_user?: string | null;
+    created_at?: string | null;
+    updated_at?: string | null;
 };
 
 export type MobileExchangeRate = {

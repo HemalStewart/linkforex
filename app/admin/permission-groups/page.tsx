@@ -10,7 +10,7 @@ import { formatDateTime } from '@/app/lib/dateUtils';
 import Badge from '../components/ui/Badge';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
-import { ADMIN_PAGES_CONFIG } from '@/app/lib/permissions';
+import { ADMIN_PAGES_CONFIG, useAuditColumns } from '@/app/lib/permissions';
 
 type PermissionGroupRow = {
     id: number;
@@ -41,6 +41,7 @@ const normalizeYesNo = (value?: string | null) => (String(value || '').toLowerCa
 const toYesNoLabel = (value?: string | null) => (normalizeYesNo(value) === 'yes' ? 'Yes' : 'No');
 
 export default function PermissionGroupsPage() {
+    const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('PERMISSION_GROUPS');
     const [activeTab, setActiveTab] = useState<'grid' | 'list'>('grid');
     const [selectedRole, setSelectedRole] = useState<string>('');
     const [toggling, setToggling] = useState<string>(''); // section|op
@@ -1090,93 +1091,107 @@ export default function PermissionGroupsPage() {
                             </div>
                         </div>
                         <div className="table-scroll">
-                            <table className="table-shell">
-                                <thead className="table-head">
-                                    <tr>
-                                        <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">No.</th>
-                                        <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
-                                            <button onClick={() => toggleSort('role_name')} className="flex items-center gap-1">
-                                                Role <span className="text-slate-400 dark:text-slate-300">{sortIndicator('role_name')}</span>
-                                            </button>
-                                        </th>
-                                        <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
-                                            <button onClick={() => toggleSort('page_section')} className="flex items-center gap-1">
-                                                Page <span className="text-slate-400 dark:text-slate-300">{sortIndicator('page_section')}</span>
-                                            </button>
-                                        </th>
-                                        <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
-                                            <button onClick={() => toggleSort('operation')} className="flex items-center gap-1">
-                                                Operation <span className="text-slate-400 dark:text-slate-300">{sortIndicator('operation')}</span>
-                                            </button>
-                                        </th>
-                                        <th className="px-4 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-300">
-                                            <button onClick={() => toggleSort('system_defined')} className="mx-auto flex items-center gap-1">
-                                                System Defined <span className="text-slate-400 dark:text-slate-300">{sortIndicator('system_defined')}</span>
-                                            </button>
-                                        </th>
-                                        <th className="px-4 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-300">
-                                            <button onClick={() => toggleSort('active')} className="mx-auto flex items-center gap-1">
-                                                Active <span className="text-slate-400 dark:text-slate-300">{sortIndicator('active')}</span>
-                                            </button>
-                                        </th>
-                                        <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Created By</th>
-                                        <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
-                                            <button onClick={() => toggleSort('created_at')} className="flex items-center gap-1">
-                                                Created At <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_at')}</span>
-                                            </button>
-                                        </th>
-                                        <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Updated By</th>
-                                        <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
-                                            <button onClick={() => toggleSort('updated_at')} className="flex items-center gap-1">
-                                                Updated At <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_at')}</span>
-                                            </button>
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="table-body">
-                                    {loading ? (
-                                        <tr>
-                                            <td colSpan={10} className="px-6 py-10 text-center text-slate-500 dark:text-slate-300">
-                                                Loading role permissions...
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        paged.map((row, idx) => (
-                                            <tr key={row.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
-                                                <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
-                                                <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{row.role_name}</td>
-                                                <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.page_section}</td>
-                                                <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.operation}</td>
-                                                <td className="px-4 py-4 text-sm text-center">
-                                                    <label className="inline-flex items-center justify-center">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={normalizeYesNo(row.system_defined) === 'yes'}
-                                                            disabled
-                                                            className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-50"
-                                                        />
-                                                    </label>
-                                                </td>
-                                                <td className="px-4 py-4 text-sm text-center">
-                                                    <label className="inline-flex items-center justify-center">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={normalizeYesNo(row.active) === 'yes'}
-                                                            onChange={(e) => promptToggle(row, e.target.checked ? 'yes' : 'no')}
-                                                            disabled={savingId === row.id}
-                                                            className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-50"
-                                                        />
-                                                    </label>
-                                                </td>
-                                                <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.created_by || '-'}</td>
-                                                <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime(row.created_at)}</td>
-                                                <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.updated_by || '-'}</td>
-                                                <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime(row.updated_at)}</td>
+                            {(() => {
+                                const baseColSpan = 6;
+                                const dynamicColSpan = baseColSpan +
+                                    (showCreatedBy ? 1 : 0) +
+                                    (showCreatedAt ? 1 : 0) +
+                                    (showUpdatedBy ? 1 : 0) +
+                                    (showUpdatedAt ? 1 : 0);
+                                return (
+                                    <table className="table-shell">
+                                        <thead className="table-head">
+                                            <tr>
+                                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">No.</th>
+                                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                                    <button onClick={() => toggleSort('role_name')} className="flex items-center gap-1">
+                                                        Role <span className="text-slate-400 dark:text-slate-300">{sortIndicator('role_name')}</span>
+                                                    </button>
+                                                </th>
+                                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                                    <button onClick={() => toggleSort('page_section')} className="flex items-center gap-1">
+                                                        Page <span className="text-slate-400 dark:text-slate-300">{sortIndicator('page_section')}</span>
+                                                    </button>
+                                                </th>
+                                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                                    <button onClick={() => toggleSort('operation')} className="flex items-center gap-1">
+                                                        Operation <span className="text-slate-400 dark:text-slate-300">{sortIndicator('operation')}</span>
+                                                    </button>
+                                                </th>
+                                                <th className="px-4 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-300">
+                                                    <button onClick={() => toggleSort('system_defined')} className="mx-auto flex items-center gap-1">
+                                                        System Defined <span className="text-slate-400 dark:text-slate-300">{sortIndicator('system_defined')}</span>
+                                                    </button>
+                                                </th>
+                                                <th className="px-4 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-300">
+                                                    <button onClick={() => toggleSort('active')} className="mx-auto flex items-center gap-1">
+                                                        Active <span className="text-slate-400 dark:text-slate-300">{sortIndicator('active')}</span>
+                                                    </button>
+                                                </th>
+                                                {showCreatedBy && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Created By</th>}
+                                                {showCreatedAt && (
+                                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                                        <button onClick={() => toggleSort('created_at')} className="flex items-center gap-1">
+                                                            Created At <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_at')}</span>
+                                                        </button>
+                                                    </th>
+                                                )}
+                                                {showUpdatedBy && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Updated By</th>}
+                                                {showUpdatedAt && (
+                                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                                        <button onClick={() => toggleSort('updated_at')} className="flex items-center gap-1">
+                                                            Updated At <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_at')}</span>
+                                                        </button>
+                                                    </th>
+                                                )}
                                             </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
+                                        </thead>
+                                        <tbody className="table-body">
+                                            {loading ? (
+                                                <tr>
+                                                    <td colSpan={dynamicColSpan} className="px-6 py-10 text-center text-slate-500 dark:text-slate-300">
+                                                        Loading role permissions...
+                                                    </td>
+                                                </tr>
+                                            ) : (
+                                                paged.map((row, idx) => (
+                                                    <tr key={row.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
+                                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
+                                                        <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{row.role_name}</td>
+                                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.page_section}</td>
+                                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.operation}</td>
+                                                        <td className="px-4 py-4 text-sm text-center">
+                                                            <label className="inline-flex items-center justify-center">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={normalizeYesNo(row.system_defined) === 'yes'}
+                                                                    disabled
+                                                                    className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-50"
+                                                                />
+                                                            </label>
+                                                        </td>
+                                                        <td className="px-4 py-4 text-sm text-center">
+                                                            <label className="inline-flex items-center justify-center">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={normalizeYesNo(row.active) === 'yes'}
+                                                                    onChange={(e) => promptToggle(row, e.target.checked ? 'yes' : 'no')}
+                                                                    disabled={savingId === row.id}
+                                                                    className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-50"
+                                                                />
+                                                            </label>
+                                                        </td>
+                                                        {showCreatedBy && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.created_by || '—'}</td>}
+                                                        {showCreatedAt && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{row.created_at ? formatDateTime(row.created_at) : '—'}</td>}
+                                                        {showUpdatedBy && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.updated_by || '—'}</td>}
+                                                        {showUpdatedAt && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{row.updated_at ? formatDateTime(row.updated_at) : '—'}</td>}
+                                                    </tr>
+                                                ))
+                                            )}
+                                        </tbody>
+                                    </table>
+                                );
+                            })()}
                         </div>
                         <Pagination
                             currentPage={page}

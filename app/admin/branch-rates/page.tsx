@@ -12,6 +12,7 @@ import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
 import { ArrowRightLeft, GitBranch, PlusCircle, RefreshCcw, Search, Tag, Save } from 'lucide-react';
 import ToggleSwitch from '../components/ToggleSwitch';
+import { useAuditColumns } from '@/app/lib/permissions';
 
 type YesNo = 'yes' | 'no';
 
@@ -115,6 +116,7 @@ function normalizeRateDraft(value: string): string {
 }
 
 export default function BranchRatesPage() {
+    const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('BRANCH_CURRENCY_RATES');
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [rows, setRows] = useState<BranchRateRow[]>([]);
@@ -691,16 +693,22 @@ export default function BranchRatesPage() {
                                             Status <span className="text-slate-400 dark:text-slate-300">{sortIndicator('status')}</span>
                                         </button>
                                     </th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
-                                        <button onClick={() => toggleSort('updatedAt')} className="flex items-center gap-1">
-                                            Updated At <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updatedAt')}</span>
-                                        </button>
-                                    </th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
-                                        <button onClick={() => toggleSort('updatedUser')} className="flex items-center gap-1">
-                                            Updated By <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updatedUser')}</span>
-                                        </button>
-                                    </th>
+                                    {showCreatedBy && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Created By</th>}
+                                    {showCreatedAt && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Created At</th>}
+                                    {showUpdatedBy && (
+                                        <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                            <button onClick={() => toggleSort('updatedUser')} className="flex items-center gap-1">
+                                                Updated By <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updatedUser')}</span>
+                                            </button>
+                                        </th>
+                                    )}
+                                    {showUpdatedAt && (
+                                        <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                            <button onClick={() => toggleSort('updatedAt')} className="flex items-center gap-1">
+                                                Updated At <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updatedAt')}</span>
+                                            </button>
+                                        </th>
+                                    )}
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -742,16 +750,16 @@ export default function BranchRatesPage() {
                                                     {row.active === 'yes' ? 'Active' : 'Inactive'}
                                                 </Badge>
                                             </td>
-                                            <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">
-                                                {formatDateTime(row.updated_at)}
-                                            </td>
-                                            <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{updatedUser}</td>
+                                            {showCreatedBy && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.entered_user || '—'}</td>}
+                                            {showCreatedAt && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime((row as any).created_at || row.updated_at)}</td>}
+                                            {showUpdatedBy && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.modified_user || '—'}</td>}
+                                            {showUpdatedAt && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime(row.updated_at)}</td>}
                                         </tr>
                                     );
                                 })}
                                 {!loading && pagedRows.length === 0 && (
                                     <tr>
-                                        <td colSpan={8} className="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
+                                        <td colSpan={7 + (showCreatedBy ? 1 : 0) + (showCreatedAt ? 1 : 0) + (showUpdatedBy ? 1 : 0) + (showUpdatedAt ? 1 : 0)} className="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
                                             No branch rate rows found.
                                         </td>
                                     </tr>

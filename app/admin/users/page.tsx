@@ -13,8 +13,10 @@ import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
 import { Search, UserPlus, Trash2, Users, UserCheck, User, Shield, QrCode, Eye, RotateCcw, ChevronRight, Edit2, Lock, EyeOff } from 'lucide-react';
 import Modal from '../components/Modal';
+import { useAuditColumns } from '@/app/lib/permissions';
 
 export default function UsersPage() {
+    const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('SYSTEM_USERS');
     const [searchQuery, setSearchQuery] = useState('');
     const [sortKey, setSortKey] = useState<string>('created_at');
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
@@ -563,32 +565,40 @@ export default function UsersPage() {
                                         2FA Status <span className="text-slate-400 dark:text-slate-300">{sortIndicator('twofa_status')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                <td className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <div className="flex items-center gap-1">
                                         <span>2FA QR</span>
                                         <QrCode className="w-4 h-4 text-slate-400" />
                                     </div>
-                                </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
-                                    <button onClick={() => toggleSort('created_by')} className="flex items-center gap-1">
-                                        Created By <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_by')}</span>
-                                    </button>
-                                </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
-                                    <button onClick={() => toggleSort('created_at')} className="flex items-center gap-1">
-                                        Created At <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_at')}</span>
-                                    </button>
-                                </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
-                                    <button onClick={() => toggleSort('updated_by')} className="flex items-center gap-1">
-                                        Updated By <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_by')}</span>
-                                    </button>
-                                </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
-                                    <button onClick={() => toggleSort('updated_at')} className="flex items-center gap-1">
-                                        Updated At <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_at')}</span>
-                                    </button>
-                                </th>
+                                </td>
+                                {showCreatedBy && (
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                        <button onClick={() => toggleSort('created_by')} className="flex items-center gap-1">
+                                            Created By <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_by')}</span>
+                                        </button>
+                                    </th>
+                                )}
+                                {showCreatedAt && (
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                        <button onClick={() => toggleSort('created_at')} className="flex items-center gap-1">
+                                            Created At <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_at')}</span>
+                                        </button>
+                                    </th>
+                                )}
+                                {showUpdatedBy && (
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                        <button onClick={() => toggleSort('updated_by')} className="flex items-center gap-1">
+                                            Updated By <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_by')}</span>
+                                        </button>
+                                    </th>
+                                )}
+                                {showUpdatedAt && (
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                        <button onClick={() => toggleSort('updated_at')} className="flex items-center gap-1">
+                                            Updated At <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_at')}</span>
+                                        </button>
+                                    </th>
+                                )}
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('signature')} className="flex items-center gap-1">
                                         Signature <span className="text-slate-400 dark:text-slate-300">{sortIndicator('signature')}</span>
@@ -657,10 +667,10 @@ export default function UsersPage() {
                                                 </span>
                                             )}
                                         </td>
-                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{user.created_by || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime(user.created_at)}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{user.updated_by || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime(user.updated_at)}</td>
+                                        {showCreatedBy && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{user.created_by || '-'}</td>}
+                                        {showCreatedAt && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime(user.created_at)}</td>}
+                                        {showUpdatedBy && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{user.updated_by || '-'}</td>}
+                                        {showUpdatedAt && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime(user.updated_at)}</td>}
                                         <td className="px-4 py-4">
                                             <Badge type={user.signature ? 'yes' : 'no'}>
                                                 {user.signature ? 'Yes' : 'No'}

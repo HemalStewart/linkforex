@@ -11,6 +11,7 @@ import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
 import { PlusCircle, RefreshCw, Search, Trash2, Edit2, ListChecks, Save, Database, Globe, ExternalLink, Info, Check, X } from 'lucide-react';
 import ToggleSwitch from '../components/ToggleSwitch';
+import { useAuditColumns } from '@/app/lib/permissions';
 
 type DilisenseSourceRow = {
     id: number | string;
@@ -45,7 +46,7 @@ type DilisenseFormState = {
     dilisense_status: number;
 };
 
-type SortKey = 'dilisense_name' | 'dilisense_source' | 'dilisense_source_type' | 'dilisense_country_name' | 'dilisense_region' | 'dilisense_status';
+type SortKey = 'dilisense_name' | 'dilisense_source' | 'dilisense_source_type' | 'dilisense_country_name' | 'dilisense_region' | 'dilisense_status' | 'entered_user' | 'entered_date' | 'modified_user' | 'modified_date';
 type SortDir = 'asc' | 'desc';
 
 const EMPTY_FORM: DilisenseFormState = {
@@ -66,6 +67,7 @@ const SOURCE_TYPES = ['sanction', 'pep', 'criminal', 'other'];
 const REGIONS = ['americas', 'emea', 'apac', 'international'];
 
 export default function DilisenseSourcesPage() {
+    const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('DILISENSE_SOURCES');
     const [rows, setRows] = useState<DilisenseSourceRow[]>([]);
     const [loading, setLoading] = useState(true);
     const [syncing, setSyncing] = useState(false);
@@ -371,6 +373,13 @@ export default function DilisenseSourcesPage() {
         return <SortIndicator active={sortKey === key} dir={sortDir} className="text-slate-400 dark:text-slate-300" />;
     };
 
+    const baseColSpan = 12;
+    const dynamicColSpan = baseColSpan +
+        (showCreatedBy ? 1 : 0) +
+        (showCreatedAt ? 1 : 0) +
+        (showUpdatedBy ? 1 : 0) +
+        (showUpdatedAt ? 1 : 0);
+
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-up">
             <div className="flex items-center justify-between">
@@ -493,13 +502,33 @@ export default function DilisenseSourcesPage() {
                                     <button onClick={() => toggleSort('dilisense_region')} className="flex items-center gap-1">Region {sortIndicator('dilisense_region')}</button>
                                 </th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Issuer Name</th>
+                                {showCreatedBy && (
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
+                                        <button onClick={() => toggleSort('entered_user')} className="flex items-center gap-1">Created By {sortIndicator('entered_user')}</button>
+                                    </th>
+                                )}
+                                {showCreatedAt && (
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
+                                        <button onClick={() => toggleSort('entered_date')} className="flex items-center gap-1">Created At {sortIndicator('entered_date')}</button>
+                                    </th>
+                                )}
+                                {showUpdatedBy && (
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
+                                        <button onClick={() => toggleSort('modified_user')} className="flex items-center gap-1">Updated By {sortIndicator('modified_user')}</button>
+                                    </th>
+                                )}
+                                {showUpdatedAt && (
+                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
+                                        <button onClick={() => toggleSort('modified_date')} className="flex items-center gap-1">Updated At {sortIndicator('modified_date')}</button>
+                                    </th>
+                                )}
                                 <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Info"><Info className="w-4 h-4 mx-auto text-slate-400" /></th>
                                 <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                             </tr>
                         </thead>
                         <tbody className="table-body">
                             {loading && (
-                                <tr><td colSpan={12} className="px-6 py-10 text-center text-slate-500 animate-pulse">Loading…</td></tr>
+                                <tr><td colSpan={dynamicColSpan} className="px-6 py-10 text-center text-slate-500 animate-pulse">Loading…</td></tr>
                             )}
                             {!loading && pagedRows.map((row, idx) => (
                                 <tr key={row.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
@@ -530,6 +559,10 @@ export default function DilisenseSourcesPage() {
                                     <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{row.dilisense_country_name || '—'}</td>
                                     <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{row.dilisense_region || '—'}</td>
                                     <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300 max-w-xs truncate" title={row.dilisense_issuer_name || ''}>{row.dilisense_issuer_name || '—'}</td>
+                                    {showCreatedBy && <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{row.entered_user || '—'}</td>}
+                                    {showCreatedAt && <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{row.entered_date ? formatDateTime(row.entered_date) : '—'}</td>}
+                                    {showUpdatedBy && <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{row.modified_user || '—'}</td>}
+                                    {showUpdatedAt && <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{row.modified_date ? formatDateTime(row.modified_date) : '—'}</td>}
                                     <td className="px-2 py-4 text-center">
                                         <button
                                             className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all"
@@ -551,7 +584,7 @@ export default function DilisenseSourcesPage() {
                                 </tr>
                             ))}
                             {!loading && pagedRows.length === 0 && (
-                                <tr><td colSpan={12} className="px-6 py-10 text-center text-slate-500 font-semibold">No Dilisense sources found.</td></tr>
+                                <tr><td colSpan={dynamicColSpan} className="px-6 py-10 text-center text-slate-500 font-semibold">No Dilisense sources found.</td></tr>
                             )}
                         </tbody>
                     </table>
@@ -816,6 +849,14 @@ function getSortValue(row: DilisenseSourceRow, key: SortKey) {
             return String(row.dilisense_region || '').toLowerCase();
         case 'dilisense_status':
             return Number(row.dilisense_status ?? 0);
+        case 'entered_user':
+            return String(row.entered_user || '').toLowerCase();
+        case 'modified_user':
+            return String(row.modified_user || '').toLowerCase();
+        case 'entered_date':
+            return row.entered_date ? new Date(row.entered_date).getTime() : 0;
+        case 'modified_date':
+            return row.modified_date ? new Date(row.modified_date).getTime() : 0;
         default:
             return '';
     }

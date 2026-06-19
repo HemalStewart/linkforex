@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../components/ConfirmModal';
 import { Search, UserPlus, Edit2, Download, Trash2 } from 'lucide-react';
+import { useAuditColumns } from '@/app/lib/permissions';
+import { formatDateTime } from '@/app/lib/dateUtils';
 
 type MobileRemitter = {
     id: string | number;
@@ -19,9 +21,15 @@ type MobileRemitter = {
     transfersCount?: number;
     lastLogin?: string;
     kycStatus?: string;
+    created_by?: string | null;
+    entered_user?: string | null;
+    updated_by?: string | null;
+    modified_user?: string | null;
+    updated_at?: string | null;
 };
 
 export default function RemittersPage() {
+    const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('MOBILE_PROFILES');
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [remitters, setRemitters] = useState<MobileRemitter[]>([]);
@@ -254,6 +262,10 @@ export default function RemittersPage() {
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Contact</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Status</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">KYC</th>
+                                    {showCreatedBy && <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Created By</th>}
+                                    {showCreatedAt && <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Created At</th>}
+                                    {showUpdatedBy && <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated By</th>}
+                                    {showUpdatedAt && <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated At</th>}
                                     <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                                 </tr>
                             </thead>
@@ -294,6 +306,10 @@ export default function RemittersPage() {
                                                 {remitter.kycStatus ? (remitter.kycStatus.charAt(0).toUpperCase() + remitter.kycStatus.slice(1).toLowerCase()) : 'Pending'}
                                             </span>
                                         </td>
+                                        {showCreatedBy && <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 font-medium">{remitter.created_by || remitter.entered_user || '—'}</td>}
+                                        {showCreatedAt && <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{remitter.created_at ? formatDateTime(remitter.created_at) : '—'}</td>}
+                                        {showUpdatedBy && <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 font-medium">{remitter.updated_by || remitter.modified_user || '—'}</td>}
+                                        {showUpdatedAt && <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{remitter.updated_at ? formatDateTime(remitter.updated_at) : '—'}</td>}
                                         <td className="px-2 py-4 text-center">
                                             <button
                                                 type="button"

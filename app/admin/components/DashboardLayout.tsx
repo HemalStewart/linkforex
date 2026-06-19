@@ -279,6 +279,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     setViewSections(new Set());
                     return;
                 }
+                
+                // Cache user permissions globally for reactive tables
+                (window as any).__userPermissions = rows;
+                
                 const sections = new Set<string>();
                 for (const row of rows) {
                     const op = String(row?.operation || '').toUpperCase().trim();
@@ -289,6 +293,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     }
                 }
                 setViewSections(sections);
+                window.dispatchEvent(new CustomEvent('permissions-loaded'));
             } catch {
                 setViewSections(new Set());
             } finally {

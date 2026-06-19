@@ -6,8 +6,10 @@ import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../../components/ConfirmModal';
 import { formatDateTime } from '@/app/lib/dateUtils';
 import type { QueueUser } from '../_shared';
+import { useAuditColumns } from '@/app/lib/permissions';
 
 export default function MobileProfileReviewQueuePage() {
+    const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('MOBILE_PROFILE_REVIEW_QUEUE');
     const [loading, setLoading] = useState(true);
     const [queue, setQueue] = useState<QueueUser[]>([]);
     const [queueStatus, setQueueStatus] = useState<'pending' | 'verified' | 'rejected' | 'all'>('pending');
@@ -356,6 +358,10 @@ export default function MobileProfileReviewQueuePage() {
                                 <th>Mobile</th>
                                 <th>Liveness</th>
                                 <th>Sanction</th>
+                                {showCreatedBy && <th>Created By</th>}
+                                {showCreatedAt && <th>Created At</th>}
+                                {showUpdatedBy && <th>Updated By</th>}
+                                {showUpdatedAt && <th>Updated At</th>}
                                 <th className="text-right">Action</th>
                             </tr>
                         </thead>
@@ -388,6 +394,10 @@ export default function MobileProfileReviewQueuePage() {
                                         <div className="text-[11px] font-bold text-slate-600">{u.sanction_status || '-'}</div>
                                         <div className="text-[10px] text-slate-400">{u.sanction_checked_at || '-'}</div>
                                     </td>
+                                    {showCreatedBy && <td className="text-xs font-bold text-slate-600">{u.created_by || u.entered_user || '—'}</td>}
+                                    {showCreatedAt && <td className="text-xs text-slate-600 whitespace-nowrap">{u.created_at ? formatDateTime(u.created_at) : '—'}</td>}
+                                    {showUpdatedBy && <td className="text-xs font-bold text-slate-600">{u.updated_by || u.modified_user || '—'}</td>}
+                                    {showUpdatedAt && <td className="text-xs text-slate-600 whitespace-nowrap">{u.updated_at ? formatDateTime(u.updated_at) : '—'}</td>}
                                     <td className="text-right">
                                         <div className="inline-flex items-center gap-2">
                                             <button
@@ -428,7 +438,7 @@ export default function MobileProfileReviewQueuePage() {
                             ))}
                             {queue.length === 0 && (
                                 <tr>
-                                    <td colSpan={7} className="px-4 py-8 text-center text-sm text-slate-500">
+                                    <td colSpan={7 + (showCreatedBy ? 1 : 0) + (showCreatedAt ? 1 : 0) + (showUpdatedBy ? 1 : 0) + (showUpdatedAt ? 1 : 0)} className="px-4 py-8 text-center text-sm text-slate-500">
                                         {loading ? 'Loading...' : 'No users in queue'}
                                     </td>
                                 </tr>

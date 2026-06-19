@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { RefreshCcw, Save, Search } from 'lucide-react';
+import { RefreshCw, Save, Search } from 'lucide-react';
 import { ENDPOINTS } from '@/app/lib/api';
 import { formatDateTime } from '@/app/lib/dateUtils';
 import type { WalletTransfer } from '../_shared';
+import { useAuditColumns } from '@/app/lib/permissions';
 
 const STATUS_OPTIONS = [
     { value: 'all', label: 'All Statuses' },
@@ -33,6 +34,7 @@ const statusBadge = (status: string): string => {
 };
 
 export default function WalletTransfersPage() {
+    const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('TRANSFERS');
     const [loading, setLoading] = useState(true);
     const [savingId, setSavingId] = useState<number | null>(null);
     const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -109,7 +111,7 @@ export default function WalletTransfersPage() {
                     </p>
                 </div>
                 <button onClick={loadTransfers} className="btn-primary flex items-center gap-2 rounded-full px-5">
-                    <RefreshCcw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                    <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                     Refresh
                 </button>
             </div>
@@ -157,6 +159,10 @@ export default function WalletTransfersPage() {
                                 <th className="px-4 py-3">Amounts</th>
                                 <th className="px-4 py-3">Wallet Proof</th>
                                 <th className="px-4 py-3">Status</th>
+                                {showCreatedBy && <th className="px-4 py-3">Created By</th>}
+                                {showCreatedAt && <th className="px-4 py-3">Created At</th>}
+                                {showUpdatedBy && <th className="px-4 py-3">Updated By</th>}
+                                {showUpdatedAt && <th className="px-4 py-3">Updated At</th>}
                                 <th className="px-4 py-3">Note</th>
                                 <th className="px-4 py-3">Action</th>
                             </tr>
@@ -164,13 +170,13 @@ export default function WalletTransfersPage() {
                         <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                             {loading ? (
                                 <tr>
-                                    <td className="px-4 py-8 text-center text-sm text-slate-500" colSpan={8}>
+                                    <td className="px-4 py-8 text-center text-sm text-slate-500" colSpan={8 + (showCreatedBy ? 1 : 0) + (showCreatedAt ? 1 : 0) + (showUpdatedBy ? 1 : 0) + (showUpdatedAt ? 1 : 0)}>
                                         Loading wallet transfers...
                                     </td>
                                 </tr>
                             ) : filtered.length === 0 ? (
                                 <tr>
-                                    <td className="px-4 py-8 text-center text-sm text-slate-500" colSpan={8}>
+                                    <td className="px-4 py-8 text-center text-sm text-slate-500" colSpan={8 + (showCreatedBy ? 1 : 0) + (showCreatedAt ? 1 : 0) + (showUpdatedBy ? 1 : 0) + (showUpdatedAt ? 1 : 0)}>
                                         No wallet transfers found.
                                     </td>
                                 </tr>
@@ -217,6 +223,14 @@ export default function WalletTransfersPage() {
                                                 ))}
                                             </select>
                                         </td>
+                                        {showCreatedBy && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{row.created_by || row.entered_user || '—'}</td>}
+                                        {showCreatedAt && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{row.created_at ? formatDateTime(row.created_at) : '—'}</td>}
+                                        {showUpdatedBy && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{row.updated_by || row.modified_user || '—'}</td>}
+                                        {showUpdatedAt && (
+                                            <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">
+                                                {row.updated_at ? formatDateTime(row.updated_at) : '—'}
+                                            </td>
+                                        )}
                                         <td className="px-4 py-4 text-sm">
                                             <textarea
                                                 value={notes[row.id] || ''}

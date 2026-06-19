@@ -7,8 +7,10 @@ import ConfirmModal from '../components/ConfirmModal';
 import Badge from '../components/ui/Badge';
 import { RefreshCw, PlusCircle, Globe, Coins, DollarSign } from 'lucide-react';
 import { formatDateTime } from '@/app/lib/dateUtils';
+import { useAuditColumns } from '@/app/lib/permissions';
 
 export default function ExchangeRatesPage() {
+    const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('MOBILE_DIGITAL_RATES');
     const [currencies, setCurrencies] = useState<any[]>([]);
     const [countries, setCountries] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -175,7 +177,10 @@ export default function ExchangeRatesPage() {
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Code</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Rate (Base: GBP)</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Status</th>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated At</th>
+                                    {showCreatedBy && <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Created By</th>}
+                                    {showCreatedAt && <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Created At</th>}
+                                    {showUpdatedBy && <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated By</th>}
+                                    {showUpdatedAt && <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated At</th>}
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -200,9 +205,14 @@ export default function ExchangeRatesPage() {
                                                 {String(currency.status || 'active').toLowerCase() === 'active' ? 'Active' : 'Inactive'}
                                             </Badge>
                                         </td>
-                                        <td className="px-8 py-5 text-sm font-medium text-slate-400 whitespace-nowrap">
-                                            {formatDateTime(currency.updated_at)}
-                                        </td>
+                                        {showCreatedBy && <td className="px-8 py-5 text-sm text-slate-500 font-medium whitespace-nowrap">{currency.entered_user || currency.created_by || '—'}</td>}
+                                        {showCreatedAt && <td className="px-8 py-5 text-sm text-slate-500 font-medium whitespace-nowrap">{currency.created_at ? formatDateTime(currency.created_at) : '—'}</td>}
+                                        {showUpdatedBy && <td className="px-8 py-5 text-sm text-slate-500 font-medium whitespace-nowrap">{currency.modified_user || currency.updated_by || '—'}</td>}
+                                        {showUpdatedAt && (
+                                            <td className="px-8 py-5 text-sm text-slate-500 font-medium whitespace-nowrap">
+                                                {currency.updated_at ? formatDateTime(currency.updated_at) : '—'}
+                                            </td>
+                                        )}
                                     </tr>
                                 ))}
                             </tbody>

@@ -10,8 +10,10 @@ import { formatDateTime } from '@/app/lib/dateUtils';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
 import { Search, PlusCircle, Trash2, Edit3, Shield, ChevronRight } from 'lucide-react';
+import { useAuditColumns } from '@/app/lib/permissions';
 
 export default function RolesPage() {
+    const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('ROLES');
     const [roles, setRoles] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -360,26 +362,34 @@ export default function RolesPage() {
                                         System Defined <span className="text-slate-400 dark:text-slate-300">{sortIndicator('system_defined')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
-                                    <button onClick={() => toggleSort('created_by')} className="flex items-center gap-1">
-                                        Created By <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_by')}</span>
-                                    </button>
-                                </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
-                                    <button onClick={() => toggleSort('created_at')} className="flex items-center gap-1">
-                                        Created At <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_at')}</span>
-                                    </button>
-                                </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
-                                    <button onClick={() => toggleSort('updated_by')} className="flex items-center gap-1">
-                                        Updated By <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_by')}</span>
-                                    </button>
-                                </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
-                                    <button onClick={() => toggleSort('updated_at')} className="flex items-center gap-1">
-                                        Updated At <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_at')}</span>
-                                    </button>
-                                </th>
+                                {showCreatedBy && (
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                        <button onClick={() => toggleSort('created_by')} className="flex items-center gap-1">
+                                            Created By <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_by')}</span>
+                                        </button>
+                                    </th>
+                                )}
+                                {showCreatedAt && (
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                        <button onClick={() => toggleSort('created_at')} className="flex items-center gap-1">
+                                            Created At <span className="text-slate-400 dark:text-slate-300">{sortIndicator('created_at')}</span>
+                                        </button>
+                                    </th>
+                                )}
+                                {showUpdatedBy && (
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                        <button onClick={() => toggleSort('updated_by')} className="flex items-center gap-1">
+                                            Updated By <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_by')}</span>
+                                        </button>
+                                    </th>
+                                )}
+                                {showUpdatedAt && (
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                        <button onClick={() => toggleSort('updated_at')} className="flex items-center gap-1">
+                                            Updated At <span className="text-slate-400 dark:text-slate-300">{sortIndicator('updated_at')}</span>
+                                        </button>
+                                    </th>
+                                )}
                                 <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-300" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                             </tr>
                         </thead>
@@ -425,10 +435,10 @@ export default function RolesPage() {
                                                 {toYesNoLabel(role.system_defined)}
                                             </Badge>
                                         </td>
-                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{role.created_by || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime(role.created_at)}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{role.updated_by || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime(role.updated_at)}</td>
+                                        {showCreatedBy && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{role.created_by || '-'}</td>}
+                                        {showCreatedAt && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime(role.created_at)}</td>}
+                                        {showUpdatedBy && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{role.updated_by || '-'}</td>}
+                                        {showUpdatedAt && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime(role.updated_at)}</td>}
                                         <td className="px-2 py-4 text-center">
                                             <button
                                                 onClick={() => promptDelete(role)}

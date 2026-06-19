@@ -5,8 +5,11 @@ import { RefreshCcw } from 'lucide-react';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../../components/ConfirmModal';
 import type { Campaign } from '../_shared';
+import { useAuditColumns } from '@/app/lib/permissions';
+import { formatDateTime } from '@/app/lib/dateUtils';
 
 export default function MobileCampaignsPage() {
+    const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('MOBILE_CAMPAIGNS');
     const [loading, setLoading] = useState(true);
     const [creatingCampaign, setCreatingCampaign] = useState(false);
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -191,6 +194,10 @@ export default function MobileCampaignsPage() {
                                 <th>Title</th>
                                 <th>Channel</th>
                                 <th>Status</th>
+                                {showCreatedBy && <th>Created By</th>}
+                                {showCreatedAt && <th>Created At</th>}
+                                {showUpdatedBy && <th>Updated By</th>}
+                                {showUpdatedAt && <th>Updated At</th>}
                                 <th className="text-right">Action</th>
                             </tr>
                         </thead>
@@ -200,6 +207,10 @@ export default function MobileCampaignsPage() {
                                     <td className="text-sm font-semibold text-slate-800 dark:text-slate-200">{campaign.title}</td>
                                     <td className="text-xs text-slate-600">{campaign.channel}</td>
                                     <td className="text-xs text-slate-600">{campaign.status}</td>
+                                    {showCreatedBy && <td className="text-sm text-slate-600 font-medium">{campaign.created_by || campaign.entered_user || '—'}</td>}
+                                    {showCreatedAt && <td className="text-sm text-slate-600 whitespace-nowrap">{campaign.created_at ? formatDateTime(campaign.created_at) : '—'}</td>}
+                                    {showUpdatedBy && <td className="text-sm text-slate-600 font-medium">{campaign.updated_by || campaign.modified_user || '—'}</td>}
+                                    {showUpdatedAt && <td className="text-sm text-slate-600 whitespace-nowrap">{campaign.updated_at ? formatDateTime(campaign.updated_at) : '—'}</td>}
                                     <td className="text-right">
                                         {campaign.status === 'draft' && (
                                             <button
@@ -214,7 +225,7 @@ export default function MobileCampaignsPage() {
                             ))}
                             {campaigns.length === 0 && (
                                 <tr>
-                                    <td colSpan={4} className="px-3 py-8 text-center text-sm text-slate-500">
+                                    <td colSpan={4 + (showCreatedBy ? 1 : 0) + (showCreatedAt ? 1 : 0) + (showUpdatedBy ? 1 : 0) + (showUpdatedAt ? 1 : 0)} className="px-3 py-8 text-center text-sm text-slate-500">
                                         {loading ? 'Loading...' : 'No campaigns yet'}
                                     </td>
                                 </tr>

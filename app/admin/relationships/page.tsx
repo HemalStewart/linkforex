@@ -10,6 +10,8 @@ import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
 import { PlusCircle, RefreshCw, Search, Trash2, Edit2, Users2, Save } from 'lucide-react';
 import ToggleSwitch from '../components/ToggleSwitch';
+import { useAuditColumns } from '@/app/lib/permissions';
+import { formatDateTime } from '@/app/lib/dateUtils';
 
 type YesNo = 'yes' | 'no';
 
@@ -42,6 +44,7 @@ const normalizeYesNo = (value?: string | null): YesNo =>
 
 
 export default function RelationshipsPage() {
+    const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('RELATIONSHIPS');
     const [rows, setRows] = useState<RelationshipRow[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -329,12 +332,16 @@ export default function RelationshipsPage() {
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                     <button onClick={() => toggleSort('active')} className="flex items-center gap-1">Active <span>{sortIndicator('active')}</span></button>
                                 </th>
+                                {showCreatedBy && <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Created By</th>}
+                                {showCreatedAt && <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Created At</th>}
+                                {showUpdatedBy && <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated By</th>}
+                                {showUpdatedAt && <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated At</th>}
                                 <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                             </tr>
                         </thead>
                         <tbody className="table-body">
                             {loading && (
-                                <tr><td colSpan={5} className="px-6 py-10 text-center text-slate-500 animate-pulse">Loading…</td></tr>
+                                <tr><td colSpan={5 + (showCreatedBy ? 1 : 0) + (showCreatedAt ? 1 : 0) + (showUpdatedBy ? 1 : 0) + (showUpdatedAt ? 1 : 0)} className="px-6 py-10 text-center text-slate-500 animate-pulse">Loading…</td></tr>
                             )}
                             {!loading && pagedRows.map((row, idx) => (
                                 <tr key={row.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
@@ -354,6 +361,10 @@ export default function RelationshipsPage() {
                                             {normalizeYesNo(row.active) === 'yes' ? 'Yes' : 'No'}
                                         </Badge>
                                     </td>
+                                    {showCreatedBy && <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-300">{(row as any).created_by || '—'}</td>}
+                                    {showCreatedAt && <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime((row as any).created_at)}</td>}
+                                    {showUpdatedBy && <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-300">{(row as any).updated_by || '—'}</td>}
+                                    {showUpdatedAt && <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime((row as any).updated_at)}</td>}
                                     <td className="px-2 py-4 text-center">
                                         <button
                                             className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all"
@@ -366,7 +377,7 @@ export default function RelationshipsPage() {
                                 </tr>
                             ))}
                             {!loading && pagedRows.length === 0 && (
-                                <tr><td colSpan={5} className="px-6 py-10 text-center text-slate-500">No relationships found.</td></tr>
+                                <tr><td colSpan={5 + (showCreatedBy ? 1 : 0) + (showCreatedAt ? 1 : 0) + (showUpdatedBy ? 1 : 0) + (showUpdatedAt ? 1 : 0)} className="px-6 py-10 text-center text-slate-500">No relationships found.</td></tr>
                             )}
                         </tbody>
                     </table>

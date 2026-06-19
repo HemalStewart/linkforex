@@ -9,6 +9,7 @@ import SortIndicator from '../components/SortIndicator';
 import { Building2, Edit2, Eye, Plus, Search, Trash2, Users } from 'lucide-react';
 import VeriffDetailsModal from '../components/VeriffDetailsModal';
 import { formatDateTime } from '@/app/lib/dateUtils';
+import { useAuditColumns } from '@/app/lib/permissions';
 
 type SortDir = 'asc' | 'desc';
 
@@ -60,6 +61,7 @@ const statusBadgeClass = (value: unknown): string => {
 };
 
 export default function ReceiversPage() {
+    const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('RECEIVERS');
     const [receivers, setReceivers] = useState<Receiver[]>([]);
     const [loading, setLoading] = useState(true);
     const [updatingId, setUpdatingId] = useState<string | number | null>(null);
@@ -348,12 +350,16 @@ export default function ReceiversPage() {
                                             Veriff <SortIndicator active={sortKey === 'veriffStatus'} dir={sortDir} />
                                         </button>
                                     </th>
-
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
-                                        <button onClick={() => toggleSort('createdAt')} className="flex items-center gap-2">
-                                            Created At <SortIndicator active={sortKey === 'createdAt'} dir={sortDir} />
-                                        </button>
-                                    </th>
+                                    {showCreatedBy && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Created By</th>}
+                                    {showCreatedAt && (
+                                        <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                            <button onClick={() => toggleSort('createdAt')} className="flex items-center gap-2">
+                                                Created At <SortIndicator active={sortKey === 'createdAt'} dir={sortDir} />
+                                            </button>
+                                        </th>
+                                    )}
+                                    {showUpdatedBy && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Updated By</th>}
+                                    {showUpdatedAt && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Updated At</th>}
                                     <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                                 </tr>
                             </thead>
@@ -420,9 +426,14 @@ export default function ReceiversPage() {
                                                     )}
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">
-                                                {formatDateTime(receiver.created_at)}
-                                            </td>
+                                            {showCreatedBy && <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{(receiver as any).created_by || '—'}</td>}
+                                            {showCreatedAt && (
+                                                <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                                                    {formatDateTime(receiver.created_at)}
+                                                </td>
+                                            )}
+                                            {showUpdatedBy && <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{(receiver as any).updated_by || '—'}</td>}
+                                            {showUpdatedAt && <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatDateTime((receiver as any).updated_at)}</td>}
                                             <td className="px-2 py-4 text-center">
                                                 <button
                                                     onClick={() => handleDelete(Number(receiver.id))}
@@ -436,7 +447,7 @@ export default function ReceiversPage() {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={12} className="py-20 text-center">
+                                        <td colSpan={11 + (showCreatedBy ? 1 : 0) + (showCreatedAt ? 1 : 0) + (showUpdatedBy ? 1 : 0) + (showUpdatedAt ? 1 : 0)} className="py-20 text-center">
                                             <div className="w-24 h-24 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
                                                 <Users className="w-10 h-10 text-slate-400" />
                                             </div>

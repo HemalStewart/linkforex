@@ -3,6 +3,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
 import { useRowsPerPage } from '@/app/lib/uiPreferences';
+import { useAuditColumns } from '@/app/lib/permissions';
+import { formatDateTime } from '@/app/lib/dateUtils';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
 import Badge from '../components/ui/Badge';
@@ -119,6 +121,7 @@ const getSortValue = (bank: BankRow, key: SortKey): string | number => {
 };
 
 export default function BanksPage() {
+    const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('BANKS');
     const [banks, setBanks] = useState<BankRow[]>([]);
     const [loading, setLoading] = useState(true);
     const [deleteLoading, setDeleteLoading] = useState(false);
@@ -449,6 +452,10 @@ export default function BanksPage() {
                                             <span>{sortIndicator('pickup_bank')}</span>
                                         </button>
                                     </th>
+                                    {showCreatedBy && <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Created By</th>}
+                                    {showCreatedAt && <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Created At</th>}
+                                    {showUpdatedBy && <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated By</th>}
+                                    {showUpdatedAt && <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated At</th>}
                                     <th className="px-2 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                                 </tr>
                             </thead>
@@ -484,6 +491,10 @@ export default function BanksPage() {
                                                 {pickupFlag(bank) ? 'Yes' : 'No'}
                                             </Badge>
                                         </td>
+                                        {showCreatedBy && <td className="px-6 py-5 text-sm text-slate-500 dark:text-slate-300">{(bank as any).created_by || '—'}</td>}
+                                        {showCreatedAt && <td className="px-6 py-5 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime((bank as any).created_at)}</td>}
+                                        {showUpdatedBy && <td className="px-6 py-5 text-sm text-slate-500 dark:text-slate-300">{(bank as any).updated_by || '—'}</td>}
+                                        {showUpdatedAt && <td className="px-6 py-5 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime((bank as any).updated_at)}</td>}
                                         <td className="px-2 py-5 text-center">
                                             <button onClick={() => setDeleteBankId(Number(bank.id))} className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all" title="Delete">
                                                 <Trash2 className="w-5 h-5" />
@@ -493,7 +504,7 @@ export default function BanksPage() {
                                 ))}
                                 {!loading && pagedBanks.length === 0 && (
                                     <tr>
-                                        <td colSpan={8} className="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
+                                        <td colSpan={8 + (showCreatedBy ? 1 : 0) + (showCreatedAt ? 1 : 0) + (showUpdatedBy ? 1 : 0) + (showUpdatedAt ? 1 : 0)} className="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
                                             No banks found.
                                         </td>
                                     </tr>

@@ -3,8 +3,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
 import Badge from '@/app/admin/components/ui/Badge';
-import { RefreshCcw, Search } from 'lucide-react';
+import { RefreshCw, Search } from 'lucide-react';
 import { formatDateTime } from '@/app/lib/dateUtils';
+import { useAuditColumns } from '@/app/lib/permissions';
 
 type MobileExchangeRate = {
     id: number;
@@ -20,9 +21,15 @@ type MobileExchangeRate = {
     source_branch_code?: string;
     source_branch_name?: string;
     updated_at?: string;
+    created_at?: string;
+    created_by?: string | null;
+    entered_user?: string | null;
+    updated_by?: string | null;
+    modified_user?: string | null;
 };
 
 export default function MobileExchangeRatesPage() {
+    const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('MOBILE_DIGITAL_RATES');
     const [rows, setRows] = useState<MobileExchangeRate[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -94,7 +101,7 @@ export default function MobileExchangeRatesPage() {
                     onClick={() => void fetchData()}
                     className="glass-effect inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-slate-600 transition hover:text-teal-600 dark:text-slate-200 dark:hover:text-teal-300"
                 >
-                    <RefreshCcw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                    <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                     Refresh
                 </button>
             </div>
@@ -123,7 +130,10 @@ export default function MobileExchangeRatesPage() {
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Customer Digital Rate</th>
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Status</th>
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Source Branch</th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Updated At</th>
+                                    {showCreatedBy && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Created By</th>}
+                                    {showCreatedAt && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Created At</th>}
+                                    {showUpdatedBy && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Updated By</th>}
+                                    {showUpdatedAt && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Updated At</th>}
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -147,15 +157,20 @@ export default function MobileExchangeRatesPage() {
                                                 <Badge type={status === 'Active' ? 'active' : 'inactive'}>{status}</Badge>
                                             </td>
                                             <td className="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">{branchLabel}</td>
-                                            <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">
-                                                {formatDateTime(row.updated_at)}
-                                            </td>
+                                            {showCreatedBy && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{row.created_by || row.entered_user || '—'}</td>}
+                                            {showCreatedAt && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{row.created_at ? formatDateTime(row.created_at) : '—'}</td>}
+                                            {showUpdatedBy && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{row.updated_by || row.modified_user || '—'}</td>}
+                                            {showUpdatedAt && (
+                                                <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">
+                                                    {row.updated_at ? formatDateTime(row.updated_at) : '—'}
+                                                </td>
+                                            )}
                                         </tr>
                                     );
                                 })}
                                 {!loading && sortedRows.length === 0 && (
                                     <tr>
-                                        <td colSpan={5} className="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
+                                        <td colSpan={4 + (showCreatedBy ? 1 : 0) + (showCreatedAt ? 1 : 0) + (showUpdatedBy ? 1 : 0) + (showUpdatedAt ? 1 : 0)} className="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
                                             No mobile exchange rates found.
                                         </td>
                                     </tr>

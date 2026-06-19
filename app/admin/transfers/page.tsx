@@ -10,6 +10,7 @@ import Modal from '../components/Modal';
 import SortIndicator from '../components/SortIndicator';
 import { formatDateTime } from '@/app/lib/dateUtils';
 import { CheckCircle2, Download, Eye, FileCheck2, FileText, FileX2, ImageUp, PenLine, PlusCircle, Printer, RotateCcw, Save, Search, XCircle } from 'lucide-react';
+import { useAuditColumns } from '@/app/lib/permissions';
 
 type SortDir = 'asc' | 'desc';
 
@@ -276,6 +277,7 @@ const paymentModeLabel = (value: unknown): string => {
 };
 
 export default function TransfersPage() {
+    const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('TRANSFERS');
     const [loading, setLoading] = useState(true);
     const [transfers, setTransfers] = useState<Transfer[]>([]);
     const [remitters, setRemitters] = useState<Remitter[]>([]);
@@ -1178,10 +1180,10 @@ export default function TransfersPage() {
                 return <span className="text-slate-400 dark:text-slate-500">-</span>;
             }
         },
-        { key: 'enteredUser', label: 'Created By', sortable: true },
-        { key: 'enteredDate', label: 'Created At', sortable: true, render: (row) => formatDateTime(row.enteredDate) },
-        { key: 'modifiedUser', label: 'Updated By', sortable: true },
-        { key: 'modifiedDate', label: 'Updated At', sortable: true, render: (row) => formatDateTime(row.modifiedDate) },
+        ...(showCreatedBy ? [{ key: 'enteredUser' as keyof TransferRow, label: 'Created By', sortable: true }] : []),
+        ...(showCreatedAt ? [{ key: 'enteredDate' as keyof TransferRow, label: 'Created At', sortable: true, render: (row: TransferRow) => formatDateTime(row.enteredDate) }] : []),
+        ...(showUpdatedBy ? [{ key: 'modifiedUser' as keyof TransferRow, label: 'Updated By', sortable: true }] : []),
+        ...(showUpdatedAt ? [{ key: 'modifiedDate' as keyof TransferRow, label: 'Updated At', sortable: true, render: (row: TransferRow) => formatDateTime(row.modifiedDate) }] : []),
         { key: 'historyLog', label: 'History Log', sortable: true }
     ];
 

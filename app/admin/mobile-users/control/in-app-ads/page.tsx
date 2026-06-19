@@ -6,6 +6,8 @@ import { ENDPOINTS } from '@/app/lib/api';
 import { resolveUploadsUrl } from '@/app/lib/uploads';
 import ConfirmModal from '../../../components/ConfirmModal';
 import type { MobileAd } from '../_shared';
+import { useAuditColumns } from '@/app/lib/permissions';
+import { formatDateTime } from '@/app/lib/dateUtils';
 
 const MAX_UPLOAD_BYTES = 4 * 1024 * 1024; // Keep below typical proxy/serverless limits.
 
@@ -87,6 +89,7 @@ const compressImage = async (file: File): Promise<File> => {
 };
 
 export default function MobileInAppAdsPage() {
+    const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('MOBILE_ADS');
     const [loading, setLoading] = useState(true);
     const [creatingAd, setCreatingAd] = useState(false);
     const [ads, setAds] = useState<MobileAd[]>([]);
@@ -412,6 +415,10 @@ export default function MobileInAppAdsPage() {
                                     <th>Placement</th>
                                     <th>Status</th>
                                     <th>Priority</th>
+                                    {showCreatedBy && <th>Created By</th>}
+                                    {showCreatedAt && <th>Created At</th>}
+                                    {showUpdatedBy && <th>Updated By</th>}
+                                    {showUpdatedAt && <th>Updated At</th>}
                                     <th className="text-right">Action</th>
                                 </tr>
                             </thead>
@@ -448,6 +455,10 @@ export default function MobileInAppAdsPage() {
                                         </td>
                                         <td className="text-xs text-slate-600 dark:text-slate-300">{ad.status}</td>
                                         <td className="text-xs text-slate-600 dark:text-slate-300">{ad.priority}</td>
+                                        {showCreatedBy && <td className="text-sm text-slate-600 font-medium">{ad.created_by || ad.entered_user || '—'}</td>}
+                                        {showCreatedAt && <td className="text-sm text-slate-600 whitespace-nowrap">{ad.created_at ? formatDateTime(ad.created_at) : '—'}</td>}
+                                        {showUpdatedBy && <td className="text-sm text-slate-600 font-medium">{ad.updated_by || ad.modified_user || '—'}</td>}
+                                        {showUpdatedAt && <td className="text-sm text-slate-600 whitespace-nowrap">{ad.updated_at ? formatDateTime(ad.updated_at) : '—'}</td>}
                                         <td className="text-right">
                                             <div className="flex justify-end gap-2">
                                                 <button
@@ -468,7 +479,7 @@ export default function MobileInAppAdsPage() {
                                 ))}
                                 {filteredAds.length === 0 && (
                                     <tr>
-                                        <td colSpan={6} className="px-3 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
+                                        <td colSpan={6 + (showCreatedBy ? 1 : 0) + (showCreatedAt ? 1 : 0) + (showUpdatedBy ? 1 : 0) + (showUpdatedAt ? 1 : 0)} className="px-3 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
                                             {loading ? 'Loading...' : 'No content items found'}
                                         </td>
                                     </tr>

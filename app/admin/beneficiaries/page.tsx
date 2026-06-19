@@ -7,8 +7,11 @@ import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
 import { Users, RefreshCw, Search, Building2, Calendar, Eye } from 'lucide-react';
 import VeriffDetailsModal from '../components/VeriffDetailsModal';
+import { useAuditColumns } from '@/app/lib/permissions';
+import { formatDateTime } from '@/app/lib/dateUtils';
 
 export default function BeneficiariesPage() {
+    const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('RECEIVERS');
     const [beneficiaries, setBeneficiaries] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -52,6 +55,11 @@ export default function BeneficiariesPage() {
         return [...filteredBeneficiaries].sort((a, b) => {
             const aVal = a[sortKey] ?? '';
             const bVal = b[sortKey] ?? '';
+            if (sortKey === 'created_at' || sortKey === 'updated_at') {
+                return sortDir === 'asc'
+                    ? new Date(aVal).getTime() - new Date(bVal).getTime()
+                    : new Date(bVal).getTime() - new Date(aVal).getTime();
+            }
             if (sortDir === 'asc') return String(aVal).localeCompare(String(bVal));
             return String(bVal).localeCompare(String(aVal));
         });
@@ -71,6 +79,13 @@ export default function BeneficiariesPage() {
     const sortIndicator = (key: string) => (
         <SortIndicator active={sortKey === key} dir={sortDir} className="text-slate-400 dark:text-slate-300" />
     );
+
+    const baseColSpan = 11;
+    const dynamicColSpan = baseColSpan +
+        (showCreatedBy ? 1 : 0) +
+        (showCreatedAt ? 1 : 0) +
+        (showUpdatedBy ? 1 : 0) +
+        (showUpdatedAt ? 1 : 0);
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-up">
@@ -143,9 +158,26 @@ export default function BeneficiariesPage() {
                                     </th>
                                     <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Source</th>
                                     <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Veriff Status</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
-                                        <button onClick={() => toggleSort('created_at')} className="flex items-center gap-1">Date Added <span>{sortIndicator('created_at')}</span></button>
-                                    </th>
+                                    {showCreatedBy && (
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
+                                            <button onClick={() => toggleSort('created_by')} className="flex items-center gap-1">Created By <span>{sortIndicator('created_by')}</span></button>
+                                        </th>
+                                    )}
+                                    {showCreatedAt && (
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
+                                            <button onClick={() => toggleSort('created_at')} className="flex items-center gap-1">Created At <span>{sortIndicator('created_at')}</span></button>
+                                        </th>
+                                    )}
+                                    {showUpdatedBy && (
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
+                                            <button onClick={() => toggleSort('updated_by')} className="flex items-center gap-1">Updated By <span>{sortIndicator('updated_by')}</span></button>
+                                        </th>
+                                    )}
+                                    {showUpdatedAt && (
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
+                                            <button onClick={() => toggleSort('updated_at')} className="flex items-center gap-1">Updated At <span>{sortIndicator('updated_at')}</span></button>
+                                        </th>
+                                    )}
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -220,7 +252,7 @@ export default function BeneficiariesPage() {
                                                     b.veriff_status === 'clear' || b.veriff_status === 'passed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-350 border border-emerald-200 dark:border-emerald-800' :
                                                     b.veriff_status === 'review' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-355 border border-amber-200 dark:border-amber-800' :
                                                     b.veriff_status === 'pending' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-350 border border-blue-200 dark:border-blue-800' :
-                                                    'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-350 border border-slate-200 dark:border-slate-700'
+                                                    'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-355 border border-slate-200 dark:border-slate-700'
                                                 }`}>
                                                     {b.veriff_status ? b.veriff_status.replace('_', ' ') : '-'}
                                                 </span>
@@ -236,16 +268,20 @@ export default function BeneficiariesPage() {
                                                 )}
                                             </div>
                                         </td>
-
-                                        <td className="px-6 py-5 text-sm text-slate-500 dark:text-slate-400">
-                                            <div className="flex items-center space-x-2">
-                                                <Calendar className="w-4 h-4 text-slate-400" />
-                                                <span>{new Date(b.created_at).toLocaleDateString()}</span>
-                                            </div>
-                                        </td>
+                                        {showCreatedBy && <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-400">{b.entered_user || b.created_by || '—'}</td>}
+                                        {showCreatedAt && <td className="px-6 py-5 text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap">{b.created_at ? formatDateTime(b.created_at) : '—'}</td>}
+                                        {showUpdatedBy && <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-400">{b.modified_user || b.updated_by || '—'}</td>}
+                                        {showUpdatedAt && <td className="px-6 py-5 text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap">{b.updated_at ? formatDateTime(b.updated_at) : '—'}</td>}
                                         </tr>
                                     );
                                 })}
+                                {!loading && pagedBeneficiaries.length === 0 && (
+                                    <tr>
+                                        <td colSpan={dynamicColSpan} className="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
+                                            No beneficiaries found.
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     )}

@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
-import { isPrivilegedUser as getIsPrivilegedUser } from '@/app/lib/permissions';
+import { isPrivilegedUser as getIsPrivilegedUser, useAuditColumns } from '@/app/lib/permissions';
 import ConfirmModal from '../components/ConfirmModal';
 import Badge from '../components/ui/Badge';
 import { CheckCircle2, XCircle, RefreshCcw, AlertTriangle } from 'lucide-react';
@@ -22,10 +22,16 @@ type BranchAccessRow = {
     status: 'pending' | 'approved' | 'rejected';
     can_review?: boolean;
     created_at?: string;
+    updated_at?: string;
+    entered_user?: string;
+    modified_user?: string;
+    created_by?: string;
+    updated_by?: string;
     note?: string;
 };
 
 export default function BranchAccessPage() {
+    const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('BRANCH_ACCESS_REQUESTS');
     const [rows, setRows] = useState<BranchAccessRow[]>([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState<number | null>(null);
@@ -193,7 +199,10 @@ export default function BranchAccessPage() {
                                     <th className="px-4 py-3">Requested Branch</th>
                                     <th className="px-4 py-3">Status</th>
                                     <th className="px-4 py-3">Requested By</th>
-                                    <th className="px-4 py-3">Created At</th>
+                                    {showCreatedBy && <th className="px-4 py-3">Created By</th>}
+                                    {showCreatedAt && <th className="px-4 py-3">Created At</th>}
+                                    {showUpdatedBy && <th className="px-4 py-3">Updated By</th>}
+                                    {showUpdatedAt && <th className="px-4 py-3">Updated At</th>}
                                     <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Reject"><XCircle className="w-4 h-4 mx-auto text-slate-400" /></th>
                                 </tr>
                             </thead>
@@ -228,9 +237,18 @@ export default function BranchAccessPage() {
                                             ) : null}
                                         </td>
                                         <td className="px-4 py-3 text-slate-500 dark:text-slate-300">{row.requested_by_username || '-'}</td>
-                                        <td className="px-4 py-3 text-slate-500 dark:text-slate-300 whitespace-nowrap">
-                                            {formatDateTime(row.created_at)}
-                                        </td>
+                                        {showCreatedBy && <td className="px-4 py-3 text-slate-500 dark:text-slate-300">{row.entered_user || row.created_by || row.requested_by_username || '—'}</td>}
+                                        {showCreatedAt && (
+                                            <td className="px-4 py-3 text-slate-500 dark:text-slate-300 whitespace-nowrap">
+                                                {formatDateTime(row.created_at)}
+                                            </td>
+                                        )}
+                                        {showUpdatedBy && <td className="px-4 py-3 text-slate-500 dark:text-slate-300">{row.modified_user || row.updated_by || '—'}</td>}
+                                        {showUpdatedAt && (
+                                            <td className="px-4 py-3 text-slate-500 dark:text-slate-300 whitespace-nowrap">
+                                                {row.updated_at ? formatDateTime(row.updated_at) : '—'}
+                                            </td>
+                                        )}
                                         <td className="px-2 py-4 text-center">
                                             <button
                                                 type="button"

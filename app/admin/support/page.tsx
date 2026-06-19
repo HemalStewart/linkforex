@@ -8,6 +8,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import Pagination from '../components/ui/Pagination';
 import { Edit2, Mail, MessageCircle, Phone, RefreshCw, Search, Send, Trash2, User, Save } from 'lucide-react';
 import { formatDateTime } from '@/app/lib/dateUtils';
+import { useAuditColumns } from '@/app/lib/permissions';
 
 type SupportTicket = {
     id: number;
@@ -22,6 +23,10 @@ type SupportTicket = {
     last_message_at?: string | null;
     created_at?: string | null;
     updated_at?: string | null;
+    entered_user?: string | null;
+    created_by?: string | null;
+    modified_user?: string | null;
+    updated_by?: string | null;
 };
 
 type SupportMessage = {
@@ -77,6 +82,7 @@ const priorityStyles: Record<string, string> = {
 };
 
 export default function SupportPage() {
+    const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('SUPPORT');
     const [tickets, setTickets] = useState<SupportTicket[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -434,6 +440,10 @@ export default function SupportPage() {
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Status</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Priority</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Last Message</th>
+                                    {showCreatedBy && <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Created By</th>}
+                                    {showCreatedAt && <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Created At</th>}
+                                    {showUpdatedBy && <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated By</th>}
+                                    {showUpdatedAt && <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated At</th>}
                                     <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
                                 </tr>
                             </thead>
@@ -483,6 +493,26 @@ export default function SupportPage() {
                                         <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">
                                             {formatDateTime(ticket.last_message_at || ticket.updated_at || ticket.created_at)}
                                         </td>
+                                        {showCreatedBy && (
+                                            <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 font-medium">
+                                                {ticket.created_by || ticket.entered_user || '—'}
+                                            </td>
+                                        )}
+                                        {showCreatedAt && (
+                                            <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">
+                                                {ticket.created_at ? formatDateTime(ticket.created_at) : '—'}
+                                            </td>
+                                        )}
+                                        {showUpdatedBy && (
+                                            <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 font-medium">
+                                                {ticket.updated_by || ticket.modified_user || '—'}
+                                            </td>
+                                        )}
+                                        {showUpdatedAt && (
+                                            <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">
+                                                {ticket.updated_at ? formatDateTime(ticket.updated_at) : '—'}
+                                            </td>
+                                        )}
                                         <td className="px-2 py-4 text-center">
                                             <button
                                                 onClick={() => setDeleteState({ open: true, ticket, loading: false })}

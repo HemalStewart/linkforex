@@ -9,6 +9,7 @@ import { formatDateTime } from '@/app/lib/dateUtils';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
 import { Search, PlusCircle, RefreshCcw } from 'lucide-react';
+import { useAuditColumns } from '@/app/lib/permissions';
 
 type SortDir = 'asc' | 'desc';
 
@@ -39,6 +40,7 @@ type SortKey =
     | 'updated_at';
 
 export default function BranchCurrencyRatesPage() {
+    const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('BRANCH_CURRENCY_RATES');
     const [rows, setRows] = useState<BranchCurrencyRate[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -172,6 +174,24 @@ export default function BranchCurrencyRatesPage() {
         return <SortIndicator active={sortKey === key} dir={sortDir} className="text-slate-400 dark:text-slate-300" />;
     };
 
+    const baseColSpan = 5;
+    const dynamicColSpan = baseColSpan +
+        (showCreatedBy ? 1 : 0) +
+        (showCreatedAt ? 1 : 0) +
+        (showUpdatedBy ? 1 : 0) +
+        (showUpdatedAt ? 1 : 0);
+
+    const headersList = [
+        { key: 'branch_name', label: 'Branch' },
+        { key: 'currency_display', label: 'Currency' },
+        { key: 'active', label: 'Active' },
+        { key: 'customer_rate', label: 'Customer Cash Rate For £' },
+    ];
+    if (showCreatedBy) headersList.push({ key: 'entered_user', label: 'Created By' });
+    if (showCreatedAt) headersList.push({ key: 'created_at', label: 'Created At' });
+    if (showUpdatedBy) headersList.push({ key: 'modified_user', label: 'Updated By' });
+    if (showUpdatedAt) headersList.push({ key: 'updated_at', label: 'Updated At' });
+
     return (
         <div className="max-w-7xl mx-auto space-y-8 pb-20 animate-fade-in-up">
             <div className="flex items-center justify-between gap-4">
@@ -247,23 +267,18 @@ export default function BranchCurrencyRatesPage() {
                             <thead className="table-head">
                                 <tr>
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">No.</th>
-                                    {[
-                                        ['branch_name', 'Branch'],
-                                        ['currency_display', 'Currency'],
-                                        ['active', 'Active'],
-                                        ['customer_rate', 'Customer Cash Rate For £'],
-                                        ['entered_user', 'Created By'],
-                                        ['created_at', 'Created At'],
-                                        ['modified_user', 'Updated By'],
-                                        ['updated_at', 'Updated At'],
-                                    ].map(([key, label]) => (
-                                        <th key={key} className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
-                                            <button onClick={() => toggleSort(key as SortKey)} className="flex items-center gap-1">
-                                                {label}
-                                                <span className="text-slate-400 dark:text-slate-300">{sortIndicator(key as SortKey)}</span>
-                                            </button>
-                                        </th>
-                                    ))}
+                                    {headersList.map((item: any) => {
+                                        const k = item.key;
+                                        const l = item.label;
+                                        return (
+                                            <th key={k} className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                                <button onClick={() => toggleSort(k as SortKey)} className="flex items-center gap-1">
+                                                    {l}
+                                                    <span className="text-slate-400 dark:text-slate-300">{sortIndicator(k as SortKey)}</span>
+                                                </button>
+                                            </th>
+                                        );
+                                    })}
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -285,15 +300,15 @@ export default function BranchCurrencyRatesPage() {
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
                                             {Number(row.customer_rate || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.entered_user || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatDateTime(row.created_at)}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.modified_user || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatDateTime(row.updated_at)}</td>
+                                        {showCreatedBy && <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.entered_user || '—'}</td>}
+                                        {showCreatedAt && <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatDateTime(row.created_at)}</td>}
+                                        {showUpdatedBy && <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.modified_user || '—'}</td>}
+                                        {showUpdatedAt && <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatDateTime(row.updated_at)}</td>}
                                     </tr>
                                 ))}
                                 {!loading && pagedRows.length === 0 && (
                                     <tr>
-                                        <td colSpan={9} className="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
+                                        <td colSpan={dynamicColSpan} className="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
                                             No branch currency rates found.
                                         </td>
                                     </tr>
