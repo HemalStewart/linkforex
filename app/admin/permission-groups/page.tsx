@@ -163,6 +163,8 @@ export default function PermissionGroupsPage() {
         if (isAdmin) return;
 
         const { active, record } = getPermissionState(section, op);
+        if (record && normalizeYesNo(record.system_defined) === 'yes') return;
+
         const nextActive = active ? 'no' : 'yes';
 
         const key = `${section}|${op}`;
@@ -544,6 +546,7 @@ export default function PermissionGroupsPage() {
     };
 
     const promptToggle = (row: PermissionGroupRow, nextActive: 'yes' | 'no') => {
+        if (normalizeYesNo(row.system_defined) === 'yes') return;
         setPendingToggle({ row, nextActive });
         setConfirmModal({
             isOpen: true,
@@ -786,6 +789,10 @@ export default function PermissionGroupsPage() {
                                                     const viewPerm = getPermissionState(page.section, 'VIEW');
                                                     const isViewActive = viewPerm.active;
                                                     const isAdmin = selectedRole.toLowerCase().includes('admin') || selectedRole.toLowerCase().includes('super');
+                                                    
+                                                    const addPerm = getPermissionState(page.section, 'ADD');
+                                                    const editPerm = getPermissionState(page.section, 'EDIT');
+                                                    const deletePerm = getPermissionState(page.section, 'DELETE');
 
                                                     return (
                                                         <tr key={page.name} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/30 transition-colors duration-150">
@@ -801,7 +808,7 @@ export default function PermissionGroupsPage() {
                                                                         <input
                                                                             type="checkbox"
                                                                             checked={isViewActive}
-                                                                            disabled={isAdmin}
+                                                                            disabled={isAdmin || !!(viewPerm.record && normalizeYesNo(viewPerm.record.system_defined) === 'yes')}
                                                                             onChange={() => togglePermission(page.section, 'VIEW')}
                                                                             className="h-4.5 w-4.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-50 transition-all cursor-pointer"
                                                                         />
@@ -818,8 +825,8 @@ export default function PermissionGroupsPage() {
                                                                         ) : (
                                                                             <input
                                                                                 type="checkbox"
-                                                                                checked={isViewActive && getPermissionState(page.section, 'ADD').active}
-                                                                                disabled={isAdmin || !isViewActive}
+                                                                                checked={isViewActive && addPerm.active}
+                                                                                disabled={isAdmin || !isViewActive || !!(addPerm.record && normalizeYesNo(addPerm.record.system_defined) === 'yes')}
                                                                                 onChange={() => togglePermission(page.section, 'ADD')}
                                                                                 className="h-4.5 w-4.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-40 transition-all cursor-pointer"
                                                                                 title={!isViewActive ? 'VIEW permission must be active first' : ''}
@@ -840,8 +847,8 @@ export default function PermissionGroupsPage() {
                                                                         ) : (
                                                                             <input
                                                                                 type="checkbox"
-                                                                                checked={isViewActive && getPermissionState(page.section, 'EDIT').active}
-                                                                                disabled={isAdmin || !isViewActive}
+                                                                                checked={isViewActive && editPerm.active}
+                                                                                disabled={isAdmin || !isViewActive || !!(editPerm.record && normalizeYesNo(editPerm.record.system_defined) === 'yes')}
                                                                                 onChange={() => togglePermission(page.section, 'EDIT')}
                                                                                 className="h-4.5 w-4.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-40 transition-all cursor-pointer"
                                                                                 title={!isViewActive ? 'VIEW permission must be active first' : ''}
@@ -862,8 +869,8 @@ export default function PermissionGroupsPage() {
                                                                         ) : (
                                                                             <input
                                                                                 type="checkbox"
-                                                                                checked={isViewActive && getPermissionState(page.section, 'DELETE').active}
-                                                                                disabled={isAdmin || !isViewActive}
+                                                                                checked={isViewActive && deletePerm.active}
+                                                                                disabled={isAdmin || !isViewActive || !!(deletePerm.record && normalizeYesNo(deletePerm.record.system_defined) === 'yes')}
                                                                                 onChange={() => togglePermission(page.section, 'DELETE')}
                                                                                 className="h-4.5 w-4.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-40 transition-all cursor-pointer"
                                                                                 title={!isViewActive ? 'VIEW permission must be active first' : ''}
@@ -880,6 +887,7 @@ export default function PermissionGroupsPage() {
                                                                 <div className="flex justify-center gap-3">
                                                                     {page.operations.filter(o => !['VIEW', 'ADD', 'EDIT', 'DELETE'].includes(o)).map((otherOp) => {
                                                                         const otherState = getPermissionState(page.section, otherOp);
+                                                                        const isOtherSystemDefined = !!(otherState.record && normalizeYesNo(otherState.record.system_defined) === 'yes');
                                                                         return (
                                                                             <label key={otherOp} className="flex items-center gap-1.5 cursor-pointer" title={!isViewActive ? 'VIEW permission must be active first' : ''}>
                                                                                 {toggling === `${page.section}|${otherOp}` ? (
@@ -888,7 +896,7 @@ export default function PermissionGroupsPage() {
                                                                                     <input
                                                                                         type="checkbox"
                                                                                         checked={isViewActive && otherState.active}
-                                                                                        disabled={isAdmin || !isViewActive}
+                                                                                        disabled={isAdmin || !isViewActive || isOtherSystemDefined}
                                                                                         onChange={() => togglePermission(page.section, otherOp)}
                                                                                         className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-40 transition-all cursor-pointer"
                                                                                     />
@@ -1176,7 +1184,7 @@ export default function PermissionGroupsPage() {
                                                                     type="checkbox"
                                                                     checked={normalizeYesNo(row.active) === 'yes'}
                                                                     onChange={(e) => promptToggle(row, e.target.checked ? 'yes' : 'no')}
-                                                                    disabled={savingId === row.id}
+                                                                    disabled={savingId === row.id || normalizeYesNo(row.system_defined) === 'yes'}
                                                                     className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-50"
                                                                 />
                                                             </label>
