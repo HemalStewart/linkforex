@@ -143,9 +143,13 @@ export default function ProfilePage() {
     const [confirmPasswordErrorState, setConfirmPasswordErrorState] = useState('');
 
     useEffect(() => {
-        const loadedUiSettings = getStoredUiSettings();
-        setUiSettings(loadedUiSettings);
-        applyUiSettings(loadedUiSettings);
+        const syncUiSettings = () => {
+            const loaded = getStoredUiSettings();
+            setUiSettings(loaded);
+        };
+        syncUiSettings();
+        window.addEventListener('ui-settings-change', syncUiSettings);
+        return () => window.removeEventListener('ui-settings-change', syncUiSettings);
     }, []);
 
     useEffect(() => {

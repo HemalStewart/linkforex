@@ -799,16 +799,19 @@ select.input-glass {
 }
 
 /* Dynamic table font-size overrides (used by Settings > General) */
+table td,
 .table-shell td,
 .table-scroll td {
   font-size: var(--table-font-size) !important;
 }
 
+table th,
 .table-shell th,
 .table-scroll th {
   font-size: var(--table-head-font-size) !important;
 }
 
+table :is(td, th) *,
 .table-shell :is(td, th) *,
 .table-scroll :is(td, th) * {
   font-size: inherit !important;

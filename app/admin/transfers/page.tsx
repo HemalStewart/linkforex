@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useRowsPerPage } from '@/app/lib/uiPreferences';
+import Pagination from '../components/ui/Pagination';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
@@ -1665,36 +1666,13 @@ export default function TransfersPage() {
                     </table>
                 </div>
 
-                <div className="px-6 py-4 border-t border-slate-100/70 dark:border-slate-700/60">
-                    <div className="flex flex-wrap items-center gap-3 text-sm">
-                        <span className="text-slate-400 dark:text-slate-300">Rows per page</span>
-                        <select
-                            className="input-glass px-3 py-1.5 text-sm"
-                            value={rowsPerPage}
-                            onChange={(event) => setRowsPerPage(Number(event.target.value))}
-                        >
-                            <option value={15}>15</option>
-                            <option value={25}>25</option>
-                            <option value={50}>50</option>
-                            <option value={100}>100</option>
-                        </select>
-                        <button
-                            onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                            disabled={currentPage === 1}
-                            className="px-3 py-1.5 rounded-full glass-effect text-slate-600 dark:text-slate-200 disabled:opacity-40"
-                        >
-                            Prev
-                        </button>
-                        <span className="text-slate-400 dark:text-slate-300">Page {currentPage} of {totalPages}</span>
-                        <button
-                            onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-                            disabled={currentPage === totalPages}
-                            className="px-3 py-1.5 rounded-full glass-effect text-slate-600 dark:text-slate-200 disabled:opacity-40"
-                        >
-                            Next
-                        </button>
-                    </div>
-                </div>
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    rowsPerPage={rowsPerPage}
+                    onPageChange={setPage}
+                    onRowsPerPageChange={setRowsPerPage}
+                />
             </div>
         </div>
     );

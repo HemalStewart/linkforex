@@ -96,3 +96,26 @@ export const useRowsPerPage = (initialDefault = 10) => {
     return [rowsPerPage, setRowsPerPage] as const;
 };
 
+export const useTableFontSize = () => {
+    const [fontSize, setFontSize] = useState(14);
+
+    useEffect(() => {
+        const syncFontSize = () => {
+            setFontSize(getStoredUiSettings().tableFontSizePx);
+        };
+
+        syncFontSize();
+        window.addEventListener('ui-settings-change', syncFontSize);
+        return () => window.removeEventListener('ui-settings-change', syncFontSize);
+    }, []);
+
+    const updateFontSize = (newSize: number) => {
+        const current = getStoredUiSettings();
+        const next = { ...current, tableFontSizePx: Math.max(10, Math.min(20, newSize)) };
+        applyUiSettings(next);
+    };
+
+    return [fontSize, updateFontSize] as const;
+};
+
+
