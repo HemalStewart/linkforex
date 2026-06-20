@@ -75,9 +75,10 @@ const proxyRequest = async (request: NextRequest, context: RouteContext): Promis
     };
 
     if (method !== 'GET' && method !== 'HEAD') {
-        const body = await request.arrayBuffer();
-        if (body.byteLength > 0) {
-            init.body = body;
+        if (request.body) {
+            init.body = request.body;
+            // @ts-expect-error Node.js native fetch requires duplex: 'half' for ReadableStream bodies
+            init.duplex = 'half';
         }
     }
 
