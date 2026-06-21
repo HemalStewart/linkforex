@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { applyUiSettings, getStoredUiSettings, type UiSettings } from '@/app/lib/uiPreferences';
+import { ENDPOINTS } from '@/app/lib/api';
 import {
     Check,
     Loader2,
@@ -24,6 +25,7 @@ export default function SettingsPage() {
     const [message, setMessage] = useState<MessageState | null>(null);
     const [generalSettings, setGeneralSettings] = useState({
         footerText: defaultFooterText,
+        companyName: 'Link Forex Ltd',
     });
     const [securitySettings, setSecuritySettings] = useState({
         twoFactor: false,
@@ -35,19 +37,41 @@ export default function SettingsPage() {
     });
 
     useEffect(() => {
+        let initialFooter = defaultFooterText;
         const savedGeneral = localStorage.getItem('generalSettings');
         if (savedGeneral) {
             try {
                 const parsed = JSON.parse(savedGeneral);
-                setGeneralSettings({
-                    footerText: typeof parsed?.footerText === 'string' && parsed.footerText.trim()
-                        ? parsed.footerText.trim()
-                        : defaultFooterText,
-                });
+                if (typeof parsed?.footerText === 'string' && parsed.footerText.trim()) {
+                    initialFooter = parsed.footerText.trim();
+                }
             } catch {
-                setGeneralSettings({ footerText: defaultFooterText });
+                // keep default
             }
         }
+
+        const fetchBackendSettings = async () => {
+            try {
+                const res = await fetch(ENDPOINTS.MOBILE_ADMIN.SETTINGS);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && typeof data.company_name === 'string') {
+                        setGeneralSettings({
+                            footerText: initialFooter,
+                            companyName: data.company_name.trim() || 'Link Forex Ltd',
+                        });
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to load company name:', err);
+            }
+            setGeneralSettings({
+                footerText: initialFooter,
+                companyName: 'Link Forex Ltd',
+            });
+        };
+        fetchBackendSettings();
 
         const savedSecurity = localStorage.getItem('securitySettings');
         if (savedSecurity) {
@@ -70,9 +94,27 @@ export default function SettingsPage() {
         setLoading(true);
         setMessage(null);
 
-        await new Promise((resolve) => setTimeout(resolve, 400));
+        try {
+            const res = await fetch(ENDPOINTS.MOBILE_ADMIN.SETTINGS, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    company_name: generalSettings.companyName.trim()
+                }),
+            });
+            if (!res.ok) {
+                setMessage({ text: 'Failed to save general settings to backend.', tone: 'error' });
+                setLoading(false);
+                return;
+            }
+        } catch (err) {
+            console.error('Failed to save settings:', err);
+            setMessage({ text: 'Network error saving settings.', tone: 'error' });
+            setLoading(false);
+            return;
+        }
 
-        localStorage.setItem('generalSettings', JSON.stringify(generalSettings));
+        localStorage.setItem('generalSettings', JSON.stringify({ footerText: generalSettings.footerText }));
         localStorage.setItem('securitySettings', JSON.stringify(securitySettings));
         localStorage.setItem('uiSettings', JSON.stringify(uiSettings));
         applyUiSettings(uiSettings);
@@ -137,16 +179,27 @@ export default function SettingsPage() {
                                 </div>
                                 <div>
                                     <h2 className="text-xl font-bold text-slate-900 dark:text-white">General Settings</h2>
-                                    <p className="text-sm text-slate-500 font-medium">Core site name and support email are managed elsewhere.</p>
+                                    <p className="text-sm text-slate-500 font-medium">System configuration and report metadata settings.</p>
                                 </div>
                             </div>
                             <div className="space-y-6 max-w-2xl">
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Company Name</label>
+                                    <input
+                                        type="text"
+                                        value={generalSettings.companyName}
+                                        onChange={(e) => setGeneralSettings(prev => ({ ...prev, companyName: e.target.value }))}
+                                        className="input-glass w-full"
+                                        placeholder="Link Forex Ltd"
+                                    />
+                                    <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">This name is used in the footer section of generated PDF reports.</p>
+                                </div>
                                 <div>
                                     <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Login Footer Text</label>
                                     <input
                                         type="text"
                                         value={generalSettings.footerText}
-                                        onChange={(e) => setGeneralSettings({ footerText: e.target.value })}
+                                        onChange={(e) => setGeneralSettings(prev => ({ ...prev, footerText: e.target.value }))}
                                         className="input-glass w-full"
                                     />
                                 </div>
