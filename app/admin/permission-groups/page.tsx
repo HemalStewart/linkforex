@@ -131,7 +131,7 @@ export default function PermissionGroupsPage() {
             const parsed = getStoredUser<{ role?: string }>();
             const currentUserRole = parsed?.role ? String(parsed.role).trim() : '';
             const matchedRole = roles.find(r => r.name.toLowerCase() === currentUserRole.toLowerCase());
-            
+
             if (matchedRole) {
                 setSelectedRole(matchedRole.name);
             } else {
@@ -713,7 +713,7 @@ export default function PermissionGroupsPage() {
                         }`}
                 >
                     <Shield className="w-4 h-4" />
-                    Permissions Grid Matrix
+                    Permission Matrix
                 </button>
                 <button
                     onClick={() => setActiveTab('list')}
@@ -723,7 +723,7 @@ export default function PermissionGroupsPage() {
                         }`}
                 >
                     <Key className="w-4 h-4" />
-                    Advanced Logs & Imports
+                    Permission Grid
                 </button>
             </div>
 
@@ -736,7 +736,7 @@ export default function PermissionGroupsPage() {
                                 <Shield className="w-5 h-5" />
                             </div>
                             <div>
-                                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Active Management Role</h3>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Active Role</h3>
                                 <p className="text-xs text-slate-500 dark:text-slate-400">Select a role to view and customize page access rules</p>
                             </div>
                         </div>
@@ -776,12 +776,11 @@ export default function PermissionGroupsPage() {
                                             <thead>
                                                 <tr className="bg-slate-100/30 dark:bg-slate-800/20 text-slate-500 dark:text-slate-400 text-xs font-bold border-b border-slate-100/60 dark:border-slate-800/40">
                                                     <th className="px-6 py-3.5 text-left">Page Name</th>
-                                                    <th className="px-6 py-3.5 text-left">Section Code</th>
                                                     <th className="px-6 py-3.5 text-center">VIEW</th>
                                                     <th className="px-6 py-3.5 text-center">CREATE</th>
                                                     <th className="px-6 py-3.5 text-center">EDIT</th>
                                                     <th className="px-6 py-3.5 text-center">DELETE</th>
-                                                    <th className="px-6 py-3.5 text-center">OTHER ACTIONS</th>
+                                                    <th className="px-6 py-3.5 text-center">OTHER OPERATIONS</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-100/60 dark:divide-slate-800/40">
@@ -789,7 +788,7 @@ export default function PermissionGroupsPage() {
                                                     const viewPerm = getPermissionState(page.section, 'VIEW');
                                                     const isViewActive = viewPerm.active;
                                                     const isAdmin = selectedRole.toLowerCase().includes('admin') || selectedRole.toLowerCase().includes('super');
-                                                    
+
                                                     const addPerm = getPermissionState(page.section, 'ADD');
                                                     const editPerm = getPermissionState(page.section, 'EDIT');
                                                     const deletePerm = getPermissionState(page.section, 'DELETE');
@@ -797,8 +796,7 @@ export default function PermissionGroupsPage() {
                                                     return (
                                                         <tr key={page.name} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/30 transition-colors duration-150">
                                                             <td className="px-6 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{page.name}</td>
-                                                            <td className="px-6 py-4 text-xs font-mono text-slate-400 dark:text-slate-500 uppercase">{page.section}</td>
-                                                            
+
                                                             {/* VIEW CHECKBOX */}
                                                             <td className="px-6 py-4 text-center">
                                                                 <div className="flex justify-center">
@@ -885,7 +883,7 @@ export default function PermissionGroupsPage() {
                                                             {/* OTHER OPERATIONS */}
                                                             <td className="px-6 py-4 text-center">
                                                                 <div className="flex justify-center gap-3">
-                                                                    {page.operations.filter(o => !['VIEW', 'ADD', 'EDIT', 'DELETE'].includes(o)).map((otherOp) => {
+                                                                    {page.operations.filter(o => !['VIEW', 'ADD', 'EDIT', 'DELETE', 'VIEW_CREATED_BY', 'VIEW_CREATED_AT', 'VIEW_UPDATED_BY', 'VIEW_UPDATED_AT'].includes(o)).map((otherOp) => {
                                                                         const otherState = getPermissionState(page.section, otherOp);
                                                                         const isOtherSystemDefined = !!(otherState.record && normalizeYesNo(otherState.record.system_defined) === 'yes');
                                                                         return (
@@ -905,7 +903,7 @@ export default function PermissionGroupsPage() {
                                                                             </label>
                                                                         );
                                                                     })}
-                                                                    {page.operations.filter(o => !['VIEW', 'ADD', 'EDIT', 'DELETE'].includes(o)).length === 0 && (
+                                                                    {page.operations.filter(o => !['VIEW', 'ADD', 'EDIT', 'DELETE', 'VIEW_CREATED_BY', 'VIEW_CREATED_AT', 'VIEW_UPDATED_BY', 'VIEW_UPDATED_AT'].includes(o)).length === 0 && (
                                                                         <span className="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
                                                                     )}
                                                                 </div>
