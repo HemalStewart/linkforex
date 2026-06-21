@@ -143,6 +143,8 @@ export const ENDPOINTS = {
         LIST: `${API_BASE_URL}/dilisense-sources`,
         DETAIL: (id: string | number) => `${API_BASE_URL}/dilisense-sources/${id}`,
         SYNC: `${API_BASE_URL}/dilisense-sources/sync`,
+        GET_FUZZY: `${API_BASE_URL}/dilisense-sources/fuzzy-setting`,
+        UPDATE_FUZZY: `${API_BASE_URL}/dilisense-sources/fuzzy-setting`,
     },
     TRANSACTION_SETTINGS: {
         LIST: `${API_BASE_URL}/transaction-settings`,

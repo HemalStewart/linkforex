@@ -9,7 +9,7 @@ import Badge from '../components/ui/Badge';
 import { formatDateTime } from '@/app/lib/dateUtils';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
-import { PlusCircle, RefreshCw, Search, Trash2, Edit2, ListChecks, Save, Database, Globe, ExternalLink, Info, Check, X } from 'lucide-react';
+import { PlusCircle, RefreshCw, Search, Trash2, Edit2, ListChecks, Save, Database, Globe, ExternalLink, Info, Check, X, SlidersHorizontal, Loader2 } from 'lucide-react';
 import ToggleSwitch from '../components/ToggleSwitch';
 import { useAuditColumns } from '@/app/lib/permissions';
 
@@ -102,9 +102,70 @@ export default function DilisenseSourcesPage() {
         isAlert: true,
     });
 
+    // Fuzzy search setting states
+    const [fuzzySetting, setFuzzySetting] = useState<number | null>(null);
+    const [loadingFuzzy, setLoadingFuzzy] = useState(true);
+    const [savingFuzzy, setSavingFuzzy] = useState(false);
+
     useEffect(() => {
         void fetchSources();
+        void fetchFuzzySetting();
     }, []);
+
+    const fetchFuzzySetting = async () => {
+        setLoadingFuzzy(true);
+        try {
+            const res = await fetch((ENDPOINTS as any).DILISENSE_SOURCES.GET_FUZZY);
+            if (res.ok) {
+                const data = await res.json();
+                setFuzzySetting(data.dilisense_fuzzy_search);
+            }
+        } catch (error) {
+            console.error('Failed to fetch fuzzy setting', error);
+        } finally {
+            setLoadingFuzzy(false);
+        }
+    };
+
+    const saveFuzzySetting = async () => {
+        setSavingFuzzy(true);
+        try {
+            const res = await fetch((ENDPOINTS as any).DILISENSE_SOURCES.UPDATE_FUZZY, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dilisense_fuzzy_search: fuzzySetting }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Success',
+                    message: data.message || 'Fuzzy search setting saved successfully.',
+                    type: 'info',
+                    isAlert: true,
+                });
+            } else {
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: data.message || 'Failed to save fuzzy setting.',
+                    type: 'danger',
+                    isAlert: true,
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'An error occurred while saving the fuzzy search setting.',
+                type: 'danger',
+                isAlert: true,
+            });
+        } finally {
+            setSavingFuzzy(false);
+        }
+    };
 
     const fetchSources = async () => {
         setLoading(true);
@@ -408,6 +469,60 @@ export default function DilisenseSourcesPage() {
                         <PlusCircle className="w-5 h-5" />
                         <span>Add New</span>
                     </button>
+                </div>
+            </div>
+
+            {/* Fuzzy Search Setting Card */}
+            <div className="card-glass p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="max-w-2xl">
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <SlidersHorizontal className="w-5 h-5 text-teal-500" />
+                        <span>Fuzzy Search Setting</span>
+                    </h2>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
+                        This parameter defines if spelling differences need to be considered for the search string (e.g. if 'Angelo' should be matched in case 'Angela' has been provided). The example signifies a search distance of '1'. Available search distances are '1' and '2'.
+                    </p>
+                </div>
+                <div className="flex items-center gap-3 self-end md:self-center">
+                    {loadingFuzzy ? (
+                        <div className="flex items-center space-x-2 text-slate-400 text-sm py-2 px-4">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>Loading settings...</span>
+                        </div>
+                    ) : (
+                        <>
+                            <select
+                                value={fuzzySetting === null ? '' : fuzzySetting}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    setFuzzySetting(val === '' ? null : Number(val));
+                                }}
+                                disabled={savingFuzzy}
+                                className="input-glass text-sm min-w-[120px]"
+                            >
+                                <option value="">--</option>
+                                <option value={1}>1</option>
+                                <option value={2}>2</option>
+                            </select>
+                            <button
+                                onClick={saveFuzzySetting}
+                                disabled={savingFuzzy}
+                                className="btn-primary flex items-center space-x-2 bg-gradient-to-r from-teal-500 to-teal-600 border-0 text-sm whitespace-nowrap"
+                            >
+                                {savingFuzzy ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        <span>Saving...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save className="w-4 h-4" />
+                                        <span>Save Setting</span>
+                                    </>
+                                )}
+                            </button>
+                        </>
+                    )}
                 </div>
             </div>
 
