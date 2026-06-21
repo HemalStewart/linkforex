@@ -28,6 +28,7 @@ type MobileRemitter = {
     modified_user?: string | null;
     updated_at?: string | null;
     veriff_session_id?: string;
+    registration_source?: string;
 };
 
 export default function RemittersPage() {
@@ -320,9 +321,29 @@ export default function RemittersPage() {
                                                 {remitter.kycStatus ? (remitter.kycStatus.charAt(0).toUpperCase() + remitter.kycStatus.slice(1).toLowerCase()) : 'Pending'}
                                             </span>
                                         </td>
-                                        {showCreatedBy && <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 font-medium">{remitter.created_by || remitter.entered_user || '—'}</td>}
+                                        {showCreatedBy && (
+                                            <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 font-medium">
+                                                {remitter.created_by && remitter.created_by !== '-'
+                                                    ? (remitter.created_by === 'mobile_app' ? 'mobile user' : remitter.created_by)
+                                                    : (remitter.entered_user && remitter.entered_user !== '-'
+                                                        ? (remitter.entered_user === 'mobile_app' ? 'mobile user' : remitter.entered_user)
+                                                        : (String(remitter.registration_source || '').trim().toLowerCase() === 'mobile_app' ? 'mobile user' : 'admin')
+                                                    )
+                                                }
+                                            </td>
+                                        )}
                                         {showCreatedAt && <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{remitter.created_at ? formatDateTime(remitter.created_at) : '—'}</td>}
-                                        {showUpdatedBy && <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 font-medium">{remitter.updated_by || remitter.modified_user || '—'}</td>}
+                                        {showUpdatedBy && (
+                                            <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 font-medium">
+                                                {remitter.updated_by && remitter.updated_by !== '-'
+                                                    ? (remitter.updated_by === 'mobile_app' ? 'mobile user' : remitter.updated_by)
+                                                    : (remitter.modified_user && remitter.modified_user !== '-'
+                                                        ? (remitter.modified_user === 'mobile_app' ? 'mobile user' : remitter.modified_user)
+                                                        : (String(remitter.registration_source || '').trim().toLowerCase() === 'mobile_app' ? 'mobile user' : '—')
+                                                    )
+                                                }
+                                            </td>
+                                        )}
                                         {showUpdatedAt && <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{remitter.updated_at ? formatDateTime(remitter.updated_at) : '—'}</td>}
                                         <td className="px-2 py-4 text-center">
                                             <button
