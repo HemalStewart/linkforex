@@ -163,7 +163,7 @@ export default function CreateRolePage() {
                                 value={formData.copy_from_role_id}
                                 onChange={(e) => setFormData({ ...formData, copy_from_role_id: e.target.value })}
                             >
-                                <option value="" className="text-slate-900 dark:text-slate-900">None (Create empty role)</option>
+                                <option value="" className="text-slate-900 dark:text-slate-900">None</option>
                                 {existingRoles.map((role) => (
                                     <option key={role.id} value={role.id} className="text-slate-900 dark:text-slate-900">
                                         {role.name}
