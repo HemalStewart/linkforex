@@ -11,6 +11,7 @@ import {
     withActingUserParam,
 } from '@/app/lib/adminUserScope';
 import ConfirmModal from '../../components/ConfirmModal';
+import VeriffReportsModal from '../../components/VeriffReportsModal';
 import { formatDateTime } from '@/app/lib/dateUtils';
 import {
     ArrowLeft,
@@ -98,6 +99,8 @@ export default function EditRemitterPage() {
         veriff_reason: '',
         veriff_checked_at: '',
         veriff_url: '',
+        veriff_pep_sanction_match: '',
+        registration_source: '',
         verification_state: 'not_started',
         id_expired: false,
         branch_veriff_enabled: false,
@@ -107,6 +110,7 @@ export default function EditRemitterPage() {
         updated_at: ''
     });
     const [veriffLoading, setVeriffLoading] = useState(false);
+    const [showVeriffModal, setShowVeriffModal] = useState(false);
 
     // Dilisense AML screening states
     const [sanctionReference, setSanctionReference] = useState<string>('');
@@ -203,6 +207,8 @@ export default function EditRemitterPage() {
                     veriff_reason: data.veriff_reason || '',
                     veriff_checked_at: data.veriff_checked_at || '',
                     veriff_url: data.veriff_url || '',
+                    veriff_pep_sanction_match: data.veriff_pep_sanction_match || '',
+                    registration_source: data.registration_source || '',
                     verification_state: data.verification_state || 'not_started',
                     id_expired: Boolean(data.id_expired),
                     branch_veriff_enabled: Boolean(data.branch_veriff_enabled),
@@ -1067,11 +1073,18 @@ export default function EditRemitterPage() {
                         </div>
                         <button
                             type="button"
-                            onClick={openReportsModal}
+                            onClick={() => {
+                                const isMobile = String(formData.registration_source || '').trim().toLowerCase() === 'mobile_app';
+                                if (isMobile) {
+                                    setShowVeriffModal(true);
+                                } else {
+                                    openReportsModal();
+                                }
+                            }}
                             className="inline-flex items-center justify-center space-x-2 px-4 py-2 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-400 font-semibold text-xs transition-all border border-teal-500/20 shadow-sm shadow-teal-500/5 hover:shadow-teal-500/10"
                         >
                             <FileText className="w-4 h-4" />
-                            <span>Dilisense Reports</span>
+                            <span>{String(formData.registration_source || '').trim().toLowerCase() === 'mobile_app' ? "Veriff Report" : "Dilisense Reports"}</span>
                             <ExternalLink className="w-3.5 h-3.5" />
                         </button>
                     </div>
@@ -1127,6 +1140,16 @@ export default function EditRemitterPage() {
                         </div>
                     )}
                 </div>
+            )}
+
+            {showVeriffModal && (
+                <VeriffReportsModal
+                    isOpen={showVeriffModal}
+                    onClose={() => setShowVeriffModal(false)}
+                    remitterId={id}
+                    remitterName={String(formData.sender_name || formData.name || '')}
+                    veriffSessionId={String(formData.veriff_session_id || '')}
+                />
             )}
         </div>
     );

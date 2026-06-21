@@ -668,13 +668,27 @@ export default function ReceiversPage() {
                                                     {formatStatus(receiver.veriff_status || 'N/A')}
                                                 </span>
                                             </td>
-                                            {showCreatedBy && <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{(receiver as any).created_by || '—'}</td>}
+                                            {showCreatedBy && (
+                                                <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
+                                                    {(receiver as any).created_by
+                                                        ? ((receiver as any).created_by === 'mobile_app' ? 'mobile user' : (receiver as any).created_by)
+                                                        : (normalize(receiver.registration_source) === 'mobile_app' ? 'mobile user' : 'admin')
+                                                    }
+                                                </td>
+                                            )}
                                             {showCreatedAt && (
                                                 <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">
                                                     {formatDateTime(receiver.created_at)}
                                                 </td>
                                             )}
-                                            {showUpdatedBy && <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{(receiver as any).updated_by || '—'}</td>}
+                                            {showUpdatedBy && (
+                                                <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
+                                                    {(receiver as any).updated_by
+                                                        ? ((receiver as any).updated_by === 'mobile_app' ? 'mobile user' : (receiver as any).updated_by)
+                                                        : (normalize(receiver.registration_source) === 'mobile_app' ? 'mobile user' : '—')
+                                                    }
+                                                </td>
+                                            )}
                                             {showUpdatedAt && <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatDateTime((receiver as any).updated_at)}</td>}
                                             <td className="px-2 py-4 text-center">
                                                 <button

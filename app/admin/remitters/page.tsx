@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getCurrentAdminUser, withActingUserParam } from '@/app/lib/adminUserScope';
 import ConfirmModal from '../components/ConfirmModal';
+import VeriffReportsModal from '../components/VeriffReportsModal';
 import { formatDateTime } from '@/app/lib/dateUtils';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
@@ -17,6 +18,7 @@ type SortDir = 'asc' | 'desc';
 export default function RemittersPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('REMITTERS');
     const currentUser = useMemo(() => getCurrentAdminUser(), []);
+    const [selectedRemitter, setSelectedRemitter] = useState<any | null>(null);
     const [remitters, setRemitters] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -724,9 +726,16 @@ export default function RemittersPage() {
                                         <td className="px-2 py-4 text-center">
                                             <button
                                                 type="button"
-                                                onClick={() => openReportsModal(row.id, row.sender_name)}
+                                                onClick={() => {
+                                                    const isMobile = String(row.registration_source || '').trim().toLowerCase() === 'mobile_app';
+                                                    if (isMobile) {
+                                                        setSelectedRemitter(row);
+                                                    } else {
+                                                        openReportsModal(row.id, row.sender_name);
+                                                    }
+                                                }}
                                                 className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
-                                                title="Dilisense AML Reports"
+                                                title={String(row.registration_source || '').trim().toLowerCase() === 'mobile_app' ? "Veriff Verification Report" : "Dilisense AML Reports"}
                                             >
                                                 <FileText className="w-5 h-5" />
                                             </button>
@@ -786,9 +795,23 @@ export default function RemittersPage() {
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{renderDocCell(row.sender_aml_doc)}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.sender_aml_result || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.rescreening_sender || '-'}</td>
-                                        {showCreatedBy && <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.entered_user || '-'}</td>}
+                                        {showCreatedBy && (
+                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
+                                                {row.created_by && row.created_by !== '-'
+                                                    ? (row.created_by === 'mobile_app' ? 'mobile user' : row.created_by)
+                                                    : (String(row.registration_source || '').trim().toLowerCase() === 'mobile_app' ? 'mobile user' : 'admin')
+                                                }
+                                            </td>
+                                        )}
                                         {showCreatedAt && <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatDateTime(row.entered_date)}</td>}
-                                        {showUpdatedBy && <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.modified_user || '-'}</td>}
+                                        {showUpdatedBy && (
+                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
+                                                {row.updated_by && row.updated_by !== '-'
+                                                    ? (row.updated_by === 'mobile_app' ? 'mobile user' : row.updated_by)
+                                                    : (String(row.registration_source || '').trim().toLowerCase() === 'mobile_app' ? 'mobile user' : '—')
+                                                }
+                                            </td>
+                                        )}
                                         {showUpdatedAt && <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatDateTime(row.modified_date)}</td>}
                                         <td className="px-2 py-4 text-center">
                                             <button
@@ -815,6 +838,16 @@ export default function RemittersPage() {
                     onRowsPerPageChange={(rows) => { setRowsPerPage(rows); setPage(1); }}
                 />
             </div>
+
+            {selectedRemitter && (
+                <VeriffReportsModal
+                    isOpen={!!selectedRemitter}
+                    onClose={() => setSelectedRemitter(null)}
+                    remitterId={selectedRemitter.id}
+                    remitterName={String(selectedRemitter.sender_name || '')}
+                    veriffSessionId={String(selectedRemitter.veriff_session_id || '')}
+                />
+            )}
         </div>
     );
 }
