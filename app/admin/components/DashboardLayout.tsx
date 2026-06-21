@@ -9,7 +9,6 @@ import { resolveUploadsUrl } from '@/app/lib/uploads';
 import { clearStoredUser, getStoredUserRaw } from '@/app/lib/authStorage';
 import { isPrivilegedUser as getIsPrivilegedUser } from '@/app/lib/permissions';
 import { applyThemePreference, getStoredThemePreference, resolveTheme, type ThemePreference, type ResolvedTheme } from '@/app/lib/theme';
-import { getStoredUiSettings, applyUiSettings, type UiSettings } from '@/app/lib/uiPreferences';
 import {
     LayoutGrid,
     Layers,
@@ -46,10 +45,7 @@ import {
     TrendingUp,
     Megaphone,
     Image as ImageIcon,
-    Key,
-    Minus,
-    Plus,
-    Type
+    Key
 } from 'lucide-react';
 
 interface DashboardLayoutProps {
@@ -99,11 +95,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const originalFetchRef = React.useRef<typeof window.fetch | null>(null);
     const signOffSentRef = React.useRef(false);
     const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
-    const [uiSettings, setUiSettings] = useState<UiSettings>({
-        tableFontSizePx: 14,
-        toastMessageTimerMs: 3000,
-        rowsPerPage: 10,
-    });
 
     const [counts, setCounts] = useState({
         transfers: 0,
@@ -521,14 +512,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         return () => document.removeEventListener('mousedown', handleOutsideClick);
     }, []);
 
-    React.useEffect(() => {
-        const syncUiSettings = () => {
-            setUiSettings(getStoredUiSettings());
-        };
-        syncUiSettings();
-        window.addEventListener('ui-settings-change', syncUiSettings);
-        return () => window.removeEventListener('ui-settings-change', syncUiSettings);
-    }, []);
 
     React.useEffect(() => {
         if (isPublicPage) return;
@@ -892,37 +875,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                             <PlusCircle className="w-5 h-5" />
                             <span className="font-semibold">New Transfer</span>
                         </Link>
-                        {/* Table Font Size Controller */}
-                        <div className="flex items-center glass-effect rounded-full px-3 py-1.5 space-x-1.5 border border-white/20 dark:border-white/10 shadow-sm">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const nextSize = Math.max(10, uiSettings.tableFontSizePx - 1);
-                                    applyUiSettings({ ...uiSettings, tableFontSizePx: nextSize });
-                                }}
-                                disabled={uiSettings.tableFontSizePx <= 10}
-                                className="p-1 hover:bg-slate-100 dark:hover:bg-white/5 rounded-full text-slate-500 hover:text-teal-600 transition disabled:opacity-40"
-                                title="Decrease table font size (A-)"
-                            >
-                                <Minus className="w-3.5 h-3.5" />
-                            </button>
-                            <span className="text-xs font-bold text-slate-600 dark:text-slate-300 min-w-[20px] text-center select-none flex items-center gap-1.5" title="Table Font Size">
-                                <Type className="w-4 h-4 text-slate-400" />
-                                <span>{uiSettings.tableFontSizePx}px</span>
-                            </span>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const nextSize = Math.min(20, uiSettings.tableFontSizePx + 1);
-                                    applyUiSettings({ ...uiSettings, tableFontSizePx: nextSize });
-                                }}
-                                disabled={uiSettings.tableFontSizePx >= 20}
-                                className="p-1 hover:bg-slate-100 dark:hover:bg-white/5 rounded-full text-slate-500 hover:text-teal-600 transition disabled:opacity-40"
-                                title="Increase table font size (A+)"
-                            >
-                                <Plus className="w-3.5 h-3.5" />
-                            </button>
-                        </div>
 
                         <div ref={themeMenuRef} className="relative">
                             <button
