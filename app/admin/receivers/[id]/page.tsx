@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
+import { getCurrentAdminUser, withActingUserParam } from '@/app/lib/adminUserScope';
 import { ArrowLeft, User, Building, CreditCard, Save, Loader2, ChevronRight, Search, MapPin, Phone, ShieldCheck, Landmark, ChevronDown, ChevronUp, FileText, ExternalLink, X, RefreshCcw, Trash2, Download } from 'lucide-react';
 import { resolveUploadsUrl } from '@/app/lib/uploads';
 import ConfirmModal from '../../components/ConfirmModal';
@@ -25,6 +26,7 @@ export default function EditReceiverPage() {
     const router = useRouter();
     const params = useParams();
     const id = params.id as string;
+    const currentUser = React.useMemo(() => getCurrentAdminUser(), []);
 
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -212,19 +214,19 @@ export default function EditReceiverPage() {
         const fetchData = async () => {
             try {
                 // Fetch remitters
-                const remittersRes = await fetch(ENDPOINTS.REMITTERS.LIST);
+                const remittersRes = await fetch(withActingUserParam(ENDPOINTS.REMITTERS.LIST, currentUser));
                 if (remittersRes.ok) {
                     setRemitters(await remittersRes.json());
                 }
 
-                const banksRes = await fetch(ENDPOINTS.BANKS.LIST);
+                const banksRes = await fetch(withActingUserParam(ENDPOINTS.BANKS.LIST, currentUser));
                 if (banksRes.ok) {
                     setBanks(await banksRes.json());
                 }
 
                 // Fetch receiver details
                 if (id) {
-                    const receiverRes = await fetch(ENDPOINTS.BENEFICIARIES.DETAIL(id));
+                    const receiverRes = await fetch(withActingUserParam(ENDPOINTS.BENEFICIARIES.DETAIL(id), currentUser));
                     if (receiverRes.ok) {
                         const data = await receiverRes.json();
                         setFormData({
@@ -318,7 +320,7 @@ export default function EditReceiverPage() {
         setSubmitting(true);
 
         try {
-            const res = await fetch(ENDPOINTS.BENEFICIARIES.DETAIL(id), {
+            const res = await fetch(withActingUserParam(ENDPOINTS.BENEFICIARIES.DETAIL(id), currentUser), {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -372,7 +374,7 @@ export default function EditReceiverPage() {
     const fetchReports = async () => {
         setReportsModal((prev) => ({ ...prev, loading: true }));
         try {
-            const res = await fetch(ENDPOINTS.BENEFICIARIES.DILISENSE_REPORTS_LIST(id));
+            const res = await fetch(withActingUserParam(ENDPOINTS.BENEFICIARIES.DILISENSE_REPORTS_LIST(id), currentUser));
             const data = await res.json().catch(() => []);
             if (res.ok && Array.isArray(data)) {
                 setReportsModal((prev) => ({ ...prev, loading: false, reports: data }));
@@ -414,13 +416,13 @@ export default function EditReceiverPage() {
     const handleGenerateReport = async () => {
         setReportsModal((prev) => ({ ...prev, generating: true }));
         try {
-            const res = await fetch(ENDPOINTS.BENEFICIARIES.DILISENSE_REPORT_GENERATE(id), {
+            const res = await fetch(withActingUserParam(ENDPOINTS.BENEFICIARIES.DILISENSE_REPORT_GENERATE(id), currentUser), {
                 method: 'POST',
             });
             const data = await res.json().catch(() => ({}));
             if (res.ok) {
                 // Refresh reports list
-                const listRes = await fetch(ENDPOINTS.BENEFICIARIES.DILISENSE_REPORTS_LIST(id));
+                const listRes = await fetch(withActingUserParam(ENDPOINTS.BENEFICIARIES.DILISENSE_REPORTS_LIST(id), currentUser));
                 const listData = await listRes.json().catch(() => []);
                 setReportsModal((prev) => ({
                     ...prev,
@@ -428,7 +430,7 @@ export default function EditReceiverPage() {
                     reports: Array.isArray(listData) ? listData : prev.reports,
                 }));
                 // Reload main details to sync status
-                const beneficiaryRes = await fetch(ENDPOINTS.BENEFICIARIES.DETAIL(id));
+                const beneficiaryRes = await fetch(withActingUserParam(ENDPOINTS.BENEFICIARIES.DETAIL(id), currentUser));
                 if (beneficiaryRes.ok) {
                     const bData = await beneficiaryRes.json();
                     setFormData((prev) => ({
@@ -500,13 +502,13 @@ export default function EditReceiverPage() {
             if (confirmModal.actionType === 'delete_report') {
                 const reportId = confirmModal.targetReportId;
                 if (reportId) {
-                    const res = await fetch(ENDPOINTS.BENEFICIARIES.DILISENSE_REPORT_DELETE(id, reportId), {
+                    const res = await fetch(withActingUserParam(ENDPOINTS.BENEFICIARIES.DILISENSE_REPORT_DELETE(id, reportId), currentUser), {
                         method: 'DELETE',
                     });
                     const data = await res.json().catch(() => ({}));
                     if (res.ok) {
                         // Refresh reports list
-                        const listRes = await fetch(ENDPOINTS.BENEFICIARIES.DILISENSE_REPORTS_LIST(id));
+                        const listRes = await fetch(withActingUserParam(ENDPOINTS.BENEFICIARIES.DILISENSE_REPORTS_LIST(id), currentUser));
                         const listData = await listRes.json().catch(() => []);
                         setReportsModal((prev) => ({
                             ...prev,
@@ -655,7 +657,7 @@ export default function EditReceiverPage() {
                                                     <div className="inline-flex items-center gap-2">
                                                         <button
                                                             type="button"
-                                                            onClick={() => window.open(ENDPOINTS.BENEFICIARIES.DILISENSE_REPORT_DOWNLOAD(id, report.id), '_blank', 'noopener,noreferrer')}
+                                                            onClick={() => window.open(withActingUserParam(ENDPOINTS.BENEFICIARIES.DILISENSE_REPORT_DOWNLOAD(id, report.id), currentUser), '_blank', 'noopener,noreferrer')}
                                                             className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white hover:bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 transition dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 hover:scale-[1.02] active:scale-[0.98]"
                                                         >
                                                             <Download className="h-3.5 w-3.5" />
