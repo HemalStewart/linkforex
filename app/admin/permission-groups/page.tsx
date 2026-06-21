@@ -40,6 +40,27 @@ const normalizeDate = (value?: string | null) => {
 const normalizeYesNo = (value?: string | null) => (String(value || '').toLowerCase() === 'yes' ? 'yes' : 'no');
 const toYesNoLabel = (value?: string | null) => (normalizeYesNo(value) === 'yes' ? 'Yes' : 'No');
 
+const getPageNameFromSection = (section: string): string => {
+    const s = String(section || '').trim().toUpperCase();
+    for (const cat of ADMIN_PAGES_CONFIG) {
+        const found = cat.pages.find(p => {
+            const ps = p.section.toUpperCase();
+            return ps === s ||
+                   ps === s + 'S' ||
+                   s === ps + 'S' ||
+                   (ps === 'KYC_REVIEWS' && s === 'KYC') ||
+                   (ps === 'BRANCH_CURRENCY_RATES' && s === 'BRANCH_CURRENCY_RATE') ||
+                   (ps === 'BRANCH_ACCESS_REQUESTS' && s === 'BRANCH_ACCESS') ||
+                   (ps === 'SYSTEM_USERS' && s === 'SYSUSERS');
+        });
+        if (found) return found.name;
+    }
+    return s
+        .replace(/[_-]+/g, ' ')
+        .toLowerCase()
+        .replace(/\b\w/g, c => c.toUpperCase());
+};
+
 export default function PermissionGroupsPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('PERMISSION_GROUPS');
     const [activeTab, setActiveTab] = useState<'grid' | 'list'>('grid');
@@ -266,6 +287,7 @@ export default function PermissionGroupsPage() {
             const haystack = [
                 row.role_name,
                 row.page_section,
+                getPageNameFromSection(row.page_section),
                 row.operation,
                 row.system_defined,
                 row.active,
@@ -318,7 +340,7 @@ export default function PermissionGroupsPage() {
             case 'role_name':
                 return row.role_name || '';
             case 'page_section':
-                return row.page_section || '';
+                return getPageNameFromSection(row.page_section);
             case 'operation':
                 return row.operation || '';
             case 'system_defined':
@@ -1038,7 +1060,7 @@ export default function PermissionGroupsPage() {
                                 >
                                     <option value="all">All</option>
                                     {sectionOptions.map((section) => (
-                                        <option key={section} value={section}>{section}</option>
+                                        <option key={section} value={section}>{getPageNameFromSection(section)}</option>
                                     ))}
                                 </select>
                             </div>
@@ -1164,7 +1186,7 @@ export default function PermissionGroupsPage() {
                                                     <tr key={row.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
                                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
                                                         <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{row.role_name}</td>
-                                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.page_section}</td>
+                                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{getPageNameFromSection(row.page_section)}</td>
                                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.operation}</td>
                                                         <td className="px-4 py-4 text-sm text-center">
                                                             <label className="inline-flex items-center justify-center">
