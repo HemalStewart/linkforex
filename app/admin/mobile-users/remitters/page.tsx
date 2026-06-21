@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../components/ConfirmModal';
-import { Search, UserPlus, Edit2, Download, Trash2 } from 'lucide-react';
+import VeriffReportsModal from '../../components/VeriffReportsModal';
+import { Search, UserPlus, Edit2, Download, Trash2, FileText } from 'lucide-react';
 import { useAuditColumns } from '@/app/lib/permissions';
 import { formatDateTime } from '@/app/lib/dateUtils';
 
@@ -26,10 +27,12 @@ type MobileRemitter = {
     updated_by?: string | null;
     modified_user?: string | null;
     updated_at?: string | null;
+    veriff_session_id?: string;
 };
 
 export default function RemittersPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('MOBILE_PROFILES');
+    const [selectedRemitter, setSelectedRemitter] = useState<MobileRemitter | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [remitters, setRemitters] = useState<MobileRemitter[]>([]);
@@ -257,8 +260,9 @@ export default function RemittersPage() {
                         <table className="table-shell">
                             <thead className="table-head">
                                 <tr>
-                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Profile</th>
                                     <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>
+                                    <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Reports"><FileText className="w-4 h-4 mx-auto text-slate-400" /></th>
+                                    <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Profile</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Contact</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Status</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">KYC</th>
@@ -275,12 +279,6 @@ export default function RemittersPage() {
                                         key={remitter.id}
                                         className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200"
                                     >
-                                        <td className="px-8 py-5">
-                                            <div>
-                                                <p className="font-bold text-slate-900 dark:text-white text-[15px]">{remitter.name}</p>
-                                                <p className="text-xs text-slate-500 font-medium mt-0.5">Joined: {remitter.joinedDate}</p>
-                                            </div>
-                                        </td>
                                         <td className="px-2 py-4 text-center">
                                             <Link
                                                 href={`/admin/mobile-profiles/${remitter.id}`}
@@ -289,6 +287,22 @@ export default function RemittersPage() {
                                             >
                                                 <Edit2 className="w-5 h-5" />
                                             </Link>
+                                        </td>
+                                        <td className="px-2 py-4 text-center">
+                                            <button
+                                                type="button"
+                                                onClick={() => setSelectedRemitter(remitter)}
+                                                className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
+                                                title="Veriff Verification Report"
+                                            >
+                                                <FileText className="w-5 h-5" />
+                                            </button>
+                                        </td>
+                                        <td className="px-8 py-5">
+                                            <div>
+                                                <p className="font-bold text-slate-900 dark:text-white text-[15px]">{remitter.name}</p>
+                                                <p className="text-xs text-slate-500 font-medium mt-0.5">Joined: {remitter.joinedDate}</p>
+                                            </div>
                                         </td>
                                         <td className="px-8 py-5">
                                             <div className="text-sm">
@@ -332,6 +346,16 @@ export default function RemittersPage() {
                     </div>
                 )}
             </div>
-        </div >
+
+            {selectedRemitter && (
+                <VeriffReportsModal
+                    isOpen={!!selectedRemitter}
+                    onClose={() => setSelectedRemitter(null)}
+                    remitterId={selectedRemitter.id}
+                    remitterName={String(selectedRemitter.name || '')}
+                    veriffSessionId={String(selectedRemitter.veriff_session_id || '')}
+                />
+            )}
+        </div>
     );
 }
