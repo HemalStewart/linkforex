@@ -1038,18 +1038,18 @@ export default function PermissionGroupsPage() {
                         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mt-4">
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Role</label>
-                                <input
-                                    list="role-filter-options"
+                                <select
                                     value={roleFilter}
                                     onChange={(e) => setRoleFilter(e.target.value)}
-                                    placeholder="Search role"
-                                    className="input-glass w-full text-sm"
-                                />
-                                <datalist id="role-filter-options">
+                                    className="input-glass w-full text-sm font-medium"
+                                >
+                                    <option value="">All Roles</option>
                                     {roleOptions.map((role) => (
-                                        <option key={role} value={role} />
+                                        <option key={role} value={role}>
+                                            {role}
+                                        </option>
                                     ))}
-                                </datalist>
+                                </select>
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Page Section</label>
