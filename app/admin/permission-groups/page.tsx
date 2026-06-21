@@ -704,25 +704,7 @@ export default function PermissionGroupsPage() {
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Role Permissions</h1>
                     <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">Manage role permissions by page section and operation</p>
                 </div>
-                {activeTab === 'list' && (
-                    <button
-                        type="button"
-                        onClick={() => setShowCreateForm((prev) => !prev)}
-                        className="btn-primary px-5 py-3 rounded-full text-sm font-semibold inline-flex items-center gap-2"
-                    >
-                        {showCreateForm ? (
-                            <>
-                                <X className="w-4 h-4" />
-                                Close
-                            </>
-                        ) : (
-                            <>
-                                <PlusCircle className="w-4 h-4" />
-                                Add Permission
-                            </>
-                        )}
-                    </button>
-                )}
+
             </div>
 
             {/* Tab Navigation */}
