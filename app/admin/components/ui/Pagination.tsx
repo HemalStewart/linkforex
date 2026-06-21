@@ -33,23 +33,25 @@ export default function Pagination({
             </select>
             
 
-            <button
-                onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1 || totalPages === 0}
-                className="px-4 py-1.5 rounded-full btn-secondary font-medium disabled:opacity-40 disabled:cursor-not-allowed ml-auto"
-            >
-                Prev
-            </button>
-            <span className="text-slate-500 dark:text-slate-300 font-medium whitespace-nowrap">
-                Page {totalPages === 0 ? 0 : currentPage} of {totalPages}
-            </span>
-            <button
-                onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage >= totalPages || totalPages === 0}
-                className="px-4 py-1.5 rounded-full btn-secondary font-medium disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-                Next
-            </button>
+            <div className="flex items-center gap-3">
+                <button
+                    onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1 || totalPages === 0}
+                    className="px-4 py-1.5 rounded-full btn-secondary font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                    Prev
+                </button>
+                <span className="text-slate-500 dark:text-slate-300 font-medium whitespace-nowrap">
+                    Page {totalPages === 0 ? 0 : currentPage} of {totalPages}
+                </span>
+                <button
+                    onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage >= totalPages || totalPages === 0}
+                    className="px-4 py-1.5 rounded-full btn-secondary font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                    Next
+                </button>
+            </div>
         </div>
     );
 }
