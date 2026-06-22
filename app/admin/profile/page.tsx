@@ -120,6 +120,7 @@ export default function ProfilePage() {
     const [photoFile, setPhotoFile] = useState<File | null>(null);
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
     const [cropModalOpen, setCropModalOpen] = useState(false);
+    const [passwordModalOpen, setPasswordModalOpen] = useState(false);
     const [cropSourceUrl, setCropSourceUrl] = useState<string | null>(null);
     const [cropState, setCropState] = useState<CropState>({ zoom: 1, offsetX: 0, offsetY: 0 });
     const [cropImageSize, setCropImageSize] = useState({ width: 0, height: 0 });
@@ -415,6 +416,7 @@ export default function ProfilePage() {
             setPasswordErrorState('');
             setConfirmPasswordErrorState('');
             setMessage({ text: data?.message || 'Password changed successfully.', tone: 'success' });
+            setPasswordModalOpen(false);
         } catch {
             setMessage({ text: 'Failed to change password.', tone: 'error' });
         } finally {
@@ -496,6 +498,92 @@ export default function ProfilePage() {
                 </div>
             </Modal>
 
+            <Modal isOpen={passwordModalOpen} onClose={() => {
+                setPasswordModalOpen(false);
+                setPasswordForm({
+                    currentPassword: '',
+                    newPassword: '',
+                    confirmPassword: '',
+                });
+                setPasswordErrorState('');
+                setConfirmPasswordErrorState('');
+            }} title="Change Password" size="md">
+                <div className="space-y-6">
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Current Password</label>
+                            <input
+                                type="password"
+                                value={passwordForm.currentPassword}
+                                onChange={(e) => setPasswordForm((prev) => ({ ...prev, currentPassword: e.target.value }))}
+                                className="input-glass w-full text-sm"
+                                placeholder="Enter current password"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">New Password</label>
+                            <input
+                                type="password"
+                                value={passwordForm.newPassword}
+                                onChange={(e) => {
+                                    setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }));
+                                    if (passwordErrorState) setPasswordErrorState('');
+                                }}
+                                className="input-glass w-full text-sm"
+                                placeholder="Enter new password"
+                            />
+                            {passwordErrorState && (
+                                <p className="text-xs text-rose-500 font-semibold mt-1.5 ml-1">{passwordErrorState}</p>
+                            )}
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Confirm Password</label>
+                            <input
+                                type="password"
+                                value={passwordForm.confirmPassword}
+                                onChange={(e) => {
+                                    setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }));
+                                    if (confirmPasswordErrorState) setConfirmPasswordErrorState('');
+                                }}
+                                className="input-glass w-full text-sm"
+                                placeholder="Confirm new password"
+                            />
+                            {confirmPasswordErrorState && (
+                                <p className="text-xs text-rose-500 font-semibold mt-1.5 ml-1">{confirmPasswordErrorState}</p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="dialog-actions pt-4 border-t border-slate-100 dark:border-slate-800">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setPasswordModalOpen(false);
+                                setPasswordForm({
+                                    currentPassword: '',
+                                    newPassword: '',
+                                    confirmPassword: '',
+                                });
+                                setPasswordErrorState('');
+                                setConfirmPasswordErrorState('');
+                            }}
+                            className="btn-secondary"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handlePasswordChange}
+                            disabled={passwordLoading}
+                            className="btn-primary inline-flex items-center gap-2 disabled:opacity-60"
+                        >
+                            {passwordLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                            {passwordLoading ? 'Updating...' : 'Update Password'}
+                        </button>
+                    </div>
+                </div>
+            </Modal>
+
             <div>
                 <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">My Profile</h1>
                 <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Manage your personal profile photo, display preferences, and credentials.</p>
@@ -540,6 +628,16 @@ export default function ProfilePage() {
                             >
                                 {profilePhotoUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
                                 {profilePhotoUploading ? 'Uploading...' : 'Update Profile Picture'}
+                            </button>
+                        </div>
+                        <div className="pt-4 border-t border-slate-100/60 dark:border-slate-800/40">
+                            <button
+                                type="button"
+                                onClick={() => setPasswordModalOpen(true)}
+                                className="btn-secondary w-full inline-flex items-center justify-center gap-2 py-3"
+                            >
+                                <Lock className="w-4 h-4" />
+                                Change Password
                             </button>
                         </div>
                     </div>
@@ -731,64 +829,6 @@ export default function ProfilePage() {
                         </div>
                     </div>
 
-                    <div className="card-glass p-8 space-y-6 shadow-md">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white border-b border-slate-100/60 dark:border-slate-800/40 pb-3 flex items-center gap-2">
-                            <Lock className="w-5 h-5 text-teal-500" />
-                            Change Password
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Current Password</label>
-                                <input
-                                    type="password"
-                                    value={passwordForm.currentPassword}
-                                    onChange={(e) => setPasswordForm((prev) => ({ ...prev, currentPassword: e.target.value }))}
-                                    className="input-glass w-full text-sm"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">New Password</label>
-                                <input
-                                    type="password"
-                                    value={passwordForm.newPassword}
-                                    onChange={(e) => {
-                                        setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }));
-                                        if (passwordErrorState) setPasswordErrorState('');
-                                    }}
-                                    className="input-glass w-full text-sm"
-                                />
-                                {passwordErrorState && (
-                                    <p className="text-xs text-rose-500 font-semibold mt-1.5 ml-1">{passwordErrorState}</p>
-                                )}
-                            </div>
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Confirm Password</label>
-                                <input
-                                    type="password"
-                                    value={passwordForm.confirmPassword}
-                                    onChange={(e) => {
-                                        setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }));
-                                        if (confirmPasswordErrorState) setConfirmPasswordErrorState('');
-                                    }}
-                                    className="input-glass w-full text-sm"
-                                />
-                                {confirmPasswordErrorState && (
-                                    <p className="text-xs text-rose-500 font-semibold mt-1.5 ml-1">{confirmPasswordErrorState}</p>
-                                )}
-                            </div>
-                        </div>
-                        <div className="mt-4 flex justify-end">
-                            <button
-                                type="button"
-                                onClick={handlePasswordChange}
-                                disabled={passwordLoading}
-                                className="btn-primary inline-flex items-center gap-2 disabled:opacity-60 py-2.5 px-6 font-semibold"
-                            >
-                                {passwordLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
-                                {passwordLoading ? 'Updating...' : 'Change Password'}
-                            </button>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
