@@ -56,12 +56,9 @@ type MessageState = {
 };
 
 const resolvePhotoUrl = (value?: string | null, fallback?: string | null): string | null => {
-    const absolute = String(fallback || '').trim();
-    if (absolute) return absolute;
-
-    const relative = String(value || '').trim();
-    if (!relative) return null;
-    return resolveUploadsUrl(relative) || null;
+    const raw = String(fallback || value || '').trim();
+    if (!raw) return null;
+    return resolveUploadsUrl(raw) || null;
 };
 
 const toLabel = (value?: string | null, fallback = '—'): string => {
@@ -337,9 +334,10 @@ export default function ProfilePage() {
 
         try {
             const formData = new FormData();
+            formData.append('_method', 'PUT'); // Spoof PUT
             formData.append('profile_photo', photoFile);
             const res = await fetch(ENDPOINTS.USERS.DETAIL(storedUser.id), {
-                method: 'PUT',
+                method: 'POST', // Spoofed to PUT
                 body: formData,
             });
 

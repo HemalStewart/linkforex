@@ -603,13 +603,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
     const notifications: Array<{ id: string; text: string }> = [];
     const resolveProfilePhotoUrl = (user: CurrentUser | null): string | null => {
-        const absolute = String(user?.profile_photo_url || '').trim();
-        if (absolute) return absolute;
+        const raw = String(user?.profile_photo_url || user?.profile_photo || '').trim();
+        if (!raw) return null;
 
-        const relative = String(user?.profile_photo || '').trim();
-        if (!relative) return null;
-
-        return resolveUploadsUrl(relative) || null;
+        return resolveUploadsUrl(raw) || null;
     };
     const toTitleCase = (value?: string, fallback = ''): string => {
         const text = String(value || '').trim();
