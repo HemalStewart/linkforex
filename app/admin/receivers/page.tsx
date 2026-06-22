@@ -5,6 +5,7 @@ import { useRowsPerPage } from '@/app/lib/uiPreferences';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getCurrentAdminUser, withActingUserParam } from '@/app/lib/adminUserScope';
+import { openPdfReport } from '@/app/lib/openPdfReport';
 import ConfirmModal from '../components/ConfirmModal';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
@@ -817,7 +818,12 @@ export default function ReceiversPage() {
                                                     <div className="inline-flex items-center gap-2">
                                                         <button
                                                             type="button"
-                                                            onClick={() => window.open(withActingUserParam(ENDPOINTS.BENEFICIARIES.DILISENSE_REPORT_DOWNLOAD(reportsModal.selectedId!, report.id), currentUser), '_blank', 'noopener,noreferrer')}
+                                                            onClick={() => {
+                                                                void openPdfReport(
+                                                                    withActingUserParam(ENDPOINTS.BENEFICIARIES.DILISENSE_REPORT_DOWNLOAD(reportsModal.selectedId!, report.id), currentUser),
+                                                                    currentUser
+                                                                );
+                                                            }}
                                                             className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white hover:bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 transition dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 hover:scale-[1.02] active:scale-[0.98]"
                                                         >
                                                             <Download className="h-3.5 w-3.5" />
@@ -874,4 +880,3 @@ export default function ReceiversPage() {
         </div>
     );
 }
-
