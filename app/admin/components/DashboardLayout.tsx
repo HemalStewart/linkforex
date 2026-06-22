@@ -81,7 +81,6 @@ interface NavItem {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(true);
-    const [headerUserMenuOpen, setHeaderUserMenuOpen] = useState(false);
     const [notificationMenuOpen, setNotificationMenuOpen] = useState(false);
     const [themeMenuOpen, setThemeMenuOpen] = useState(false);
     const [themePreference, setThemePreference] = useState<ThemePreference>('system');
@@ -89,7 +88,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const [currentHash, setCurrentHash] = useState('');
     const [isLoadingNav, setIsLoadingNav] = useState(true);
     const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
-    const headerUserMenuRef = React.useRef<HTMLDivElement | null>(null);
     const notificationMenuRef = React.useRef<HTMLDivElement | null>(null);
     const themeMenuRef = React.useRef<HTMLDivElement | null>(null);
     const originalFetchRef = React.useRef<typeof window.fetch | null>(null);
@@ -497,9 +495,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
     React.useEffect(() => {
         const handleOutsideClick = (event: MouseEvent) => {
-            if (headerUserMenuRef.current && !headerUserMenuRef.current.contains(event.target as Node)) {
-                setHeaderUserMenuOpen(false);
-            }
             if (notificationMenuRef.current && !notificationMenuRef.current.contains(event.target as Node)) {
                 setNotificationMenuOpen(false);
             }
@@ -588,7 +583,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         await logSignOff('User signed out', false);
         clearStoredUser();
         setCurrentUser(null);
-        setHeaderUserMenuOpen(false);
         setNotificationMenuOpen(false);
         setThemeMenuOpen(false);
         router.replace('/admin/login');
@@ -871,7 +865,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                             <button
                                 onClick={() => {
                                     setThemeMenuOpen((prev) => !prev);
-                                    setHeaderUserMenuOpen(false);
                                     setNotificationMenuOpen(false);
                                 }}
                                 className="p-2.5 glass-effect rounded-full text-slate-500 dark:text-slate-400 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 relative group"
@@ -953,55 +946,41 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                 </div>
                             )}
                         </div>
-                        <div ref={headerUserMenuRef} className="relative">
-                            <button
-                                onClick={() => setHeaderUserMenuOpen((prev) => !prev)}
-                                className="glass-effect rounded-full pl-2 pr-3 py-1 text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 flex items-center space-x-2 hover:shadow-lg"
-                            >
-                                <div className="avatar-circle avatar-circle-sm shrink-0 overflow-hidden">
-                                    {profilePhotoUrl ? (
-                                        <img
-                                            src={profilePhotoUrl}
-                                            alt={displayName}
-                                            className="h-full w-full object-cover"
-                                        />
-                                    ) : (
-                                        displayName.charAt(0).toUpperCase()
-                                    )}
-                                </div>
-                                <div className="hidden md:block text-left max-w-[180px]">
-                                    <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                                        {displayName}
-                                    </p>
-                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                                        {displayRole}
-                                    </p>
-                                </div>
-                                <ChevronDown className={`w-4 h-4 transition-transform ${headerUserMenuOpen ? 'rotate-180' : ''}`} />
-                            </button>
+                        <Link
+                            href="/admin/profile"
+                            className="glass-effect rounded-full pl-2 pr-3.5 py-1 text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 flex items-center space-x-2 hover:shadow-lg"
+                            title="Profile Settings"
+                        >
+                            <div className="avatar-circle avatar-circle-sm shrink-0 overflow-hidden">
+                                {profilePhotoUrl ? (
+                                    <img
+                                        src={profilePhotoUrl}
+                                        alt={displayName}
+                                        className="h-full w-full object-cover"
+                                    />
+                                ) : (
+                                    displayName.charAt(0).toUpperCase()
+                                )}
+                            </div>
+                            <div className="hidden md:block text-left max-w-[180px]">
+                                <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                                    {displayName}
+                                </p>
+                                <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                                    {displayRole}
+                                </p>
+                            </div>
+                        </Link>
 
-                            {headerUserMenuOpen && (
-                                <div className="absolute right-0 mt-2 w-56 glass-effect-strong rounded-[16px] shadow-lg overflow-hidden animate-scale-in border border-white/20 dark:border-white/10 z-30">
-                                    <div className="p-2">
-                                        <Link
-                                            href="/admin/profile"
-                                            onClick={() => setHeaderUserMenuOpen(false)}
-                                            className="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-white/5 transition-all"
-                                        >
-                                            <User className="w-4 h-4" />
-                                            <span className="text-sm font-semibold">Profile Settings</span>
-                                        </Link>
-                                        <button
-                                            onClick={handleSignOut}
-                                            className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-red-500 hover:bg-red-50/70 dark:hover:bg-red-900/20 transition-all text-left"
-                                        >
-                                            <LogOut className="w-4 h-4" />
-                                            <span className="text-sm font-semibold">Sign Out</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                        <button
+                            onClick={handleSignOut}
+                            className="p-2.5 md:pl-3.5 md:pr-4 md:py-2 glass-effect rounded-full text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 dark:hover:bg-rose-500/20 transition-all duration-300 flex items-center justify-center space-x-2 hover:shadow-lg cursor-pointer"
+                            aria-label="Sign Out"
+                            title="Sign Out"
+                        >
+                            <LogOut className="w-5 h-5 md:w-4 md:h-4 text-rose-500" />
+                            <span className="text-xs font-bold uppercase tracking-wider hidden md:inline">Sign Out</span>
+                        </button>
                     </div>
                 </header>
 
