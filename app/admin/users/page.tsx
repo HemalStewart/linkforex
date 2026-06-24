@@ -422,6 +422,9 @@ export default function UsersPage() {
                                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                             </button>
                         </div>
+                        <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1.5 ml-1 leading-relaxed">
+                            Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character.
+                        </p>
                         {passwordErrorState && (
                             <p className="text-xs text-rose-500 font-semibold mt-1 ml-1">{passwordErrorState}</p>
                         )}

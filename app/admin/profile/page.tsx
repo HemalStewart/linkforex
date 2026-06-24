@@ -19,6 +19,8 @@ import {
     Save,
     Shield,
     User,
+    Eye,
+    EyeOff,
 } from 'lucide-react';
 
 type StoredUser = {
@@ -139,6 +141,9 @@ export default function ProfilePage() {
     });
     const [passwordErrorState, setPasswordErrorState] = useState('');
     const [confirmPasswordErrorState, setConfirmPasswordErrorState] = useState('');
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     useEffect(() => {
         const syncUiSettings = () => {
@@ -507,47 +512,83 @@ export default function ProfilePage() {
                 });
                 setPasswordErrorState('');
                 setConfirmPasswordErrorState('');
+                setShowCurrentPassword(false);
+                setShowNewPassword(false);
+                setShowConfirmPassword(false);
             }} title="Change Password" size="md">
                 <div className="space-y-6">
                     <div className="space-y-4">
                         <div>
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Current Password</label>
-                            <input
-                                type="password"
-                                value={passwordForm.currentPassword}
-                                onChange={(e) => setPasswordForm((prev) => ({ ...prev, currentPassword: e.target.value }))}
-                                className="input-glass w-full text-sm"
-                                placeholder="Enter current password"
-                            />
+                            <div className="relative">
+                                <input
+                                    type={showCurrentPassword ? 'text' : 'password'}
+                                    value={passwordForm.currentPassword}
+                                    onChange={(e) => setPasswordForm((prev) => ({ ...prev, currentPassword: e.target.value }))}
+                                    className="input-glass w-full pr-10 text-sm"
+                                    placeholder="Enter current password"
+                                />
+                                <button
+                                    type="button"
+                                    aria-label={showCurrentPassword ? 'Hide password' : 'Show password'}
+                                    onClick={() => setShowCurrentPassword((prev) => !prev)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-200 hover:text-teal-500 transition-colors"
+                                >
+                                    {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
+                            </div>
                         </div>
                         <div>
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">New Password</label>
-                            <input
-                                type="password"
-                                value={passwordForm.newPassword}
-                                onChange={(e) => {
-                                    setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }));
-                                    if (passwordErrorState) setPasswordErrorState('');
-                                }}
-                                className="input-glass w-full text-sm"
-                                placeholder="Enter new password"
-                            />
+                            <div className="relative">
+                                <input
+                                    type={showNewPassword ? 'text' : 'password'}
+                                    value={passwordForm.newPassword}
+                                    onChange={(e) => {
+                                        setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }));
+                                        if (passwordErrorState) setPasswordErrorState('');
+                                    }}
+                                    className="input-glass w-full pr-10 text-sm"
+                                    placeholder="Enter new password"
+                                />
+                                <button
+                                    type="button"
+                                    aria-label={showNewPassword ? 'Hide password' : 'Show password'}
+                                    onClick={() => setShowNewPassword((prev) => !prev)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-200 hover:text-teal-500 transition-colors"
+                                >
+                                    {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
+                            </div>
+                            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1.5 ml-1 leading-relaxed">
+                                Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character.
+                            </p>
                             {passwordErrorState && (
-                                <p className="text-xs text-rose-500 font-semibold mt-1.5 ml-1">{passwordErrorState}</p>
+                                <p className="text-xs text-rose-500 font-semibold mt-1 ml-1">{passwordErrorState}</p>
                             )}
                         </div>
                         <div>
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Confirm Password</label>
-                            <input
-                                type="password"
-                                value={passwordForm.confirmPassword}
-                                onChange={(e) => {
-                                    setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }));
-                                    if (confirmPasswordErrorState) setConfirmPasswordErrorState('');
-                                }}
-                                className="input-glass w-full text-sm"
-                                placeholder="Confirm new password"
-                            />
+                            <div className="relative">
+                                <input
+                                    type={showConfirmPassword ? 'text' : 'password'}
+                                    value={passwordForm.confirmPassword}
+                                    onChange={(e) => {
+                                        setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }));
+                                        if (confirmPasswordErrorState) setConfirmPasswordErrorState('');
+                                    }}
+                                    className="input-glass w-full pr-10 text-sm"
+                                    placeholder="Confirm new password"
+                                />
+                                <button
+                                    type="button"
+                                    aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-200 hover:text-teal-500 transition-colors"
+                                >
+                                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
+                            </div>
                             {confirmPasswordErrorState && (
                                 <p className="text-xs text-rose-500 font-semibold mt-1.5 ml-1">{confirmPasswordErrorState}</p>
                             )}
@@ -566,6 +607,9 @@ export default function ProfilePage() {
                                 });
                                 setPasswordErrorState('');
                                 setConfirmPasswordErrorState('');
+                                setShowCurrentPassword(false);
+                                setShowNewPassword(false);
+                                setShowConfirmPassword(false);
                             }}
                             className="btn-secondary"
                         >

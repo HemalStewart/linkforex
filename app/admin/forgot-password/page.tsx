@@ -502,8 +502,11 @@ export default function AdminForgotPasswordPage() {
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
+                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1.5 ml-1 leading-relaxed">
+                  Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character.
+                </p>
                 {passwordErrorState && (
-                  <p className="text-xs text-rose-500 font-semibold mt-1.5 ml-1">{passwordErrorState}</p>
+                  <p className="text-xs text-rose-500 font-semibold mt-1 ml-1">{passwordErrorState}</p>
                 )}
               </div>
 

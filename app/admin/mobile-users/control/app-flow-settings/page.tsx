@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { BadgeCheck, Bell, Mail, Megaphone, Newspaper, RefreshCcw, Save, ShieldAlert, ShieldCheck, Smartphone } from 'lucide-react';
+import { BadgeCheck, Bell, Mail, Megaphone, Newspaper, RefreshCcw, Save, ShieldAlert, ShieldCheck, Smartphone, Eye, EyeOff } from 'lucide-react';
 import { API_BASE_URL, ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../../components/ConfirmModal';
 import { defaultSettings, type SettingsData, yesNoKeys } from '../_shared';
@@ -16,6 +16,10 @@ export default function MobileAppFlowSettingsPage() {
         message: '',
         type: 'info' as 'info' | 'warning' | 'danger' | 'success',
     });
+    const [showApiKey, setShowApiKey] = useState(false);
+    const [showHmacSecret, setShowHmacSecret] = useState(false);
+    const [showAmlApiKey, setShowAmlApiKey] = useState(false);
+    const [showAmlHmacSecret, setShowAmlHmacSecret] = useState(false);
 
     const showModal = (title: string, message: string, type: 'info' | 'warning' | 'danger' | 'success' = 'info') => {
         setConfirmModal({ isOpen: true, title, message, type });
@@ -462,24 +466,44 @@ export default function MobileAppFlowSettingsPage() {
 
                         <label className="text-xs font-bold text-slate-500">
                             API Key
-                            <input
-                                type="password"
-                                value={settings.veriff_api_key}
-                                onChange={(e) => setSettings((prev) => ({ ...prev, veriff_api_key: e.target.value }))}
-                                className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
-                                placeholder={settings.veriff_configured ? 'Leave blank to keep current key' : 'Enter Veriff API key'}
-                            />
+                            <div className="relative mt-1.5">
+                                <input
+                                    type={showApiKey ? 'text' : 'password'}
+                                    value={settings.veriff_api_key}
+                                    onChange={(e) => setSettings((prev) => ({ ...prev, veriff_api_key: e.target.value }))}
+                                    className="input-glass w-full pr-10 py-2.5 text-sm normal-case"
+                                    placeholder={settings.veriff_configured ? 'Leave blank to keep current key' : 'Enter Veriff API key'}
+                                />
+                                <button
+                                    type="button"
+                                    aria-label={showApiKey ? 'Hide API key' : 'Show API key'}
+                                    onClick={() => setShowApiKey((prev) => !prev)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-200 hover:text-teal-500 transition-colors"
+                                >
+                                    {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
+                            </div>
                         </label>
 
                         <label className="text-xs font-bold text-slate-500">
                             HMAC Secret
-                            <input
-                                type="password"
-                                value={settings.veriff_hmac_secret}
-                                onChange={(e) => setSettings((prev) => ({ ...prev, veriff_hmac_secret: e.target.value }))}
-                                className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
-                                placeholder={settings.veriff_configured ? 'Leave blank to keep current secret' : 'Enter Veriff HMAC secret'}
-                            />
+                            <div className="relative mt-1.5">
+                                <input
+                                    type={showHmacSecret ? 'text' : 'password'}
+                                    value={settings.veriff_hmac_secret}
+                                    onChange={(e) => setSettings((prev) => ({ ...prev, veriff_hmac_secret: e.target.value }))}
+                                    className="input-glass w-full pr-10 py-2.5 text-sm normal-case"
+                                    placeholder={settings.veriff_configured ? 'Leave blank to keep current secret' : 'Enter Veriff HMAC secret'}
+                                />
+                                <button
+                                    type="button"
+                                    aria-label={showHmacSecret ? 'Hide HMAC secret' : 'Show HMAC secret'}
+                                    onClick={() => setShowHmacSecret((prev) => !prev)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-200 hover:text-teal-500 transition-colors"
+                                >
+                                    {showHmacSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
+                            </div>
                         </label>
 
                         <div className="md:col-span-2 mt-2 rounded-2xl border border-cyan-200/70 bg-cyan-50/60 p-3 text-xs text-cyan-900 dark:border-cyan-900/40 dark:bg-cyan-950/20 dark:text-cyan-100">
@@ -498,24 +522,44 @@ export default function MobileAppFlowSettingsPage() {
 
                         <label className="text-xs font-bold text-slate-500">
                             AML API Key
-                            <input
-                                type="password"
-                                value={settings.veriff_aml_api_key}
-                                onChange={(e) => setSettings((prev) => ({ ...prev, veriff_aml_api_key: e.target.value }))}
-                                className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
-                                placeholder={settings.veriff_aml_configured ? 'Leave blank to keep current AML key' : 'Enter Veriff AML API key'}
-                            />
+                            <div className="relative mt-1.5">
+                                <input
+                                    type={showAmlApiKey ? 'text' : 'password'}
+                                    value={settings.veriff_aml_api_key}
+                                    onChange={(e) => setSettings((prev) => ({ ...prev, veriff_aml_api_key: e.target.value }))}
+                                    className="input-glass w-full pr-10 py-2.5 text-sm normal-case"
+                                    placeholder={settings.veriff_aml_configured ? 'Leave blank to keep current AML key' : 'Enter Veriff AML API key'}
+                                />
+                                <button
+                                    type="button"
+                                    aria-label={showAmlApiKey ? 'Hide AML API key' : 'Show AML API key'}
+                                    onClick={() => setShowAmlApiKey((prev) => !prev)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-200 hover:text-teal-500 transition-colors"
+                                >
+                                    {showAmlApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
+                            </div>
                         </label>
 
                         <label className="text-xs font-bold text-slate-500">
                             AML HMAC Secret
-                            <input
-                                type="password"
-                                value={settings.veriff_aml_hmac_secret}
-                                onChange={(e) => setSettings((prev) => ({ ...prev, veriff_aml_hmac_secret: e.target.value }))}
-                                className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
-                                placeholder={settings.veriff_aml_configured ? 'Leave blank to keep current AML secret' : 'Enter Veriff AML HMAC secret'}
-                            />
+                            <div className="relative mt-1.5">
+                                <input
+                                    type={showAmlHmacSecret ? 'text' : 'password'}
+                                    value={settings.veriff_aml_hmac_secret}
+                                    onChange={(e) => setSettings((prev) => ({ ...prev, veriff_aml_hmac_secret: e.target.value }))}
+                                    className="input-glass w-full pr-10 py-2.5 text-sm normal-case"
+                                    placeholder={settings.veriff_aml_configured ? 'Leave blank to keep current AML secret' : 'Enter Veriff AML HMAC secret'}
+                                />
+                                <button
+                                    type="button"
+                                    aria-label={showAmlHmacSecret ? 'Hide AML HMAC secret' : 'Show AML HMAC secret'}
+                                    onClick={() => setShowAmlHmacSecret((prev) => !prev)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-200 hover:text-teal-500 transition-colors"
+                                >
+                                    {showAmlHmacSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
+                            </div>
                         </label>
                     </div>
                 </div>

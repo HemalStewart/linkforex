@@ -268,10 +268,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     setViewSections(new Set());
                     return;
                 }
-                
+
                 // Cache user permissions globally for reactive tables
                 (window as any).__userPermissions = rows;
-                
+
                 const sections = new Set<string>();
                 for (const row of rows) {
                     const op = String(row?.operation || '').toUpperCase().trim();
@@ -979,7 +979,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                             title="Sign Out"
                         >
                             <LogOut className="w-5 h-5 md:w-4 md:h-4 text-rose-500" />
-                            <span className="text-xs font-bold uppercase tracking-wider hidden md:inline">Sign Out</span>
                         </button>
                     </div>
                 </header>

@@ -7,7 +7,7 @@ import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../../components/ConfirmModal';
 import { validatePassword } from '@/app/lib/validation';
-import { ArrowLeft, User, Mail, Lock, Shield, Building, Save, MapPin, Phone, FileSignature, ChevronRight } from 'lucide-react';
+import { ArrowLeft, User, Mail, Lock, Shield, Building, Save, MapPin, Phone, FileSignature, ChevronRight, Eye, EyeOff } from 'lucide-react';
 
 export default function CreateUserPage() {
     const router = useRouter();
@@ -72,6 +72,8 @@ export default function CreateUserPage() {
     const [signatureClear, setSignatureClear] = useState(false);
     const [passwordErrorState, setPasswordErrorState] = useState('');
     const [confirmPasswordErrorState, setConfirmPasswordErrorState] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -384,10 +386,10 @@ export default function CreateUserPage() {
                 <Lock className="w-5 h-5" />
               </span>
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 autoComplete="new-password"
-                className="input-glass w-full"
+                className="input-glass w-full pr-12"
                 placeholder="••••••••"
                 value={formData.password}
                 onChange={(e) => {
@@ -395,9 +397,20 @@ export default function CreateUserPage() {
                   if (passwordErrorState) setPasswordErrorState('');
                 }}
               />
+              <button
+                type="button"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-200 hover:text-teal-500 transition-colors"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1.5 ml-1 leading-relaxed">
+              Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character.
+            </p>
             {passwordErrorState && (
-              <p className="text-xs text-rose-500 font-semibold mt-1.5 ml-1">{passwordErrorState}</p>
+              <p className="text-xs text-rose-500 font-semibold mt-1 ml-1">{passwordErrorState}</p>
             )}
           </div>
 
@@ -408,10 +421,10 @@ export default function CreateUserPage() {
                 <Lock className="w-5 h-5" />
               </span>
               <input
-                type="password"
+                type={showConfirmPassword ? 'text' : 'password'}
                 required
                 autoComplete="new-password"
-                className="input-glass w-full"
+                className="input-glass w-full pr-12"
                 placeholder="••••••••"
                 value={formData.confirmPassword}
                 onChange={(e) => {
@@ -419,6 +432,14 @@ export default function CreateUserPage() {
                   if (confirmPasswordErrorState) setConfirmPasswordErrorState('');
                 }}
               />
+              <button
+                type="button"
+                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-200 hover:text-teal-500 transition-colors"
+              >
+                {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
             {confirmPasswordErrorState && (
               <p className="text-xs text-rose-500 font-semibold mt-1.5 ml-1">{confirmPasswordErrorState}</p>
