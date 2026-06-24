@@ -92,8 +92,8 @@ export default function EditUserPage() {
         }
     }, [signatureFile]);
 
-    const activePreview = signatureFile 
-        ? previewUrl 
+    const activePreview = signatureFile
+        ? previewUrl
         : (existingSignature && !signatureClear ? existingSignature : null);
 
     const handleRegenerateSecret = async () => {
@@ -127,7 +127,7 @@ export default function EditUserPage() {
                 try {
                     const err = await res.json();
                     if (err?.message) errMsg = err.message;
-                } catch {}
+                } catch { }
                 setConfirmModal({
                     isOpen: true,
                     title: 'Error',
@@ -311,7 +311,7 @@ export default function EditUserPage() {
                 try {
                     const err = await res.json();
                     if (err?.message) errMsg = err.message;
-                } catch {}
+                } catch { }
                 setConfirmModal({
                     isOpen: true,
                     title: 'Error',
@@ -453,7 +453,7 @@ export default function EditUserPage() {
                             </div>
 
                             {activePreview && (
-                                <div 
+                                <div
                                     onClick={() => setShowSignatureModal(true)}
                                     className="h-12 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden bg-white px-2 py-1 flex items-center shrink-0 cursor-pointer hover:ring-2 hover:ring-teal-500/50 hover:scale-105 transition-all duration-300"
                                     title="Click to zoom signature"
@@ -753,7 +753,7 @@ export default function EditUserPage() {
                             Scan to configure authenticator app
                         </p>
                         <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                            Scan the QR code with Google Authenticator, Authy, or any other TOTP-compliant app.
+                            Scan the QR code with Google Authenticator, Microsoft Authenticator Authy, or any other TOTP-compliant app.
                         </p>
                     </div>
                     <div className="w-full space-y-2">

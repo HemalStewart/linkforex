@@ -186,7 +186,7 @@ export default function UsersPage() {
                     const data = await res.json();
                     if (data?.message) msg = data.message;
                     else if (data?.messages) msg = Object.values(data.messages).join(', ');
-                } catch {}
+                } catch { }
                 setResetError(msg);
             }
         } catch (error) {
@@ -356,7 +356,7 @@ export default function UsersPage() {
                             Scan to configure authenticator app
                         </p>
                         <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                            Scan the QR code with Google Authenticator, Authy, or any other TOTP-compliant app.
+                            Scan the QR code with Google Authenticator, Microsoft Authenticator Authy, or any other TOTP-compliant app.
                         </p>
                     </div>
                     <div className="w-full space-y-2">
@@ -706,7 +706,7 @@ export default function UsersPage() {
                         </tbody>
                     </table>
                 </div>
-                
+
                 <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}
