@@ -264,12 +264,10 @@ export default function PurposesPage() {
                 <div className="flex items-center space-x-3">
                     <button
                         onClick={fetchPurposes}
-                        className="px-5 py-3 rounded-2xl border-0 glass-effect text-slate-700 dark:text-slate-300 font-bold hover:shadow-lg transition-all group"
+                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 border-0 group"
                     >
-                        <span className="flex items-center space-x-2">
-                            <RefreshCw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
-                            <span>Refresh</span>
-                        </span>
+                        <RefreshCw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
+                        <span>Refresh</span>
                     </button>
                     <button
                         onClick={openCreateModal}

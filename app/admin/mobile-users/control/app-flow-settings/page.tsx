@@ -238,15 +238,6 @@ export default function MobileAppFlowSettingsPage() {
                         Configure onboarding checks, sign-in options, and liveness provider.
                     </p>
                 </div>
-                <div className="flex items-center gap-3">
-                    <button onClick={loadSettings} className="glass-effect rounded-full px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-300">
-                        Refresh
-                    </button>
-                    <button onClick={saveSettings} className="btn-primary flex items-center gap-2 rounded-full px-4 py-2 text-sm" disabled={savingSettings || loading}>
-                        <Save className="h-4 w-4" />
-                        {savingSettings ? 'Saving...' : 'Save'}
-                    </button>
-                </div>
             </div>
 
             <div className="card-glass p-6">
@@ -563,6 +554,17 @@ export default function MobileAppFlowSettingsPage() {
                         </label>
                     </div>
                 </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 mt-8">
+                <button onClick={loadSettings} className="btn-primary flex items-center gap-2 rounded-full px-6 py-3 text-sm shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 transition-all hover:-translate-y-0.5 group" disabled={loading}>
+                    <RefreshCcw className={`h-4 w-4 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
+                    <span>Refresh</span>
+                </button>
+                <button onClick={saveSettings} className="btn-primary flex items-center gap-2 rounded-full px-6 py-3 text-sm shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 transition-all hover:-translate-y-0.5" disabled={savingSettings || loading}>
+                    <Save className="h-4 w-4" />
+                    {savingSettings ? 'Saving...' : 'Save'}
+                </button>
             </div>
         </div>
     );

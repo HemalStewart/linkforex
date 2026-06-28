@@ -395,9 +395,9 @@ export default function LogsPage() {
                 <div className="flex items-center gap-3">
                     <button
                         onClick={fetchLogs}
-                        className="glass-effect rounded-full px-4 py-2.5 text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 flex items-center space-x-2"
+                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 border-0 group"
                     >
-                        <RefreshCw className="w-4 h-4" />
+                        <RefreshCw className={`w-4 h-4 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
                         <span className="font-semibold text-sm">Refresh</span>
                     </button>
                     <button

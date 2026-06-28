@@ -554,12 +554,10 @@ export default function BranchRatesPage() {
                     <button
                         type="button"
                         onClick={() => void fetchData()}
-                        className="px-5 py-3 rounded-full border-0 glass-effect bg-teal-50/60 dark:bg-teal-900/10 text-slate-700 dark:text-slate-300 font-bold hover:bg-teal-100/70 dark:hover:bg-teal-900/20 hover:shadow-lg transition-all group"
+                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 border-0 group"
                     >
-                        <span className="flex items-center space-x-2">
-                            <RefreshCcw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
-                            <span>Refresh</span>
-                        </span>
+                        <RefreshCcw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
+                        <span>Refresh</span>
                     </button>
                     <button type="button" onClick={openModal} className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 rounded-full px-6">
                         <PlusCircle className="w-5 h-5" />

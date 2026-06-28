@@ -311,12 +311,10 @@ export default function BranchesPage() {
                 <div className="flex items-center space-x-4">
                     <button
                         onClick={fetchBranches}
-                        className="px-5 py-3 rounded-full border-0 glass-effect bg-teal-50/60 dark:bg-teal-900/10 text-slate-700 dark:text-slate-300 font-bold hover:bg-teal-100/70 dark:hover:bg-teal-900/20 hover:shadow-lg transition-all group"
+                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 border-0 group"
                     >
-                        <span className="flex items-center space-x-2">
-                            <RefreshCw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
-                            <span>Refresh</span>
-                        </span>
+                        <RefreshCw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
+                        <span>Refresh</span>
                     </button>
                     <Link
                         href="/admin/branches/create"
