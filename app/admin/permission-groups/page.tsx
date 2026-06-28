@@ -30,7 +30,7 @@ type RoleOption = {
     name: string;
 };
 
-const OPERATION_OPTIONS = ['VIEW', 'ADD', 'EDIT', 'DELETE', 'APPROVE', 'CANCEL'];
+const OPERATION_OPTIONS = ['VIEW', 'ADD', 'EDIT', 'DELETE', 'APPROVE', 'CANCEL', 'PDF', 'EXPORT', 'NEW_TRANSFER', 'PRINT', 'SIGN'];
 
 const normalizeDate = (value?: string | null) => {
     if (!value) return '';
@@ -281,10 +281,8 @@ export default function PermissionGroupsPage() {
     };
 
     const renderCategoryCard = (cat: typeof ADMIN_PAGES_CONFIG[number]) => {
-        const hasCreate = cat.pages.some(page => page.operations.includes('ADD'));
-        const hasEdit = cat.pages.some(page => page.operations.includes('EDIT'));
-        const hasDelete = cat.pages.some(page => page.operations.includes('DELETE'));
-        const colCount = 2 + (hasCreate ? 1 : 0) + (hasEdit ? 1 : 0) + (hasDelete ? 1 : 0);
+        const ORDERED_OPS = ['VIEW', 'ADD', 'EDIT', 'DELETE', 'PDF', 'EXPORT', 'NEW_TRANSFER', 'PRINT', 'SIGN'];
+        const displayOps = ORDERED_OPS.filter(op => cat.pages.some(page => page.operations.includes(op)));
 
         return (
             <div key={cat.category} className="card-glass overflow-hidden shadow-lg border border-white/20 dark:border-white/10 rounded-2xl flex flex-col h-full">
@@ -293,18 +291,15 @@ export default function PermissionGroupsPage() {
                     <Badge type="info" className="text-xs font-semibold">{`${cat.pages.length} Pages`}</Badge>
                 </div>
                 <div className="overflow-x-auto flex-1">
-                    <table className={`w-full border-collapse ${
-                        colCount === 2 ? 'max-w-md' :
-                        colCount === 3 ? 'max-w-xl' :
-                        colCount === 4 ? 'max-w-3xl' : ''
-                    }`}>
+                    <table className="w-full border-collapse min-w-[700px]">
                         <thead>
                             <tr className="bg-slate-100/30 dark:bg-slate-800/20 text-slate-500 dark:text-slate-400 text-xs font-bold border-b border-slate-100/60 dark:border-slate-800/40">
                                 <th className="px-6 py-3.5 text-left">Page Name</th>
-                                <th className="px-6 py-3.5 text-center w-24 md:w-32">VIEW</th>
-                                {hasCreate && <th className="px-6 py-3.5 text-center w-24 md:w-32">CREATE</th>}
-                                {hasEdit && <th className="px-6 py-3.5 text-center w-24 md:w-32">EDIT</th>}
-                                {hasDelete && <th className="px-6 py-3.5 text-center w-24 md:w-32">DELETE</th>}
+                                {displayOps.map(op => (
+                                    <th key={op} className="px-6 py-3.5 text-center w-24 md:w-32 uppercase">
+                                        {op === 'ADD' ? 'CREATE' : op.replaceAll('_', ' ')}
+                                    </th>
+                                ))}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100/60 dark:divide-slate-800/40">
@@ -313,102 +308,37 @@ export default function PermissionGroupsPage() {
                                 const isViewActive = viewPerm.active;
                                 const isAdmin = selectedRole.toLowerCase().includes('admin') || selectedRole.toLowerCase().includes('super');
 
-                                const addPerm = getPermissionState(page.section, 'ADD');
-                                const editPerm = getPermissionState(page.section, 'EDIT');
-                                const deletePerm = getPermissionState(page.section, 'DELETE');
-
                                 return (
                                     <tr key={page.name} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/30 transition-colors duration-150">
                                         <td className="px-6 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{page.name}</td>
 
-                                        {/* VIEW CHECKBOX */}
-                                        <td className="px-6 py-4 text-center">
-                                            <div className="flex justify-center">
-                                                {toggling === `${page.section}|VIEW` ? (
-                                                    <RefreshCw className="w-4 h-4 animate-spin text-teal-500" />
-                                                ) : (
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={isViewActive}
-                                                        disabled={isAdmin || !!(viewPerm.record && normalizeYesNo(viewPerm.record.system_defined) === 'yes')}
-                                                        onChange={() => togglePermission(page.section, 'VIEW')}
-                                                        className="h-4.5 w-4.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-50 transition-all cursor-pointer"
-                                                    />
-                                                )}
-                                            </div>
-                                        </td>
+                                        {displayOps.map((op) => {
+                                            const perm = getPermissionState(page.section, op);
+                                            const isActive = perm.active;
 
-                                        {/* CREATE (ADD) CHECKBOX */}
-                                        {hasCreate && (
-                                            <td className="px-6 py-4 text-center">
-                                                {page.operations.includes('ADD') ? (
-                                                    <div className="flex justify-center">
-                                                        {toggling === `${page.section}|ADD` ? (
-                                                            <RefreshCw className="w-4 h-4 animate-spin text-teal-500" />
-                                                        ) : (
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={isViewActive && addPerm.active}
-                                                                disabled={isAdmin || !isViewActive || !!(addPerm.record && normalizeYesNo(addPerm.record.system_defined) === 'yes')}
-                                                                onChange={() => togglePermission(page.section, 'ADD')}
-                                                                className="h-4.5 w-4.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-40 transition-all cursor-pointer"
-                                                                title={!isViewActive ? 'VIEW permission must be active first' : ''}
-                                                            />
-                                                        )}
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
-                                                )}
-                                            </td>
-                                        )}
-
-                                        {/* EDIT CHECKBOX */}
-                                        {hasEdit && (
-                                            <td className="px-6 py-4 text-center">
-                                                {page.operations.includes('EDIT') ? (
-                                                    <div className="flex justify-center">
-                                                        {toggling === `${page.section}|EDIT` ? (
-                                                            <RefreshCw className="w-4 h-4 animate-spin text-teal-500" />
-                                                        ) : (
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={isViewActive && editPerm.active}
-                                                                disabled={isAdmin || !isViewActive || !!(editPerm.record && normalizeYesNo(editPerm.record.system_defined) === 'yes')}
-                                                                onChange={() => togglePermission(page.section, 'EDIT')}
-                                                                className="h-4.5 w-4.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-40 transition-all cursor-pointer"
-                                                                title={!isViewActive ? 'VIEW permission must be active first' : ''}
-                                                            />
-                                                        )}
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
-                                                )}
-                                            </td>
-                                        )}
-
-                                        {/* DELETE CHECKBOX */}
-                                        {hasDelete && (
-                                            <td className="px-6 py-4 text-center">
-                                                {page.operations.includes('DELETE') ? (
-                                                    <div className="flex justify-center">
-                                                        {toggling === `${page.section}|DELETE` ? (
-                                                            <RefreshCw className="w-4 h-4 animate-spin text-teal-500" />
-                                                        ) : (
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={isViewActive && deletePerm.active}
-                                                                disabled={isAdmin || !isViewActive || !!(deletePerm.record && normalizeYesNo(deletePerm.record.system_defined) === 'yes')}
-                                                                onChange={() => togglePermission(page.section, 'DELETE')}
-                                                                className="h-4.5 w-4.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-40 transition-all cursor-pointer"
-                                                                title={!isViewActive ? 'VIEW permission must be active first' : ''}
-                                                            />
-                                                        )}
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
-                                                )}
-                                            </td>
-                                        )}
+                                            return (
+                                                <td key={op} className="px-6 py-4 text-center">
+                                                    {page.operations.includes(op) ? (
+                                                        <div className="flex justify-center">
+                                                            {toggling === `${page.section}|${op}` ? (
+                                                                <RefreshCw className="w-4 h-4 animate-spin text-teal-500" />
+                                                            ) : (
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={op === 'VIEW' ? isActive : (isViewActive && isActive)}
+                                                                    disabled={isAdmin || (op !== 'VIEW' && !isViewActive) || !!(perm.record && normalizeYesNo(perm.record.system_defined) === 'yes')}
+                                                                    onChange={() => togglePermission(page.section, op)}
+                                                                    className="h-4.5 w-4.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-40 transition-all cursor-pointer"
+                                                                    title={op !== 'VIEW' && !isViewActive ? 'VIEW permission must be active first' : ''}
+                                                                />
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
+                                                    )}
+                                                </td>
+                                            );
+                                        })}
                                     </tr>
                                 );
                             })}

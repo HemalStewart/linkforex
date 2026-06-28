@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
 import { useRowsPerPage } from '@/app/lib/uiPreferences';
-import { useAuditColumns } from '@/app/lib/permissions';
+import { useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 import { formatDateTime } from '@/app/lib/dateUtils';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
@@ -122,6 +122,7 @@ const getSortValue = (bank: BankRow, key: SortKey): string | number => {
 
 export default function BanksPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('BANKS');
+    const { canAdd, canEdit, canDelete } = usePagePermissions('BANKS');
     const [banks, setBanks] = useState<BankRow[]>([]);
     const [loading, setLoading] = useState(true);
     const [deleteLoading, setDeleteLoading] = useState(false);
@@ -304,6 +305,17 @@ export default function BanksPage() {
 
     const handleDelete = async () => {
         if (deleteBankId == null) return;
+        if (!canDelete) {
+            setConfirmModal({
+                isOpen: true,
+                title: 'Permission denied',
+                message: 'You do not have permission to delete banks.',
+                type: 'warning',
+                isAlert: true,
+            });
+            setDeleteBankId(null);
+            return;
+        }
         setDeleteLoading(true);
         try {
             const res = await fetch(ENDPOINTS.BANKS.DETAIL(deleteBankId), { method: 'DELETE' });
@@ -372,13 +384,15 @@ export default function BanksPage() {
                         <RefreshCw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
                         <span>Refresh</span>
                     </button>
-                    <button
-                        onClick={openAddModal}
-                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0"
-                    >
-                        <PlusCircle className="w-5 h-5" />
-                        <span>Add Bank</span>
-                    </button>
+                    {canAdd && (
+                        <button
+                            onClick={openAddModal}
+                            className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0"
+                        >
+                            <PlusCircle className="w-5 h-5" />
+                            <span>Add Bank</span>
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -419,7 +433,7 @@ export default function BanksPage() {
                             <thead className="table-head">
                                 <tr>
                                     <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">#</th>
-                                    <th className="px-2 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>
+                                    {canEdit && <th className="px-2 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                     <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                         <button onClick={() => toggleSort('bank_code')} className="flex items-center gap-1">
                                             <span>Bank Code</span>
@@ -454,7 +468,7 @@ export default function BanksPage() {
                                     {showCreatedAt && <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Created At</th>}
                                     {showUpdatedBy && <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated By</th>}
                                     {showUpdatedAt && <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated At</th>}
-                                    <th className="px-2 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
+                                    {canDelete && <th className="px-2 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -463,11 +477,13 @@ export default function BanksPage() {
                                         <td className="px-6 py-5 text-sm text-slate-500 dark:text-slate-300 font-medium">
                                             {startIndex + idx + 1}
                                         </td>
-                                        <td className="px-2 py-5 text-center">
-                                            <button onClick={() => openEditModal(bank)} className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all" title="Edit">
-                                                <Edit2 className="w-5 h-5" />
-                                            </button>
-                                        </td>
+                                        {canEdit && (
+                                            <td className="px-2 py-5 text-center">
+                                                <button onClick={() => openEditModal(bank)} className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all" title="Edit">
+                                                    <Edit2 className="w-5 h-5" />
+                                                </button>
+                                            </td>
+                                        )}
                                         <td className="px-6 py-5 text-sm font-mono text-slate-700 dark:text-slate-200 whitespace-nowrap">
                                             {normalizeCode(bank.bank_code) || '—'}
                                         </td>
@@ -493,16 +509,18 @@ export default function BanksPage() {
                                         {showCreatedAt && <td className="px-6 py-5 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime((bank as any).created_at)}</td>}
                                         {showUpdatedBy && <td className="px-6 py-5 text-sm text-slate-500 dark:text-slate-300">{(bank as any).updated_by || '—'}</td>}
                                         {showUpdatedAt && <td className="px-6 py-5 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime((bank as any).updated_at)}</td>}
-                                        <td className="px-2 py-5 text-center">
-                                            <button onClick={() => setDeleteBankId(Number(bank.id))} className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all" title="Delete">
-                                                <Trash2 className="w-5 h-5" />
-                                            </button>
-                                        </td>
+                                        {canDelete && (
+                                            <td className="px-2 py-5 text-center">
+                                                <button onClick={() => setDeleteBankId(Number(bank.id))} className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all" title="Delete">
+                                                    <Trash2 className="w-5 h-5" />
+                                                </button>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))}
                                 {!loading && pagedBanks.length === 0 && (
                                     <tr>
-                                        <td colSpan={8 + (showCreatedBy ? 1 : 0) + (showCreatedAt ? 1 : 0) + (showUpdatedBy ? 1 : 0) + (showUpdatedAt ? 1 : 0)} className="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
+                                        <td colSpan={6 + (canEdit ? 1 : 0) + (canDelete ? 1 : 0) + (showCreatedBy ? 1 : 0) + (showCreatedAt ? 1 : 0) + (showUpdatedBy ? 1 : 0) + (showUpdatedAt ? 1 : 0)} className="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
                                             No banks found.
                                         </td>
                                     </tr>

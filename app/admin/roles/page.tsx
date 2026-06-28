@@ -10,10 +10,11 @@ import { formatDateTime } from '@/app/lib/dateUtils';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
 import { Search, PlusCircle, Trash2, Edit3, Shield, ChevronRight, Loader2, CheckSquare } from 'lucide-react';
-import { useAuditColumns } from '@/app/lib/permissions';
+import { useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 
 export default function RolesPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('ROLES');
+    const { canAdd, canEdit, canDelete } = usePagePermissions('ROLES');
     const [roles, setRoles] = useState<any[]>([]);
     const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -392,10 +393,12 @@ export default function RolesPage() {
                         )}
                         <span>{validating ? 'Validating...' : 'Validate Roles'}</span>
                     </button>
-                    <Link href="/admin/roles/create" className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 rounded-full px-6 py-3">
-                        <PlusCircle className="w-5 h-5" />
-                        <span>Add Role</span>
-                    </Link>
+                    {canAdd && (
+                        <Link href="/admin/roles/create" className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 rounded-full px-6 py-3">
+                            <PlusCircle className="w-5 h-5" />
+                            <span>Add Role</span>
+                        </Link>
+                    )}
                 </div>
             </div>
 
@@ -470,7 +473,7 @@ export default function RolesPage() {
                             <tr>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300"></th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">No.</th>
-                                <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-300" title="Edit"><Edit3 className="w-4 h-4 mx-auto text-slate-400" /></th>
+                                {canEdit && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-300" title="Edit"><Edit3 className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('name')} className="flex items-center gap-1">
                                         Role <span className="text-slate-400 dark:text-slate-300">{sortIndicator('name')}</span>
@@ -514,7 +517,7 @@ export default function RolesPage() {
                                         </button>
                                     </th>
                                 )}
-                                <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-300" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
+                                {canDelete && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-300" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>}
                             </tr>
                         </thead>
                         <tbody className="table-body">
@@ -537,21 +540,23 @@ export default function RolesPage() {
                                             />
                                         </td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
-                                        <td className="px-2 py-4 text-center">
-                                            {systemDefined ? (
-                                                <span className="p-2 rounded-xl text-slate-400 opacity-35 cursor-not-allowed inline-flex items-center justify-center" title="System defined">
-                                                    <Edit3 className="w-5 h-5" />
-                                                </span>
-                                            ) : (
-                                                <Link
-                                                    href={`/admin/roles/${role.id}`}
-                                                    className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex items-center justify-center"
-                                                    title="Edit role"
-                                                >
-                                                    <Edit3 className="w-5 h-5" />
-                                                </Link>
-                                            )}
-                                        </td>
+                                        {canEdit && (
+                                            <td className="px-2 py-4 text-center">
+                                                {systemDefined ? (
+                                                    <span className="p-2 rounded-xl text-slate-400 opacity-35 cursor-not-allowed inline-flex items-center justify-center" title="System defined">
+                                                        <Edit3 className="w-5 h-5" />
+                                                    </span>
+                                                ) : (
+                                                    <Link
+                                                        href={`/admin/roles/${role.id}`}
+                                                        className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex items-center justify-center"
+                                                        title="Edit role"
+                                                    >
+                                                        <Edit3 className="w-5 h-5" />
+                                                    </Link>
+                                                )}
+                                            </td>
+                                        )}
                                         <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{role.name || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{role.description || '-'}</td>
                                         <td className="px-4 py-4">
@@ -563,19 +568,21 @@ export default function RolesPage() {
                                         {showCreatedAt && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime(role.created_at)}</td>}
                                         {showUpdatedBy && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{role.updated_by || '-'}</td>}
                                         {showUpdatedAt && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime(role.updated_at)}</td>}
-                                        <td className="px-2 py-4 text-center">
-                                            <button
-                                                onClick={() => promptDelete(role)}
-                                                disabled={systemDefined}
-                                                className={`p-2 rounded-xl transition-all ${systemDefined
-                                                    ? 'text-slate-400 opacity-35 cursor-not-allowed'
-                                                    : 'hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600'
-                                                    }`}
-                                                title={systemDefined ? 'System defined' : 'Delete role'}
-                                            >
-                                                <Trash2 className="w-5 h-5" />
-                                            </button>
-                                        </td>
+                                        {canDelete && (
+                                            <td className="px-2 py-4 text-center">
+                                                <button
+                                                    onClick={() => promptDelete(role)}
+                                                    disabled={systemDefined}
+                                                    className={`p-2 rounded-xl transition-all ${systemDefined
+                                                        ? 'text-slate-400 opacity-35 cursor-not-allowed'
+                                                        : 'hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600'
+                                                        }`}
+                                                    title={systemDefined ? 'System defined' : 'Delete role'}
+                                                >
+                                                    <Trash2 className="w-5 h-5" />
+                                                </button>
+                                            </td>
+                                        )}
                                     </tr>
                                 );
                             })}

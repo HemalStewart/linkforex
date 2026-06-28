@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { ENDPOINTS, isApiRequestUrl } from '@/app/lib/api';
 import { resolveUploadsUrl } from '@/app/lib/uploads';
 import { clearStoredUser, getStoredUserRaw } from '@/app/lib/authStorage';
-import { isPrivilegedUser as getIsPrivilegedUser } from '@/app/lib/permissions';
+import { isPrivilegedUser as getIsPrivilegedUser, usePagePermissions } from '@/app/lib/permissions';
 import { applyThemePreference, getStoredThemePreference, resolveTheme, type ThemePreference, type ResolvedTheme } from '@/app/lib/theme';
 import {
     LayoutGrid,
@@ -80,6 +80,7 @@ interface NavItem {
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
+    const { canNewTransfer } = usePagePermissions('TRANSFERS');
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [notificationMenuOpen, setNotificationMenuOpen] = useState(false);
     const [themeMenuOpen, setThemeMenuOpen] = useState(false);
@@ -853,13 +854,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     </div>
 
                     <div className="flex items-center space-x-3">
-                        <Link
-                            href="/admin/transfers/create"
-                            className="glass-effect rounded-full px-3.5 py-2 text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 flex items-center space-x-2 hover:shadow-lg"
-                        >
-                            <PlusCircle className="w-5 h-5" />
-                            <span className="font-semibold">New Transfer</span>
-                        </Link>
+                        {canNewTransfer && (
+                            <Link
+                                href="/admin/transfers/create"
+                                className="glass-effect rounded-full px-3.5 py-2 text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 flex items-center space-x-2 hover:shadow-lg"
+                            >
+                                <PlusCircle className="w-5 h-5" />
+                                <span className="font-semibold">New Transfer</span>
+                            </Link>
+                        )}
 
                         <div ref={themeMenuRef} className="relative">
                             <button

@@ -61,10 +61,10 @@ export const ADMIN_PAGES_CONFIG: AdminCategoryInfo[] = [
     {
         category: 'Operations',
         pages: [
-            { name: 'Transfers', section: 'TRANSFERS', operations: ['VIEW', 'ADD', 'EDIT', 'APPROVE', 'CANCEL', ...AUDIT_OPS] },
-            { name: 'Remitters', section: 'REMITTERS', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] },
-            { name: 'Receivers', section: 'RECEIVERS', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] },
-            { name: 'KYC Reviews', section: 'KYC_REVIEWS', operations: ['VIEW', 'EDIT', ...AUDIT_OPS] },
+            { name: 'Transfers', section: 'TRANSFERS', operations: ['VIEW', 'ADD', 'EDIT', 'APPROVE', 'CANCEL', 'PDF', 'EXPORT', 'NEW_TRANSFER', 'PRINT', 'SIGN', ...AUDIT_OPS] },
+            { name: 'Remitters', section: 'REMITTERS', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', 'PDF', 'EXPORT', ...AUDIT_OPS] },
+            { name: 'Receivers', section: 'RECEIVERS', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', 'PDF', 'EXPORT', ...AUDIT_OPS] },
+            { name: 'KYC Reviews', section: 'KYC_REVIEWS', operations: ['VIEW', 'EDIT', 'EXPORT', ...AUDIT_OPS] },
             { name: 'Branch Access Flags', section: 'BRANCH_ACCESS_REQUESTS', operations: ['VIEW', 'ADD', 'APPROVE', ...AUDIT_OPS] },
             { name: 'Support', section: 'SUPPORT', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] },
             { name: 'Branch Rates', section: 'BRANCH_CURRENCY_RATES', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] }
@@ -90,7 +90,7 @@ export const ADMIN_PAGES_CONFIG: AdminCategoryInfo[] = [
         category: 'Mobile Controls',
         pages: [
             { name: 'Overview', section: 'MOBILE_OVERVIEW', operations: ['VIEW'] },
-            { name: 'Mobile Profiles', section: 'MOBILE_PROFILES', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] },
+            { name: 'Mobile Profiles', section: 'MOBILE_PROFILES', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', 'PDF', 'EXPORT', ...AUDIT_OPS] },
             { name: 'App Flow Settings', section: 'MOBILE_FLOW_SETTINGS', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] },
             { name: 'Customer Digital Rates', section: 'MOBILE_DIGITAL_RATES', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] },
             { name: 'User Rates', section: 'MOBILE_USER_RATES', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] },
@@ -187,4 +187,41 @@ export function useAuditColumns(section: string) {
     }, [section]);
 
     return cols;
+}
+
+export function usePagePermissions(section: string) {
+    const [perms, setPerms] = useState({
+        canAdd: false,
+        canEdit: false,
+        canDelete: false,
+        canPdf: false,
+        canExport: false,
+        canNewTransfer: false,
+        canPrint: false,
+        canSign: false,
+    });
+
+    useEffect(() => {
+        const update = () => {
+            setPerms({
+                canAdd: checkPermission(section, 'ADD'),
+                canEdit: checkPermission(section, 'EDIT'),
+                canDelete: checkPermission(section, 'DELETE'),
+                canPdf: checkPermission(section, 'PDF'),
+                canExport: checkPermission(section, 'EXPORT'),
+                canNewTransfer: checkPermission(section, 'NEW_TRANSFER'),
+                canPrint: checkPermission(section, 'PRINT'),
+                canSign: checkPermission(section, 'SIGN'),
+            });
+        };
+
+        update();
+
+        window.addEventListener('permissions-loaded', update);
+        return () => {
+            window.removeEventListener('permissions-loaded', update);
+        };
+    }, [section]);
+
+    return perms;
 }

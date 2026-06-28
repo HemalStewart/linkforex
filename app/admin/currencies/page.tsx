@@ -6,10 +6,11 @@ import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
 import { RefreshCw, PlusCircle, Edit2, Save, X, Info, Globe, Coins } from 'lucide-react';
 import { formatDateTime } from '@/app/lib/dateUtils';
-import { useAuditColumns } from '@/app/lib/permissions';
+import { useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 
 export default function CurrenciesPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('CURRENCIES');
+    const { canAdd, canEdit } = usePagePermissions('CURRENCIES');
     const [currencies, setCurrencies] = useState<any[]>([]);
     const [countries, setCountries] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -144,13 +145,15 @@ export default function CurrenciesPage() {
                             <span>Refresh</span>
                         </span>
                     </button>
-                    <button
-                        onClick={() => setAddModalOpen(true)}
-                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 rounded-full px-6"
-                    >
-                        <PlusCircle className="w-5 h-5" />
-                        <span>Add Currency</span>
-                    </button>
+                    {canAdd && (
+                        <button
+                            onClick={() => setAddModalOpen(true)}
+                            className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 rounded-full px-6"
+                        >
+                            <PlusCircle className="w-5 h-5" />
+                            <span>Add Currency</span>
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -168,7 +171,7 @@ export default function CurrenciesPage() {
                             <thead className="table-head">
                                 <tr>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Currency</th>
-                                    <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>
+                                    {canEdit && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Code</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Rate (Base: GBP)</th>
                                     {showCreatedBy && <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Created By</th>}
@@ -186,22 +189,24 @@ export default function CurrenciesPage() {
                                             </div>
                                             <span>{currency.name}</span>
                                         </td>
-                                        <td className="px-2 py-4 text-center">
-                                            {editingId === currency.id ? (
-                                                <div className="flex items-center justify-center space-x-2">
-                                                    <button onClick={() => handleSave(currency.id)} className="p-2 rounded-full bg-teal-100 text-teal-600 hover:bg-teal-200 transition-colors" title="Save">
-                                                        <Save className="w-4 h-4" />
+                                        {canEdit && (
+                                            <td className="px-2 py-4 text-center">
+                                                {editingId === currency.id ? (
+                                                    <div className="flex items-center justify-center space-x-2">
+                                                        <button onClick={() => handleSave(currency.id)} className="p-2 rounded-full bg-teal-100 text-teal-600 hover:bg-teal-200 transition-colors" title="Save">
+                                                            <Save className="w-4 h-4" />
+                                                        </button>
+                                                        <button onClick={() => setEditingId(null)} className="p-2 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors" title="Cancel">
+                                                            <X className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <button onClick={() => handleEdit(currency)} className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all" title="Edit">
+                                                        <Edit2 className="w-5 h-5" />
                                                     </button>
-                                                    <button onClick={() => setEditingId(null)} className="p-2 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors" title="Cancel">
-                                                        <X className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <button onClick={() => handleEdit(currency)} className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all" title="Edit">
-                                                    <Edit2 className="w-5 h-5" />
-                                                </button>
-                                            )}
-                                        </td>
+                                                )}
+                                            </td>
+                                        )}
                                         <td className="px-8 py-5 font-mono text-sm font-semibold text-slate-500">{currency.code}</td>
                                         <td className="px-8 py-5">
                                             {editingId === currency.id ? (

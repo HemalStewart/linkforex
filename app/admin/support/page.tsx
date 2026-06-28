@@ -8,7 +8,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import Pagination from '../components/ui/Pagination';
 import { Edit2, Mail, MessageCircle, Phone, RefreshCw, Search, Send, Trash2, User, Save } from 'lucide-react';
 import { formatDateTime } from '@/app/lib/dateUtils';
-import { useAuditColumns } from '@/app/lib/permissions';
+import { useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 
 type SupportTicket = {
     id: number;
@@ -83,6 +83,7 @@ const priorityStyles: Record<string, string> = {
 
 export default function SupportPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('SUPPORT');
+    const { canAdd, canEdit, canDelete } = usePagePermissions('SUPPORT');
     const [tickets, setTickets] = useState<SupportTicket[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -329,6 +330,7 @@ export default function SupportPage() {
 
     const handleDeleteTicket = async () => {
         if (!deleteState.ticket) return;
+        if (!canDelete) return;
         setDeleteState((prev) => ({ ...prev, loading: true }));
         try {
             const res = await fetch(ENDPOINTS.SUPPORT.DELETE(deleteState.ticket.id), {
@@ -442,7 +444,7 @@ export default function SupportPage() {
                                     {showCreatedAt && <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Created At</th>}
                                     {showUpdatedBy && <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated By</th>}
                                     {showUpdatedAt && <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated At</th>}
-                                    <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
+                                    {canDelete && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -511,15 +513,17 @@ export default function SupportPage() {
                                                 {ticket.updated_at ? formatDateTime(ticket.updated_at) : '—'}
                                             </td>
                                         )}
-                                        <td className="px-2 py-4 text-center">
-                                            <button
-                                                onClick={() => setDeleteState({ open: true, ticket, loading: false })}
-                                                className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all"
-                                                title="Delete"
-                                            >
-                                                <Trash2 className="w-5 h-5" />
-                                            </button>
-                                        </td>
+                                        {canDelete && (
+                                            <td className="px-2 py-4 text-center">
+                                                <button
+                                                    onClick={() => setDeleteState({ open: true, ticket, loading: false })}
+                                                    className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all"
+                                                    title="Delete"
+                                                >
+                                                    <Trash2 className="w-5 h-5" />
+                                                </button>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))}
                             </tbody>
@@ -707,13 +711,15 @@ export default function SupportPage() {
                         </div>
 
                         <div className="dialog-actions border-t border-slate-100 pt-4 dark:border-slate-700/50">
-                            <button
-                                type="button"
-                                onClick={() => setDeleteState({ open: true, ticket: selectedTicket, loading: false })}
-                                className="btn-secondary text-sm text-rose-600 dark:text-rose-300"
-                            >
-                                Delete Chat
-                            </button>
+                            {canDelete && (
+                                <button
+                                    type="button"
+                                    onClick={() => setDeleteState({ open: true, ticket: selectedTicket, loading: false })}
+                                    className="btn-secondary text-sm text-rose-600 dark:text-rose-300"
+                                >
+                                    Delete Chat
+                                </button>
+                            )}
                             <button
                                 type="button"
                                 onClick={() => setDetailOpen(false)}

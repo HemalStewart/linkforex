@@ -9,7 +9,7 @@ import { formatDateTime } from '@/app/lib/dateUtils';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
 import { Search, PlusCircle, RefreshCcw } from 'lucide-react';
-import { useAuditColumns } from '@/app/lib/permissions';
+import { useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 
 type SortDir = 'asc' | 'desc';
 
@@ -41,6 +41,7 @@ type SortKey =
 
 export default function BranchCurrencyRatesPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('BRANCH_CURRENCY_RATES');
+    const { canAdd } = usePagePermissions('BRANCH_CURRENCY_RATES');
     const [rows, setRows] = useState<BranchCurrencyRate[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -210,13 +211,15 @@ export default function BranchCurrencyRatesPage() {
                         <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                         Refresh
                     </button>
-                    <Link
-                        href="/admin/branch-currency-rates/create"
-                        className="btn-primary px-5 py-3 rounded-full text-sm font-semibold inline-flex items-center gap-2"
-                    >
-                        <PlusCircle className="w-4 h-4" />
-                        Add Rate
-                    </Link>
+                    {canAdd && (
+                        <Link
+                            href="/admin/branch-currency-rates/create"
+                            className="btn-primary px-5 py-3 rounded-full text-sm font-semibold inline-flex items-center gap-2"
+                        >
+                            <PlusCircle className="w-4 h-4" />
+                            Add Rate
+                        </Link>
+                    )}
                 </div>
             </div>
 

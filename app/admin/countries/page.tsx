@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
-import { isPrivilegedUser, useAuditColumns } from '@/app/lib/permissions';
+import { isPrivilegedUser, useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 import { formatDateTime } from '@/app/lib/dateUtils';
 import { useRowsPerPage } from '@/app/lib/uiPreferences';
 import Modal from '../components/Modal';
@@ -65,13 +65,13 @@ const YES_NO_OPTIONS: YesNo[] = ['yes', 'no'];
 
 export default function CountriesPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('COUNTRIES');
+    const { canAdd, canEdit, canDelete } = usePagePermissions('COUNTRIES');
     const [countries, setCountries] = useState<CountryRow[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [highRiskFilter, setHighRiskFilter] = useState<'all' | YesNo>('all');
     const [blackListFilter, setBlackListFilter] = useState<'all' | YesNo>('all');
     const [payoutFilter, setPayoutFilter] = useState<'all' | YesNo>('all');
-    const [canDeleteCountry, setCanDeleteCountry] = useState(false);
     const [sortKey, setSortKey] = useState<SortKey>('name');
     const [sortDir, setSortDir] = useState<SortDir>('asc');
     const [page, setPage] = useState(1);
@@ -94,60 +94,7 @@ export default function CountriesPage() {
         void fetchCountries();
     }, []);
 
-    useEffect(() => {
-        let ignore = false;
 
-        const resolveDeletePermission = async () => {
-            try {
-                const user = getStoredUser<{ role?: string | null; username?: string | null; email?: string | null; name?: string | null; system_defined?: string | null }>();
-                if (!user) {
-                    if (!ignore) setCanDeleteCountry(false);
-                    return;
-                }
-
-                if (isPrivilegedUser(user)) {
-                    if (!ignore) setCanDeleteCountry(true);
-                    return;
-                }
-
-                const roleName = String(user.role || '').trim().toLowerCase();
-                if (!roleName) {
-                    if (!ignore) setCanDeleteCountry(false);
-                    return;
-                }
-
-                const response = await fetch(ENDPOINTS.PERMISSION_GROUPS.LIST);
-                if (!response.ok) {
-                    if (!ignore) setCanDeleteCountry(false);
-                    return;
-                }
-
-                const data = await response.json();
-                const allowed = Array.isArray(data) && data.some((row) => {
-                    const role = String(row?.role_name || '').trim().toLowerCase();
-                    const section = String(row?.page_section || '').trim().toUpperCase();
-                    const operation = String(row?.operation || '').trim().toUpperCase();
-                    const active = String(row?.active || '').trim().toLowerCase();
-                    if (role !== roleName) return false;
-                    if (active !== 'yes') return false;
-                    if (operation !== 'DELETE') return false;
-                    return section === 'COUNTRY' || section === 'COUNTRIES' || section === 'COUNTRY_MASTER';
-                });
-
-                if (!ignore) {
-                    setCanDeleteCountry(allowed);
-                }
-            } catch {
-                if (!ignore) setCanDeleteCountry(false);
-            }
-        };
-
-        void resolveDeletePermission();
-
-        return () => {
-            ignore = true;
-        };
-    }, []);
 
     const fetchCountries = async () => {
         setLoading(true);
@@ -291,7 +238,7 @@ export default function CountriesPage() {
 
     const handleDelete = async () => {
         if (deleteCountryId == null) return;
-        if (!canDeleteCountry) {
+        if (!canDelete) {
             setConfirmModal({
                 isOpen: true,
                 title: 'Permission denied',
@@ -370,13 +317,15 @@ export default function CountriesPage() {
                         <RefreshCw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
                         <span>Refresh</span>
                     </button>
-                    <button
-                        onClick={openAddModal}
-                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 whitespace-nowrap"
-                    >
-                        <PlusCircle className="w-5 h-5" />
-                        <span>Add Country</span>
-                    </button>
+                    {canAdd && (
+                        <button
+                            onClick={openAddModal}
+                            className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 whitespace-nowrap"
+                        >
+                            <PlusCircle className="w-5 h-5" />
+                            <span>Add Country</span>
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -426,7 +375,7 @@ export default function CountriesPage() {
                             <thead className="table-head">
                                 <tr>
                                     <th className="px-4 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">#</th>
-                                    <th className="px-2 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>
+                                    {canEdit && <th className="px-2 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                     <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                         <span>Country Code</span>
                                     </th>
@@ -476,18 +425,20 @@ export default function CountriesPage() {
                                     {showCreatedAt && <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Created At</th>}
                                     {showUpdatedBy && <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated By</th>}
                                     {showUpdatedAt && <th className="px-6 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated At</th>}
-                                    <th className="px-2 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
+                                    {canDelete && <th className="px-2 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                 </tr>
                             </thead>
                             <tbody className="table-body">
                                 {pagedCountries.map((country, idx) => (
                                     <tr key={country.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
                                         <td className="px-4 py-5 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
-                                        <td className="px-2 py-5 text-center">
-                                            <button onClick={() => openEditModal(country)} className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all" title="Edit country">
-                                                <Edit2 className="w-5 h-5" />
-                                            </button>
-                                        </td>
+                                        {canEdit && (
+                                            <td className="px-2 py-5 text-center">
+                                                <button onClick={() => openEditModal(country)} className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all" title="Edit country">
+                                                    <Edit2 className="w-5 h-5" />
+                                                </button>
+                                            </td>
+                                        )}
                                         <td className="px-6 py-5 text-sm font-mono text-slate-500 dark:text-slate-300 whitespace-nowrap">
                                             {String(country.iso_code || '').toUpperCase() || '—'}
                                         </td>
@@ -522,25 +473,26 @@ export default function CountriesPage() {
                                         {showCreatedAt && <td className="px-6 py-5 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime((country as any).created_at)}</td>}
                                         {showUpdatedBy && <td className="px-6 py-5 text-sm text-slate-500 dark:text-slate-300">{(country as any).updated_by || '—'}</td>}
                                         {showUpdatedAt && <td className="px-6 py-5 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime((country as any).updated_at)}</td>}
-                                        <td className="px-2 py-5 text-center">
-                                            <button
-                                                onClick={() => setDeleteCountryId(Number(country.id))}
-                                                disabled={!canDeleteCountry}
-                                                title={canDeleteCountry ? 'Delete country' : 'Delete permission required'}
-                                                className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:shadow-none"
-                                            >
-                                                <Trash2 className="w-5 h-5" />
-                                            </button>
-                                        </td>
+                                        {canDelete && (
+                                            <td className="px-2 py-5 text-center">
+                                                <button
+                                                    onClick={() => setDeleteCountryId(Number(country.id))}
+                                                    className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all"
+                                                    title="Delete country"
+                                                >
+                                                    <Trash2 className="w-5 h-5" />
+                                                </button>
+                                            </td>
+                                        )}
                                     </tr>
-                                ))}
-                                {!loading && pagedCountries.length === 0 && (
-                                    <tr>
-                                        <td colSpan={11 + (showCreatedBy ? 1 : 0) + (showCreatedAt ? 1 : 0) + (showUpdatedBy ? 1 : 0) + (showUpdatedAt ? 1 : 0)} className="px-8 py-12 text-center text-slate-500 dark:text-slate-400">
-                                            No countries found for the current filters.
-                                        </td>
-                                    </tr>
-                                )}
+                                 ))}
+                                 {!loading && pagedCountries.length === 0 && (
+                                     <tr>
+                                         <td colSpan={9 + (canEdit ? 1 : 0) + (canDelete ? 1 : 0) + (showCreatedBy ? 1 : 0) + (showCreatedAt ? 1 : 0) + (showUpdatedBy ? 1 : 0) + (showUpdatedAt ? 1 : 0)} className="px-8 py-12 text-center text-slate-500 dark:text-slate-400">
+                                             No countries found for the current filters.
+                                         </td>
+                                     </tr>
+                                 )}
                             </tbody>
                         </table>
                     )}

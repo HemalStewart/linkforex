@@ -11,7 +11,7 @@ import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
 import { PlusCircle, RefreshCw, Search, Trash2, Edit2, ListChecks, Save, Database, Globe, ExternalLink, Info, Check, X, SlidersHorizontal, Loader2 } from 'lucide-react';
 import ToggleSwitch from '../components/ToggleSwitch';
-import { useAuditColumns } from '@/app/lib/permissions';
+import { useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 
 type DilisenseSourceRow = {
     id: number | string;
@@ -68,6 +68,7 @@ const REGIONS = ['americas', 'emea', 'apac', 'international'];
 
 export default function DilisenseSourcesPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('DILISENSE_SOURCES');
+    const { canAdd, canEdit, canDelete } = usePagePermissions('DILISENSE_SOURCES');
     const [rows, setRows] = useState<DilisenseSourceRow[]>([]);
     const [loading, setLoading] = useState(true);
     const [syncing, setSyncing] = useState(false);
@@ -461,14 +462,16 @@ export default function DilisenseSourcesPage() {
                             <span>{syncing ? 'Syncing...' : 'Sync Dilisense Sources'}</span>
                         </span>
                     </button>
-                    <button
-                        onClick={openCreateModal}
-                        disabled={syncing || loading}
-                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 disabled:opacity-50"
-                    >
-                        <PlusCircle className="w-5 h-5" />
-                        <span>Add New</span>
-                    </button>
+                    {canAdd && (
+                        <button
+                            onClick={openCreateModal}
+                            disabled={syncing || loading}
+                            className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 disabled:opacity-50"
+                        >
+                            <PlusCircle className="w-5 h-5" />
+                            <span>Add New</span>
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -596,7 +599,7 @@ export default function DilisenseSourcesPage() {
                         <thead className="table-head">
                             <tr>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">#</th>
-                                <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>
+                                {canEdit && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                     <button onClick={() => toggleSort('dilisense_source_type')} className="flex items-center gap-1">Source Type {sortIndicator('dilisense_source_type')}</button>
                                 </th>
@@ -638,7 +641,7 @@ export default function DilisenseSourcesPage() {
                                     </th>
                                 )}
                                 <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Info"><Info className="w-4 h-4 mx-auto text-slate-400" /></th>
-                                <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
+                                {canDelete && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>}
                             </tr>
                         </thead>
                         <tbody className="table-body">
@@ -648,15 +651,17 @@ export default function DilisenseSourcesPage() {
                             {!loading && pagedRows.map((row, idx) => (
                                 <tr key={row.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
                                     <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
-                                    <td className="px-2 py-4 text-center">
-                                        <button
-                                            className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all"
-                                            title="Edit"
-                                            onClick={() => openEditModal(row)}
-                                        >
-                                            <Edit2 className="w-5 h-5" />
-                                        </button>
-                                    </td>
+                                    {canEdit && (
+                                        <td className="px-2 py-4 text-center">
+                                            <button
+                                                className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all"
+                                                title="Edit"
+                                                onClick={() => openEditModal(row)}
+                                            >
+                                                <Edit2 className="w-5 h-5" />
+                                            </button>
+                                        </td>
+                                    )}
                                     <td className="px-6 py-4 text-sm text-slate-800 dark:text-slate-100 font-semibold">{row.dilisense_source_type || '—'}</td>
                                     <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400 font-mono">{row.dilisense_source || '—'}</td>
                                     <td className="px-6 py-4 text-sm font-semibold text-slate-800 dark:text-slate-100 max-w-xs truncate" title={row.dilisense_name || ''}>{row.dilisense_name || '—'}</td>
@@ -687,15 +692,17 @@ export default function DilisenseSourcesPage() {
                                             <Info className="w-5 h-5" />
                                         </button>
                                     </td>
-                                    <td className="px-2 py-4 text-center">
-                                        <button
-                                            className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all"
-                                            title="Delete"
-                                            onClick={() => setDeleteId(row.id)}
-                                        >
-                                            <Trash2 className="w-5 h-5" />
-                                        </button>
-                                    </td>
+                                    {canDelete && (
+                                        <td className="px-2 py-4 text-center">
+                                            <button
+                                                className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all"
+                                                title="Delete"
+                                                onClick={() => setDeleteId(row.id)}
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
+                                        </td>
+                                    )}
                                 </tr>
                             ))}
                             {!loading && pagedRows.length === 0 && (

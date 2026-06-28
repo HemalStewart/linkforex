@@ -12,7 +12,7 @@ import SortIndicator from '../components/SortIndicator';
 import { Building2, Edit2, Plus, Search, Trash2, Users, FileText, ShieldCheck, X, Loader2, RefreshCcw, Download, ChevronRight } from 'lucide-react';
 import VeriffDetailsModal from '../components/VeriffDetailsModal';
 import { formatDateTime } from '@/app/lib/dateUtils';
-import { useAuditColumns } from '@/app/lib/permissions';
+import { useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 
 type SortDir = 'asc' | 'desc';
 
@@ -65,6 +65,7 @@ const statusBadgeClass = (value: unknown): string => {
 
 export default function ReceiversPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('RECEIVERS');
+    const { canAdd, canEdit, canDelete, canPdf } = usePagePermissions('RECEIVERS');
     const currentUser = useMemo(() => getCurrentAdminUser(), []);
     const [confirmModal, setConfirmModal] = useState<{
         isOpen: boolean;
@@ -529,14 +530,17 @@ export default function ReceiversPage() {
                             <button
                                 type="button"
                                 onClick={() => void fetchReceivers()}
-                                className="px-4 py-2 rounded-full glass-effect text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 whitespace-nowrap"
+                                className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 border-0 group"
                             >
-                                Refresh
+                                <RefreshCcw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
+                                <span>Refresh</span>
                             </button>
-                            <Link href="/admin/receivers/create" className="btn-primary flex items-center space-x-2 rounded-full px-6 text-sm whitespace-nowrap">
-                                <Plus className="w-5 h-5" />
-                                <span>Add Receiver</span>
-                            </Link>
+                            {canAdd && (
+                                <Link href="/admin/receivers/create" className="btn-primary flex items-center space-x-2 rounded-full px-6 text-sm whitespace-nowrap">
+                                    <Plus className="w-5 h-5" />
+                                    <span>Add Receiver</span>
+                                </Link>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -548,8 +552,8 @@ export default function ReceiversPage() {
                         <table className="table-shell whitespace-nowrap">
                             <thead className="table-head">
                                 <tr>
-                                    <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>
-                                    <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="AML PDF"><FileText className="w-4 h-4 mx-auto text-slate-400" /></th>
+                                    {canEdit && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>}
+                                    {canPdf && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="AML PDF"><FileText className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('remitter')} className="flex items-center gap-2">
                                             Remitter <SortIndicator active={sortKey === 'remitter'} dir={sortDir} />
@@ -605,32 +609,36 @@ export default function ReceiversPage() {
                                     )}
                                     {showUpdatedBy && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Updated By</th>}
                                     {showUpdatedAt && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Updated At</th>}
-                                    <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
+                                    {canDelete && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                 </tr>
                             </thead>
                             <tbody className="table-body">
                                 {pagedReceivers.length > 0 ? (
                                     pagedReceivers.map((receiver) => (
                                         <tr key={String(receiver.id)} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
-                                            <td className="px-2 py-4 text-center">
-                                                <Link
-                                                    href={`/admin/receivers/${receiver.id}`}
-                                                    className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
-                                                    title="Edit"
-                                                >
-                                                    <Edit2 className="w-5 h-5" />
-                                                </Link>
-                                            </td>
-                                            <td className="px-2 py-4 text-center">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => openReportsModal(receiver.id, receiver.name || '')}
-                                                    className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
-                                                    title="Dilisense AML Reports"
-                                                >
-                                                    <FileText className="w-5 h-5" />
-                                                </button>
-                                            </td>
+                                            {canEdit && (
+                                                <td className="px-2 py-4 text-center">
+                                                    <Link
+                                                        href={`/admin/receivers/${receiver.id}`}
+                                                        className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
+                                                        title="Edit"
+                                                    >
+                                                        <Edit2 className="w-5 h-5" />
+                                                    </Link>
+                                                </td>
+                                            )}
+                                            {canPdf && (
+                                                <td className="px-2 py-4 text-center">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => openReportsModal(receiver.id, receiver.name || '')}
+                                                        className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
+                                                        title="Dilisense AML Reports"
+                                                    >
+                                                        <FileText className="w-5 h-5" />
+                                                    </button>
+                                                </td>
+                                            )}
                                             <td className="px-4 py-4 text-sm font-semibold text-slate-900 dark:text-white">
                                                 {asString(receiver.remitter_name) || '-'}
                                             </td>
@@ -691,15 +699,17 @@ export default function ReceiversPage() {
                                                 </td>
                                             )}
                                             {showUpdatedAt && <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatDateTime((receiver as any).updated_at)}</td>}
-                                            <td className="px-2 py-4 text-center">
-                                                <button
-                                                    onClick={() => promptDeleteReceiver(Number(receiver.id))}
-                                                    className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all"
-                                                    title="Delete"
-                                                >
-                                                    <Trash2 className="w-5 h-5" />
-                                                </button>
-                                            </td>
+                                            {canDelete && (
+                                                <td className="px-2 py-4 text-center">
+                                                    <button
+                                                        onClick={() => promptDeleteReceiver(Number(receiver.id))}
+                                                        className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all"
+                                                        title="Delete"
+                                                    >
+                                                        <Trash2 className="w-5 h-5" />
+                                                    </button>
+                                                </td>
+                                            )}
                                         </tr>
                                     ))
                                 ) : (

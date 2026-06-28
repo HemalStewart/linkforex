@@ -10,7 +10,7 @@ import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
 import { PlusCircle, RefreshCw, Search, Trash2, Edit2, ListChecks, Save } from 'lucide-react';
 import ToggleSwitch from '../components/ToggleSwitch';
-import { useAuditColumns } from '@/app/lib/permissions';
+import { useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 import { formatDateTime } from '@/app/lib/dateUtils';
 
 
@@ -46,6 +46,7 @@ const normalizeYesNo = (value?: string | null): YesNo =>
 
 export default function PurposesPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('PURPOSES');
+    const { canAdd, canEdit, canDelete } = usePagePermissions('PURPOSES');
     const [rows, setRows] = useState<PurposeRow[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -205,6 +206,17 @@ export default function PurposesPage() {
 
     const handleDelete = async () => {
         if (deleteId == null) return;
+        if (!canDelete) {
+            setConfirmModal({
+                isOpen: true,
+                title: 'Permission denied',
+                message: 'You do not have permission to delete purposes.',
+                type: 'warning',
+                isAlert: true,
+            });
+            setDeleteId(null);
+            return;
+        }
         setDeleteLoading(true);
         try {
             const res = await fetch(ENDPOINTS.PURPOSES.DETAIL(deleteId), { method: 'DELETE' });
@@ -272,13 +284,15 @@ export default function PurposesPage() {
                         <RefreshCw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
                         <span>Refresh</span>
                     </button>
-                    <button
-                        onClick={openCreateModal}
-                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0"
-                    >
-                        <PlusCircle className="w-5 h-5" />
-                        <span>Add Purpose</span>
-                    </button>
+                    {canAdd && (
+                        <button
+                            onClick={openCreateModal}
+                            className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0"
+                        >
+                            <PlusCircle className="w-5 h-5" />
+                            <span>Add Purpose</span>
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -327,7 +341,7 @@ export default function PurposesPage() {
                         <thead className="table-head">
                             <tr>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">#</th>
-                                <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>
+                                {canEdit && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                     <button onClick={() => toggleSort('name')} className="flex items-center gap-1">Name <span>{sortIndicator('name')}</span></button>
                                 </th>
@@ -338,25 +352,27 @@ export default function PurposesPage() {
                                 {showCreatedAt && <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Created At</th>}
                                 {showUpdatedBy && <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated By</th>}
                                 {showUpdatedAt && <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated At</th>}
-                                <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
+                                {canDelete && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>}
                             </tr>
                         </thead>
                         <tbody className="table-body">
                             {loading && (
-                                <tr><td colSpan={5 + (showCreatedBy ? 1 : 0) + (showCreatedAt ? 1 : 0) + (showUpdatedBy ? 1 : 0) + (showUpdatedAt ? 1 : 0)} className="px-6 py-10 text-center text-slate-500 animate-pulse">Loading…</td></tr>
+                                <tr><td colSpan={3 + (canEdit ? 1 : 0) + (canDelete ? 1 : 0) + (showCreatedBy ? 1 : 0) + (showCreatedAt ? 1 : 0) + (showUpdatedBy ? 1 : 0) + (showUpdatedAt ? 1 : 0)} className="px-6 py-10 text-center text-slate-500 animate-pulse">Loading…</td></tr>
                             )}
                             {!loading && pagedRows.map((row, idx) => (
                                 <tr key={row.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
                                     <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
-                                    <td className="px-2 py-4 text-center">
-                                        <button
-                                            className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all"
-                                            onClick={() => openEditModal(row)}
-                                            title="Edit"
-                                        >
-                                            <Edit2 className="w-5 h-5" />
-                                        </button>
-                                    </td>
+                                    {canEdit && (
+                                        <td className="px-2 py-4 text-center">
+                                            <button
+                                                className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all"
+                                                onClick={() => openEditModal(row)}
+                                                title="Edit"
+                                            >
+                                                <Edit2 className="w-5 h-5" />
+                                            </button>
+                                        </td>
+                                    )}
                                     <td className="px-6 py-4 font-semibold text-slate-800 dark:text-slate-100">{row.name || '—'}</td>
                                     <td className="px-6 py-4">
                                         <Badge type={normalizeYesNo(row.active) === 'yes' ? 'yes' : 'no'}>
@@ -367,19 +383,21 @@ export default function PurposesPage() {
                                     {showCreatedAt && <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime((row as any).created_at)}</td>}
                                     {showUpdatedBy && <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-300">{(row as any).updated_by || '—'}</td>}
                                     {showUpdatedAt && <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{formatDateTime((row as any).updated_at)}</td>}
-                                    <td className="px-2 py-4 text-center">
-                                        <button
-                                            className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all"
-                                            onClick={() => setDeleteId(Number(row.id))}
-                                            title="Delete"
-                                        >
-                                            <Trash2 className="w-5 h-5" />
-                                        </button>
-                                    </td>
+                                    {canDelete && (
+                                        <td className="px-2 py-4 text-center">
+                                            <button
+                                                className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all"
+                                                onClick={() => setDeleteId(Number(row.id))}
+                                                title="Delete"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
+                                        </td>
+                                    )}
                                 </tr>
                             ))}
                             {!loading && pagedRows.length === 0 && (
-                                <tr><td colSpan={5 + (showCreatedBy ? 1 : 0) + (showCreatedAt ? 1 : 0) + (showUpdatedBy ? 1 : 0) + (showUpdatedAt ? 1 : 0)} className="px-6 py-10 text-center text-slate-500">No purposes found.</td></tr>
+                                <tr><td colSpan={3 + (canEdit ? 1 : 0) + (canDelete ? 1 : 0) + (showCreatedBy ? 1 : 0) + (showCreatedAt ? 1 : 0) + (showUpdatedBy ? 1 : 0) + (showUpdatedAt ? 1 : 0)} className="px-6 py-10 text-center text-slate-500">No purposes found.</td></tr>
                             )}
                         </tbody>
                     </table>

@@ -12,7 +12,7 @@ import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
 import { ArrowRightLeft, GitBranch, PlusCircle, RefreshCcw, Search, Tag, Save } from 'lucide-react';
 import ToggleSwitch from '../components/ToggleSwitch';
-import { useAuditColumns } from '@/app/lib/permissions';
+import { useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 
 type YesNo = 'yes' | 'no';
 
@@ -117,6 +117,7 @@ function normalizeRateDraft(value: string): string {
 
 export default function BranchRatesPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('BRANCH_CURRENCY_RATES');
+    const { canAdd, canEdit } = usePagePermissions('BRANCH_CURRENCY_RATES');
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [rows, setRows] = useState<BranchRateRow[]>([]);
@@ -559,10 +560,12 @@ export default function BranchRatesPage() {
                         <RefreshCcw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
                         <span>Refresh</span>
                     </button>
-                    <button type="button" onClick={openModal} className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 rounded-full px-6">
-                        <PlusCircle className="w-5 h-5" />
-                        Add Rate
-                    </button>
+                    {canAdd && (
+                        <button type="button" onClick={openModal} className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 rounded-full px-6">
+                            <PlusCircle className="w-5 h-5" />
+                            Add Rate
+                        </button>
+                    )}
                 </div>
             </div>
 

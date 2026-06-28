@@ -9,8 +9,8 @@ import { getStoredUser } from '@/app/lib/authStorage';
 import Modal from '../components/Modal';
 import SortIndicator from '../components/SortIndicator';
 import { formatDateTime } from '@/app/lib/dateUtils';
-import { CheckCircle2, Download, Eye, FileCheck2, FileText, FileX2, ImageUp, PenLine, PlusCircle, Printer, RotateCcw, Save, Search, XCircle } from 'lucide-react';
-import { useAuditColumns } from '@/app/lib/permissions';
+import { CheckCircle2, Download, Eye, FileCheck2, FileText, FileX2, ImageUp, PenLine, PlusCircle, Printer, RefreshCw, RotateCcw, Save, Search, XCircle } from 'lucide-react';
+import { useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 
 type SortDir = 'asc' | 'desc';
 
@@ -278,6 +278,7 @@ const paymentModeLabel = (value: unknown): string => {
 
 export default function TransfersPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('TRANSFERS');
+    const { canAdd, canPdf, canExport, canNewTransfer, canPrint, canSign } = usePagePermissions('TRANSFERS');
     const [loading, setLoading] = useState(true);
     const [transfers, setTransfers] = useState<Transfer[]>([]);
     const [remitters, setRemitters] = useState<Remitter[]>([]);
@@ -1187,8 +1188,16 @@ export default function TransfersPage() {
         { key: 'historyLog', label: 'History Log', sortable: true }
     ];
 
+    const displayColumns = useMemo(() => {
+        return columns.filter(col => {
+            if (col.key === 'print') return canPrint;
+            if (col.key === 'sign') return canSign;
+            return true;
+        });
+    }, [columns, canPrint, canSign]);
+
     const handleExportCsv = () => {
-        const exportColumns = columns.filter((column) => !['print', 'sign'].includes(String(column.key)));
+        const exportColumns = displayColumns.filter((column) => !['print', 'sign'].includes(String(column.key)));
         const header = exportColumns.map((column) => csvEscape(column.label)).join(',');
         const body = sortedRows.map((row) => (
             exportColumns
@@ -1212,7 +1221,7 @@ export default function TransfersPage() {
         URL.revokeObjectURL(url);
     };
 
-    const receivedAmountColumnIndex = columns.findIndex((column) => column.key === 'receivedAmount');
+    const receivedAmountColumnIndex = displayColumns.findIndex((column) => column.key === 'receivedAmount');
 
     if (loading) {
         return <div className="max-w-7xl mx-auto p-8 text-center text-slate-500 animate-pulse">Loading transfers...</div>;
@@ -1494,22 +1503,27 @@ export default function TransfersPage() {
                     <button
                         type="button"
                         onClick={fetchData}
-                        className="px-5 py-3 rounded-full glass-effect text-sm font-semibold text-slate-600 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300"
+                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 border-0 group"
                     >
-                        Refresh
+                        <RefreshCw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
+                        <span>Refresh</span>
                     </button>
-                    <button
-                        type="button"
-                        onClick={handleExportCsv}
-                        className="px-5 py-3 rounded-full glass-effect text-sm font-semibold text-slate-600 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 inline-flex items-center gap-2"
-                    >
-                        <Download className="w-4 h-4" />
-                        Export CSV
-                    </button>
-                    <Link href="/admin/transfers/create" className="btn-primary flex items-center gap-2 rounded-full px-6">
-                        <PlusCircle className="w-5 h-5" />
-                        New Transfer
-                    </Link>
+                    {canExport && (
+                        <button
+                            type="button"
+                            onClick={handleExportCsv}
+                            className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 border-0 inline-flex items-center gap-2"
+                        >
+                            <Download className="w-4 h-4" />
+                            <span>Export CSV</span>
+                        </button>
+                    )}
+                    {canNewTransfer && (
+                        <Link href="/admin/transfers/create" className="btn-primary flex items-center gap-2 rounded-full px-6 border-0 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40">
+                            <PlusCircle className="w-5 h-5" />
+                            <span>New Transfer</span>
+                        </Link>
+                    )}
                 </div>
             </div>
 
@@ -1557,7 +1571,7 @@ export default function TransfersPage() {
                     <table className="table-shell whitespace-nowrap">
                         <thead className="table-head">
                             <tr>
-                                {columns.map((column) => (
+                                {displayColumns.map((column) => (
                                     <th
                                         key={column.key}
                                         className={`px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300 ${column.className || ''}`}
@@ -1584,7 +1598,7 @@ export default function TransfersPage() {
                         <tbody className="table-body">
                             {pagedRows.map((row) => (
                                 <tr key={row.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
-                                    {columns.map((column) => (
+                                    {displayColumns.map((column) => (
                                         <td key={`${row.id}-${column.key}`} className={`px-4 py-3 text-sm text-slate-600 dark:text-slate-300 ${column.className || ''}`}>
                                             <span className="block truncate">
                                                 {column.render ? column.render(row) : asString(row[column.key]) || '-'}
@@ -1649,7 +1663,7 @@ export default function TransfersPage() {
                             ))}
                             {pagedRows.length === 0 && (
                                 <tr>
-                                    <td colSpan={columns.length + 5} className="px-4 py-10 text-center text-sm text-slate-500 dark:text-slate-300">
+                                    <td colSpan={displayColumns.length + 5} className="px-4 py-10 text-center text-sm text-slate-500 dark:text-slate-300">
                                         No transfers found.
                                     </td>
                                 </tr>
@@ -1661,7 +1675,7 @@ export default function TransfersPage() {
                                     <td className="px-4 py-3 text-sm font-bold text-teal-700 dark:text-teal-300">
                                         {receivedTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </td>
-                                    <td colSpan={Math.max(columns.length - receivedAmountColumnIndex - 1 + 5, 1)} className="px-4 py-3" />
+                                    <td colSpan={Math.max(displayColumns.length - receivedAmountColumnIndex - 1 + 5, 1)} className="px-4 py-3" />
                                 </tr>
                             )}
                         </tbody>

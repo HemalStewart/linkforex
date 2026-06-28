@@ -12,12 +12,13 @@ import { formatDateTime } from '@/app/lib/dateUtils';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
 import { Search, UserPlus, Edit2, Trash2, ChevronRight, Users, FileText, ShieldCheck, X, Loader2, RefreshCcw, Download } from 'lucide-react';
-import { useAuditColumns } from '@/app/lib/permissions';
+import { useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 
 type SortDir = 'asc' | 'desc';
 
 export default function RemittersPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('REMITTERS');
+    const { canAdd, canEdit, canDelete, canPdf } = usePagePermissions('REMITTERS');
     const currentUser = useMemo(() => getCurrentAdminUser(), []);
     const [selectedRemitter, setSelectedRemitter] = useState<any | null>(null);
     const [remitters, setRemitters] = useState<any[]>([]);
@@ -631,10 +632,12 @@ export default function RemittersPage() {
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Remitters</h1>
                     <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">Manage sender profiles for branch and mobile app</p>
                 </div>
-                <Link href="/admin/remitters/create" className="btn-primary flex items-center space-x-2 rounded-full px-6">
-                    <UserPlus className="w-5 h-5" />
-                    <span>Add Remitter</span>
-                </Link>
+                {canAdd && (
+                    <Link href="/admin/remitters/create" className="btn-primary flex items-center space-x-2 rounded-full px-6">
+                        <UserPlus className="w-5 h-5" />
+                        <span>Add Remitter</span>
+                    </Link>
+                )}
             </div>
 
             <div className="card-glass p-6">
@@ -704,8 +707,8 @@ export default function RemittersPage() {
                             <thead className="table-head">
                                 <tr>
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">No.</th>
-                                    <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>
-                                    <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="AML PDF"><FileText className="w-4 h-4 mx-auto text-slate-400" /></th>
+                                    {canEdit && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>}
+                                    {canPdf && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="AML PDF"><FileText className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                     {columns.map((col) => (
                                         <th key={col.key} className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                             <button onClick={() => toggleSort(col.key)} className="flex items-center gap-1">
@@ -713,39 +716,43 @@ export default function RemittersPage() {
                                             </button>
                                         </th>
                                     ))}
-                                    <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
+                                    {canDelete && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                 </tr>
                             </thead>
                             <tbody className="table-body">
                                 {pagedRows.map((row: any, idx: number) => (
                                     <tr key={row.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
-                                        <td className="px-2 py-4 text-center">
-                                            <Link
-                                                href={`/admin/remitters/${row.id}`}
-                                                className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
-                                                title="Edit"
-                                            >
-                                                <Edit2 className="w-5 h-5" />
-                                            </Link>
-                                        </td>
-                                        <td className="px-2 py-4 text-center">
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    const isMobile = String(row.registration_source || '').trim().toLowerCase() === 'mobile_app';
-                                                    if (isMobile) {
-                                                        setSelectedRemitter(row);
-                                                    } else {
-                                                        openReportsModal(row.id, row.sender_name);
-                                                    }
-                                                }}
-                                                className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
-                                                title={String(row.registration_source || '').trim().toLowerCase() === 'mobile_app' ? "Veriff Verification Report" : "Dilisense AML Reports"}
-                                            >
-                                                <FileText className="w-5 h-5" />
-                                            </button>
-                                        </td>
+                                        {canEdit && (
+                                            <td className="px-2 py-4 text-center">
+                                                <Link
+                                                    href={`/admin/remitters/${row.id}`}
+                                                    className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
+                                                    title="Edit"
+                                                >
+                                                    <Edit2 className="w-5 h-5" />
+                                                </Link>
+                                            </td>
+                                        )}
+                                        {canPdf && (
+                                            <td className="px-2 py-4 text-center">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const isMobile = String(row.registration_source || '').trim().toLowerCase() === 'mobile_app';
+                                                        if (isMobile) {
+                                                            setSelectedRemitter(row);
+                                                        } else {
+                                                            openReportsModal(row.id, row.sender_name);
+                                                        }
+                                                    }}
+                                                    className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
+                                                    title={String(row.registration_source || '').trim().toLowerCase() === 'mobile_app' ? "Veriff Verification Report" : "Dilisense AML Reports"}
+                                                >
+                                                    <FileText className="w-5 h-5" />
+                                                </button>
+                                            </td>
+                                        )}
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.company || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
                                             <div className="flex items-center gap-2">
@@ -819,16 +826,18 @@ export default function RemittersPage() {
                                             </td>
                                         )}
                                         {showUpdatedAt && <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatDateTime(row.modified_date)}</td>}
-                                        <td className="px-2 py-4 text-center">
-                                            <button
-                                                onClick={() => promptDelete(row)}
-                                                disabled={row.shared_access}
-                                                title={row.shared_access ? 'Shared remitters can only be deleted by the owner branch.' : 'Delete'}
-                                                className="p-2 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 transition-all disabled:opacity-35 disabled:cursor-not-allowed"
-                                            >
-                                                <Trash2 className="w-5 h-5" />
-                                            </button>
-                                        </td>
+                                        {canDelete && (
+                                            <td className="px-2 py-4 text-center">
+                                                <button
+                                                    onClick={() => promptDelete(row)}
+                                                    disabled={row.shared_access}
+                                                    title={row.shared_access ? 'Shared remitters can only be deleted by the owner branch.' : 'Delete'}
+                                                    className="p-2 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 transition-all disabled:opacity-35 disabled:cursor-not-allowed"
+                                                >
+                                                    <Trash2 className="w-5 h-5" />
+                                                </button>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))}
                             </tbody>
