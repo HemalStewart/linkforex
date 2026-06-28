@@ -1172,14 +1172,11 @@ export default function PermissionGroupsPage() {
                                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{getPageNameFromSection(row.page_section)}</td>
                                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.operation}</td>
                                                         <td className="px-4 py-4 text-sm text-center">
-                                                            <label className="inline-flex items-center justify-center">
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={normalizeYesNo(row.system_defined) === 'yes'}
-                                                                    disabled
-                                                                    className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-50"
-                                                                />
-                                                            </label>
+                                                            <div className="flex justify-center">
+                                                                <Badge type={normalizeYesNo(row.system_defined)}>
+                                                                    {toYesNoLabel(row.system_defined)}
+                                                                </Badge>
+                                                            </div>
                                                         </td>
                                                         <td className="px-4 py-4 text-sm text-center">
                                                             <label className="inline-flex items-center justify-center">
