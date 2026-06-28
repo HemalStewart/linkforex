@@ -6,6 +6,7 @@ use App\Controllers\BaseController;
 use CodeIgniter\API\ResponseTrait;
 use App\Libraries\EmailService;
 use App\Services\VeriffService;
+use App\Libraries\TOTPHelper;
 
 class Auth extends BaseController
 {
@@ -3076,6 +3077,7 @@ class Auth extends BaseController
         $currentPassword = (string) $this->requestInput('current_password');
         $newPassword = (string) $this->requestInput('new_password');
         $confirmPassword = (string) $this->requestInput('confirm_password');
+        $twofaCode = trim((string) $this->requestInput('twofa_code'));
 
         if ($email === '' || $newPassword === '' || $confirmPassword === '') {
             return $this->fail('Email and new password fields are required', 400);
@@ -3097,6 +3099,15 @@ class Auth extends BaseController
 
         if ($currentPassword !== '' && !password_verify($currentPassword, $user['password']) && $currentPassword !== (string) $user['password']) {
             return $this->fail('Current password is incorrect.', 401);
+        }
+
+        if (isset($user['twofa_status']) && $user['twofa_status'] === 'active' && !empty($user['twofa_qr_code'])) {
+            if ($twofaCode === '') {
+                return $this->fail('Two-factor authentication code is required.', 400);
+            }
+            if (!TOTPHelper::verifyCode($user['twofa_qr_code'], $twofaCode)) {
+                return $this->fail('Invalid 2FA code.', 401);
+            }
         }
 
         $updateData = [

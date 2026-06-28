@@ -139,6 +139,7 @@ export default function ProfilePage() {
     const [passwordForm, setPasswordForm] = useState({
         newPassword: '',
         confirmPassword: '',
+        twofaCode: '',
     });
     const [passwordErrorState, setPasswordErrorState] = useState('');
     const [confirmPasswordErrorState, setConfirmPasswordErrorState] = useState('');
@@ -385,11 +386,23 @@ export default function ProfilePage() {
     };
 
     const handlePasswordChange = async () => {
-        if (!email || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+        const isTwoFaActive = profile?.twofa_status === 'active' || storedUser?.twofa_status === 'active';
+        if (!email || !passwordForm.newPassword || !passwordForm.confirmPassword || (isTwoFaActive && !passwordForm.twofaCode)) {
             setConfirmModal({
                 isOpen: true,
                 title: 'Required Fields',
-                message: 'Complete all password fields first.',
+                message: 'Complete all password and 2FA fields first.',
+                type: 'warning',
+                isAlert: true
+            });
+            return;
+        }
+
+        if (isTwoFaActive && passwordForm.twofaCode.length !== 6) {
+            setConfirmModal({
+                isOpen: true,
+                title: 'Invalid 2FA Code',
+                message: 'Please enter a valid 6-digit 2FA code.',
                 type: 'warning',
                 isAlert: true
             });
@@ -421,6 +434,7 @@ export default function ProfilePage() {
                     email,
                     new_password: passwordForm.newPassword,
                     confirm_password: passwordForm.confirmPassword,
+                    twofa_code: isTwoFaActive ? passwordForm.twofaCode : undefined,
                 }),
             });
 
@@ -447,6 +461,7 @@ export default function ProfilePage() {
                     setPasswordForm({
                         newPassword: '',
                         confirmPassword: '',
+                        twofaCode: '',
                     });
                     setPasswordErrorState('');
                     setConfirmPasswordErrorState('');
@@ -474,6 +489,7 @@ export default function ProfilePage() {
         window.setTimeout(() => setMessage(null), 3000);
     };
 
+    const isTwoFaActive = profile?.twofa_status === 'active' || storedUser?.twofa_status === 'active';
     const currentPhoto = photoPreview || resolvePhotoUrl(profile?.profile_photo, profile?.profile_photo_url);
 
     return (
@@ -562,6 +578,7 @@ export default function ProfilePage() {
                 setPasswordForm({
                     newPassword: '',
                     confirmPassword: '',
+                    twofaCode: '',
                 });
                 setPasswordErrorState('');
                 setConfirmPasswordErrorState('');
@@ -635,6 +652,26 @@ export default function ProfilePage() {
                                 <p className="text-xs text-rose-500 font-semibold mt-1.5 ml-1">{confirmPasswordErrorState}</p>
                             )}
                         </div>
+                        {isTwoFaActive && (
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">2FA Verification Code</label>
+                                <input
+                                    type="text"
+                                    name="twofa-code"
+                                    maxLength={6}
+                                    pattern="\d{6}"
+                                    inputMode="numeric"
+                                    value={passwordForm.twofaCode}
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                                        setPasswordForm((prev) => ({ ...prev, twofaCode: val }));
+                                    }}
+                                    className="input-glass w-full text-sm font-mono tracking-widest text-center"
+                                    placeholder="000000"
+                                    required
+                                />
+                            </div>
+                        )}
                     </div>
 
                     <div className="dialog-actions pt-4 border-t border-slate-100 dark:border-slate-800">
@@ -645,6 +682,7 @@ export default function ProfilePage() {
                                 setPasswordForm({
                                     newPassword: '',
                                     confirmPassword: '',
+                                    twofaCode: '',
                                 });
                                 setPasswordErrorState('');
                                 setConfirmPasswordErrorState('');
@@ -800,9 +838,10 @@ export default function ProfilePage() {
                                             Configure Authenticator App
                                         </p>
                                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                                            Scan the QR code with Google Authenticator, Authy, or any other TOTP-compliant authenticator app.
+                                            Scan the QR code with Google Authenticator, Microsoft Authenticator, Authy, or any other TOTP-compliant authenticator app.
                                         </p>
                                     </div>
+
                                     <div>
                                         <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                                             Manual Setup Code
