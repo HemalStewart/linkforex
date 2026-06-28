@@ -238,6 +238,12 @@ export default function MobileAppFlowSettingsPage() {
                         Configure onboarding checks, sign-in options, and liveness provider.
                     </p>
                 </div>
+                <div className="flex items-center gap-3 shrink-0 mt-1">
+                    <button onClick={loadSettings} className="btn-primary flex items-center gap-2 rounded-full px-5 py-2.5 text-sm shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 transition-all hover:-translate-y-0.5 group" disabled={loading}>
+                        <RefreshCcw className={`h-4 w-4 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
+                        <span>Refresh</span>
+                    </button>
+                </div>
             </div>
 
             <div className="card-glass p-6">
@@ -553,18 +559,14 @@ export default function MobileAppFlowSettingsPage() {
                             </div>
                         </label>
                     </div>
-                </div>
-            </div>
 
-            <div className="flex items-center justify-end gap-3 mt-8">
-                <button onClick={loadSettings} className="btn-primary flex items-center gap-2 rounded-full px-6 py-3 text-sm shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 transition-all hover:-translate-y-0.5 group" disabled={loading}>
-                    <RefreshCcw className={`h-4 w-4 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
-                    <span>Refresh</span>
-                </button>
-                <button onClick={saveSettings} className="btn-primary flex items-center gap-2 rounded-full px-6 py-3 text-sm shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 transition-all hover:-translate-y-0.5" disabled={savingSettings || loading}>
-                    <Save className="h-4 w-4" />
-                    {savingSettings ? 'Saving...' : 'Save'}
-                </button>
+                    <div className="flex justify-end pt-6 mt-6 border-t border-slate-100 dark:border-slate-800/60">
+                        <button onClick={saveSettings} className="btn-primary flex items-center gap-2 rounded-full px-6 py-2.5 text-sm shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 transition-all hover:-translate-y-0.5" disabled={savingSettings || loading}>
+                            <Save className="h-4 w-4" />
+                            {savingSettings ? 'Saving...' : 'Save'}
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     );
