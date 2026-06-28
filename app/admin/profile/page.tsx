@@ -946,7 +946,7 @@ export default function ProfilePage() {
                                 className="btn-primary inline-flex items-center gap-2 py-2.5 px-6 font-semibold"
                             >
                                 <Save className="w-4 h-4" />
-                                Save Preferences
+                                Save
                             </button>
                         </div>
                     </div>
