@@ -1130,12 +1130,12 @@ export default function PermissionGroupsPage() {
                                                     </button>
                                                 </th>
                                                 <th className="px-4 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-300">
-                                                    <button onClick={() => toggleSort('system_defined')} className="mx-auto flex items-center gap-1">
+                                                    <button onClick={() => toggleSort('system_defined')} className="mx-auto flex items-center justify-center gap-1">
                                                         System Defined <span className="text-slate-400 dark:text-slate-300">{sortIndicator('system_defined')}</span>
                                                     </button>
                                                 </th>
                                                 <th className="px-4 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-300">
-                                                    <button onClick={() => toggleSort('active')} className="mx-auto flex items-center gap-1">
+                                                    <button onClick={() => toggleSort('active')} className="mx-auto flex items-center justify-center gap-1">
                                                         Active <span className="text-slate-400 dark:text-slate-300">{sortIndicator('active')}</span>
                                                     </button>
                                                 </th>
