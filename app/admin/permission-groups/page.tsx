@@ -281,8 +281,9 @@ export default function PermissionGroupsPage() {
     };
 
     const renderCategoryCard = (cat: typeof ADMIN_PAGES_CONFIG[number]) => {
-        const ORDERED_OPS = ['VIEW', 'ADD', 'EDIT', 'DELETE', 'PDF', 'EXPORT', 'NEW_TRANSFER', 'PRINT', 'SIGN'];
+        const ORDERED_OPS = ['VIEW', 'ADD', 'EDIT', 'DELETE'];
         const displayOps = ORDERED_OPS.filter(op => cat.pages.some(page => page.operations.includes(op)));
+        const tableMinWidthClass = displayOps.length > 3 ? 'min-w-[700px]' : 'min-w-full';
 
         return (
             <div key={cat.category} className="card-glass overflow-hidden shadow-lg border border-white/20 dark:border-white/10 rounded-2xl flex flex-col h-full">
@@ -291,7 +292,7 @@ export default function PermissionGroupsPage() {
                     <Badge type="info" className="text-xs font-semibold">{`${cat.pages.length} Pages`}</Badge>
                 </div>
                 <div className="overflow-x-auto flex-1">
-                    <table className="w-full border-collapse min-w-[700px]">
+                    <table className={`w-full border-collapse ${tableMinWidthClass}`}>
                         <thead>
                             <tr className="bg-slate-100/30 dark:bg-slate-800/20 text-slate-500 dark:text-slate-400 text-xs font-bold border-b border-slate-100/60 dark:border-slate-800/40">
                                 <th className="px-6 py-3.5 text-left">Page Name</th>
