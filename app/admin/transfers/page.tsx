@@ -1503,24 +1503,24 @@ export default function TransfersPage() {
                     <button
                         type="button"
                         onClick={fetchData}
-                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 border-0 group"
+                        className="btn-primary flex items-center gap-2 border-0 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 group"
                     >
-                        <RefreshCw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
+                        <RefreshCw className={`w-4 h-4 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
                         <span>Refresh</span>
                     </button>
                     {canExport && (
                         <button
                             type="button"
                             onClick={handleExportCsv}
-                            className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 border-0 inline-flex items-center gap-2"
+                            className="btn-primary flex items-center gap-2 border-0 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40"
                         >
                             <Download className="w-4 h-4" />
                             <span>Export CSV</span>
                         </button>
                     )}
                     {canNewTransfer && (
-                        <Link href="/admin/transfers/create" className="btn-primary flex items-center gap-2 rounded-full px-6 border-0 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40">
-                            <PlusCircle className="w-5 h-5" />
+                        <Link href="/admin/transfers/create" className="btn-primary flex items-center gap-2 border-0 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40">
+                            <PlusCircle className="w-4 h-4" />
                             <span>New Transfer</span>
                         </Link>
                     )}
