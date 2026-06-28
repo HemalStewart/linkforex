@@ -75,8 +75,11 @@ export default function RelationshipsPage() {
     }, []);
 
     const fetchRelationships = async () => {
+        setLoading(true);
         try {
-            const res = await fetch(ENDPOINTS.RELATIONSHIPS.LIST);
+            const res = await fetch(`${ENDPOINTS.RELATIONSHIPS.LIST}?_t=${Date.now()}`, {
+                cache: 'no-store',
+            });
             if (res.ok) {
                 const data = await res.json();
                 setRows(Array.isArray(data) ? data : []);

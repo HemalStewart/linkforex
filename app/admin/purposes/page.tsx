@@ -76,8 +76,11 @@ export default function PurposesPage() {
     }, []);
 
     const fetchPurposes = async () => {
+        setLoading(true);
         try {
-            const res = await fetch(ENDPOINTS.PURPOSES.LIST);
+            const res = await fetch(`${ENDPOINTS.PURPOSES.LIST}?_t=${Date.now()}`, {
+                cache: 'no-store',
+            });
             if (res.ok) {
                 const data = await res.json();
                 setRows(Array.isArray(data) ? data : []);

@@ -150,8 +150,11 @@ export default function CountriesPage() {
     }, []);
 
     const fetchCountries = async () => {
+        setLoading(true);
         try {
-            const res = await fetch(`${ENDPOINTS.COUNTRIES.LIST}?include_blacklisted=yes`);
+            const res = await fetch(`${ENDPOINTS.COUNTRIES.LIST}?include_blacklisted=yes&_t=${Date.now()}`, {
+                cache: 'no-store',
+            });
             if (res.ok) {
                 const data = await res.json();
                 setCountries(Array.isArray(data) ? data : []);
@@ -352,14 +355,14 @@ export default function CountriesPage() {
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-up">
-            <div className="flex items-center justify-between">
-                <div>
+            <div className="flex items-start justify-between gap-6">
+                <div className="flex-1 min-w-0">
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Countries</h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">
                         Maintain the master country directory. Currency fields are controlled independently, while payout availability is driven only by the payout currency flag.
                     </p>
                 </div>
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-3 shrink-0">
                     <button
                         onClick={fetchCountries}
                         className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 border-0 group"
