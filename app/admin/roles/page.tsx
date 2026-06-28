@@ -15,6 +15,7 @@ import { useAuditColumns } from '@/app/lib/permissions';
 export default function RolesPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('ROLES');
     const [roles, setRoles] = useState<any[]>([]);
+    const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [systemDefinedFilter, setSystemDefinedFilter] = useState('any');
@@ -82,13 +83,20 @@ export default function RolesPage() {
     };
 
     useEffect(() => {
-        const fetchRoles = async () => {
+        const fetchData = async () => {
             setLoading(true);
             try {
-                const res = await fetch(ENDPOINTS.ROLES.LIST);
-                if (res.ok) {
-                    const data = await res.json();
+                const [rolesRes, usersRes] = await Promise.all([
+                    fetch(ENDPOINTS.ROLES.LIST),
+                    fetch(ENDPOINTS.USERS.LIST)
+                ]);
+                if (rolesRes.ok) {
+                    const data = await rolesRes.json();
                     setRoles(data);
+                }
+                if (usersRes.ok) {
+                    const data = await usersRes.json();
+                    setUsers(data);
                 }
             } catch (error) {
                 console.error(error);
@@ -97,7 +105,7 @@ export default function RolesPage() {
             }
         };
 
-        fetchRoles();
+        fetchData();
     }, []);
 
     const normalizeYesNo = (val: any) => (val === 'yes' || val === true || val === 1) ? 'yes' : 'no';
@@ -183,6 +191,23 @@ export default function RolesPage() {
 
 
     const promptDelete = (role: any) => {
+        // Check if role is assigned to any user
+        const isAssigned = users.some(u => 
+            (u.role_id && String(u.role_id) === String(role.id)) || 
+            (u.role && String(u.role).toLowerCase().trim() === String(role.name).toLowerCase().trim())
+        );
+
+        if (isAssigned) {
+            setConfirmModal({
+                isOpen: true,
+                title: 'Cannot Delete Role',
+                message: `The role "${role.name}" is currently assigned to one or more users and cannot be deleted.`,
+                type: 'warning',
+                isAlert: true
+            });
+            return;
+        }
+
         setRoleToDelete(role);
         setConfirmAction('delete');
         setConfirmModal({
@@ -196,11 +221,43 @@ export default function RolesPage() {
 
     const promptBulkDelete = () => {
         if (selectedIds.length === 0) return;
+
+        const assignedRoleNames: string[] = [];
+        const deletable = selectedIds.filter((id) => {
+            const role = roles.find(r => r.id === id);
+            if (!role) return false;
+            if (normalizeYesNo(role.system_defined) === 'yes') return false;
+
+            const isAssigned = users.some(u => 
+                (u.role_id && String(u.role_id) === String(role.id)) || 
+                (u.role && String(u.role).toLowerCase().trim() === String(role.name).toLowerCase().trim())
+            );
+
+            if (isAssigned) {
+                assignedRoleNames.push(role.name);
+                return false;
+            }
+            return true;
+        });
+
+        if (deletable.length === 0) {
+            setConfirmModal({
+                isOpen: true,
+                title: 'Cannot Delete Roles',
+                message: `None of the selected roles can be deleted because they are either system-defined or assigned to users (${assignedRoleNames.join(', ')}).`,
+                type: 'warning',
+                isAlert: true
+            });
+            return;
+        }
+
         setConfirmAction('bulk_delete');
         setConfirmModal({
             isOpen: true,
             title: 'Delete Selected Roles',
-            message: 'Are you sure you want to delete selected roles? System defined roles will be skipped.',
+            message: assignedRoleNames.length > 0 
+                ? `Are you sure you want to delete the selected roles? Note: ${assignedRoleNames.length} roles (${assignedRoleNames.join(', ')}) will be skipped because they are assigned to users.`
+                : 'Are you sure you want to delete selected roles? System defined roles will be skipped.',
             type: 'danger',
             isAlert: false
         });
@@ -247,7 +304,14 @@ export default function RolesPage() {
         if (selectedIds.length === 0) return;
         const deletable = selectedIds.filter((id) => {
             const role = roles.find(r => r.id === id);
-            return role ? normalizeYesNo(role.system_defined) !== 'yes' : false;
+            if (!role) return false;
+            if (normalizeYesNo(role.system_defined) === 'yes') return false;
+
+            const isAssigned = users.some(u => 
+                (u.role_id && String(u.role_id) === String(role.id)) || 
+                (u.role && String(u.role).toLowerCase().trim() === String(role.name).toLowerCase().trim())
+            );
+            return !isAssigned;
         });
 
         if (deletable.length === 0) {

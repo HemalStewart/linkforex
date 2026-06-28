@@ -16,6 +16,7 @@ export default function EditRolePage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [enteredBy, setEnteredBy] = useState('');
+    const [users, setUsers] = useState<any[]>([]);
 
     const [formData, setFormData] = useState({
         id: null as number | null,
@@ -39,19 +40,26 @@ export default function EditRolePage() {
     }, []);
 
     useEffect(() => {
-        const fetchRole = async () => {
+        const fetchRoleAndUsers = async () => {
             if (!roleId) return;
             setLoading(true);
             try {
-                const res = await fetch(ENDPOINTS.ROLES.DETAIL(roleId));
-                if (res.ok) {
-                    const data = await res.json();
+                const [roleRes, usersRes] = await Promise.all([
+                    fetch(ENDPOINTS.ROLES.DETAIL(roleId)),
+                    fetch(ENDPOINTS.USERS.LIST)
+                ]);
+                if (roleRes.ok) {
+                    const data = await roleRes.json();
                     setFormData({
                         id: data.id,
                         name: data.name || '',
                         description: data.description || '',
                         system_defined: data.system_defined || 'no'
                     });
+                }
+                if (usersRes.ok) {
+                    const usersData = await usersRes.json();
+                    setUsers(usersData);
                 }
             } catch (error) {
                 console.error(error);
@@ -60,7 +68,7 @@ export default function EditRolePage() {
             }
         };
 
-        fetchRole();
+        fetchRoleAndUsers();
     }, [roleId]);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -114,6 +122,25 @@ export default function EditRolePage() {
 
     const handleDelete = async () => {
         if (!roleId) return;
+
+        // Check if role is assigned to any user
+        const isAssigned = users.some(u =>
+            (u.role_id && String(u.role_id) === String(roleId)) ||
+            (u.role && String(u.role).toLowerCase().trim() === String(formData.name).toLowerCase().trim())
+        );
+
+        if (isAssigned) {
+            setConfirmModal({
+                isOpen: true,
+                title: 'Cannot Delete Role',
+                message: `The role "${formData.name}" is currently assigned to one or more users and cannot be deleted.`,
+                type: 'warning',
+                isAlert: true,
+                shouldRedirect: false
+            });
+            return;
+        }
+
         const res = await fetch(ENDPOINTS.ROLES.DETAIL(roleId), { method: 'DELETE' });
         if (res.ok) {
             router.push('/admin/roles');
@@ -140,6 +167,12 @@ export default function EditRolePage() {
         return <div className="max-w-7xl mx-auto py-20 text-center text-slate-500 dark:text-slate-300">Loading...</div>;
     }
 
+    const isAssigned = users.some(u =>
+        (u.role_id && String(u.role_id) === String(roleId)) ||
+        (u.role && String(u.role).toLowerCase().trim() === String(formData.name).toLowerCase().trim())
+    );
+    const isDeletable = formData.system_defined !== 'yes' && !isAssigned;
+
     return (
         <div className="max-w-7xl mx-auto pb-20 animate-fade-in-up">
             <ConfirmModal
@@ -153,26 +186,13 @@ export default function EditRolePage() {
                 confirmText="OK"
             />
 
-            <div className="mb-8 flex items-center justify-between">
-                <div>
-                    <Link href="/admin/roles" className="inline-flex items-center text-sm font-bold text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 transition-colors mb-2 group">
-                        <ArrowLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
-                        Back to Roles
-                    </Link>
-                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Edit Role</h1>
-                    <p className="text-slate-500 dark:text-slate-300 mt-2">Update role details.</p>
-                </div>
-                <button
-                    onClick={handleDelete}
-                    disabled={formData.system_defined === 'yes'}
-                    className={`px-5 py-3 rounded-full text-sm font-bold transition-colors flex items-center space-x-2 ${formData.system_defined === 'yes'
-                        ? 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500 cursor-not-allowed'
-                        : 'glass-effect text-slate-600 dark:text-slate-300 hover:text-red-600'
-                        }`}
-                >
-                    <Trash2 className="w-4 h-4" />
-                    <span>Delete</span>
-                </button>
+            <div className="mb-8">
+                <Link href="/admin/roles" className="inline-flex items-center text-sm font-bold text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 transition-colors mb-2 group">
+                    <ArrowLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
+                    Back to Roles
+                </Link>
+                <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Edit Role</h1>
+                <p className="text-slate-500 dark:text-slate-300 mt-2">Update role details.</p>
             </div>
 
             <form onSubmit={handleSubmit} className="card-glass p-8 relative overflow-hidden">
@@ -196,23 +216,8 @@ export default function EditRolePage() {
                         </div>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">System Defined</label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left">
-                                <Shield className="w-5 h-5" />
-                            </span>
-                            <select
-                                className="input-glass w-full pr-10 appearance-none cursor-pointer"
-                                value={formData.system_defined}
-                                onChange={(e) => setFormData({ ...formData, system_defined: e.target.value })}
-                            >
-                                <option value="no">No</option>
-                                <option value="yes">Yes</option>
-                            </select>
-                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-200 pointer-events-none">⌄</span>
-                        </div>
-                    </div>
+                    {/* Empty cell to keep Role Name half-width on desktop */}
+                    <div className="hidden md:block"></div>
 
                     <div className="md:col-span-2">
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Description</label>
@@ -240,7 +245,7 @@ export default function EditRolePage() {
                         className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40"
                     >
                         <Save className="w-4 h-4" />
-                        <span>{saving ? 'Saving...' : 'Update Role'}</span>
+                        <span>{saving ? 'Saving...' : 'Save'}</span>
                     </button>
                 </div>
             </form>
