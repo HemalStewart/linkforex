@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { applyUiSettings, getStoredUiSettings, type UiSettings } from '@/app/lib/uiPreferences';
 import { ENDPOINTS } from '@/app/lib/api';
+import ConfirmModal from '../components/ConfirmModal';
 import {
     Check,
     Loader2,
@@ -10,16 +11,23 @@ import {
     Settings,
 } from 'lucide-react';
 
-type MessageState = {
-    text: string;
-    tone: 'success' | 'error';
-};
-
 const defaultFooterText = '© 2026 LinkForex. Protected by 256-bit encryption.';
 
 export default function SettingsPage() {
     const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState<MessageState | null>(null);
+    const [toast, setToast] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'info' | 'warning' | 'danger' | 'success';
+        isAlert: boolean;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info',
+        isAlert: true
+    });
     const [generalSettings, setGeneralSettings] = useState({
         footerText: defaultFooterText,
         companyName: 'Link Forex Ltd',
@@ -74,7 +82,6 @@ export default function SettingsPage() {
 
     const handleSave = async () => {
         setLoading(true);
-        setMessage(null);
 
         try {
             const res = await fetch(ENDPOINTS.MOBILE_ADMIN.SETTINGS, {
@@ -85,13 +92,25 @@ export default function SettingsPage() {
                 }),
             });
             if (!res.ok) {
-                setMessage({ text: 'Failed to save general settings to backend.', tone: 'error' });
+                setToast({
+                    isOpen: true,
+                    title: 'Error',
+                    message: 'Failed to save general settings to backend.',
+                    type: 'danger',
+                    isAlert: true
+                });
                 setLoading(false);
                 return;
             }
         } catch (err) {
             console.error('Failed to save settings:', err);
-            setMessage({ text: 'Network error saving settings.', tone: 'error' });
+            setToast({
+                isOpen: true,
+                title: 'Error',
+                message: 'Network error saving settings.',
+                type: 'danger',
+                isAlert: true
+            });
             setLoading(false);
             return;
         }
@@ -101,8 +120,13 @@ export default function SettingsPage() {
         applyUiSettings(uiSettings);
 
         setLoading(false);
-        setMessage({ text: 'Settings saved successfully.', tone: 'success' });
-        window.setTimeout(() => setMessage(null), 3000);
+        setToast({
+            isOpen: true,
+            title: 'Success',
+            message: 'Settings saved successfully.',
+            type: 'success',
+            isAlert: true
+        });
     };
 
     return (
@@ -111,16 +135,6 @@ export default function SettingsPage() {
                 <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Settings</h1>
                 <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Manage system configuration and preferences.</p>
             </div>
-
-            {message && (
-                <div className={`p-4 rounded-xl border flex items-center shadow-sm ${message.tone === 'success'
-                    ? 'bg-teal-50 text-teal-700 border-teal-100'
-                    : 'bg-rose-50 text-rose-700 border-rose-100'
-                    }`}>
-                    <Check className="w-5 h-5 mr-2 shrink-0" />
-                    {message.text}
-                </div>
-            )}
 
             <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="card-glass p-8 relative overflow-hidden space-y-8">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
@@ -170,6 +184,16 @@ export default function SettingsPage() {
                     </button>
                 </div>
             </form>
+
+            <ConfirmModal
+                isOpen={toast.isOpen}
+                onClose={() => setToast(prev => ({ ...prev, isOpen: false }))}
+                onConfirm={() => setToast(prev => ({ ...prev, isOpen: false }))}
+                title={toast.title}
+                message={toast.message}
+                type={toast.type}
+                isAlert={toast.isAlert}
+            />
         </div>
     );
 }

@@ -53,10 +53,6 @@ type ProfileData = {
     twofa_qr_code?: string;
 };
 
-type MessageState = {
-    text: string;
-    tone: 'success' | 'error';
-};
 
 const resolvePhotoUrl = (value?: string | null, fallback?: string | null): string | null => {
     const raw = String(fallback || value || '').trim();
@@ -110,7 +106,7 @@ const clampOffsets = (imageWidth: number, imageHeight: number, zoom: number, off
 
 export default function ProfilePage() {
     const storedUser = useMemo(() => getStoredUser<StoredUser>(), []);
-    const [message, setMessage] = useState<MessageState | null>(null);
+
     const [profileLoading, setProfileLoading] = useState(true);
     const [profilePhotoUploading, setProfilePhotoUploading] = useState(false);
     const [passwordLoading, setPasswordLoading] = useState(false);
@@ -330,7 +326,13 @@ export default function ProfilePage() {
 
         const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((result) => resolve(result), 'image/jpeg', 0.92));
         if (!blob) {
-            setMessage({ text: 'Failed to crop image.', tone: 'error' });
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'Failed to crop image.',
+                type: 'danger',
+                isAlert: true
+            });
             return;
         }
 
@@ -351,7 +353,6 @@ export default function ProfilePage() {
         if (!storedUser?.id || !photoFile) return;
 
         setProfilePhotoUploading(true);
-        setMessage(null);
 
         try {
             const formData = new FormData();
@@ -364,7 +365,13 @@ export default function ProfilePage() {
 
             const data = await res.json().catch(() => ({}));
             if (!res.ok) {
-                setMessage({ text: data?.message || 'Failed to update profile picture.', tone: 'error' });
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: data?.message || 'Failed to update profile picture.',
+                    type: 'danger',
+                    isAlert: true
+                });
                 return;
             }
 
@@ -377,9 +384,21 @@ export default function ProfilePage() {
                 ...data,
                 profile_photo_url: nextUrl || undefined,
             });
-            setMessage({ text: 'Profile picture updated successfully.', tone: 'success' });
+            setConfirmModal({
+                isOpen: true,
+                title: 'Success',
+                message: 'Profile picture updated successfully.',
+                type: 'success',
+                isAlert: true
+            });
         } catch {
-            setMessage({ text: 'Failed to update profile picture.', tone: 'error' });
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'Failed to update profile picture.',
+                type: 'danger',
+                isAlert: true
+            });
         } finally {
             setProfilePhotoUploading(false);
         }
@@ -485,8 +504,13 @@ export default function ProfilePage() {
     const handlePreferencesSave = () => {
         localStorage.setItem('uiSettings', JSON.stringify(uiSettings));
         applyUiSettings(uiSettings);
-        setMessage({ text: 'UI Preferences saved successfully.', tone: 'success' });
-        window.setTimeout(() => setMessage(null), 3000);
+        setConfirmModal({
+            isOpen: true,
+            title: 'Success',
+            message: 'UI Preferences saved successfully.',
+            type: 'success',
+            isAlert: true
+        });
     };
 
     const isTwoFaActive = profile?.twofa_status === 'active' || storedUser?.twofa_status === 'active';
@@ -710,15 +734,6 @@ export default function ProfilePage() {
                 <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Manage your personal profile photo, display preferences, and credentials.</p>
             </div>
 
-            {message && (
-                <div className={`p-4 rounded-xl border flex items-center shadow-sm ${message.tone === 'success'
-                    ? 'bg-teal-50 text-teal-700 border-teal-100'
-                    : 'bg-rose-50 text-rose-700 border-rose-100'
-                    }`}>
-                    <Check className="w-5 h-5 mr-2 shrink-0" />
-                    {message.text}
-                </div>
-            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-1">
