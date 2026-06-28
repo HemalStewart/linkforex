@@ -45,7 +45,11 @@ type SortKey =
 
 const normalizeDate = (value?: string | null): string => {
     if (!value) return '';
-    return value.includes('T') ? value : value.replace(' ', 'T');
+    const formatted = value.includes('T') ? value : value.replace(' ', 'T');
+    if (!formatted.endsWith('Z') && !/[+-]\d{2}:\d{2}$/.test(formatted)) {
+        return formatted + 'Z';
+    }
+    return formatted;
 };
 
 const toEpoch = (value?: string | null): number => {
@@ -118,10 +122,30 @@ const deriveStatus = (row: LogRow): SessionLog['status'] => {
     return 'Active';
 };
 
-const isLikelyIpAddress = (value: string): boolean => {
-    const text = value.trim();
-    if (!text) return false;
-    return /^[0-9a-fA-F:.]+$/.test(text) && (text.includes('.') || text.includes(':'));
+const isExternalIpAddress = (value: string): boolean => {
+    const ip = value.trim();
+    if (!ip) return false;
+    
+    if (!/^[0-9a-fA-F:.]+$/.test(ip) || (!ip.includes('.') && !ip.includes(':'))) {
+        return false;
+    }
+    
+    // Exclude local loopbacks (IPv4/IPv6) and localhost
+    if (ip === '::1' || ip === '127.0.0.1' || ip.toLowerCase() === 'localhost') {
+        return false;
+    }
+    
+    // Exclude private IPv4 addresses (10.x, 172.16-31.x, 192.168.x)
+    if (/^192\.168\./.test(ip) || /^10\./.test(ip) || /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(ip)) {
+        return false;
+    }
+    
+    // Exclude link-local IPv6 (fe80::)
+    if (ip.toLowerCase().startsWith('fe80:')) {
+        return false;
+    }
+    
+    return true;
 };
 
 
@@ -139,6 +163,14 @@ export default function LogsPage() {
     const [logs, setLogs] = useState<LogRow[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [timeTicker, setTimeTicker] = useState(Date.now());
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setTimeTicker(Date.now());
+        }, 1000);
+        return () => clearInterval(interval);
+    }, []);
 
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -175,7 +207,6 @@ export default function LogsPage() {
     }, [fetchLogs]);
 
     const sessionLogs = useMemo<SessionLog[]>(() => {
-        const now = Date.now();
         return logs.map((row) => {
             const signInEpoch = toEpoch(row.signInTs);
             const status: SessionLog['status'] = deriveStatus(row);
@@ -184,7 +215,7 @@ export default function LogsPage() {
             if (status === 'Closed') {
                 sessionSeconds = getSessionSeconds(row.signInTs, row.signOffTs);
             } else if (signInEpoch > 0) {
-                sessionSeconds = Math.max(0, Math.floor((now - signInEpoch) / 1000));
+                sessionSeconds = Math.max(0, Math.floor((timeTicker - signInEpoch) / 1000));
             }
 
             const signOffEpoch = toEpoch(row.signOffTs);
@@ -202,7 +233,7 @@ export default function LogsPage() {
 
             return base;
         });
-    }, [logs]);
+    }, [logs, timeTicker]);
 
     const countryOptions = useMemo(() => {
         const values = new Set<string>();
@@ -617,7 +648,7 @@ export default function LogsPage() {
                                         </td>
                                         <td className="text-sm text-slate-600 dark:text-slate-300">{row.logCountry || '-'}</td>
                                         <td className="text-sm text-slate-600 dark:text-slate-300 font-mono">
-                                            {isLikelyIpAddress(row.ip) ? (
+                                            {isExternalIpAddress(row.ip) ? (
                                                 <a
                                                     href={`https://whatismyipaddress.com/ip/${encodeURIComponent(row.ip)}`}
                                                     target="_blank"
