@@ -22,7 +22,7 @@ export default function ToggleSwitch({
   return (
     <div className="flex items-center justify-between w-full">
       {/* Label */}
-      <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+      <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">
         {label}
       </span>
 

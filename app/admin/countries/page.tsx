@@ -556,7 +556,7 @@ export default function CountriesPage() {
                 />
             </div>
 
-            <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editingId == null ? 'Add Country' : 'Edit Country'}>
+            <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editingId == null ? 'Add Country' : 'Edit Country'} size="lg">
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -582,14 +582,8 @@ export default function CountriesPage() {
                             <input className="input-glass w-full" value={form.currency_name} onChange={(e) => setForm({ ...form, currency_name: e.target.value })} />
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
                         <div>
-                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300"></label>
-                            {/* <select className="input-glass w-full" value={form.high_risk_country} onChange={(e) => setForm({ ...form, high_risk_country: e.target.value as YesNo })}>
-                                {YES_NO_OPTIONS.map((option) => (
-                                    <option key={option} value={option}>{toYesNoLabel(option)}</option>
-                                ))}
-                            </select> */}
                             <ToggleSwitch
                                 label="High Risk Country"
                                 value={form.high_risk_country}
@@ -597,12 +591,6 @@ export default function CountriesPage() {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300"></label>
-                            {/* <select className="input-glass w-full" value={form.black_list_country} onChange={(e) => setForm({ ...form, black_list_country: e.target.value as YesNo })}>
-                                {YES_NO_OPTIONS.map((option) => (
-                                    <option key={option} value={option}>{toYesNoLabel(option)}</option>
-                                ))}
-                            </select> */}
                             <ToggleSwitch
                                 label="Black List Country"
                                 value={form.black_list_country}
@@ -610,12 +598,6 @@ export default function CountriesPage() {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300"></label>
-                            {/* <select className="input-glass w-full" value={form.payout_currency} onChange={(e) => setForm({ ...form, payout_currency: e.target.value as YesNo })}>
-                                {YES_NO_OPTIONS.map((option) => (
-                                    <option key={option} value={option}>{toYesNoLabel(option)}</option>
-                                ))}
-                            </select> */}
                             <ToggleSwitch
                                 label="Payout Currency"
                                 value={form.payout_currency}

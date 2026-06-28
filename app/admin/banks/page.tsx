@@ -522,7 +522,7 @@ export default function BanksPage() {
                 />
             </div>
 
-            <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editingId == null ? 'Add Bank' : 'Edit Bank'}>
+            <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editingId == null ? 'Add Bank' : 'Edit Bank'} size="lg">
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -545,9 +545,8 @@ export default function BanksPage() {
                             />
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
                         <div>
-                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300"></label>
                             <ToggleSwitch
                                 label="Sender Bank"
                                 value={form.sender_bank ? 'yes' : 'no'}
@@ -560,7 +559,6 @@ export default function BanksPage() {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300"></label>
                             <ToggleSwitch
                                 label="Receiver Bank"
                                 value={form.receiver_bank ? 'yes' : 'no'}
@@ -573,7 +571,6 @@ export default function BanksPage() {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300"></label>
                             <ToggleSwitch
                                 label="Cash Pickup Bank"
                                 value={form.pickup_bank ? 'yes' : 'no'}
