@@ -566,17 +566,38 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         if (isPublicPage) return;
         signOffSentRef.current = false;
 
+        const tabId = 'tab_' + Math.random().toString(36).substring(2, 15);
         const timeoutMs = 30 * 60 * 1000;
         let timer: ReturnType<typeof setTimeout> | null = null;
 
+        const checkInactivity = async () => {
+            try {
+                const lastActivity = Number(localStorage.getItem('admin_last_activity') || 0);
+                const now = Date.now();
+                if (lastActivity > 0 && now - lastActivity < timeoutMs) {
+                    const remaining = timeoutMs - (now - lastActivity);
+                    if (timer) clearTimeout(timer);
+                    timer = setTimeout(checkInactivity, Math.max(1000, remaining));
+                    return;
+                }
+            } catch {
+                // fallback to default logout
+            }
+
+            await logSignOff('Auto logged out, session expired.', false);
+            clearStoredUser();
+            setCurrentUser(null);
+            router.replace('/admin/login');
+        };
+
         const resetTimer = () => {
             if (timer) clearTimeout(timer);
-            timer = setTimeout(async () => {
-                await logSignOff('Auto logged out, session expired.', false);
-                clearStoredUser();
-                setCurrentUser(null);
-                router.replace('/admin/login');
-            }, timeoutMs);
+            try {
+                localStorage.setItem('admin_last_activity', Date.now().toString());
+            } catch {
+                // ignore
+            }
+            timer = setTimeout(checkInactivity, 60000); // check inactivity every minute
         };
 
         const activityEvents: Array<keyof WindowEventMap> = [
@@ -590,13 +611,74 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         activityEvents.forEach((event) => window.addEventListener(event, resetTimer, { passive: true }));
         resetTimer();
 
+        const registerTab = () => {
+            try {
+                const activeTabsRaw = localStorage.getItem('active_admin_tabs');
+                let activeTabs: Record<string, number> = {};
+                if (activeTabsRaw) {
+                    try {
+                        activeTabs = JSON.parse(activeTabsRaw);
+                    } catch {
+                        activeTabs = {};
+                    }
+                }
+                const now = Date.now();
+                // 5 minutes (300,000 ms) stale threshold to safely allow for background tab throttling
+                Object.keys(activeTabs).forEach((id) => {
+                    if (now - activeTabs[id] > 300000) {
+                        delete activeTabs[id];
+                    }
+                });
+                activeTabs[tabId] = now;
+                localStorage.setItem('active_admin_tabs', JSON.stringify(activeTabs));
+            } catch (e) {
+                console.error(e);
+            }
+        };
+
+        registerTab();
+        const tabHeartbeat = setInterval(registerTab, 10000);
+
+        window.addEventListener('visibilitychange', registerTab);
+        window.addEventListener('focus', registerTab);
+
         const handleBeforeUnload = () => {
-            logSignOff('Browser closed', true);
+            try {
+                const activeTabsRaw = localStorage.getItem('active_admin_tabs');
+                let activeTabs: Record<string, number> = {};
+                if (activeTabsRaw) {
+                    try {
+                        activeTabs = JSON.parse(activeTabsRaw);
+                    } catch {
+                        activeTabs = {};
+                    }
+                }
+                
+                delete activeTabs[tabId];
+                
+                const now = Date.now();
+                Object.keys(activeTabs).forEach((id) => {
+                    if (now - activeTabs[id] > 300000) {
+                        delete activeTabs[id];
+                    }
+                });
+                
+                localStorage.setItem('active_admin_tabs', JSON.stringify(activeTabs));
+
+                if (Object.keys(activeTabs).length === 0) {
+                    logSignOff('Browser closed', true);
+                }
+            } catch (e) {
+                console.error(e);
+            }
         };
         window.addEventListener('beforeunload', handleBeforeUnload);
 
         return () => {
             if (timer) clearTimeout(timer);
+            clearInterval(tabHeartbeat);
+            window.removeEventListener('visibilitychange', registerTab);
+            window.removeEventListener('focus', registerTab);
             activityEvents.forEach((event) => window.removeEventListener(event, resetTimer));
             window.removeEventListener('beforeunload', handleBeforeUnload);
         };

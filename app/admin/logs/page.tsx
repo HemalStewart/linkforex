@@ -7,7 +7,7 @@ import { ENDPOINTS } from '@/app/lib/api';
 import { useRowsPerPage } from '@/app/lib/uiPreferences';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
-import { useAuditColumns } from '@/app/lib/permissions';
+import { useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 
 type LogRow = {
     id: number;
@@ -112,15 +112,10 @@ const looksForcedSignOff = (note: string): boolean => {
 };
 
 const deriveStatus = (row: LogRow): SessionLog['status'] => {
+    if (row.signOffTs) return 'Closed';
     const explicit = row.rawStatus.trim();
-    if (['active', 'open', 'logged_in', 'signed_in'].includes(explicit)) return 'Active';
-    // If there is no valid sign-off time, treat session as active even if raw status is stale.
-    if (!row.signOffTs) return 'Active';
     if (['closed', 'signed_off', 'logged_out', 'inactive'].includes(explicit)) return 'Closed';
-    const signInEpoch = toEpoch(row.signInTs);
-    const signOffEpoch = toEpoch(row.signOffTs);
-    if (signInEpoch && signOffEpoch && signOffEpoch < signInEpoch) return 'Active';
-    return row.signOffTs ? 'Closed' : 'Active';
+    return 'Active';
 };
 
 const isLikelyIpAddress = (value: string): boolean => {
@@ -140,6 +135,7 @@ const escapeCsv = (value: unknown): string => {
 
 export default function LogsPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('AUDIT_LOGS');
+    const { canExport } = usePagePermissions('AUDIT_LOGS');
     const [logs, setLogs] = useState<LogRow[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -179,12 +175,20 @@ export default function LogsPage() {
     }, [fetchLogs]);
 
     const sessionLogs = useMemo<SessionLog[]>(() => {
+        const now = Date.now();
         return logs.map((row) => {
             const signInEpoch = toEpoch(row.signInTs);
-            const signOffEpoch = toEpoch(row.signOffTs);
-            const sessionSeconds = getSessionSeconds(row.signInTs, row.signOffTs);
-            const forcedSignOff = looksForcedSignOff(row.signOffNote);
             const status: SessionLog['status'] = deriveStatus(row);
+            
+            let sessionSeconds = 0;
+            if (status === 'Closed') {
+                sessionSeconds = getSessionSeconds(row.signInTs, row.signOffTs);
+            } else if (signInEpoch > 0) {
+                sessionSeconds = Math.max(0, Math.floor((now - signInEpoch) / 1000));
+            }
+
+            const signOffEpoch = toEpoch(row.signOffTs);
+            const forcedSignOff = looksForcedSignOff(row.signOffNote);
 
             const base: SessionLog = {
                 ...row,
@@ -400,14 +404,16 @@ export default function LogsPage() {
                         <RefreshCw className={`w-4 h-4 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
                         <span className="font-semibold text-sm">Refresh</span>
                     </button>
-                    <button
-                        onClick={exportCsv}
-                        className="btn-primary flex items-center space-x-2"
-                        disabled={sorted.length === 0}
-                    >
-                        <Download className="w-4 h-4" />
-                        <span>Export CSV</span>
-                    </button>
+                    {canExport && (
+                        <button
+                            onClick={exportCsv}
+                            className="btn-primary flex items-center space-x-2"
+                            disabled={sorted.length === 0}
+                        >
+                            <Download className="w-4 h-4" />
+                            <span>Export CSV</span>
+                        </button>
+                    )}
                 </div>
             </div>
 

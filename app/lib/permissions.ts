@@ -114,7 +114,7 @@ export const ADMIN_PAGES_CONFIG: AdminCategoryInfo[] = [
             { name: 'Role', section: 'ROLES', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] },
             { name: 'Role Permissions', section: 'PERMISSION_GROUPS', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] },
             { name: 'Users', section: 'SYSTEM_USERS', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] },
-            { name: 'User Logs', section: 'AUDIT_LOGS', operations: ['VIEW', ...AUDIT_OPS] }
+            { name: 'User Logs', section: 'AUDIT_LOGS', operations: ['VIEW', 'EXPORT', ...AUDIT_OPS] }
         ]
     },
     {
