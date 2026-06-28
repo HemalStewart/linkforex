@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../../components/ConfirmModal';
+import { showToast, queueToast } from '@/app/lib/toast';
 import {
     ArrowLeft,
     ChevronRight,
@@ -702,14 +703,13 @@ export default function CreateTransferPage() {
     }, [senderSearch, withActingUser]);
 
     const setModal = (title: string, message: string, type: ModalType = 'info', shouldRedirect = false) => {
-        setConfirmModal({
-            isOpen: true,
-            title,
-            message,
-            type,
-            isAlert: true,
-            shouldRedirect
-        });
+        const toastType = type === 'danger' ? 'danger' : type === 'warning' ? 'warning' : 'info';
+        if (shouldRedirect) {
+            queueToast(title, message, 'success');
+            router.push('/admin/transfers');
+        } else {
+            showToast(title, message, toastType);
+        }
     };
 
     const onModalClose = () => {

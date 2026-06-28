@@ -7,6 +7,7 @@ import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import { isPrivilegedUser } from '@/app/lib/permissions';
 import ConfirmModal from '../../components/ConfirmModal';
+import { showToast, queueToast } from '@/app/lib/toast';
 import { formatDateTime } from '@/app/lib/dateUtils';
 import {
     ArrowLeft,
@@ -418,35 +419,15 @@ export default function EditBranchPage() {
             });
 
             if (res.ok) {
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Success',
-                    message: 'Branch updated successfully.',
-                    type: 'success',
-                    isAlert: true,
-                    shouldRedirect: true,
-                });
+                queueToast('Success', 'Branch updated successfully.', 'success');
+                router.push('/admin/branches');
             } else {
                 const err = await res.text();
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Error',
-                    message: err || 'Failed to update branch.',
-                    type: 'danger',
-                    isAlert: true,
-                    shouldRedirect: false,
-                });
+                showToast('Error', err || 'Failed to update branch.', 'danger');
             }
         } catch (error) {
             console.error(error);
-            setConfirmModal({
-                isOpen: true,
-                title: 'Error',
-                message: 'Failed to update branch.',
-                type: 'danger',
-                isAlert: true,
-                shouldRedirect: false,
-            });
+            showToast('Error', 'Failed to update branch.', 'danger');
         } finally {
             setSaving(false);
         }
@@ -522,18 +503,6 @@ export default function EditBranchPage() {
                     <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">{isViewMode ? 'View Branch' : 'Edit Branch'}</h1>
                     <p className="mt-2 text-slate-500 dark:text-slate-300">{isViewMode ? 'Review branch details, contacts, and settings.' : 'Update branch details, contacts, and settings.'}</p>
                 </div>
-                {!isViewMode && (
-                    <button
-                        type="button"
-                        onClick={handleDelete}
-                        disabled={!canDeleteBranch}
-                        className={`glass-effect flex items-center space-x-2 rounded-full px-5 py-3 text-sm font-bold transition-colors ${canDeleteBranch ? 'text-slate-600 hover:text-red-600 dark:text-slate-300' : 'cursor-not-allowed text-slate-400 opacity-50 dark:text-slate-500'}`}
-                        title={canDeleteBranch ? 'Delete branch' : 'Delete permission required'}
-                    >
-                        <Trash2 className="h-4 w-4" />
-                        <span>Delete</span>
-                    </button>
-                )}
             </div>
 
             <div className="card-glass mb-8 p-6">
@@ -640,7 +609,7 @@ export default function EditBranchPage() {
                     {!isReadOnly && (
                         <button type="submit" disabled={saving} className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40">
                             <Save className="h-4 w-4" />
-                            <span>{saving ? 'Saving...' : 'Update Branch'}</span>
+                            <span>{saving ? 'Saving...' : 'Save'}</span>
                         </button>
                     )}
                 </div>

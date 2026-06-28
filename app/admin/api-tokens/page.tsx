@@ -238,15 +238,6 @@ export default function ApiTokensPage() {
                         <RefreshCw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
                         <span>Refresh</span>
                     </button>
-                    <button
-                        type="submit"
-                        form="api-tokens-form"
-                        disabled={saving || loading}
-                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 disabled:opacity-50"
-                    >
-                        <Save className="w-5 h-5" />
-                        <span>{saving ? 'Saving...' : 'Save Configuration'}</span>
-                    </button>
                 </div>
             </div>
 
@@ -529,6 +520,17 @@ export default function ApiTokensPage() {
                                     />
                                 </div>
                             </div>
+                        </div>
+
+                        <div className="flex justify-end border-t border-slate-100 dark:border-slate-700/50 pt-5">
+                            <button
+                                type="submit"
+                                disabled={saving || loading}
+                                className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 disabled:opacity-50"
+                            >
+                                <Save className="w-5 h-5" />
+                                <span>{saving ? 'Saving...' : 'Save'}</span>
+                            </button>
                         </div>
                     </div>
                 </form>

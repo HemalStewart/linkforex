@@ -6,6 +6,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../../components/ConfirmModal';
+import { showToast, queueToast } from '@/app/lib/toast';
 import { ArrowLeft, Shield, Save, Trash2 } from 'lucide-react';
 
 export default function EditRolePage() {
@@ -86,35 +87,15 @@ export default function EditRolePage() {
             });
 
             if (res.ok) {
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Success',
-                    message: 'Role updated successfully',
-                    type: 'success',
-                    isAlert: true,
-                    shouldRedirect: true
-                });
+                queueToast('Success', 'Role updated successfully', 'success');
+                router.push('/admin/roles');
             } else {
                 const err = await res.text();
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Error',
-                    message: err || 'Failed to update role',
-                    type: 'danger',
-                    isAlert: true,
-                    shouldRedirect: false
-                });
+                showToast('Error', err || 'Failed to update role', 'danger');
             }
         } catch (error) {
             console.error(error);
-            setConfirmModal({
-                isOpen: true,
-                title: 'Error',
-                message: 'Failed to update role',
-                type: 'danger',
-                isAlert: true,
-                shouldRedirect: false
-            });
+            showToast('Error', 'Failed to update role', 'danger');
         } finally {
             setSaving(false);
         }
@@ -130,29 +111,16 @@ export default function EditRolePage() {
         );
 
         if (isAssigned) {
-            setConfirmModal({
-                isOpen: true,
-                title: 'Cannot Delete Role',
-                message: `The role "${formData.name}" is currently assigned to one or more users and cannot be deleted.`,
-                type: 'warning',
-                isAlert: true,
-                shouldRedirect: false
-            });
+            showToast('Cannot Delete Role', `The role "${formData.name}" is currently assigned to one or more users and cannot be deleted.`, 'warning');
             return;
         }
 
         const res = await fetch(ENDPOINTS.ROLES.DETAIL(roleId), { method: 'DELETE' });
         if (res.ok) {
+            queueToast('Success', 'Role deleted successfully', 'success');
             router.push('/admin/roles');
         } else {
-            setConfirmModal({
-                isOpen: true,
-                title: 'Error',
-                message: 'Failed to delete role',
-                type: 'danger',
-                isAlert: true,
-                shouldRedirect: false
-            });
+            showToast('Error', 'Failed to delete role', 'danger');
         }
     };
 

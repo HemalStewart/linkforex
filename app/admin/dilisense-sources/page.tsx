@@ -72,7 +72,7 @@ export default function DilisenseSourcesPage() {
     const [rows, setRows] = useState<DilisenseSourceRow[]>([]);
     const [loading, setLoading] = useState(true);
     const [syncing, setSyncing] = useState(false);
-    
+
     // Filters
     const [searchQuery, setSearchQuery] = useState('');
     const [typeFilter, setTypeFilter] = useState('all');
@@ -249,17 +249,17 @@ export default function DilisenseSourcesPage() {
     const filteredRows = useMemo(() => {
         const query = searchQuery.trim().toLowerCase();
         return rows.filter((row) => {
-            const matchesQuery = !query || 
+            const matchesQuery = !query ||
                 String(row.dilisense_name || '').toLowerCase().includes(query) ||
                 String(row.dilisense_source || '').toLowerCase().includes(query) ||
                 String(row.dilisense_description || '').toLowerCase().includes(query) ||
                 String(row.dilisense_country_name || '').toLowerCase().includes(query) ||
                 String(row.dilisense_issuer_name || '').toLowerCase().includes(query);
-            
+
             const matchesType = typeFilter === 'all' || String(row.dilisense_source_type) === typeFilter;
             const matchesRegion = regionFilter === 'all' || String(row.dilisense_region) === regionFilter;
-            const matchesActive = activeFilter === 'all' || 
-                (activeFilter === 'yes' && Number(row.dilisense_status) === 1) || 
+            const matchesActive = activeFilter === 'all' ||
+                (activeFilter === 'yes' && Number(row.dilisense_status) === 1) ||
                 (activeFilter === 'no' && Number(row.dilisense_status) === 0);
 
             return matchesQuery && matchesType && matchesRegion && matchesActive;
@@ -520,7 +520,7 @@ export default function DilisenseSourcesPage() {
                                 ) : (
                                     <>
                                         <Save className="w-4 h-4" />
-                                        <span>Save Setting</span>
+                                        <span>Save</span>
                                     </>
                                 )}
                             </button>
@@ -668,7 +668,7 @@ export default function DilisenseSourcesPage() {
                                     <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-300">{row.dilisense_size ?? 0}</td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center">
-                                            <input 
+                                            <input
                                                 type="checkbox"
                                                 checked={Number(row.dilisense_status) === 1}
                                                 onChange={() => toggleActiveStatus(row)}
@@ -900,10 +900,10 @@ export default function DilisenseSourcesPage() {
                         {viewRow.dilisense_link && (
                             <div>
                                 <span className="text-xs font-bold text-slate-400">Official Webpage</span>
-                                <a 
-                                    href={viewRow.dilisense_link} 
-                                    target="_blank" 
-                                    rel="noreferrer" 
+                                <a
+                                    href={viewRow.dilisense_link}
+                                    target="_blank"
+                                    rel="noreferrer"
                                     className="text-teal-600 hover:text-teal-500 font-semibold text-sm flex items-center gap-1 mt-1 transition-all"
                                 >
                                     <span>{viewRow.dilisense_link}</span>

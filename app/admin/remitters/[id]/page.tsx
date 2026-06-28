@@ -12,6 +12,7 @@ import {
 } from '@/app/lib/adminUserScope';
 import { openPdfReport } from '@/app/lib/openPdfReport';
 import ConfirmModal from '../../components/ConfirmModal';
+import { showToast, queueToast } from '@/app/lib/toast';
 import VeriffReportsModal from '../../components/VeriffReportsModal';
 import { formatDateTime } from '@/app/lib/dateUtils';
 import {
@@ -275,34 +276,14 @@ export default function EditRemitterPage() {
             });
 
             if (res.ok) {
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Success',
-                    message: 'Remitter updated successfully',
-                    type: 'success',
-                    isAlert: true,
-                    shouldRedirect: true
-                });
+                queueToast('Success', 'Remitter updated successfully', 'success');
+                router.push('/admin/remitters');
             } else {
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Error',
-                    message: 'Failed to update remitter',
-                    type: 'danger',
-                    isAlert: true,
-                    shouldRedirect: false
-                });
+                showToast('Error', 'Failed to update remitter', 'danger');
             }
         } catch (error) {
             console.error(error);
-            setConfirmModal({
-                isOpen: true,
-                title: 'Error',
-                message: 'Error updating remitter',
-                type: 'danger',
-                isAlert: true,
-                shouldRedirect: false
-            });
+            showToast('Error', 'Error updating remitter', 'danger');
         } finally {
             setSubmitting(false);
         }
@@ -312,27 +293,14 @@ export default function EditRemitterPage() {
         try {
             const res = await fetch(withActingUserParam(ENDPOINTS.REMITTERS.DETAIL(id), currentUser), { method: 'DELETE' });
             if (res.ok) {
+                queueToast('Success', 'Remitter deleted successfully', 'success');
                 router.push('/admin/remitters');
             } else {
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Error',
-                    message: 'Failed to delete remitter',
-                    type: 'danger',
-                    isAlert: true,
-                    shouldRedirect: false
-                });
+                showToast('Error', 'Failed to delete remitter', 'danger');
             }
         } catch (error) {
             console.error(error);
-            setConfirmModal({
-                isOpen: true,
-                title: 'Error',
-                message: 'Failed to delete remitter',
-                type: 'danger',
-                isAlert: true,
-                shouldRedirect: false
-            });
+            showToast('Error', 'Failed to delete remitter', 'danger');
         }
     };
 

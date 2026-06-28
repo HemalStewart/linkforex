@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../../components/ConfirmModal';
+import { showToast, queueToast } from '@/app/lib/toast';
 import {
     ArrowLeft,
     Landmark,
@@ -282,47 +283,21 @@ export default function CreateBranchCurrencyRatePage() {
             }
 
             if (failures.length > 0 && createdRecords.length === 0) {
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Error',
-                    message: failures.join(' | '),
-                    type: 'danger',
-                    isAlert: true,
-                    shouldRedirect: false
-                });
+            showToast('Error', failures.join(' | '), 'danger');
                 return;
             }
 
             if (failures.length > 0) {
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Partial Success',
-                    message: `Created ${createdRecords.length} rate(s). Some failed: ${failures.join(' | ')}`,
-                    type: 'warning',
-                    isAlert: true,
-                    shouldRedirect: true
-                });
+                queueToast('Partial Success', `Created ${createdRecords.length} rate(s). Some failed: ${failures.join(' | ')}`, 'warning');
+                router.push('/admin/branch-currency-rates');
                 return;
             }
 
-            setConfirmModal({
-                isOpen: true,
-                title: 'Success',
-                message: `Customer cash rate added for ${createdRecords.length} branch(es).`,
-                type: 'success',
-                isAlert: true,
-                shouldRedirect: true
-            });
+            queueToast('Success', `Customer cash rate added for ${createdRecords.length} branch(es).`, 'success');
+            router.push('/admin/branch-currency-rates');
         } catch (error) {
             console.error(error);
-            setConfirmModal({
-                isOpen: true,
-                title: 'Error',
-                message: 'Failed to add branch currency rate.',
-                type: 'danger',
-                isAlert: true,
-                shouldRedirect: false
-            });
+            showToast('Error', 'Failed to add branch currency rate.', 'danger');
         } finally {
             setSubmitting(false);
         }

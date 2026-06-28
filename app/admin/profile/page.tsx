@@ -8,6 +8,7 @@ import { validatePassword } from '@/app/lib/validation';
 import { resolveUploadsUrl } from '@/app/lib/uploads';
 import Modal from '@/app/admin/components/Modal';
 import ConfirmModal from '@/app/admin/components/ConfirmModal';
+import { showToast } from '@/app/lib/toast';
 import {
     Building2,
     Camera,
@@ -326,13 +327,7 @@ export default function ProfilePage() {
 
         const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((result) => resolve(result), 'image/jpeg', 0.92));
         if (!blob) {
-            setConfirmModal({
-                isOpen: true,
-                title: 'Error',
-                message: 'Failed to crop image.',
-                type: 'danger',
-                isAlert: true
-            });
+            showToast('Error', 'Failed to crop image.', 'danger');
             return;
         }
 
@@ -365,13 +360,7 @@ export default function ProfilePage() {
 
             const data = await res.json().catch(() => ({}));
             if (!res.ok) {
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Error',
-                    message: data?.message || 'Failed to update profile picture.',
-                    type: 'danger',
-                    isAlert: true
-                });
+                showToast('Error', data?.message || 'Failed to update profile picture.', 'danger');
                 return;
             }
 
@@ -384,21 +373,9 @@ export default function ProfilePage() {
                 ...data,
                 profile_photo_url: nextUrl || undefined,
             });
-            setConfirmModal({
-                isOpen: true,
-                title: 'Success',
-                message: 'Profile picture updated successfully.',
-                type: 'success',
-                isAlert: true
-            });
+            showToast('Success', 'Profile picture updated successfully.', 'success');
         } catch {
-            setConfirmModal({
-                isOpen: true,
-                title: 'Error',
-                message: 'Failed to update profile picture.',
-                type: 'danger',
-                isAlert: true
-            });
+            showToast('Error', 'Failed to update profile picture.', 'danger');
         } finally {
             setProfilePhotoUploading(false);
         }
@@ -500,17 +477,10 @@ export default function ProfilePage() {
             setPasswordLoading(false);
         }
     };
-
     const handlePreferencesSave = () => {
         localStorage.setItem('uiSettings', JSON.stringify(uiSettings));
         applyUiSettings(uiSettings);
-        setConfirmModal({
-            isOpen: true,
-            title: 'Success',
-            message: 'UI Preferences saved successfully.',
-            type: 'success',
-            isAlert: true
-        });
+        showToast('Success', 'UI Preferences saved successfully.', 'success');
     };
 
     const isTwoFaActive = profile?.twofa_status === 'active' || storedUser?.twofa_status === 'active';

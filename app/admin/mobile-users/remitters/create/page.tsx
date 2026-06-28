@@ -11,6 +11,7 @@ import {
     isPrivilegedAdminUser,
 } from '@/app/lib/adminUserScope';
 import ConfirmModal from '../../../components/ConfirmModal';
+import { showToast, queueToast } from '@/app/lib/toast';
 import {
     User, Calendar, MapPin, Briefcase, Phone, Building, CreditCard,
     Globe, FileText, Upload, Trash2, Plus, ArrowLeft,
@@ -268,27 +269,11 @@ export default function CreateMobileUserRemitterPage() {
 
             // Note: Beneficiaries skipped here.
 
-            setConfirmModal({
-                isOpen: true,
-                title: 'Success',
-                message: 'New Mobile Individual Profile Created Successfully!',
-                type: 'info',
-                isAlert: true,
-                shouldRedirect: true,
-                redirectUrl: returnUrl ? `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newRemitterId=${remitterId}` : '/admin/mobile-profiles'
-            });
-
+            queueToast('Success', 'New Mobile Individual Profile Created Successfully!', 'success');
+            router.push(returnUrl ? `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newRemitterId=${remitterId}` : '/admin/mobile-profiles');
         } catch (error) {
             console.error('Failed to submit:', error);
-            setConfirmModal({
-                isOpen: true,
-                title: 'Error',
-                message: 'An error occurred. Please try again.',
-                type: 'danger',
-                isAlert: true,
-                shouldRedirect: false,
-                redirectUrl: ''
-            });
+            showToast('Error', 'An error occurred. Please try again.', 'danger');
         } finally {
             setLoading(false);
         }

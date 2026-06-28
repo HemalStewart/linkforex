@@ -168,20 +168,10 @@ export default function TransactionSettingsPage() {
                     <button
                         onClick={() => void fetchSettings()}
                         disabled={saving}
-                        className="px-5 py-3 rounded-2xl border-0 glass-effect text-slate-700 dark:text-slate-300 font-bold hover:shadow-lg transition-all group disabled:opacity-50"
+                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 border-0 group disabled:opacity-50"
                     >
-                        <span className="flex items-center space-x-2">
-                            <RefreshCw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
-                            <span>Refresh</span>
-                        </span>
-                    </button>
-                    <button
-                        onClick={() => void handleSave()}
-                        disabled={saving || loading}
-                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 disabled:opacity-50"
-                    >
-                        <Save className="w-5 h-5" />
-                        <span>{saving ? 'Saving...' : 'Save'}</span>
+                        <RefreshCw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
+                        <span>Refresh</span>
                     </button>
                 </div>
             </div>
@@ -192,81 +182,93 @@ export default function TransactionSettingsPage() {
                         Loading transaction settings...
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                        <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/60 bg-white/60 dark:bg-slate-900/30 p-5 space-y-4">
-                            <div className="flex items-center justify-between gap-3">
-                                <div className="text-sm font-bold text-slate-900 dark:text-white">App Limits (GBP)</div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">3 Month Limit</label>
-                                <div className="relative input-icon">
-                                    <span className="input-icon-left">
-                                        <PoundSterling className="w-4 h-4" />
-                                    </span>
-                                    <input
-                                        className="input-glass w-full"
-                                        inputMode="decimal"
-                                        value={values[keyOf('app', 'quarter')]}
-                                        onChange={(e) => updateDraft('app', 'quarter', e.target.value)}
-                                        onBlur={() => normalizeBlur('app', 'quarter')}
-                                        placeholder="0.00"
-                                    />
+                    <div className="space-y-6">
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                            <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/60 bg-white/60 dark:bg-slate-900/30 p-5 space-y-4">
+                                <div className="flex items-center justify-between gap-3">
+                                    <div className="text-sm font-bold text-slate-900 dark:text-white">App Limits (GBP)</div>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">3 Month Limit</label>
+                                    <div className="relative input-icon">
+                                        <span className="input-icon-left">
+                                            <PoundSterling className="w-4 h-4" />
+                                        </span>
+                                        <input
+                                            className="input-glass w-full"
+                                            inputMode="decimal"
+                                            value={values[keyOf('app', 'quarter')]}
+                                            onChange={(e) => updateDraft('app', 'quarter', e.target.value)}
+                                            onBlur={() => normalizeBlur('app', 'quarter')}
+                                            placeholder="0.00"
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Yearly Limit</label>
+                                    <div className="relative input-icon">
+                                        <span className="input-icon-left">
+                                            <PoundSterling className="w-4 h-4" />
+                                        </span>
+                                        <input
+                                            className="input-glass w-full"
+                                            inputMode="decimal"
+                                            value={values[keyOf('app', 'year')]}
+                                            onChange={(e) => updateDraft('app', 'year', e.target.value)}
+                                            onBlur={() => normalizeBlur('app', 'year')}
+                                            placeholder="0.00"
+                                        />
+                                    </div>
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Yearly Limit</label>
-                                <div className="relative input-icon">
-                                    <span className="input-icon-left">
-                                        <PoundSterling className="w-4 h-4" />
-                                    </span>
-                                    <input
-                                        className="input-glass w-full"
-                                        inputMode="decimal"
-                                        value={values[keyOf('app', 'year')]}
-                                        onChange={(e) => updateDraft('app', 'year', e.target.value)}
-                                        onBlur={() => normalizeBlur('app', 'year')}
-                                        placeholder="0.00"
-                                    />
+
+                            <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/60 bg-white/60 dark:bg-slate-900/30 p-5 space-y-4">
+                                <div className="flex items-center justify-between gap-3">
+                                    <div className="text-sm font-bold text-slate-900 dark:text-white">Backend Limits (GBP)</div>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">3 Month Limit</label>
+                                    <div className="relative input-icon">
+                                        <span className="input-icon-left">
+                                            <PoundSterling className="w-4 h-4" />
+                                        </span>
+                                        <input
+                                            className="input-glass w-full"
+                                            inputMode="decimal"
+                                            value={values[keyOf('backend', 'quarter')]}
+                                            onChange={(e) => updateDraft('backend', 'quarter', e.target.value)}
+                                            onBlur={() => normalizeBlur('backend', 'quarter')}
+                                            placeholder="0.00"
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Yearly Limit</label>
+                                    <div className="relative input-icon">
+                                        <span className="input-icon-left">
+                                            <PoundSterling className="w-4 h-4" />
+                                        </span>
+                                        <input
+                                            className="input-glass w-full"
+                                            inputMode="decimal"
+                                            value={values[keyOf('backend', 'year')]}
+                                            onChange={(e) => updateDraft('backend', 'year', e.target.value)}
+                                            onBlur={() => normalizeBlur('backend', 'year')}
+                                            placeholder="0.00"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
-
-                        <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/60 bg-white/60 dark:bg-slate-900/30 p-5 space-y-4">
-                            <div className="flex items-center justify-between gap-3">
-                                <div className="text-sm font-bold text-slate-900 dark:text-white">Backend Limits (GBP)</div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">3 Month Limit</label>
-                                <div className="relative input-icon">
-                                    <span className="input-icon-left">
-                                        <PoundSterling className="w-4 h-4" />
-                                    </span>
-                                    <input
-                                        className="input-glass w-full"
-                                        inputMode="decimal"
-                                        value={values[keyOf('backend', 'quarter')]}
-                                        onChange={(e) => updateDraft('backend', 'quarter', e.target.value)}
-                                        onBlur={() => normalizeBlur('backend', 'quarter')}
-                                        placeholder="0.00"
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Yearly Limit</label>
-                                <div className="relative input-icon">
-                                    <span className="input-icon-left">
-                                        <PoundSterling className="w-4 h-4" />
-                                    </span>
-                                    <input
-                                        className="input-glass w-full"
-                                        inputMode="decimal"
-                                        value={values[keyOf('backend', 'year')]}
-                                        onChange={(e) => updateDraft('backend', 'year', e.target.value)}
-                                        onBlur={() => normalizeBlur('backend', 'year')}
-                                        placeholder="0.00"
-                                    />
-                                </div>
-                            </div>
+                        <div className="flex justify-end pt-2">
+                            <button
+                                onClick={() => void handleSave()}
+                                disabled={saving || loading}
+                                className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 disabled:opacity-50"
+                            >
+                                <Save className="w-5 h-5" />
+                                <span>{saving ? 'Saving...' : 'Save'}</span>
+                            </button>
                         </div>
                     </div>
                 )}

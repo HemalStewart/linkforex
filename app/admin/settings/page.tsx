@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { applyUiSettings, getStoredUiSettings, type UiSettings } from '@/app/lib/uiPreferences';
 import { ENDPOINTS } from '@/app/lib/api';
-import ConfirmModal from '../components/ConfirmModal';
+import { showToast } from '@/app/lib/toast';
 import {
     Check,
     Loader2,
@@ -15,19 +15,6 @@ const defaultFooterText = '© 2026 LinkForex. Protected by 256-bit encryption.';
 
 export default function SettingsPage() {
     const [loading, setLoading] = useState(false);
-    const [toast, setToast] = useState<{
-        isOpen: boolean;
-        title: string;
-        message: string;
-        type: 'info' | 'warning' | 'danger' | 'success';
-        isAlert: boolean;
-    }>({
-        isOpen: false,
-        title: '',
-        message: '',
-        type: 'info',
-        isAlert: true
-    });
     const [generalSettings, setGeneralSettings] = useState({
         footerText: defaultFooterText,
         companyName: 'Link Forex Ltd',
@@ -92,25 +79,13 @@ export default function SettingsPage() {
                 }),
             });
             if (!res.ok) {
-                setToast({
-                    isOpen: true,
-                    title: 'Error',
-                    message: 'Failed to save general settings to backend.',
-                    type: 'danger',
-                    isAlert: true
-                });
+                showToast('Error', 'Failed to save general settings to backend.', 'danger');
                 setLoading(false);
                 return;
             }
         } catch (err) {
             console.error('Failed to save settings:', err);
-            setToast({
-                isOpen: true,
-                title: 'Error',
-                message: 'Network error saving settings.',
-                type: 'danger',
-                isAlert: true
-            });
+            showToast('Error', 'Network error saving settings.', 'danger');
             setLoading(false);
             return;
         }
@@ -120,13 +95,7 @@ export default function SettingsPage() {
         applyUiSettings(uiSettings);
 
         setLoading(false);
-        setToast({
-            isOpen: true,
-            title: 'Success',
-            message: 'Settings saved successfully.',
-            type: 'success',
-            isAlert: true
-        });
+        showToast('Success', 'Settings saved successfully.', 'success');
     };
 
     return (
@@ -184,16 +153,6 @@ export default function SettingsPage() {
                     </button>
                 </div>
             </form>
-
-            <ConfirmModal
-                isOpen={toast.isOpen}
-                onClose={() => setToast(prev => ({ ...prev, isOpen: false }))}
-                onConfirm={() => setToast(prev => ({ ...prev, isOpen: false }))}
-                title={toast.title}
-                message={toast.message}
-                type={toast.type}
-                isAlert={toast.isAlert}
-            />
         </div>
     );
 }

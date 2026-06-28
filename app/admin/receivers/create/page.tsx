@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
 import { ArrowLeft, User, Building, CreditCard, Save, Loader2, ChevronRight, Search, MapPin, Phone, ShieldCheck, Landmark } from 'lucide-react';
 import ConfirmModal from '../../components/ConfirmModal';
+import { showToast, queueToast } from '@/app/lib/toast';
 
 type RemitterOption = {
     id: string | number;
@@ -250,37 +251,14 @@ export default function CreateReceiverPage() {
                     ? `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newReceiverId=${encodeURIComponent(newReceiverId)}`
                     : '/admin/receivers';
 
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Success',
-                    message: 'Receiver created successfully',
-                    type: 'success',
-                    isAlert: true,
-                    shouldRedirect: true,
-                    redirectUrl
-                });
+            queueToast('Success', 'Receiver created successfully', 'success');
+                router.push(redirectUrl);
             } else {
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Error',
-                    message: 'Failed to create receiver',
-                    type: 'danger',
-                    isAlert: true,
-                    shouldRedirect: false,
-                    redirectUrl: '/admin/receivers'
-                });
+                showToast('Error', 'Failed to create receiver', 'danger');
             }
         } catch (error) {
             console.error('Failed to submit:', error);
-            setConfirmModal({
-                isOpen: true,
-                title: 'Error',
-                message: 'Error creating receiver',
-                type: 'danger',
-                isAlert: true,
-                shouldRedirect: false,
-                redirectUrl: '/admin/receivers'
-            });
+            showToast('Error', 'Error creating receiver', 'danger');
         } finally {
             setLoading(false);
         }

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../components/ConfirmModal';
+import { showToast, queueToast } from '@/app/lib/toast';
 
 // --- HELPER COMPONENTS (Reused) ---
 
@@ -322,27 +323,11 @@ export default function CreateRemitterPage() {
 
             await Promise.all(receiverPromises);
 
-            setConfirmModal({
-                isOpen: true,
-                title: 'Success',
-                message: 'New Individual Remitter Created Successfully!',
-                type: 'info',
-                isAlert: true,
-                shouldRedirect: true,
-                redirectUrl: returnUrl ? `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newRemitterId=${remitterId}` : '/admin/remitters'
-            });
-
+            queueToast('Success', 'New Individual Remitter Created Successfully!', 'success');
+            router.push(returnUrl ? `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newRemitterId=${remitterId}` : '/admin/remitters');
         } catch (error) {
             console.error('Failed to submit:', error);
-            setConfirmModal({
-                isOpen: true,
-                title: 'Error',
-                message: 'An error occurred. Please try again.',
-                type: 'danger',
-                isAlert: true,
-                shouldRedirect: false,
-                redirectUrl: ''
-            });
+            showToast('Error', 'An error occurred. Please try again.', 'danger');
         } finally {
             setLoading(false);
         }

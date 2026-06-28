@@ -9,6 +9,7 @@ import { resolveUploadsUrl } from '@/app/lib/uploads';
 import { clearStoredUser, getStoredUserRaw } from '@/app/lib/authStorage';
 import { isPrivilegedUser as getIsPrivilegedUser, usePagePermissions } from '@/app/lib/permissions';
 import { applyThemePreference, getStoredThemePreference, resolveTheme, type ThemePreference, type ResolvedTheme } from '@/app/lib/theme';
+import ConfirmModal from './ConfirmModal';
 import {
     LayoutGrid,
     Layers,
@@ -116,6 +117,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const [isPrivilegedUser, setIsPrivilegedUser] = useState(false);
     const [viewSections, setViewSections] = useState<Set<string>>(new Set());
     const [permissionsLoaded, setPermissionsLoaded] = useState(false);
+    const [toast, setToast] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'danger' | 'warning' | 'info' | 'success';
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info',
+    });
 
     const pathname = usePathname();
     const router = useRouter();
@@ -447,6 +459,47 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             window.removeEventListener('admin-user-updated', onUserUpdated as EventListener);
         };
     }, []);
+
+    React.useEffect(() => {
+        const handleShowToast = (e: Event) => {
+            const customEvent = e as CustomEvent<{
+                title: string;
+                message: string;
+                type?: 'danger' | 'warning' | 'info' | 'success';
+            }>;
+            if (customEvent.detail) {
+                setToast({
+                    isOpen: true,
+                    title: customEvent.detail.title,
+                    message: customEvent.detail.message,
+                    type: customEvent.detail.type || 'info',
+                });
+            }
+        };
+
+        window.addEventListener('show-toast', handleShowToast);
+        return () => window.removeEventListener('show-toast', handleShowToast);
+    }, []);
+
+    React.useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const storedToast = sessionStorage.getItem('pending_toast');
+        if (storedToast) {
+            try {
+                const parsed = JSON.parse(storedToast);
+                setToast({
+                    isOpen: true,
+                    title: parsed.title || 'Notification',
+                    message: parsed.message || '',
+                    type: parsed.type || 'info',
+                });
+            } catch (err) {
+                console.error('Failed to parse pending toast:', err);
+            } finally {
+                sessionStorage.removeItem('pending_toast');
+            }
+        }
+    }, [pathname]);
 
     React.useEffect(() => {
         const syncHash = () => {
@@ -991,6 +1044,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     {children}
                 </main>
             </div>
+
+            <ConfirmModal
+                isOpen={toast.isOpen}
+                onClose={() => setToast(prev => ({ ...prev, isOpen: false }))}
+                onConfirm={() => setToast(prev => ({ ...prev, isOpen: false }))}
+                title={toast.title}
+                message={toast.message}
+                type={toast.type}
+                isAlert={true}
+            />
         </div>
     );
 }

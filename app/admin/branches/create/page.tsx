@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../../components/ConfirmModal';
+import { showToast, queueToast } from '@/app/lib/toast';
 import {
     ArrowLeft,
     ArrowRightLeft,
@@ -273,35 +274,15 @@ export default function CreateBranchPage() {
             });
 
             if (res.ok) {
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Success',
-                    message: 'Branch created successfully.',
-                    type: 'success',
-                    isAlert: true,
-                    shouldRedirect: true,
-                });
+                queueToast('Success', 'Branch created successfully.', 'success');
+                router.push('/admin/branches');
             } else {
                 const err = await res.text();
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Error',
-                    message: err || 'Failed to create branch.',
-                    type: 'danger',
-                    isAlert: true,
-                    shouldRedirect: false,
-                });
+                showToast('Error', err || 'Failed to create branch.', 'danger');
             }
         } catch (error) {
             console.error(error);
-            setConfirmModal({
-                isOpen: true,
-                title: 'Error',
-                message: 'Failed to create branch.',
-                type: 'danger',
-                isAlert: true,
-                shouldRedirect: false,
-            });
+            showToast('Error', 'Failed to create branch.', 'danger');
         } finally {
             setLoading(false);
         }

@@ -7,6 +7,7 @@ import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../../components/ConfirmModal';
 import { validatePassword } from '@/app/lib/validation';
+import { showToast, queueToast } from '@/app/lib/toast';
 import { ArrowLeft, User, Mail, Lock, Shield, Building, Save, MapPin, Phone, FileSignature, ChevronRight, Eye, EyeOff } from 'lucide-react';
 
 export default function CreateUserPage() {
@@ -151,35 +152,15 @@ export default function CreateUserPage() {
                     }
                 }
 
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Error',
-                    message: 'Failed to create user: ' + errMsg,
-                    type: 'danger',
-                    isAlert: true,
-                    shouldRedirect: false
-                });
+                showToast('Error', 'Failed to create user: ' + errMsg, 'danger');
                 return;
             }
 
-            setConfirmModal({
-                isOpen: true,
-                title: 'Success',
-                message: 'System User Created Successfully!',
-                type: 'success',
-                isAlert: true,
-                shouldRedirect: true
-            });
+            queueToast('Success', 'System User Created Successfully!', 'success');
+            router.push('/admin/users');
         } catch (e) {
             console.error(e);
-            setConfirmModal({
-                isOpen: true,
-                title: 'Error',
-                message: 'An error occurred.',
-                type: 'danger',
-                isAlert: true,
-                shouldRedirect: false
-            });
+            showToast('Error', 'An error occurred.', 'danger');
         }
     };
 

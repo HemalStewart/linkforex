@@ -6,6 +6,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../../components/ConfirmModal';
+import { showToast, queueToast } from '@/app/lib/toast';
 import Modal from '../../components/Modal';
 import { resolveUploadsUrl } from '@/app/lib/uploads';
 import { ArrowLeft, User, Mail, Shield, Building, Save, Loader2, ChevronRight, Lock, MapPin, Phone, FileSignature, RotateCcw } from 'lucide-react';
@@ -298,39 +299,19 @@ export default function EditUserPage() {
             });
 
             if (res.ok) {
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Success',
-                    message: 'User updated successfully',
-                    type: 'success',
-                    isAlert: true,
-                    shouldRedirect: true
-                });
+                queueToast('Success', 'User updated successfully', 'success');
+                router.push('/admin/users');
             } else {
                 let errMsg = `Unknown error (HTTP ${res.status} ${res.statusText})`;
                 try {
                     const err = await res.json();
                     if (err?.message) errMsg = err.message;
                 } catch { }
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Error',
-                    message: 'Failed to update user: ' + errMsg,
-                    type: 'danger',
-                    isAlert: true,
-                    shouldRedirect: false
-                });
+                showToast('Error', 'Failed to update user: ' + errMsg, 'danger');
             }
         } catch (error) {
             console.error('Failed to submit:', error);
-            setConfirmModal({
-                isOpen: true,
-                title: 'Error',
-                message: 'Error updating user',
-                type: 'danger',
-                isAlert: true,
-                shouldRedirect: false
-            });
+            showToast('Error', 'Error updating user', 'danger');
         } finally {
             setSubmitting(false);
         }

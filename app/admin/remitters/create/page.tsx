@@ -12,6 +12,7 @@ import {
     withActingUserParam,
 } from '@/app/lib/adminUserScope';
 import ConfirmModal from '../../components/ConfirmModal';
+import { showToast, queueToast } from '@/app/lib/toast';
 import {
     User, Calendar, MapPin, Briefcase, Phone, Building, CreditCard,
     Globe, FileText, Upload, Trash2, Plus, ArrowLeft,
@@ -618,38 +619,15 @@ export default function CreateRemitterPage() {
             await loadRemitterVeriffState(remitterIdStr);
 
             if (returnUrl) {
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Success',
-                    message: 'New Individual Remitter Created Successfully!',
-                    type: 'info',
-                    isAlert: true,
-                    shouldRedirect: true,
-                    redirectUrl: `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newRemitterId=${remitterIdStr}`
-                });
+                queueToast('Success', 'New Individual Remitter Created Successfully!', 'success');
+                router.push(`${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newRemitterId=${remitterIdStr}`);
             } else {
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Saved',
-                    message: 'Remitter created successfully.',
-                    type: 'info',
-                    isAlert: true,
-                    shouldRedirect: true,
-                    redirectUrl: '/admin/remitters'
-                });
+                queueToast('Saved', 'Remitter created successfully.', 'success');
+                router.push('/admin/remitters');
             }
-
         } catch (error) {
             console.error('Failed to submit:', error);
-            setConfirmModal({
-                isOpen: true,
-                title: 'Error',
-                message: 'An error occurred. Please try again.',
-                type: 'danger',
-                isAlert: true,
-                shouldRedirect: false,
-                redirectUrl: ''
-            });
+            showToast('Error', 'An error occurred. Please try again.', 'danger');
         } finally {
             setLoading(false);
         }
@@ -671,37 +649,15 @@ export default function CreateRemitterPage() {
             await loadRemitterVeriffState(remitterIdStr);
 
             if (returnUrl) {
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Success',
-                    message: 'New Individual Remitter Created Successfully!',
-                    type: 'info',
-                    isAlert: true,
-                    shouldRedirect: true,
-                    redirectUrl: `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newRemitterId=${remitterIdStr}`
-                });
+                queueToast('Success', 'New Individual Remitter Created Successfully!', 'success');
+                router.push(`${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newRemitterId=${remitterIdStr}`);
             } else {
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Saved',
-                    message: 'Remitter created successfully.',
-                    type: 'info',
-                    isAlert: true,
-                    shouldRedirect: true,
-                    redirectUrl: '/admin/remitters'
-                });
+                queueToast('Saved', 'Remitter created successfully.', 'success');
+                router.push('/admin/remitters');
             }
         } catch (error) {
             console.error('Failed to force-create remitter', error);
-            setConfirmModal({
-                isOpen: true,
-                title: 'Error',
-                message: 'An error occurred while creating remitter.',
-                type: 'danger',
-                isAlert: true,
-                shouldRedirect: false,
-                redirectUrl: ''
-            });
+            showToast('Error', 'An error occurred while creating remitter.', 'danger');
         } finally {
             setLoading(false);
         }

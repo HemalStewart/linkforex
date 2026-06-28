@@ -9,6 +9,7 @@ import { openPdfReport } from '@/app/lib/openPdfReport';
 import { ArrowLeft, User, Building, CreditCard, Save, Loader2, ChevronRight, Search, MapPin, Phone, ShieldCheck, Landmark, ChevronDown, ChevronUp, FileText, ExternalLink, X, RefreshCcw, Trash2, Download } from 'lucide-react';
 import { resolveUploadsUrl } from '@/app/lib/uploads';
 import ConfirmModal from '../../components/ConfirmModal';
+import { showToast, queueToast } from '@/app/lib/toast';
 import { formatDateTime } from '@/app/lib/dateUtils';
 
 const normalizeCountryLabel = (value: string) => {
@@ -330,34 +331,14 @@ export default function EditReceiverPage() {
             });
 
             if (res.ok) {
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Success',
-                    message: 'Receiver updated successfully',
-                    type: 'success',
-                    isAlert: true,
-                    shouldRedirect: true
-                });
+                queueToast('Success', 'Receiver updated successfully', 'success');
+                router.push('/admin/receivers');
             } else {
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Error',
-                    message: 'Failed to update receiver',
-                    type: 'danger',
-                    isAlert: true,
-                    shouldRedirect: false
-                });
+                showToast('Error', 'Failed to update receiver', 'danger');
             }
         } catch (error) {
             console.error('Failed to submit:', error);
-            setConfirmModal({
-                isOpen: true,
-                title: 'Error',
-                message: 'Error updating receiver',
-                type: 'danger',
-                isAlert: true,
-                shouldRedirect: false
-            });
+            showToast('Error', 'Error updating receiver', 'danger');
         } finally {
             setSubmitting(false);
         }
