@@ -7,6 +7,7 @@ import { applyUiSettings, getStoredUiSettings, type UiSettings } from '@/app/lib
 import { validatePassword } from '@/app/lib/validation';
 import { resolveUploadsUrl } from '@/app/lib/uploads';
 import Modal from '@/app/admin/components/Modal';
+import ConfirmModal from '@/app/admin/components/ConfirmModal';
 import {
     Building2,
     Camera,
@@ -119,6 +120,7 @@ export default function ProfilePage() {
         rowsPerPage: 10,
     });
     const [profile, setProfile] = useState<ProfileData | null>(null);
+    const email = useMemo(() => String(profile?.email || storedUser?.email || '').trim(), [profile, storedUser]);
     const [photoFile, setPhotoFile] = useState<File | null>(null);
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
     const [cropModalOpen, setCropModalOpen] = useState(false);
@@ -135,15 +137,27 @@ export default function ProfilePage() {
         active: false,
     });
     const [passwordForm, setPasswordForm] = useState({
-        currentPassword: '',
         newPassword: '',
         confirmPassword: '',
     });
     const [passwordErrorState, setPasswordErrorState] = useState('');
     const [confirmPasswordErrorState, setConfirmPasswordErrorState] = useState('');
-    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'info' | 'warning' | 'danger' | 'success';
+        isAlert: boolean;
+        onConfirm?: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info',
+        isAlert: true
+    });
 
     useEffect(() => {
         const syncUiSettings = () => {
@@ -371,9 +385,14 @@ export default function ProfilePage() {
     };
 
     const handlePasswordChange = async () => {
-        const email = String(profile?.email || storedUser?.email || '').trim();
-        if (!email || !passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
-            setMessage({ text: 'Complete all password fields first.', tone: 'error' });
+        if (!email || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+            setConfirmModal({
+                isOpen: true,
+                title: 'Required Fields',
+                message: 'Complete all password fields first.',
+                type: 'warning',
+                isAlert: true
+            });
             return;
         }
 
@@ -393,7 +412,6 @@ export default function ProfilePage() {
         }
 
         setPasswordLoading(true);
-        setMessage(null);
 
         try {
             const res = await fetch(ENDPOINTS.AUTH.CHANGE_PASSWORD, {
@@ -401,7 +419,6 @@ export default function ProfilePage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     email,
-                    current_password: passwordForm.currentPassword,
                     new_password: passwordForm.newPassword,
                     confirm_password: passwordForm.confirmPassword,
                 }),
@@ -409,21 +426,42 @@ export default function ProfilePage() {
 
             const data = await res.json().catch(() => ({}));
             if (!res.ok) {
-                setMessage({ text: data?.message || 'Failed to change password.', tone: 'error' });
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Change Password Failed',
+                    message: data?.message || 'Failed to change password.',
+                    type: 'danger',
+                    isAlert: true
+                });
                 return;
             }
 
-            setPasswordForm({
-                currentPassword: '',
-                newPassword: '',
-                confirmPassword: '',
+            setConfirmModal({
+                isOpen: true,
+                title: 'Success',
+                message: data?.message || 'Password changed successfully.',
+                type: 'success',
+                isAlert: true,
+                onConfirm: () => {
+                    setPasswordModalOpen(false);
+                    setPasswordForm({
+                        newPassword: '',
+                        confirmPassword: '',
+                    });
+                    setPasswordErrorState('');
+                    setConfirmPasswordErrorState('');
+                    setShowNewPassword(false);
+                    setShowConfirmPassword(false);
+                }
             });
-            setPasswordErrorState('');
-            setConfirmPasswordErrorState('');
-            setMessage({ text: data?.message || 'Password changed successfully.', tone: 'success' });
-            setPasswordModalOpen(false);
         } catch {
-            setMessage({ text: 'Failed to change password.', tone: 'error' });
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'Failed to change password.',
+                type: 'danger',
+                isAlert: true
+            });
         } finally {
             setPasswordLoading(false);
         }
@@ -440,6 +478,22 @@ export default function ProfilePage() {
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-up pb-20">
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                onClose={() => {
+                    setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                    if (confirmModal.onConfirm) confirmModal.onConfirm();
+                }}
+                onConfirm={() => {
+                    setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                    if (confirmModal.onConfirm) confirmModal.onConfirm();
+                }}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                type={confirmModal.type as any}
+                isAlert={confirmModal.isAlert}
+                confirmText="OK"
+            />
             <Modal isOpen={cropModalOpen} onClose={closeCropModal} title="Crop Profile Picture" size="lg">
                 <div className="space-y-6">
                     <div className="flex flex-col items-center gap-4">
@@ -506,43 +560,27 @@ export default function ProfilePage() {
             <Modal isOpen={passwordModalOpen} onClose={() => {
                 setPasswordModalOpen(false);
                 setPasswordForm({
-                    currentPassword: '',
                     newPassword: '',
                     confirmPassword: '',
                 });
                 setPasswordErrorState('');
                 setConfirmPasswordErrorState('');
-                setShowCurrentPassword(false);
                 setShowNewPassword(false);
                 setShowConfirmPassword(false);
             }} title="Change Password" size="md">
-                <div className="space-y-6">
+                <form onSubmit={(e) => {
+                    e.preventDefault();
+                    void handlePasswordChange();
+                }} className="space-y-6">
+                    <input type="text" name="username" value={email} readOnly autoComplete="username" style={{ position: 'absolute', top: '-1000px', left: '-1000px', opacity: 0, width: '1px', height: '1px', pointerEvents: 'none' }} />
                     <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Current Password</label>
-                            <div className="relative">
-                                <input
-                                    type={showCurrentPassword ? 'text' : 'password'}
-                                    value={passwordForm.currentPassword}
-                                    onChange={(e) => setPasswordForm((prev) => ({ ...prev, currentPassword: e.target.value }))}
-                                    className="input-glass w-full pr-10 text-sm"
-                                    placeholder="Enter current password"
-                                />
-                                <button
-                                    type="button"
-                                    aria-label={showCurrentPassword ? 'Hide password' : 'Show password'}
-                                    onClick={() => setShowCurrentPassword((prev) => !prev)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-200 hover:text-teal-500 transition-colors"
-                                >
-                                    {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                </button>
-                            </div>
-                        </div>
                         <div>
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">New Password</label>
                             <div className="relative">
                                 <input
                                     type={showNewPassword ? 'text' : 'password'}
+                                    name="new-password"
+                                    autoComplete="new-password"
                                     value={passwordForm.newPassword}
                                     onChange={(e) => {
                                         setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }));
@@ -550,6 +588,7 @@ export default function ProfilePage() {
                                     }}
                                     className="input-glass w-full pr-10 text-sm"
                                     placeholder="Enter new password"
+                                    required
                                 />
                                 <button
                                     type="button"
@@ -572,6 +611,8 @@ export default function ProfilePage() {
                             <div className="relative">
                                 <input
                                     type={showConfirmPassword ? 'text' : 'password'}
+                                    name="confirm-password"
+                                    autoComplete="new-password"
                                     value={passwordForm.confirmPassword}
                                     onChange={(e) => {
                                         setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }));
@@ -579,6 +620,7 @@ export default function ProfilePage() {
                                     }}
                                     className="input-glass w-full pr-10 text-sm"
                                     placeholder="Confirm new password"
+                                    required
                                 />
                                 <button
                                     type="button"
@@ -601,13 +643,11 @@ export default function ProfilePage() {
                             onClick={() => {
                                 setPasswordModalOpen(false);
                                 setPasswordForm({
-                                    currentPassword: '',
                                     newPassword: '',
                                     confirmPassword: '',
                                 });
                                 setPasswordErrorState('');
                                 setConfirmPasswordErrorState('');
-                                setShowCurrentPassword(false);
                                 setShowNewPassword(false);
                                 setShowConfirmPassword(false);
                             }}
@@ -616,8 +656,7 @@ export default function ProfilePage() {
                             Cancel
                         </button>
                         <button
-                            type="button"
-                            onClick={handlePasswordChange}
+                            type="submit"
                             disabled={passwordLoading}
                             className="btn-primary inline-flex items-center gap-2 disabled:opacity-60"
                         >
@@ -625,7 +664,7 @@ export default function ProfilePage() {
                             {passwordLoading ? 'Updating...' : 'Update Password'}
                         </button>
                     </div>
-                </div>
+                </form>
             </Modal>
 
             <div>

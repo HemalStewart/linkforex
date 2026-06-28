@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { getStoredUiSettings } from '@/app/lib/uiPreferences';
 import Modal from './Modal';
 import { AlertCircle, CheckCircle2, Info, TriangleAlert, X } from 'lucide-react';
@@ -33,6 +34,11 @@ export default function ConfirmModal({
     autoCloseMs
 }: ConfirmModalProps) {
     const [defaultAutoCloseMs, setDefaultAutoCloseMs] = React.useState(3000);
+    const [mounted, setMounted] = React.useState(false);
+
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
 
     React.useEffect(() => {
         const syncUiSettings = () => {
@@ -63,6 +69,7 @@ export default function ConfirmModal({
     }, [isOpen, isAlert, resolvedAutoCloseMs, onConfirm]);
 
     if (isAlert && isOpen) {
+        if (!mounted) return null;
         const toastStyles = {
             danger: {
                 container: 'border-red-200/80 dark:border-red-900/40',
@@ -101,7 +108,7 @@ export default function ConfirmModal({
             success: CheckCircle2
         }[type];
 
-        return (
+        return createPortal(
             <div className="fixed top-5 right-5 z-[9999] w-[min(92vw,24rem)] animate-slide-in-right">
                 <div className={`glass-effect-strong rounded-2xl border shadow-xl overflow-hidden ${toastStyles.container}`}>
                     <div className="p-4 flex items-start gap-3">
@@ -128,7 +135,8 @@ export default function ConfirmModal({
                         />
                     </div>
                 </div>
-            </div>
+            </div>,
+            document.body
         );
     }
 

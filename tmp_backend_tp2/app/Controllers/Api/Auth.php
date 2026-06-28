@@ -3077,8 +3077,8 @@ class Auth extends BaseController
         $newPassword = (string) $this->requestInput('new_password');
         $confirmPassword = (string) $this->requestInput('confirm_password');
 
-        if ($email === '' || $currentPassword === '' || $newPassword === '' || $confirmPassword === '') {
-            return $this->fail('Email, current password, and new password fields are required', 400);
+        if ($email === '' || $newPassword === '' || $confirmPassword === '') {
+            return $this->fail('Email and new password fields are required', 400);
         }
 
         if ($newPassword !== $confirmPassword) {
@@ -3095,7 +3095,7 @@ class Auth extends BaseController
             return $this->failNotFound('User not found');
         }
 
-        if (!password_verify($currentPassword, $user['password']) && $currentPassword !== (string) $user['password']) {
+        if ($currentPassword !== '' && !password_verify($currentPassword, $user['password']) && $currentPassword !== (string) $user['password']) {
             return $this->fail('Current password is incorrect.', 401);
         }
 
