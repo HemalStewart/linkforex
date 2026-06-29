@@ -17,7 +17,7 @@ import { useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 
 export default function UsersPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('SYSTEM_USERS');
-    const { canAdd, canEdit, canDelete } = usePagePermissions('SYSTEM_USERS');
+    const { canAdd, canEdit, canDelete, canResetPassword } = usePagePermissions('SYSTEM_USERS');
     const [searchQuery, setSearchQuery] = useState('');
     const [sortKey, setSortKey] = useState<string>('created_at');
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
@@ -615,7 +615,7 @@ export default function UsersPage() {
                                         System Defined <span className="text-slate-400 dark:text-slate-300">{sortIndicator('system_defined')}</span>
                                     </button>
                                 </th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Reset Password</th>
+                                {canResetPassword && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Reset Password</th>}
                                 {canDelete && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>}
                             </tr>
                         </thead>
@@ -689,15 +689,17 @@ export default function UsersPage() {
                                                 {toYesNoLabel(user.system_defined)}
                                             </Badge>
                                         </td>
-                                        <td className="px-4 py-4">
-                                            <button
-                                                onClick={() => promptReset(user)}
-                                                className="px-3 py-1.5 rounded-full glass-effect text-xs font-semibold text-slate-600 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors flex items-center gap-1"
-                                            >
-                                                <RotateCcw className="w-3.5 h-3.5" />
-                                                Reset Password
-                                            </button>
-                                        </td>
+                                        {canResetPassword && (
+                                            <td className="px-4 py-4">
+                                                <button
+                                                    onClick={() => promptReset(user)}
+                                                    className="px-3 py-1.5 rounded-full glass-effect text-xs font-semibold text-slate-600 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors flex items-center gap-1"
+                                                >
+                                                    <RotateCcw className="w-3.5 h-3.5" />
+                                                    Reset Password
+                                                </button>
+                                            </td>
+                                        )}
                                         {canDelete && (
                                             <td className="px-2 py-4 text-center">
                                                 <button

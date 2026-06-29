@@ -470,7 +470,10 @@ export default function PermissionGroupsPage() {
             if (['PERMISSION_GROUPS', 'SYSGROUPS_PERMISSION'].includes(sec)) {
                 return ['VIEW', 'EDIT', 'VIEW_CREATED_BY', 'VIEW_CREATED_AT', 'VIEW_UPDATED_BY', 'VIEW_UPDATED_AT'].includes(op);
             }
-            if (['DILISENSE_SOURCES', 'COUNTRIES', 'BANKS', 'RELATIONSHIPS', 'PURPOSES', 'ROLES', 'SYSGROUPS'].includes(sec)) {
+            if (['AUDIT_LOGS', 'SYSUSERS_LOG', 'SYSRECORD_LOGS', 'LOGS'].includes(sec)) {
+                return ['VIEW', 'EXPORT', 'VIEW_CREATED_BY', 'VIEW_CREATED_AT', 'VIEW_UPDATED_BY', 'VIEW_UPDATED_AT'].includes(op);
+            }
+            if (['DILISENSE_SOURCES', 'COUNTRIES', 'BANKS', 'RELATIONSHIPS', 'PURPOSES', 'ROLES', 'SYSGROUPS', 'SYSTEM_USERS', 'SYSUSERS'].includes(sec)) {
                 return !['ADD', 'APPROVE', 'CANCEL'].includes(op);
             }
             return true;
