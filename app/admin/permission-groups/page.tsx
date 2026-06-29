@@ -473,6 +473,9 @@ export default function PermissionGroupsPage() {
             if (['AUDIT_LOGS', 'SYSUSERS_LOG', 'SYSRECORD_LOGS', 'LOGS'].includes(sec)) {
                 return ['VIEW', 'EXPORT', 'VIEW_CREATED_BY', 'VIEW_CREATED_AT', 'VIEW_UPDATED_BY', 'VIEW_UPDATED_AT'].includes(op);
             }
+            if (['MOBILE_OVERVIEW', 'OVERVIEW'].includes(sec)) {
+                return op === 'VIEW';
+            }
             if (['DILISENSE_SOURCES', 'COUNTRIES', 'BANKS', 'RELATIONSHIPS', 'PURPOSES', 'ROLES', 'SYSGROUPS', 'SYSTEM_USERS', 'SYSUSERS'].includes(sec)) {
                 return !['ADD', 'APPROVE', 'CANCEL'].includes(op);
             }
