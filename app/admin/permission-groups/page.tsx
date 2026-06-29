@@ -455,6 +455,7 @@ export default function PermissionGroupsPage() {
         if (!searchQuery.trim()) return baseRows;
         const term = searchQuery.trim().toLowerCase();
         return baseRows.filter((row) => {
+            const cbDisplay = String(row.created_by || '').trim().toLowerCase() === 'system' ? 'Admin' : (row.created_by || '');
             const haystack = [
                 row.role_name,
                 row.page_section,
@@ -462,7 +463,7 @@ export default function PermissionGroupsPage() {
                 row.operation,
                 row.system_defined,
                 row.active,
-                row.created_by,
+                cbDisplay,
                 row.created_at,
                 row.updated_by,
                 row.updated_at
@@ -539,7 +540,8 @@ export default function PermissionGroupsPage() {
             case 'active':
                 return row.active || '';
             case 'created_by':
-                return row.created_by || '';
+                const cb = row.created_by || '';
+                return String(cb).trim().toLowerCase() === 'system' ? 'Admin' : cb;
             case 'created_at':
                 return new Date(normalizeDate(row.created_at)).getTime() || 0;
             case 'updated_by':
@@ -1208,7 +1210,11 @@ export default function PermissionGroupsPage() {
                                                                 />
                                                             </label>
                                                         </td>
-                                                        {showCreatedBy && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.created_by || '—'}</td>}
+                                                        {showCreatedBy && (
+                                                             <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">
+                                                                 {String(row.created_by || '').trim().toLowerCase() === 'system' ? 'Admin' : (row.created_by || '—')}
+                                                             </td>
+                                                         )}
                                                         {showCreatedAt && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{row.created_at ? formatDateTime(row.created_at) : '—'}</td>}
                                                         {showUpdatedBy && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.updated_by || '—'}</td>}
                                                         {showUpdatedAt && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{row.updated_at ? formatDateTime(row.updated_at) : '—'}</td>}
