@@ -422,6 +422,9 @@ export default function PermissionGroupsPage() {
             if (sec === 'PROFILE' || sec === 'MY_PROFILE') {
                 return !['DELETE', 'ADD', 'APPROVE', 'CANCEL', 'VIEW_CREATED_AT', 'VIEW_CREATED_BY', 'VIEW_UPDATED_AT', 'VIEW_UPDATED_BY'].includes(op);
             }
+            if (sec === 'REPORTS' || sec === 'DASHBOARD') {
+                return op === 'VIEW';
+            }
             return true;
         });
         if (!searchQuery.trim()) return baseRows;
