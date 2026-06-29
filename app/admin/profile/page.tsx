@@ -9,6 +9,7 @@ import { resolveUploadsUrl } from '@/app/lib/uploads';
 import Modal from '@/app/admin/components/Modal';
 import ConfirmModal from '@/app/admin/components/ConfirmModal';
 import { showToast } from '@/app/lib/toast';
+import { usePagePermissions } from '@/app/lib/permissions';
 import {
     Building2,
     Camera,
@@ -107,6 +108,7 @@ const clampOffsets = (imageWidth: number, imageHeight: number, zoom: number, off
 
 export default function ProfilePage() {
     const storedUser = useMemo(() => getStoredUser<StoredUser>(), []);
+    const { canEdit, canChangePassword, canDisplayPreferences } = usePagePermissions('PROFILE');
 
     const [profileLoading, setProfileLoading] = useState(true);
     const [profilePhotoUploading, setProfilePhotoUploading] = useState(false);
@@ -719,33 +721,37 @@ export default function ProfilePage() {
                             <p className="text-lg font-bold text-slate-900 dark:text-white">{toLabel(profile?.name || storedUser?.name)}</p>
                             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{toLabel(profile?.role || storedUser?.role)}</p>
                         </div>
-                        <div className="space-y-4">
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={handlePhotoSelection}
-                                className="input-glass w-full file:mr-3 file:rounded-full file:border-0 file:bg-teal-500 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white cursor-pointer"
-                            />
-                            <button
-                                type="button"
-                                onClick={handlePhotoUpload}
-                                disabled={!photoFile || profilePhotoUploading}
-                                className="btn-primary w-full disabled:opacity-60 inline-flex items-center justify-center gap-2 py-3"
-                            >
-                                {profilePhotoUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
-                                {profilePhotoUploading ? 'Uploading...' : 'Update Profile Picture'}
-                            </button>
-                        </div>
-                        <div className="pt-4 border-t border-slate-100/60 dark:border-slate-800/40">
-                            <button
-                                type="button"
-                                onClick={() => setPasswordModalOpen(true)}
-                                className="btn-secondary w-full inline-flex items-center justify-center gap-2 py-3"
-                            >
-                                <Lock className="w-4 h-4" />
-                                Change Password
-                            </button>
-                        </div>
+                        {canEdit && (
+                            <div className="space-y-4">
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handlePhotoSelection}
+                                    className="input-glass w-full file:mr-3 file:rounded-full file:border-0 file:bg-teal-500 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white cursor-pointer"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={handlePhotoUpload}
+                                    disabled={!photoFile || profilePhotoUploading}
+                                    className="btn-primary w-full disabled:opacity-60 inline-flex items-center justify-center gap-2 py-3"
+                                >
+                                    {profilePhotoUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+                                    {profilePhotoUploading ? 'Uploading...' : 'Update Profile Picture'}
+                                </button>
+                            </div>
+                        )}
+                        {canChangePassword && (
+                            <div className="pt-4 border-t border-slate-100/60 dark:border-slate-800/40">
+                                <button
+                                    type="button"
+                                    onClick={() => setPasswordModalOpen(true)}
+                                    className="btn-secondary w-full inline-flex items-center justify-center gap-2 py-3"
+                                >
+                                    <Lock className="w-4 h-4" />
+                                    Change Password
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -799,7 +805,7 @@ export default function ProfilePage() {
                         )}
                     </div>
 
-                    {profile?.twofa_status === 'active' && (
+                    {profile?.twofa_status === 'active' && profile?.twofa_qr_code && (
                         <div className="card-glass p-8 space-y-6 shadow-md">
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white border-b border-slate-100/60 dark:border-slate-800/40 pb-3 flex items-center gap-2">
                                 <Shield className="w-5 h-5 text-teal-500" />
@@ -842,99 +848,101 @@ export default function ProfilePage() {
                         </div>
                     )}
 
-                    <div className="card-glass p-8 space-y-6 shadow-md">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white border-b border-slate-100/60 dark:border-slate-800/40 pb-3 flex items-center gap-2">
-                            <Save className="w-5 h-5 text-teal-500" />
-                            Display Preferences
-                        </h3>
-                        <div className="space-y-6">
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
-                                    Table Font Size ({uiSettings.tableFontSizePx}px)
-                                </label>
-                                <div className="space-y-3">
-                                    <input
-                                        type="range"
-                                        min={10}
-                                        max={20}
-                                        step={1}
-                                        value={uiSettings.tableFontSizePx}
-                                        onChange={(e) => updateTableFontSize(e.target.value)}
-                                        className="w-full accent-teal-500"
-                                    />
-                                    <input
-                                        type="number"
-                                        min={10}
-                                        max={20}
-                                        step={1}
-                                        value={uiSettings.tableFontSizePx}
-                                        onChange={(e) => updateTableFontSize(e.target.value)}
-                                        className="input-glass w-full text-sm"
-                                    />
+                    {canDisplayPreferences && (
+                        <div className="card-glass p-8 space-y-6 shadow-md">
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white border-b border-slate-100/60 dark:border-slate-800/40 pb-3 flex items-center gap-2">
+                                <Save className="w-5 h-5 text-teal-500" />
+                                Display Preferences
+                            </h3>
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                                        Table Font Size ({uiSettings.tableFontSizePx}px)
+                                    </label>
+                                    <div className="space-y-3">
+                                        <input
+                                            type="range"
+                                            min={10}
+                                            max={20}
+                                            step={1}
+                                            value={uiSettings.tableFontSizePx}
+                                            onChange={(e) => updateTableFontSize(e.target.value)}
+                                            className="w-full accent-teal-500"
+                                        />
+                                        <input
+                                            type="number"
+                                            min={10}
+                                            max={20}
+                                            step={1}
+                                            value={uiSettings.tableFontSizePx}
+                                            onChange={(e) => updateTableFontSize(e.target.value)}
+                                            className="input-glass w-full text-sm"
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                                        Toast Message Timer ({(uiSettings.toastMessageTimerMs / 1000).toFixed(1)}s)
+                                    </label>
+                                    <div className="space-y-3">
+                                        <input
+                                            type="range"
+                                            min={1000}
+                                            max={10000}
+                                            step={500}
+                                            value={uiSettings.toastMessageTimerMs}
+                                            onChange={(e) => updateToastTimer(e.target.value)}
+                                            className="w-full accent-teal-500"
+                                        />
+                                        <input
+                                            type="number"
+                                            min={1000}
+                                            max={10000}
+                                            step={500}
+                                            value={uiSettings.toastMessageTimerMs}
+                                            onChange={(e) => updateToastTimer(e.target.value)}
+                                            className="input-glass w-full text-sm"
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                                        Default Rows Per Page ({uiSettings.rowsPerPage})
+                                    </label>
+                                    <div className="space-y-3">
+                                        <input
+                                            type="range"
+                                            min={5}
+                                            max={100}
+                                            step={1}
+                                            value={uiSettings.rowsPerPage ?? 10}
+                                            onChange={(e) => updateRowsPerPageSetting(e.target.value)}
+                                            className="w-full accent-teal-500"
+                                        />
+                                        <input
+                                            type="number"
+                                            min={5}
+                                            max={100}
+                                            step={1}
+                                            value={uiSettings.rowsPerPage ?? 10}
+                                            onChange={(e) => updateRowsPerPageSetting(e.target.value)}
+                                            className="input-glass w-full text-sm"
+                                        />
+                                    </div>
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
-                                    Toast Message Timer ({(uiSettings.toastMessageTimerMs / 1000).toFixed(1)}s)
-                                </label>
-                                <div className="space-y-3">
-                                    <input
-                                        type="range"
-                                        min={1000}
-                                        max={10000}
-                                        step={500}
-                                        value={uiSettings.toastMessageTimerMs}
-                                        onChange={(e) => updateToastTimer(e.target.value)}
-                                        className="w-full accent-teal-500"
-                                    />
-                                    <input
-                                        type="number"
-                                        min={1000}
-                                        max={10000}
-                                        step={500}
-                                        value={uiSettings.toastMessageTimerMs}
-                                        onChange={(e) => updateToastTimer(e.target.value)}
-                                        className="input-glass w-full text-sm"
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
-                                    Default Rows Per Page ({uiSettings.rowsPerPage})
-                                </label>
-                                <div className="space-y-3">
-                                    <input
-                                        type="range"
-                                        min={5}
-                                        max={100}
-                                        step={1}
-                                        value={uiSettings.rowsPerPage ?? 10}
-                                        onChange={(e) => updateRowsPerPageSetting(e.target.value)}
-                                        className="w-full accent-teal-500"
-                                    />
-                                    <input
-                                        type="number"
-                                        min={5}
-                                        max={100}
-                                        step={1}
-                                        value={uiSettings.rowsPerPage ?? 10}
-                                        onChange={(e) => updateRowsPerPageSetting(e.target.value)}
-                                        className="input-glass w-full text-sm"
-                                    />
-                                </div>
+                            <div className="flex justify-end pt-2">
+                                <button
+                                    type="button"
+                                    onClick={handlePreferencesSave}
+                                    className="btn-primary inline-flex items-center gap-2 py-2.5 px-6 font-semibold"
+                                >
+                                    <Save className="w-4 h-4" />
+                                    Save
+                                </button>
                             </div>
                         </div>
-                        <div className="flex justify-end pt-2">
-                            <button
-                                type="button"
-                                onClick={handlePreferencesSave}
-                                className="btn-primary inline-flex items-center gap-2 py-2.5 px-6 font-semibold"
-                            >
-                                <Save className="w-4 h-4" />
-                                Save
-                            </button>
-                        </div>
-                    </div>
+                    )}
 
                 </div>
             </div>

@@ -416,9 +416,17 @@ export default function PermissionGroupsPage() {
     };
 
     const searched = useMemo(() => {
-        if (!searchQuery.trim()) return rows;
+        const baseRows = rows.filter((row) => {
+            const sec = String(row.page_section || '').trim().toUpperCase();
+            const op = String(row.operation || '').trim().toUpperCase();
+            if (sec === 'PROFILE' || sec === 'MY_PROFILE') {
+                return !['DELETE', 'ADD', 'APPROVE', 'CANCEL', 'VIEW_CREATED_AT', 'VIEW_CREATED_BY', 'VIEW_UPDATED_AT', 'VIEW_UPDATED_BY'].includes(op);
+            }
+            return true;
+        });
+        if (!searchQuery.trim()) return baseRows;
         const term = searchQuery.trim().toLowerCase();
-        return rows.filter((row) => {
+        return baseRows.filter((row) => {
             const haystack = [
                 row.role_name,
                 row.page_section,

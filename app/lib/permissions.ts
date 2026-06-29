@@ -121,7 +121,7 @@ export const ADMIN_PAGES_CONFIG: AdminCategoryInfo[] = [
         category: 'Configuration',
         pages: [
             { name: 'Configuration', section: 'SETTINGS', operations: ['VIEW', 'EDIT'] },
-            { name: 'My Profile', section: 'PROFILE', operations: ['VIEW', 'EDIT'] }
+            { name: 'My Profile', section: 'PROFILE', operations: ['VIEW', 'EDIT', 'CHANGE_PASSWORD', 'DISPLAY_PREFERENCES'] }
         ]
     }
 ];
@@ -203,6 +203,8 @@ export function usePagePermissions(section: string) {
         canCancel: false,
         canView: false,
         canManuallyPassed: false,
+        canChangePassword: false,
+        canDisplayPreferences: false,
     });
 
     useEffect(() => {
@@ -212,6 +214,8 @@ export function usePagePermissions(section: string) {
             const hasDelete = checkPermission(section, 'DELETE');
             const hasView = checkPermission(section, 'VIEW');
             const hasManuallyPassed = checkPermission(section, 'MANUALLY_PASSED');
+            const hasChangePassword = checkPermission(section, 'CHANGE_PASSWORD');
+            const hasDisplayPreferences = checkPermission(section, 'DISPLAY_PREFERENCES');
 
             const isOpConfigured = (op: string) => {
                 for (const cat of ADMIN_PAGES_CONFIG) {
@@ -251,6 +255,8 @@ export function usePagePermissions(section: string) {
                 canCancel: checkPermission(section, 'CANCEL'),
                 canView: hasView,
                 canManuallyPassed: hasManuallyPassed,
+                canChangePassword: hasChangePassword,
+                canDisplayPreferences: hasDisplayPreferences,
             });
         };
 
