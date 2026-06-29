@@ -11,6 +11,7 @@ import { resolveUploadsUrl } from '@/app/lib/uploads';
 import ConfirmModal from '../../components/ConfirmModal';
 import { showToast, queueToast } from '@/app/lib/toast';
 import { formatDateTime } from '@/app/lib/dateUtils';
+import { usePagePermissions } from '@/app/lib/permissions';
 
 const normalizeCountryLabel = (value: string) => {
     const normalized = value.trim().toLowerCase();
@@ -29,6 +30,7 @@ export default function EditReceiverPage() {
     const params = useParams();
     const id = params.id as string;
     const currentUser = React.useMemo(() => getCurrentAdminUser(), []);
+    const { canManuallyPassed } = usePagePermissions('RECEIVERS');
 
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -836,30 +838,6 @@ export default function EditReceiverPage() {
                             </select>
                         </div>
 
-                        {initialAmlStatus === 'review' && (
-                            <div className="flex items-start space-x-3 bg-emerald-50/50 dark:bg-slate-800/40 border border-emerald-100/50 dark:border-slate-700/60 p-4 rounded-2xl mb-1 col-span-1 md:col-span-2">
-                                <input
-                                    type="checkbox"
-                                    id="enableAmlOverride"
-                                    checked={enableAmlOverride}
-                                    onChange={(e) => {
-                                        const checked = e.target.checked;
-                                        setEnableAmlOverride(checked);
-                                        if (!checked) {
-                                            setFormData((prev) => ({ ...prev, aml_status: 'review' }));
-                                        }
-                                    }}
-                                    className="checkbox-glass mt-0.5 h-4 w-4 text-emerald-600 focus:ring-emerald-500 rounded border-slate-300 cursor-pointer"
-                                />
-                                <label htmlFor="enableAmlOverride" className="text-xs font-bold text-slate-700 dark:text-slate-200 cursor-pointer select-none">
-                                    Manually Pass AML
-                                    <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block mt-0.5 leading-normal">
-                                        Check this box to enable manually passing this review verification profile.
-                                    </span>
-                                </label>
-                            </div>
-                        )}
-
                         <div>
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">AML Status</label>
                             <select
@@ -869,25 +847,13 @@ export default function EditReceiverPage() {
                                                 'text-slate-600 dark:text-slate-400'
                                     }`}
                                 value={formData.aml_status}
-                                disabled={initialAmlStatus === 'review' && !enableAmlOverride}
+                                disabled={!canManuallyPassed}
                                 onChange={(e) => setFormData({ ...formData, aml_status: e.target.value })}
                             >
-                                {initialAmlStatus === 'review' ? (
-                                    <>
-                                        <option value="review" className="text-amber-700 dark:text-amber-400">Review</option>
-                                        {enableAmlOverride && (
-                                            <option value="manually passed" className="text-emerald-700 dark:text-emerald-400">Manually Passed</option>
-                                        )}
-                                    </>
-                                ) : (
-                                    <>
-                                        <option value="pending" className="text-slate-700 dark:text-slate-200">Pending</option>
-                                        <option value="passed" className="text-emerald-700 dark:text-emerald-400">Passed</option>
-                                        <option value="manually passed" className="text-emerald-700 dark:text-emerald-400">Manually Passed</option>
-                                        <option value="review" className="text-amber-700 dark:text-amber-400">Review</option>
-                                        <option value="hit" className="text-rose-700 dark:text-rose-400">Hit</option>
-                                    </>
-                                )}
+                                <option value="pending" className="text-slate-700 dark:text-slate-200">Pending</option>
+                                <option value="passed" className="text-emerald-700 dark:text-emerald-400">Manually Passed</option>
+                                <option value="review" className="text-amber-700 dark:text-amber-400">Review</option>
+                                <option value="hit" className="text-rose-700 dark:text-rose-400">Hit</option>
                             </select>
                         </div>
 

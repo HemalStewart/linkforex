@@ -16,9 +16,14 @@ import { useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 
 type SortDir = 'asc' | 'desc';
 
+const csvEscape = (value: unknown): string => {
+    const text = String(value ?? '').replace(/"/g, '""');
+    return `"${text}"`;
+};
+
 export default function RemittersPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('REMITTERS');
-    const { canAdd, canEdit, canDelete, canPdf } = usePagePermissions('REMITTERS');
+    const { canAdd, canEdit, canDelete, canPdf, canExport } = usePagePermissions('REMITTERS');
     const currentUser = useMemo(() => getCurrentAdminUser(), []);
     const [selectedRemitter, setSelectedRemitter] = useState<any | null>(null);
     const [remitters, setRemitters] = useState<any[]>([]);
@@ -212,6 +217,31 @@ export default function RemittersPage() {
     const startIndex = total === 0 ? 0 : (currentPage - 1) * rowsPerPage;
     const endIndex = Math.min(startIndex + rowsPerPage, total);
     const pagedRows = sortedRows.slice(startIndex, endIndex);
+
+    const handleExportCsv = () => {
+        const exportColumns = columns.filter((column) => !['id_copy', 'other_doc', 'work_related_doc', 'sender_aml_doc'].includes(column.key));
+        const header = exportColumns.map((column) => csvEscape(column.label)).join(',');
+        const body = sortedRows.map((row) => (
+            exportColumns
+                .map((column) => {
+                    const value = row[column.key];
+                    if (typeof value === 'number') return csvEscape(value.toString());
+                    return csvEscape(value === null || value === undefined ? '' : String(value));
+                })
+                .join(',')
+        ));
+
+        const csv = [header, ...body].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = `remitters_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        URL.revokeObjectURL(url);
+    };
 
     useEffect(() => {
         if (page !== currentPage) {
@@ -632,12 +662,24 @@ export default function RemittersPage() {
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Remitters</h1>
                     <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">Manage sender profiles for branch and mobile app</p>
                 </div>
-                {canAdd && (
-                    <Link href="/admin/remitters/create" className="btn-primary flex items-center space-x-2 rounded-full px-6">
-                        <UserPlus className="w-5 h-5" />
-                        <span>Add Remitter</span>
-                    </Link>
-                )}
+                <div className="flex items-center gap-3">
+                    {canExport && (
+                        <button
+                            type="button"
+                            onClick={handleExportCsv}
+                            className="btn-primary flex items-center space-x-2 rounded-full px-6 py-2.5 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 border-0 text-white whitespace-nowrap"
+                        >
+                            <Download className="w-5 h-5" />
+                            <span>Export CSV</span>
+                        </button>
+                    )}
+                    {canAdd && (
+                        <Link href="/admin/remitters/create" className="btn-primary flex items-center space-x-2 rounded-full px-6 py-2.5">
+                            <UserPlus className="w-5 h-5" />
+                            <span>Add Remitter</span>
+                        </Link>
+                    )}
+                </div>
             </div>
 
             <div className="card-glass p-6">

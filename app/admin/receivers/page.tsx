@@ -16,6 +16,11 @@ import { useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 
 type SortDir = 'asc' | 'desc';
 
+const csvEscape = (value: unknown): string => {
+    const text = String(value ?? '').replace(/"/g, '""');
+    return `"${text}"`;
+};
+
 type Receiver = {
     id: string | number;
     name?: string | null;
@@ -65,7 +70,7 @@ const statusBadgeClass = (value: unknown): string => {
 
 export default function ReceiversPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('RECEIVERS');
-    const { canAdd, canEdit, canDelete, canPdf } = usePagePermissions('RECEIVERS');
+    const { canAdd, canEdit, canDelete, canPdf, canExport } = usePagePermissions('RECEIVERS');
     const currentUser = useMemo(() => getCurrentAdminUser(), []);
     const [confirmModal, setConfirmModal] = useState<{
         isOpen: boolean;
@@ -488,6 +493,58 @@ export default function ReceiversPage() {
     const endIndex = Math.min(startIndex + rowsPerPage, total);
     const pagedReceivers = sortedReceivers.slice(startIndex, endIndex);
 
+    const handleExportCsv = () => {
+        const exportCols = [
+            { key: 'remitter_name', label: 'Remitter Name' },
+            { key: 'name', label: 'Receiver Name' },
+            { key: 'bank_name', label: 'Bank Name' },
+            { key: 'account_number', label: 'Account / IBAN' },
+            { key: 'country', label: 'Country' },
+            { key: 'status', label: 'Status' },
+            { key: 'aml_status', label: 'AML Status' },
+            { key: 'registration_source', label: 'Source' },
+            { key: 'veriff_status', label: 'Veriff Status' },
+            ...(showCreatedBy ? [{ key: 'created_by', label: 'Created By' }] : []),
+            ...(showCreatedAt ? [{ key: 'created_at', label: 'Created At' }] : []),
+            ...(showUpdatedBy ? [{ key: 'updated_by', label: 'Updated By' }] : []),
+            ...(showUpdatedAt ? [{ key: 'updated_at', label: 'Updated At' }] : []),
+        ];
+
+        const header = exportCols.map((col) => csvEscape(col.label)).join(',');
+        const body = sortedReceivers.map((row) => (
+            exportCols
+                .map((col) => {
+                    let value = row[col.key];
+                    if (col.key === 'account_number') {
+                        value = row.account_number || row.iban || '';
+                    } else if (col.key === 'registration_source') {
+                        value = normalize(row.registration_source) === 'mobile_app' ? 'Mobile App' : 'Web';
+                    } else if (col.key === 'created_by') {
+                        value = row.created_by
+                            ? (row.created_by === 'mobile_app' ? 'mobile user' : row.created_by)
+                            : (normalize(row.registration_source) === 'mobile_app' ? 'mobile user' : 'admin');
+                    } else if (col.key === 'created_at' || col.key === 'updated_at') {
+                        value = value ? formatDateTime(String(value)) : '';
+                    } else if (col.key === 'status' || col.key === 'aml_status' || col.key === 'veriff_status') {
+                        value = formatStatus(value);
+                    }
+                    return csvEscape(value === null || value === undefined ? '' : String(value));
+                })
+                .join(',')
+        ));
+
+        const csv = [header, ...body].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = `receivers_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        URL.revokeObjectURL(url);
+    };
+
     useEffect(() => {
         setPage(1);
     }, [searchQuery, rowsPerPage, sortKey, sortDir]);
@@ -535,6 +592,16 @@ export default function ReceiversPage() {
                                 <RefreshCcw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
                                 <span>Refresh</span>
                             </button>
+                            {canExport && (
+                                <button
+                                    type="button"
+                                    onClick={handleExportCsv}
+                                    className="btn-primary flex items-center space-x-2 rounded-full px-6 py-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 border-0 text-white text-sm whitespace-nowrap"
+                                >
+                                    <Download className="w-5 h-5" />
+                                    <span>Export CSV</span>
+                                </button>
+                            )}
                             {canAdd && (
                                 <Link href="/admin/receivers/create" className="btn-primary flex items-center space-x-2 rounded-full px-6 text-sm whitespace-nowrap">
                                     <Plus className="w-5 h-5" />

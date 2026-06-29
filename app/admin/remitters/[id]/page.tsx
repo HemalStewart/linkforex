@@ -13,6 +13,7 @@ import {
 import { openPdfReport } from '@/app/lib/openPdfReport';
 import ConfirmModal from '../../components/ConfirmModal';
 import { showToast, queueToast } from '@/app/lib/toast';
+import { usePagePermissions } from '@/app/lib/permissions';
 import VeriffReportsModal from '../../components/VeriffReportsModal';
 import { formatDateTime } from '@/app/lib/dateUtils';
 import {
@@ -53,6 +54,15 @@ const isUkCountry = (country: string): boolean => {
 
 const isValidUkPassportNumber = (value: string): boolean => /^\d{9}$/.test(value.trim());
 
+const normalizeAmlResult = (val: string | null | undefined): string => {
+    const s = String(val || '').trim().toLowerCase();
+    if (s === 'pass' || s === 'passed' || s === 'clear') return 'passed';
+    if (s === 'fail' || s === 'hit') return 'hit';
+    if (s === 'review') return 'review';
+    if (s === 'pending') return 'pending';
+    return 'pending';
+};
+
 export default function EditRemitterPage() {
     const router = useRouter();
     const params = useParams();
@@ -60,9 +70,12 @@ export default function EditRemitterPage() {
     const currentUser = React.useMemo(() => getCurrentAdminUser(), []);
     const isPrivilegedUser = React.useMemo(() => isPrivilegedAdminUser(currentUser), [currentUser]);
     const scopedBranchCode = React.useMemo(() => getAdminBranchCode(currentUser), [currentUser]);
+    const { canManuallyPassed } = usePagePermissions('REMITTERS');
 
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+    const [initialAmlStatus, setInitialAmlStatus] = useState<string>('pending');
+    const [enableAmlOverride, setEnableAmlOverride] = useState<boolean>(false);
     const [formData, setFormData] = useState<any>({
         company: '',
         company_name: '',
@@ -95,6 +108,7 @@ export default function EditRemitterPage() {
         work_related_docs: '',
         sender_details_aml_screening_doc: '',
         sender_aml_result: '',
+        aml_status_change_reason: '',
         rescreening_sender: '',
         veriff_status: '',
         veriff_decision: '',
@@ -202,7 +216,8 @@ export default function EditRemitterPage() {
                     other_doc: data.other_doc || '',
                     work_related_docs: data.work_related_docs || '',
                     sender_details_aml_screening_doc: data.sender_details_aml_screening_doc || '',
-                    sender_aml_result: data.sender_aml_result || '',
+                    sender_aml_result: normalizeAmlResult(data.sender_aml_result),
+                    aml_status_change_reason: data.aml_status_change_reason || '',
                     rescreening_sender: data.rescreening_sender || '',
                     veriff_status: data.veriff_status || '',
                     veriff_decision: data.veriff_decision || '',
@@ -219,6 +234,7 @@ export default function EditRemitterPage() {
                     updated_by: data.updated_by || '',
                     updated_at: data.updated_at || ''
                 });
+                setInitialAmlStatus(normalizeAmlResult(data.sender_aml_result));
                 setSanctionReference(data.sanction_reference ?? '');
                 setSanctionCheckedAt(data.sanction_checked_at ?? '');
                 setSanctionRawPayload(data.sanction_raw_payload ?? '');
@@ -257,7 +273,11 @@ export default function EditRemitterPage() {
             setConfirmModal({ isOpen: true, title: 'Validation Error', message: 'UK passport number must be exactly 9 digits.', type: 'warning', isAlert: true, shouldRedirect: false });
             return;
         }
-
+        if (formData.sender_aml_result !== initialAmlStatus && !formData.aml_status_change_reason?.trim()) {
+            setConfirmModal({ isOpen: true, title: 'Validation Error', message: 'Reason for AML Status Change is required.', type: 'warning', isAlert: true, shouldRedirect: false });
+            return;
+        }
+ 
         setSubmitting(true);
 
         const payload = {
@@ -996,9 +1016,49 @@ export default function EditRemitterPage() {
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Sender AML Result</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Shield className="w-5 h-5" /></span>
-                            <input className="input-glass w-full" value={formData.sender_aml_result} onChange={(e) => setFormData({ ...formData, sender_aml_result: e.target.value })} />
+                            <select
+                                className={`input-glass w-full font-semibold transition-colors duration-200 ${formData.sender_aml_result === 'passed' || formData.sender_aml_result === 'manually passed' || formData.sender_aml_result === 'clear' ? 'text-emerald-600 dark:text-emerald-400' :
+                                        formData.sender_aml_result === 'review' ? 'text-amber-600 dark:text-amber-400' :
+                                            formData.sender_aml_result === 'hit' ? 'text-rose-600 dark:text-rose-400' :
+                                                'text-slate-600 dark:text-slate-400'
+                                    }`}
+                                value={formData.sender_aml_result}
+                                disabled={!canManuallyPassed}
+                                onChange={(e) => setFormData({ ...formData, sender_aml_result: e.target.value })}
+                            >
+                                <option value="pending" className="text-slate-700 dark:text-slate-200">Pending</option>
+                                <option value="passed" className="text-emerald-700 dark:text-emerald-400">Manually Passed</option>
+                                <option value="review" className="text-amber-700 dark:text-amber-400">Review</option>
+                                <option value="hit" className="text-rose-700 dark:text-rose-400">Hit</option>
+                            </select>
                         </div>
                     </div>
+
+                    {formData.sender_aml_result !== initialAmlStatus && (
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
+                                Reason for AML Status Change <span className="text-red-500">*</span>
+                            </label>
+                            <textarea
+                                className="input-glass w-full p-3 h-24 resize-none"
+                                placeholder="Enter the reason why you are manually changing the AML status"
+                                value={formData.aml_status_change_reason}
+                                required
+                                onChange={(e) => setFormData({ ...formData, aml_status_change_reason: e.target.value })}
+                            />
+                        </div>
+                    )}
+
+                    {formData.sender_aml_result === initialAmlStatus && formData.aml_status_change_reason && (
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
+                                Previous AML Status Change Reason
+                            </label>
+                            <div className="input-glass w-full p-3 bg-slate-50/40 dark:bg-slate-900/30 text-slate-600 dark:text-slate-300 h-24 overflow-y-auto">
+                                {formData.aml_status_change_reason}
+                            </div>
+                        </div>
+                    )}
                     <div>
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Re/screening Sender</label>
                         <input className="input-glass w-full" value={formData.rescreening_sender} onChange={(e) => setFormData({ ...formData, rescreening_sender: e.target.value })} />
