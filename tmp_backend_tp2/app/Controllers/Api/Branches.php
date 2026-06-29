@@ -173,7 +173,7 @@ class Branches extends ResourceController
 
     public function create()
     {
-        if (!$this->hasPermission($this->branchSections(), 'ADD')) {
+        if (!$this->hasPermission($this->branchSections(), 'CREATE')) {
             return $this->failForbidden('You do not have permission to create branches.');
         }
 

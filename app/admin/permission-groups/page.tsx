@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useRowsPerPage } from '@/app/lib/uiPreferences';
 import { PlusCircle, Search, Key, Save, X, Shield, Lock, AlertCircle, Info, RefreshCw } from 'lucide-react';
 import { ENDPOINTS } from '@/app/lib/api';
@@ -30,7 +30,7 @@ type RoleOption = {
     name: string;
 };
 
-const OPERATION_OPTIONS = ['VIEW', 'ADD', 'EDIT', 'DELETE', 'APPROVE', 'CANCEL', 'PDF', 'EXPORT', 'NEW_TRANSFER', 'PRINT', 'SIGN'];
+const OPERATION_OPTIONS = ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'APPROVE', 'CANCEL', 'PDF', 'EXPORT', 'PRINT', 'SIGN'];
 
 const normalizeDate = (value?: string | null) => {
     if (!value) return '';
@@ -63,7 +63,7 @@ const getPageNameFromSection = (section: string): string => {
 
 export default function PermissionGroupsPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('PERMISSION_GROUPS');
-    const [activeTab, setActiveTab] = useState<'grid' | 'list'>('grid');
+    const [activeTab, setActiveTab] = useState<'grid' | 'list'>('list');
     const [selectedRole, setSelectedRole] = useState<string>('');
     const [toggling, setToggling] = useState<string>(''); // section|op
 
@@ -102,10 +102,13 @@ export default function PermissionGroupsPage() {
         isAlert: false
     });
 
+    const hasInitializedRef = useRef(false);
+
     const fetchRows = useCallback(async () => {
         setLoading(true);
+        hasInitializedRef.current = false;
         try {
-            const res = await fetch(ENDPOINTS.PERMISSION_GROUPS.LIST);
+            const res = await fetch(`${ENDPOINTS.PERMISSION_GROUPS.LIST}?t=${Date.now()}`, { cache: 'no-store' });
             if (res.ok) {
                 const data = await res.json();
                 setRows(Array.isArray(data) ? data : []);
@@ -122,7 +125,7 @@ export default function PermissionGroupsPage() {
 
     const fetchRoles = useCallback(async () => {
         try {
-            const res = await fetch(ENDPOINTS.ROLES.LIST);
+            const res = await fetch(`${ENDPOINTS.ROLES.LIST}?t=${Date.now()}`, { cache: 'no-store' });
             if (!res.ok) return;
             const data = await res.json();
             const mapped = Array.isArray(data)
@@ -145,6 +148,68 @@ export default function PermissionGroupsPage() {
         const parsed = getStoredUser<{ username?: string; name?: string; email?: string }>();
         setCurrentUserName(parsed?.username || parsed?.name || parsed?.email || '');
     }, []);
+
+    const initializeMissingPermissions = useCallback(async (allRows: PermissionGroupRow[], allRoles: RoleOption[]) => {
+        const missing: Array<{ role: RoleOption; section: string; operation: string }> = [];
+
+        for (const role of allRoles) {
+            const roleNameLower = role.name.toLowerCase();
+            if (roleNameLower.includes('admin') || roleNameLower.includes('super')) continue;
+
+            for (const cat of ADMIN_PAGES_CONFIG) {
+                for (const page of cat.pages) {
+                    for (const op of page.operations) {
+                        const exists = allRows.some(row =>
+                            row.role_name === role.name &&
+                            row.page_section === page.section &&
+                            row.operation === op
+                        );
+                        if (!exists) {
+                            missing.push({ role, section: page.section, operation: op });
+                        }
+                    }
+                }
+            }
+        }
+
+        if (missing.length === 0) return;
+
+        let createdAny = false;
+        for (const item of missing) {
+            try {
+                const res = await fetch(ENDPOINTS.PERMISSION_GROUPS.LIST, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        role_id: item.role.id,
+                        role_name: item.role.name,
+                        page_section: item.section,
+                        operation: item.operation,
+                        system_defined: 'no',
+                        active: 'no',
+                        created_by: 'System',
+                        updated_by: 'System'
+                    })
+                });
+                if (res.ok) {
+                    createdAny = true;
+                }
+            } catch (e) {
+                console.error('Failed to auto-create permission:', e);
+            }
+        }
+
+        if (createdAny) {
+            await fetchRows();
+        }
+    }, [fetchRows]);
+
+    useEffect(() => {
+        if (!loading && roles.length > 0 && rows.length > 0 && !hasInitializedRef.current) {
+            hasInitializedRef.current = true;
+            initializeMissingPermissions(rows, roles);
+        }
+    }, [rows, roles, loading, initializeMissingPermissions]);
 
     // Set default selected role for grid view to the logged-in user's role
     useEffect(() => {
@@ -281,7 +346,7 @@ export default function PermissionGroupsPage() {
     };
 
     const renderCategoryCard = (cat: typeof ADMIN_PAGES_CONFIG[number]) => {
-        const ORDERED_OPS = ['VIEW', 'ADD', 'EDIT', 'DELETE'];
+        const ORDERED_OPS = ['VIEW', 'CREATE', 'EDIT', 'DELETE'];
         const displayOps = ORDERED_OPS.filter(op => cat.pages.some(page => page.operations.includes(op)));
         const tableMinWidthClass = displayOps.length > 3 ? 'min-w-[700px]' : 'min-w-full';
 
@@ -298,7 +363,7 @@ export default function PermissionGroupsPage() {
                                 <th className="px-6 py-3.5 text-left">Page Name</th>
                                 {displayOps.map(op => (
                                     <th key={op} className="px-6 py-3.5 text-center w-24 md:w-32 uppercase">
-                                        {op === 'ADD' ? 'CREATE' : op.replaceAll('_', ' ')}
+                                        {op.replaceAll('_', ' ')}
                                     </th>
                                 ))}
                             </tr>
@@ -432,14 +497,55 @@ export default function PermissionGroupsPage() {
 
     const sorted = useMemo(() => {
         const list = [...filtered];
+        
+        const opOrder = ['VIEW', 'CREATE', 'EDIT', 'DELETE'];
+        const getOpWeight = (op: string) => {
+            const idx = opOrder.indexOf(op.toUpperCase());
+            return idx !== -1 ? idx : 999;
+        };
+
         list.sort((a, b) => {
             const aVal = getSortValue(a, sortKey);
             const bVal = getSortValue(b, sortKey);
+            
+            let primaryDiff = 0;
             if (typeof aVal === 'number' && typeof bVal === 'number') {
-                return sortDir === 'asc' ? aVal - bVal : bVal - aVal;
+                primaryDiff = aVal - bVal;
+            } else {
+                primaryDiff = collator.compare(String(aVal), String(bVal));
             }
-            const result = collator.compare(String(aVal), String(bVal));
-            return sortDir === 'asc' ? result : -result;
+            
+            if (sortDir === 'desc') {
+                primaryDiff = -primaryDiff;
+            }
+
+            if (primaryDiff !== 0) {
+                return primaryDiff;
+            }
+
+            // Secondary: Role Name
+            if (sortKey !== 'role_name') {
+                const roleDiff = collator.compare(a.role_name || '', b.role_name || '');
+                if (roleDiff !== 0) return roleDiff;
+            }
+
+            // Tertiary: Page Section/Name
+            if (sortKey !== 'page_section') {
+                const pageA = getPageNameFromSection(a.page_section);
+                const pageB = getPageNameFromSection(b.page_section);
+                const pageDiff = collator.compare(pageA, pageB);
+                if (pageDiff !== 0) return pageDiff;
+            }
+
+            // Quaternary: Custom Operation Weight (VIEW, CREATE, EDIT, DELETE first)
+            const weightA = getOpWeight(a.operation);
+            const weightB = getOpWeight(b.operation);
+            if (weightA !== weightB) {
+                return weightA - weightB;
+            }
+
+            // Fallback: Alphabetical for other operations
+            return collator.compare(a.operation || '', b.operation || '');
         });
         return list;
     }, [filtered, sortKey, sortDir]);
@@ -774,7 +880,6 @@ export default function PermissionGroupsPage() {
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Role Permissions</h1>
                     <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">Manage role permissions by page section and operation</p>
                 </div>
-
             </div>
 
             {/* Tab Navigation */}
@@ -858,80 +963,7 @@ export default function PermissionGroupsPage() {
             ) : (
                 /* Tab 2: Advanced List View (Original search table & forms) */
                 <div className="space-y-8 animate-fade-in-up">
-                    {showCreateForm && (
-                        <div className="card-glass p-6">
-                            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Add Role Permission</h2>
-                            <form onSubmit={submitCreatePermission} className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Role</label>
-                                    <select
-                                        value={createForm.role_name}
-                                        onChange={(e) => setCreateForm((prev) => ({ ...prev, role_name: e.target.value }))}
-                                        className="input-glass w-full text-sm"
-                                        required
-                                    >
-                                        <option value="">Select role</option>
-                                        {roles.map((role) => (
-                                            <option key={role.id} value={role.name}>
-                                                {role.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Page Section</label>
-                                    <input
-                                        list="page-section-options"
-                                        value={createForm.page_section}
-                                        onChange={(e) => setCreateForm((prev) => ({ ...prev, page_section: e.target.value.toUpperCase() }))}
-                                        placeholder="Page section code"
-                                        className="input-glass w-full text-sm"
-                                        required
-                                    />
-                                    <datalist id="page-section-options">
-                                        {sectionOptions.map((section) => (
-                                            <option key={section} value={section} />
-                                        ))}
-                                    </datalist>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Operation</label>
-                                    <select
-                                        value={createForm.operation}
-                                        onChange={(e) => setCreateForm((prev) => ({ ...prev, operation: e.target.value }))}
-                                        className="input-glass w-full text-sm"
-                                        required
-                                    >
-                                        {OPERATION_OPTIONS.map((option) => (
-                                            <option key={option} value={option}>
-                                                {option}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Active</label>
-                                    <select
-                                        value={createForm.active}
-                                        onChange={(e) => setCreateForm((prev) => ({ ...prev, active: e.target.value as 'yes' | 'no' }))}
-                                        className="input-glass w-full text-sm"
-                                    >
-                                        <option value="yes">Yes</option>
-                                        <option value="no">No</option>
-                                    </select>
-                                </div>
-                                <div className="flex items-end justify-end">
-                                    <button
-                                        type="submit"
-                                        disabled={creating}
-                                        className="btn-primary px-5 py-2.5 rounded-full text-sm font-semibold disabled:opacity-60 flex items-center justify-center gap-2"
-                                    >  <Save className="w-4 h-4" />
-                                        {creating ? 'Saving...' : 'Save'}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    )}
+
 
                     <div className="card-glass p-6">
                         <div>

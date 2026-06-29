@@ -9,7 +9,7 @@ import { getStoredUser } from '@/app/lib/authStorage';
 import Modal from '../components/Modal';
 import SortIndicator from '../components/SortIndicator';
 import { formatDateTime } from '@/app/lib/dateUtils';
-import { CheckCircle2, Download, Eye, FileCheck2, FileText, FileX2, ImageUp, PenLine, PlusCircle, Printer, RefreshCw, RotateCcw, Save, Search, XCircle } from 'lucide-react';
+import { CheckCircle2, Download, Edit2, Eye, FileCheck2, FileText, FileX2, ImageUp, PenLine, PlusCircle, Printer, RefreshCw, RotateCcw, Save, Search, XCircle } from 'lucide-react';
 import { useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 
 type SortDir = 'asc' | 'desc';
@@ -278,7 +278,7 @@ const paymentModeLabel = (value: unknown): string => {
 
 export default function TransfersPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('TRANSFERS');
-    const { canAdd, canPdf, canExport, canNewTransfer, canPrint, canSign } = usePagePermissions('TRANSFERS');
+    const { canAdd, canPdf, canExport, canPrint, canSign, canApprove, canCancel, canEdit, canDelete, canView } = usePagePermissions('TRANSFERS');
     const [loading, setLoading] = useState(true);
     const [transfers, setTransfers] = useState<Transfer[]>([]);
     const [remitters, setRemitters] = useState<Remitter[]>([]);
@@ -1518,7 +1518,7 @@ export default function TransfersPage() {
                             <span>Export CSV</span>
                         </button>
                     )}
-                    {canNewTransfer && (
+                    {canAdd && (
                         <Link href="/admin/transfers/create" className="btn-primary flex items-center gap-2 border-0 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40">
                             <PlusCircle className="w-4 h-4" />
                             <span>New Transfer</span>
@@ -1571,6 +1571,11 @@ export default function TransfersPage() {
                     <table className="table-shell whitespace-nowrap">
                         <thead className="table-head">
                             <tr>
+                                {canEdit && (
+                                    <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit">
+                                        <Edit2 className="w-4 h-4 mx-auto text-slate-400" />
+                                    </th>
+                                )}
                                 {displayColumns.map((column) => (
                                     <th
                                         key={column.key}
@@ -1588,16 +1593,27 @@ export default function TransfersPage() {
                                         ) : column.label}
                                     </th>
                                 ))}
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">POF Review</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Approve</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Cancel</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">View</th>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Delete</th>
+                                {canApprove && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">POF Review</th>}
+                                {canApprove && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Approve</th>}
+                                {canCancel && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Cancel</th>}
+                                {canView && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">View</th>}
+                                {canDelete && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Delete</th>}
                             </tr>
                         </thead>
                         <tbody className="table-body">
                             {pagedRows.map((row) => (
                                 <tr key={row.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
+                                    {canEdit && (
+                                        <td className="px-2 py-3 text-center">
+                                            <Link
+                                                href={`/admin/transfers/${row.id}?edit=true`}
+                                                className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
+                                                title="Edit"
+                                            >
+                                                <Edit2 className="w-5 h-5" />
+                                            </Link>
+                                        </td>
+                                    )}
                                     {displayColumns.map((column) => (
                                         <td key={`${row.id}-${column.key}`} className={`px-4 py-3 text-sm text-slate-600 dark:text-slate-300 ${column.className || ''}`}>
                                             <span className="block truncate">
@@ -1605,77 +1621,88 @@ export default function TransfersPage() {
                                             </span>
                                         </td>
                                     ))}
-                                    <td className="px-4 py-3 text-sm">
-                                        {['pending_documentation', 'verify_pof_documents'].includes(row.rawStatus) ? (
-                                            <button
-                                                type="button"
-                                                onClick={() => openPofReviewModal(row.id)}
+                                    {canApprove && (
+                                        <td className="px-4 py-3 text-sm">
+                                            {['pending_documentation', 'verify_pof_documents'].includes(row.rawStatus) ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => openPofReviewModal(row.id)}
+                                                    className="px-3 py-1.5 rounded-full glass-effect text-xs font-semibold text-slate-600 dark:text-slate-200 hover:text-teal-600 inline-flex items-center gap-1"
+                                                >
+                                                    <FileCheck2 className="w-3.5 h-3.5" />
+                                                    Review
+                                                </button>
+                                            ) : (
+                                                <span className="text-slate-400 dark:text-slate-500">-</span>
+                                            )}
+                                        </td>
+                                    )}
+                                    {canApprove && (
+                                        <td className="px-4 py-3 text-sm">
+                                            {row.rawStatus === 'pending' ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => void handleStatusAction(row, 'approve')}
+                                                    disabled={statusActionBusyId === row.id}
+                                                    className="px-3 py-1.5 rounded-full bg-teal-500/85 text-white text-xs font-semibold hover:bg-teal-500 disabled:opacity-60 inline-flex items-center gap-1"
+                                                >
+                                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                                    {statusActionBusyId === row.id && statusActionType === 'approve' ? 'Approving...' : 'Approve'}
+                                                </button>
+                                            ) : (
+                                                <span className="text-slate-400 dark:text-slate-500">-</span>
+                                            )}
+                                        </td>
+                                    )}
+                                    {canCancel && (
+                                        <td className="px-4 py-3 text-sm">
+                                            {['pending', 'in_review', 'in_transit'].includes(row.rawStatus) ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => void handleStatusAction(row, 'cancel')}
+                                                    disabled={statusActionBusyId === row.id}
+                                                    className="px-3 py-1.5 rounded-full bg-red-500/85 text-white text-xs font-semibold hover:bg-red-500 disabled:opacity-60 inline-flex items-center gap-1"
+                                                >
+                                                    <XCircle className="w-3.5 h-3.5" />
+                                                    {statusActionBusyId === row.id && statusActionType === 'cancel' ? 'Cancelling...' : 'Cancel'}
+                                                </button>
+                                            ) : (
+                                                <span className="text-slate-400 dark:text-slate-500">-</span>
+                                            )}
+                                        </td>
+                                    )}
+                                    {canView && (
+                                        <td className="px-4 py-3 text-sm">
+                                            <Link
+                                                href={`/admin/transfers/${row.id}`}
                                                 className="px-3 py-1.5 rounded-full glass-effect text-xs font-semibold text-slate-600 dark:text-slate-200 hover:text-teal-600 inline-flex items-center gap-1"
                                             >
-                                                <FileCheck2 className="w-3.5 h-3.5" />
-                                                Review
-                                            </button>
-                                        ) : (
-                                            <span className="text-slate-400 dark:text-slate-500">-</span>
-                                        )}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm">
-                                        {row.rawStatus === 'pending' ? (
-                                            <button
-                                                type="button"
-                                                onClick={() => void handleStatusAction(row, 'approve')}
-                                                disabled={statusActionBusyId === row.id}
-                                                className="px-3 py-1.5 rounded-full bg-teal-500/85 text-white text-xs font-semibold hover:bg-teal-500 disabled:opacity-60 inline-flex items-center gap-1"
-                                            >
-                                                <CheckCircle2 className="w-3.5 h-3.5" />
-                                                {statusActionBusyId === row.id && statusActionType === 'approve' ? 'Approving...' : 'Approve'}
-                                            </button>
-                                        ) : (
-                                            <span className="text-slate-400 dark:text-slate-500">-</span>
-                                        )}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm">
-                                        {['pending', 'in_review', 'in_transit'].includes(row.rawStatus) ? (
-                                            <button
-                                                type="button"
-                                                onClick={() => void handleStatusAction(row, 'cancel')}
-                                                disabled={statusActionBusyId === row.id}
-                                                className="px-3 py-1.5 rounded-full bg-red-500/85 text-white text-xs font-semibold hover:bg-red-500 disabled:opacity-60 inline-flex items-center gap-1"
-                                            >
-                                                <XCircle className="w-3.5 h-3.5" />
-                                                {statusActionBusyId === row.id && statusActionType === 'cancel' ? 'Cancelling...' : 'Cancel'}
-                                            </button>
-                                        ) : (
-                                            <span className="text-slate-400 dark:text-slate-500">-</span>
-                                        )}
-                                    </td>
-                                    <td className="px-4 py-3 text-sm">
-                                        <Link
-                                            href={`/admin/transfers/${row.id}`}
-                                            className="px-3 py-1.5 rounded-full glass-effect text-xs font-semibold text-slate-600 dark:text-slate-200 hover:text-teal-600 inline-flex items-center gap-1"
-                                        >
-                                            <Eye className="w-3.5 h-3.5" />
-                                            View
-                                        </Link>
-                                    </td>
-                                    <td className="px-4 py-3 text-sm text-slate-400 dark:text-slate-500">-</td>
+                                                <Eye className="w-3.5 h-3.5" />
+                                                View
+                                            </Link>
+                                        </td>
+                                    )}
+                                    {canDelete && (
+                                        <td className="px-4 py-3 text-sm text-slate-400 dark:text-slate-500">-</td>
+                                    )}
                                 </tr>
                             ))}
                             {pagedRows.length === 0 && (
                                 <tr>
-                                    <td colSpan={displayColumns.length + 5} className="px-4 py-10 text-center text-sm text-slate-500 dark:text-slate-300">
+                                    <td colSpan={displayColumns.length + (canApprove ? 2 : 0) + (canCancel ? 1 : 0) + (canView ? 1 : 0) + (canEdit ? 1 : 0) + (canDelete ? 1 : 0)} className="px-4 py-10 text-center text-sm text-slate-500 dark:text-slate-300">
                                         No transfers found.
                                     </td>
                                 </tr>
                             )}
                             {pagedRows.length > 0 && (
                                 <tr className="bg-teal-50/40 dark:bg-slate-800/50">
+                                    {canEdit && <td className="px-2 py-3" />}
                                     <td className="px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-200">Total:</td>
                                     <td colSpan={Math.max(receivedAmountColumnIndex - 1, 1)} className="px-4 py-3" />
                                     <td className="px-4 py-3 text-sm font-bold text-teal-700 dark:text-teal-300">
                                         {receivedTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </td>
-                                    <td colSpan={Math.max(displayColumns.length - receivedAmountColumnIndex - 1 + 5, 1)} className="px-4 py-3" />
+                                    <td colSpan={Math.max(displayColumns.length - receivedAmountColumnIndex - 1 + (canApprove ? 2 : 0) + (canCancel ? 1 : 0) + (canView ? 1 : 0) + (canEdit ? 1 : 0) + (canDelete ? 1 : 0), 1)} className="px-4 py-3" />
                                 </tr>
                             )}
                         </tbody>

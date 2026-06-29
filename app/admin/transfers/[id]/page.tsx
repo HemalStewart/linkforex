@@ -2,11 +2,13 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
 import { resolveUploadsUrl } from '@/app/lib/uploads';
-import { ArrowLeft, Download, History, Search, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Download, History, Search, RotateCcw, Save, X, Edit3, Loader2 } from 'lucide-react';
 import { formatDateTime as globalFormatDateTime } from '@/app/lib/dateUtils';
+import { usePagePermissions } from '@/app/lib/permissions';
+import { showToast } from '@/app/lib/toast';
 
 type Transfer = {
     id: string | number;
@@ -267,9 +269,16 @@ function DetailCard({ title, rows }: { title: string; rows: FieldRow[] }) {
 
 export default function TransferDetailsPage() {
     const params = useParams();
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const id = params.id as string;
 
+    const { canView: canViewAuditLogs } = usePagePermissions('AUDIT_LOGS');
+    const { canEdit } = usePagePermissions('TRANSFERS');
+
     const [loading, setLoading] = useState(true);
+    const [isEditing, setIsEditing] = useState(searchParams.get('edit') === 'true');
+    const [isSaving, setIsSaving] = useState(false);
     const [transfer, setTransfer] = useState<Transfer | null>(null);
     const [remitter, setRemitter] = useState<Remitter | null>(null);
     const [beneficiary, setBeneficiary] = useState<Beneficiary | null>(null);
@@ -284,51 +293,67 @@ export default function TransferDetailsPage() {
     const [auditTotal, setAuditTotal] = useState(0);
     const [auditTotalPages, setAuditTotalPages] = useState(1);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            try {
-                const transferRes = await fetch(ENDPOINTS.TRANSFERS.DETAIL(id));
-                if (!transferRes.ok) {
-                    setTransfer(null);
-                    return;
-                }
+    const [editForm, setEditForm] = useState({
+        source_amount: '',
+        dest_amount: '',
+        rate: '',
+        payment_mode: '',
+        source_of_funds: '',
+        purpose: '',
+        collection_method: '',
+        status: '',
+    });
 
-                const transferData = (await transferRes.json()) as Transfer;
-                setTransfer(transferData);
-
-                const remitterId = asString(transferData.remitter_id);
-                const beneficiaryId = asString(transferData.beneficiary_id);
-
-                const [remitterRes, beneficiaryRes] = await Promise.all([
-                    remitterId ? fetch(ENDPOINTS.REMITTERS.DETAIL(remitterId)) : Promise.resolve(null),
-                    beneficiaryId ? fetch(ENDPOINTS.BENEFICIARIES.DETAIL(beneficiaryId)) : Promise.resolve(null)
-                ]);
-
-                if (remitterRes && remitterRes.ok) {
-                    setRemitter((await remitterRes.json()) as Remitter);
-                } else {
-                    setRemitter(null);
-                }
-
-                if (beneficiaryRes && beneficiaryRes.ok) {
-                    setBeneficiary((await beneficiaryRes.json()) as Beneficiary);
-                } else {
-                    setBeneficiary(null);
-                }
-            } catch (error) {
-                console.error('Failed to load transfer details:', error);
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            const transferRes = await fetch(ENDPOINTS.TRANSFERS.DETAIL(id));
+            if (!transferRes.ok) {
                 setTransfer(null);
-                setRemitter(null);
-                setBeneficiary(null);
-                setAuditLogs([]);
-            } finally {
-                setLoading(false);
+                return;
             }
-        };
+            const transferData = await transferRes.json() as Transfer;
+            setTransfer(transferData);
 
-        if (id) fetchData();
+            const remitterId = transferData.remitter_id;
+            const beneficiaryId = transferData.beneficiary_id;
+
+            const [remitterRes, beneficiaryRes] = await Promise.all([
+                remitterId ? fetch(ENDPOINTS.REMITTERS.DETAIL(remitterId)) : Promise.resolve(null),
+                beneficiaryId ? fetch(ENDPOINTS.BENEFICIARIES.DETAIL(beneficiaryId)) : Promise.resolve(null)
+            ]);
+
+            if (remitterRes && remitterRes.ok) {
+                setRemitter(await remitterRes.json() as Remitter);
+            }
+            if (beneficiaryRes && beneficiaryRes.ok) {
+                setBeneficiary(await beneficiaryRes.json() as Beneficiary);
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
     }, [id]);
+
+    useEffect(() => {
+        if (transfer) {
+            setEditForm({
+                source_amount: String(transfer.source_amount || ''),
+                dest_amount: String(transfer.dest_amount || ''),
+                rate: String(transfer.rate || ''),
+                payment_mode: transfer.payment_mode || '',
+                source_of_funds: transfer.source_of_funds || '',
+                purpose: transfer.purpose || '',
+                collection_method: transfer.collection_method || '',
+                status: transfer.status || '',
+            });
+        }
+    }, [transfer]);
 
     useEffect(() => {
         if (!transfer) return;
@@ -336,6 +361,7 @@ export default function TransferDetailsPage() {
         let cancelled = false;
 
         const fetchAuditLogs = async () => {
+            if (!canViewAuditLogs) return;
             setAuditLoading(true);
             try {
                 const transferId = asString(transfer.id || id);
@@ -389,7 +415,7 @@ export default function TransferDetailsPage() {
         return () => {
             cancelled = true;
         };
-    }, [transfer, id, auditAction, auditUser, auditDateFrom, auditDateTo, auditPage, auditPageSize]);
+    }, [transfer, id, auditAction, auditUser, auditDateFrom, auditDateTo, auditPage, auditPageSize, canViewAuditLogs]);
 
     const meta = useMemo(() => parseTransferMeta(transfer), [transfer]);
     const mobileWalletTransfer = useMemo(() => isMobileWalletTransfer(transfer, meta), [transfer, meta]);
@@ -549,6 +575,40 @@ export default function TransferDetailsPage() {
     const auditStartRow = auditTotal === 0 ? 0 : ((auditPage - 1) * auditPageSize) + 1;
     const auditEndRow = auditTotal === 0 ? 0 : Math.min(auditPage * auditPageSize, auditTotal);
 
+    const handleSave = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSaving(true);
+        try {
+            const res = await fetch(ENDPOINTS.TRANSFERS.DETAIL(id), {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    source_amount: parseFloat(editForm.source_amount) || 0,
+                    dest_amount: parseFloat(editForm.dest_amount) || 0,
+                    rate: parseFloat(editForm.rate) || 0,
+                    payment_mode: editForm.payment_mode,
+                    source_of_funds: editForm.source_of_funds,
+                    purpose: editForm.purpose,
+                    collection_method: editForm.collection_method,
+                    status: editForm.status,
+                })
+            });
+
+            if (res.ok) {
+                showToast('Transfer updated successfully!', 'success');
+                setIsEditing(false);
+                await fetchData();
+            } else {
+                showToast('Failed to update transfer.', 'error');
+            }
+        } catch (err) {
+            console.error(err);
+            showToast('An error occurred while saving the transfer.', 'error');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     const clearAuditFilters = () => {
         setAuditAction('all');
         setAuditUser('');
@@ -564,27 +624,69 @@ export default function TransferDetailsPage() {
                     <ArrowLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
                     Back to Transfers
                 </Link>
-                <div className="flex flex-wrap items-center gap-3">
-                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Transfer Details</h1>
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${statusBadgeClass(transfer.status)}`}>
-                        {formatStatus(fieldValue(transfer.status, 'Pending'))}
-                    </span>
-                    {mobileWalletTransfer && (
-                        <>
-                            <span className="px-3 py-1 rounded-full bg-teal-500/15 text-teal-700 dark:text-teal-300 text-xs font-bold">
-                                Mobile Wallet
-                            </span>
-                            <Link
-                                href="/admin/mobile-users/control/wallet-transfers"
-                                className="px-3 py-1 rounded-full bg-white/70 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 text-xs font-bold text-slate-600 dark:text-slate-200 hover:text-teal-600"
-                            >
-                                Wallet Queue
-                            </Link>
-                        </>
+                <div className="flex flex-wrap items-center gap-3 justify-between">
+                    <div className="flex flex-wrap items-center gap-3">
+                        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                            {isEditing ? 'Edit Transfer' : 'Transfer Details'}
+                        </h1>
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${statusBadgeClass(transfer.status)}`}>
+                            {formatStatus(fieldValue(transfer.status, 'Pending'))}
+                        </span>
+                        {mobileWalletTransfer && (
+                            <>
+                                <span className="px-3 py-1 rounded-full bg-teal-500/15 text-teal-700 dark:text-teal-300 text-xs font-bold">
+                                    Mobile Wallet
+                                </span>
+                                <Link
+                                    href="/admin/mobile-users/control/wallet-transfers"
+                                    className="px-3 py-1 rounded-full bg-white/70 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 text-xs font-bold text-slate-600 dark:text-slate-200 hover:text-teal-600"
+                                >
+                                    Wallet Queue
+                                </Link>
+                            </>
+                        )}
+                    </div>
+                    {canEdit && (
+                        <div className="flex items-center gap-2">
+                            {isEditing ? (
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={handleSave}
+                                        disabled={isSaving}
+                                        className="btn-primary flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-full border-0 bg-teal-500 hover:bg-teal-600 shadow-md text-white disabled:opacity-50"
+                                    >
+                                        {isSaving ? (
+                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                        ) : (
+                                            <Save className="w-3.5 h-3.5" />
+                                        )}
+                                        Save Changes
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsEditing(false)}
+                                        className="px-4 py-2 text-xs font-semibold rounded-full glass-effect border border-slate-200/60 dark:border-slate-700/60 text-slate-700 dark:text-slate-200 flex items-center gap-1.5 hover:bg-slate-50"
+                                    >
+                                        <X className="w-3.5 h-3.5" />
+                                        Cancel
+                                    </button>
+                                </>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={() => setIsEditing(true)}
+                                    className="btn-primary flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-full border-0 bg-teal-500 hover:bg-teal-600 shadow-md text-white"
+                                >
+                                    <Edit3 className="w-3.5 h-3.5" />
+                                    Edit Transfer
+                                </button>
+                            )}
+                        </div>
                     )}
                 </div>
                 <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">
-                    Overview, sender, receiver and document details for transfer #{transfer.id}
+                    {isEditing ? 'Modify the transfer details below and save your changes.' : `Overview, sender, receiver and document details for transfer #${transfer.id}`}
                 </p>
             </div>
 
@@ -599,11 +701,125 @@ export default function TransferDetailsPage() {
                 </div>
             </div>
 
-            <DetailCard title="Transfer Overview" rows={overviewRows} />
-            {mobileWalletTransfer && <DetailCard title="Wallet Funding" rows={walletRows} />}
-            <DetailCard title="Sender Details" rows={senderRows} />
-            <DetailCard title="Receiver Details" rows={receiverRows} />
-            <DetailCard title="Documents" rows={documentRows} />
+            {isEditing ? (
+                <form onSubmit={handleSave} className="space-y-6">
+                    <div className="card-glass p-6 md:p-8 space-y-6">
+                        <h2 className="text-lg font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-700/60 pb-3">Edit Transfer Fields</h2>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Receive Amount (£)</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    value={editForm.source_amount}
+                                    onChange={e => setEditForm(prev => ({ ...prev, source_amount: e.target.value }))}
+                                    className="input-glass h-10 w-full text-sm px-3"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">FC Transfer Amount</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    value={editForm.dest_amount}
+                                    onChange={e => setEditForm(prev => ({ ...prev, dest_amount: e.target.value }))}
+                                    className="input-glass h-10 w-full text-sm px-3"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Customer Rate</label>
+                                <input
+                                    type="number"
+                                    step="0.0001"
+                                    value={editForm.rate}
+                                    onChange={e => setEditForm(prev => ({ ...prev, rate: e.target.value }))}
+                                    className="input-glass h-10 w-full text-sm px-3"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Payment Mode</label>
+                                <select
+                                    value={editForm.payment_mode}
+                                    onChange={e => setEditForm(prev => ({ ...prev, payment_mode: e.target.value }))}
+                                    className="input-glass h-10 w-full text-sm px-3"
+                                >
+                                    <option value="bank_transfer">Bank Transfer</option>
+                                    <option value="cash">Cash</option>
+                                    <option value="card">Card</option>
+                                    <option value="mobile_wallet">Mobile Wallet</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Source Of Income</label>
+                                <input
+                                    type="text"
+                                    value={editForm.source_of_funds}
+                                    onChange={e => setEditForm(prev => ({ ...prev, source_of_funds: e.target.value }))}
+                                    className="input-glass h-10 w-full text-sm px-3"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Purpose Of Transaction</label>
+                                <input
+                                    type="text"
+                                    value={editForm.purpose}
+                                    onChange={e => setEditForm(prev => ({ ...prev, purpose: e.target.value }))}
+                                    className="input-glass h-10 w-full text-sm px-3"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Entry Type (Collection Method)</label>
+                                <select
+                                    value={editForm.collection_method}
+                                    onChange={e => setEditForm(prev => ({ ...prev, collection_method: e.target.value }))}
+                                    className="input-glass h-10 w-full text-sm px-3"
+                                >
+                                    <option value="telex_transfer">Telex Transfer</option>
+                                    <option value="money_changer">Money Changer</option>
+                                    <option value="account_transactions">Account Transactions</option>
+                                    <option value="transfers">Transfers</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Invoice Status</label>
+                                <select
+                                    value={editForm.status}
+                                    onChange={e => setEditForm(prev => ({ ...prev, status: e.target.value }))}
+                                    className="input-glass h-10 w-full text-sm px-3"
+                                >
+                                    <option value="pending">Pending</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                    <option value="in_review">In Review</option>
+                                    <option value="in_transit">In Transit</option>
+                                    <option value="verify_pof_documents">Verify POF Documents</option>
+                                    <option value="pending_documentation">Pending Documentation</option>
+                                    <option value="awaiting_funds">Awaiting Funds</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            ) : (
+                <>
+                    <DetailCard title="Transfer Overview" rows={overviewRows} />
+                    {mobileWalletTransfer && <DetailCard title="Wallet Funding" rows={walletRows} />}
+                    <DetailCard title="Sender Details" rows={senderRows} />
+                    <DetailCard title="Receiver Details" rows={receiverRows} />
+                    <DetailCard title="Documents" rows={documentRows} />
+                </>
+            )}
 
             {mobileWalletTransfer && (
                 <div className="card-glass p-6 md:p-8">
@@ -644,175 +860,177 @@ export default function TransferDetailsPage() {
                 </div>
             )}
 
-            <div className="card-glass p-6 md:p-8">
-                <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-5 flex items-center gap-2">
-                    <History className="w-5 h-5 text-teal-500" />
-                    History Log
-                </h2>
+            {canViewAuditLogs && (
+                <div className="card-glass p-6 md:p-8">
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-5 flex items-center gap-2">
+                        <History className="w-5 h-5 text-teal-500" />
+                        History Log
+                    </h2>
 
-                <div className="rounded-2xl bg-white/50 dark:bg-slate-800/30 border border-slate-100/70 dark:border-slate-700/60 p-4 md:p-5 mb-5">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
-                        <div>
-                            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 mb-1">Action</p>
-                            <select
-                                value={auditAction}
-                                onChange={(e) => {
-                                    setAuditAction(e.target.value);
-                                    setAuditPage(1);
-                                }}
-                                className="input-glass h-10 w-full text-sm px-3"
-                            >
-                                {auditActionOptions.map((action) => (
-                                    <option key={action} value={action}>
-                                        {action === 'all' ? 'All Actions' : normalizeAction(action)}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 mb-1">User</p>
-                            <div className="relative">
-                                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                                <input
-                                    type="text"
-                                    value={auditUser}
-                                    onChange={(e) => {
-                                        setAuditUser(e.target.value);
-                                        setAuditPage(1);
-                                    }}
-                                    placeholder="Filter user"
-                                    className="input-glass h-10 w-full text-sm pl-10 pr-3"
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 mb-1">From Date</p>
-                            <input
-                                type="date"
-                                value={auditDateFrom}
-                                onChange={(e) => {
-                                    setAuditDateFrom(e.target.value);
-                                    setAuditPage(1);
-                                }}
-                                className="input-glass h-10 w-full text-sm px-3"
-                            />
-                        </div>
-
-                        <div>
-                            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 mb-1">To Date</p>
-                            <input
-                                type="date"
-                                value={auditDateTo}
-                                onChange={(e) => {
-                                    setAuditDateTo(e.target.value);
-                                    setAuditPage(1);
-                                }}
-                                className="input-glass h-10 w-full text-sm px-3"
-                            />
-                        </div>
-
-                        <div>
-                            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 mb-1">Rows</p>
-                            <div className="flex items-center gap-2">
+                    <div className="rounded-2xl bg-white/50 dark:bg-slate-800/30 border border-slate-100/70 dark:border-slate-700/60 p-4 md:p-5 mb-5">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+                            <div>
+                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 mb-1">Action</p>
                                 <select
-                                    value={auditPageSize}
+                                    value={auditAction}
                                     onChange={(e) => {
-                                        setAuditPageSize(Number(e.target.value));
+                                        setAuditAction(e.target.value);
                                         setAuditPage(1);
                                     }}
-                                    className="input-glass h-10 flex-1 text-sm px-3"
+                                    className="input-glass h-10 w-full text-sm px-3"
                                 >
-                                    {[10, 25, 50, 100].map((size) => (
-                                        <option key={size} value={size}>{size}</option>
+                                    {auditActionOptions.map((action) => (
+                                        <option key={action} value={action}>
+                                            {action === 'all' ? 'All Actions' : normalizeAction(action)}
+                                        </option>
                                     ))}
                                 </select>
-                                <button
-                                    type="button"
-                                    onClick={clearAuditFilters}
-                                    className="h-10 px-3 rounded-full text-xs font-bold glass-effect border border-slate-200/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 inline-flex items-center gap-1"
-                                >
-                                    <RotateCcw className="w-3.5 h-3.5" />
-                                    Reset
-                                </button>
                             </div>
+
+                            <div>
+                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 mb-1">User</p>
+                                <div className="relative">
+                                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                                    <input
+                                        type="text"
+                                        value={auditUser}
+                                        onChange={(e) => {
+                                            setAuditUser(e.target.value);
+                                            setAuditPage(1);
+                                        }}
+                                        placeholder="Filter user"
+                                        className="input-glass h-10 w-full text-sm pl-10 pr-3"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 mb-1">From Date</p>
+                                <input
+                                    type="date"
+                                    value={auditDateFrom}
+                                    onChange={(e) => {
+                                        setAuditDateFrom(e.target.value);
+                                        setAuditPage(1);
+                                    }}
+                                    className="input-glass h-10 w-full text-sm px-3"
+                                />
+                            </div>
+
+                            <div>
+                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 mb-1">To Date</p>
+                                <input
+                                    type="date"
+                                    value={auditDateTo}
+                                    onChange={(e) => {
+                                        setAuditDateTo(e.target.value);
+                                        setAuditPage(1);
+                                    }}
+                                    className="input-glass h-10 w-full text-sm px-3"
+                                />
+                            </div>
+
+                            <div>
+                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-300 mb-1">Rows</p>
+                                <div className="flex items-center gap-2">
+                                    <select
+                                        value={auditPageSize}
+                                        onChange={(e) => {
+                                            setAuditPageSize(Number(e.target.value));
+                                            setAuditPage(1);
+                                        }}
+                                        className="input-glass h-10 flex-1 text-sm px-3"
+                                    >
+                                        {[10, 25, 50, 100].map((size) => (
+                                            <option key={size} value={size}>{size}</option>
+                                        ))}
+                                    </select>
+                                    <button
+                                        type="button"
+                                        onClick={clearAuditFilters}
+                                        className="h-10 px-3 rounded-full text-xs font-bold glass-effect border border-slate-200/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 inline-flex items-center gap-1"
+                                    >
+                                        <RotateCcw className="w-3.5 h-3.5" />
+                                        Reset
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-3 text-xs font-semibold text-slate-500 dark:text-slate-300">
+                            Results: {auditStartRow} - {auditEndRow} of {auditTotal}
                         </div>
                     </div>
 
-                    <div className="mt-3 text-xs font-semibold text-slate-500 dark:text-slate-300">
-                        Results: {auditStartRow} - {auditEndRow} of {auditTotal}
-                    </div>
-                </div>
-
-                {auditLoading ? (
-                    <p className="text-sm font-medium text-slate-500 dark:text-slate-300">Loading history...</p>
-                ) : normalizedAuditLogs.length === 0 ? (
-                    <p className="text-sm font-medium text-slate-500 dark:text-slate-300">No history found for this transfer yet.</p>
-                ) : (
-                    <div className="space-y-3">
-                        {normalizedAuditLogs.map((log) => (
-                            <div
-                                key={log.id}
-                                className="rounded-2xl bg-white/50 dark:bg-slate-800/40 border border-slate-100/70 dark:border-slate-700/60 px-4 py-3"
-                            >
-                                <div className="flex flex-wrap items-center gap-2 justify-between">
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        <span className="text-xs font-bold text-teal-700 dark:text-teal-300">
-                                            {normalizeAction(log.action)}
-                                        </span>
-                                        <span className="text-xs text-slate-400">•</span>
-                                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-                                            {fieldValue(log.performed_by_username, 'System')}
-                                        </span>
-                                        <span className="text-xs text-slate-400">•</span>
-                                        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                                            {formatDateTime(log.created_at)}
-                                        </span>
-                                    </div>
-                                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                                        Branch: {fieldValue(log.performed_by_branch, '-')}
-                                    </span>
-                                </div>
-                                {Array.isArray(log.changed_fields_list) && log.changed_fields_list.length > 0 && (
-                                    <div className="mt-3 flex flex-wrap gap-2">
-                                        {log.changed_fields_list.map((field) => (
-                                            <span
-                                                key={`${log.id}-${field}`}
-                                                className="px-2 py-1 rounded-full bg-teal-500/10 text-teal-700 dark:text-teal-300 text-[11px] font-semibold"
-                                            >
-                                                {field}
+                    {auditLoading ? (
+                        <p className="text-sm font-medium text-slate-500 dark:text-slate-300">Loading history...</p>
+                    ) : normalizedAuditLogs.length === 0 ? (
+                        <p className="text-sm font-medium text-slate-500 dark:text-slate-300">No history found for this transfer yet.</p>
+                    ) : (
+                        <div className="space-y-3">
+                            {normalizedAuditLogs.map((log) => (
+                                <div
+                                    key={log.id}
+                                    className="rounded-2xl bg-white/50 dark:bg-slate-800/40 border border-slate-100/70 dark:border-slate-700/60 px-4 py-3"
+                                >
+                                    <div className="flex flex-wrap items-center gap-2 justify-between">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <span className="text-xs font-bold text-teal-700 dark:text-teal-300">
+                                                {normalizeAction(log.action)}
                                             </span>
-                                        ))}
+                                            <span className="text-xs text-slate-400">•</span>
+                                            <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                                                {fieldValue(log.performed_by_username, 'System')}
+                                            </span>
+                                            <span className="text-xs text-slate-400">•</span>
+                                            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                                                {formatDateTime(log.created_at)}
+                                            </span>
+                                        </div>
+                                        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                                            Branch: {fieldValue(log.performed_by_branch, '-')}
+                                        </span>
                                     </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                )}
+                                    {Array.isArray(log.changed_fields_list) && log.changed_fields_list.length > 0 && (
+                                        <div className="mt-3 flex flex-wrap gap-2">
+                                            {log.changed_fields_list.map((field) => (
+                                                <span
+                                                    key={`${log.id}-${field}`}
+                                                    className="px-2 py-1 rounded-full bg-teal-500/10 text-teal-700 dark:text-teal-300 text-[11px] font-semibold"
+                                                >
+                                                    {field}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
 
-                <div className="mt-5 flex items-center justify-between gap-3">
-                    <button
-                        type="button"
-                        onClick={() => setAuditPage((prev) => Math.max(1, prev - 1))}
-                        disabled={auditPage <= 1 || auditLoading}
-                        className="px-4 py-2 rounded-full text-xs font-bold glass-effect border border-slate-200/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        Prev
-                    </button>
-                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-300">
-                        Page {auditPage} of {auditTotalPages}
-                    </span>
-                    <button
-                        type="button"
-                        onClick={() => setAuditPage((prev) => Math.min(auditTotalPages, prev + 1))}
-                        disabled={auditPage >= auditTotalPages || auditLoading}
-                        className="px-4 py-2 rounded-full text-xs font-bold glass-effect border border-slate-200/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        Next
-                    </button>
+                    <div className="mt-5 flex items-center justify-between gap-3">
+                        <button
+                            type="button"
+                            onClick={() => setAuditPage((prev) => Math.max(1, prev - 1))}
+                            disabled={auditPage <= 1 || auditLoading}
+                            className="px-4 py-2 rounded-full text-xs font-bold glass-effect border border-slate-200/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            Prev
+                        </button>
+                        <span className="text-xs font-semibold text-slate-500 dark:text-slate-300">
+                            Page {auditPage} of {auditTotalPages}
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => setAuditPage((prev) => Math.min(auditTotalPages, prev + 1))}
+                            disabled={auditPage >= auditTotalPages || auditLoading}
+                            className="px-4 py-2 rounded-full text-xs font-bold glass-effect border border-slate-200/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            Next
+                        </button>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 }

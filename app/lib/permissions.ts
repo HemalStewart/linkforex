@@ -61,23 +61,23 @@ export const ADMIN_PAGES_CONFIG: AdminCategoryInfo[] = [
     {
         category: 'Operations',
         pages: [
-            { name: 'Transfers', section: 'TRANSFERS', operations: ['VIEW', 'ADD', 'EDIT', 'APPROVE', 'CANCEL', 'PDF', 'EXPORT', 'NEW_TRANSFER', 'PRINT', 'SIGN', ...AUDIT_OPS] },
-            { name: 'Remitters', section: 'REMITTERS', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', 'PDF', 'EXPORT', ...AUDIT_OPS] },
-            { name: 'Receivers', section: 'RECEIVERS', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', 'PDF', 'EXPORT', ...AUDIT_OPS] },
+            { name: 'Transfers', section: 'TRANSFERS', operations: ['VIEW', 'CREATE', 'EDIT', 'APPROVE', 'CANCEL', 'PDF', 'EXPORT', 'PRINT', 'SIGN', ...AUDIT_OPS] },
+            { name: 'Remitters', section: 'REMITTERS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'PDF', 'EXPORT', ...AUDIT_OPS] },
+            { name: 'Receivers', section: 'RECEIVERS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'PDF', 'EXPORT', ...AUDIT_OPS] },
             { name: 'KYC Reviews', section: 'KYC_REVIEWS', operations: ['VIEW', 'EDIT', 'EXPORT', ...AUDIT_OPS] },
-            { name: 'Branch Access Flags', section: 'BRANCH_ACCESS_REQUESTS', operations: ['VIEW', 'ADD', 'APPROVE', ...AUDIT_OPS] },
-            { name: 'Support', section: 'SUPPORT', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] },
-            { name: 'Branch Rates', section: 'BRANCH_CURRENCY_RATES', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] }
+            { name: 'Branch Access Flags', section: 'BRANCH_ACCESS_REQUESTS', operations: ['VIEW', 'CREATE', 'APPROVE', ...AUDIT_OPS] },
+            { name: 'Support', section: 'SUPPORT', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
+            { name: 'Branch Rates', section: 'BRANCH_CURRENCY_RATES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] }
         ]
     },
     {
         category: 'Master Data',
         pages: [
-            { name: 'Branches', section: 'BRANCHES', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] },
+            { name: 'Branches', section: 'BRANCHES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
             { name: 'Transaction Settings', section: 'TRANSACTION_SETTINGS', operations: ['VIEW', 'EDIT'] },
-            { name: 'API Tokens', section: 'API_TOKENS', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] },
-            { name: 'Dilisense Sources', section: 'DILISENSE_SOURCES', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] },
-            { name: 'Currencies', section: 'CURRENCIES', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] }
+            { name: 'API Tokens', section: 'API_TOKENS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
+            { name: 'Dilisense Sources', section: 'DILISENSE_SOURCES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
+            { name: 'Currencies', section: 'CURRENCIES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] }
         ]
     },
     {
@@ -90,30 +90,30 @@ export const ADMIN_PAGES_CONFIG: AdminCategoryInfo[] = [
         category: 'Mobile Controls',
         pages: [
             { name: 'Overview', section: 'MOBILE_OVERVIEW', operations: ['VIEW'] },
-            { name: 'Mobile Profiles', section: 'MOBILE_PROFILES', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', 'PDF', 'EXPORT', ...AUDIT_OPS] },
-            { name: 'App Flow Settings', section: 'MOBILE_FLOW_SETTINGS', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] },
-            { name: 'Customer Digital Rates', section: 'MOBILE_DIGITAL_RATES', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] },
-            { name: 'User Rates', section: 'MOBILE_USER_RATES', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] },
+            { name: 'Mobile Profiles', section: 'MOBILE_PROFILES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'PDF', 'EXPORT', ...AUDIT_OPS] },
+            { name: 'App Flow Settings', section: 'MOBILE_FLOW_SETTINGS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
+            { name: 'Customer Digital Rates', section: 'MOBILE_DIGITAL_RATES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
+            { name: 'User Rates', section: 'MOBILE_USER_RATES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
             { name: 'Profile Review Queue', section: 'MOBILE_PROFILE_REVIEW_QUEUE', operations: ['VIEW', 'EDIT', ...AUDIT_OPS] },
-            { name: 'Campaigns', section: 'MOBILE_CAMPAIGNS', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] },
-            { name: 'Onboarding & Carousel', section: 'MOBILE_ADS', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] }
+            { name: 'Campaigns', section: 'MOBILE_CAMPAIGNS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
+            { name: 'Onboarding & Carousel', section: 'MOBILE_ADS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] }
         ]
     },
     {
         category: 'Application Basic Data',
         pages: [
-            { name: 'Countries', section: 'COUNTRIES', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] },
-            { name: 'Banks', section: 'BANKS', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] },
-            { name: 'Relationships', section: 'RELATIONSHIPS', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] },
-            { name: 'Purposes', section: 'PURPOSES', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] }
+            { name: 'Countries', section: 'COUNTRIES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
+            { name: 'Banks', section: 'BANKS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
+            { name: 'Relationships', section: 'RELATIONSHIPS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
+            { name: 'Purposes', section: 'PURPOSES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] }
         ]
     },
     {
         category: 'System Users',
         pages: [
-            { name: 'Role', section: 'ROLES', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] },
-            { name: 'Role Permissions', section: 'PERMISSION_GROUPS', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] },
-            { name: 'Users', section: 'SYSTEM_USERS', operations: ['VIEW', 'ADD', 'EDIT', 'DELETE', ...AUDIT_OPS] },
+            { name: 'Role', section: 'ROLES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
+            { name: 'Role Permissions', section: 'PERMISSION_GROUPS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
+            { name: 'Users', section: 'SYSTEM_USERS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
             { name: 'User Logs', section: 'AUDIT_LOGS', operations: ['VIEW', 'EXPORT', ...AUDIT_OPS] }
         ]
     },
@@ -192,26 +192,62 @@ export function useAuditColumns(section: string) {
 export function usePagePermissions(section: string) {
     const [perms, setPerms] = useState({
         canAdd: false,
+        canCreate: false,
         canEdit: false,
         canDelete: false,
         canPdf: false,
         canExport: false,
-        canNewTransfer: false,
         canPrint: false,
         canSign: false,
+        canApprove: false,
+        canCancel: false,
+        canView: false,
     });
 
     useEffect(() => {
         const update = () => {
+            const hasCreate = checkPermission(section, 'CREATE');
+            const hasEdit = checkPermission(section, 'EDIT');
+            const hasDelete = checkPermission(section, 'DELETE');
+            const hasView = checkPermission(section, 'VIEW');
+
+            const isOpConfigured = (op: string) => {
+                for (const cat of ADMIN_PAGES_CONFIG) {
+                    for (const page of cat.pages) {
+                        const targetSec = section.toUpperCase().trim();
+                        const rowSec = page.section.toUpperCase().trim();
+                        
+                        const match = rowSec === targetSec ||
+                                      rowSec === targetSec + 'S' ||
+                                      targetSec === rowSec + 'S' ||
+                                      (targetSec === 'KYC_REVIEWS' && rowSec === 'KYC') ||
+                                      (targetSec === 'BRANCH_CURRENCY_RATES' && rowSec === 'BRANCH_CURRENCY_RATE') ||
+                                      (targetSec === 'BRANCH_ACCESS_REQUESTS' && rowSec === 'BRANCH_ACCESS') ||
+                                      (targetSec === 'SYSTEM_USERS' && rowSec === 'SYSUSERS');
+                                      
+                        if (match) {
+                            return page.operations.includes(op);
+                        }
+                    }
+                }
+                return false;
+            };
+
+            const hasPdf = checkPermission(section, 'PDF');
+            const hasExport = checkPermission(section, 'EXPORT');
+
             setPerms({
-                canAdd: checkPermission(section, 'ADD'),
-                canEdit: checkPermission(section, 'EDIT'),
-                canDelete: checkPermission(section, 'DELETE'),
-                canPdf: checkPermission(section, 'PDF'),
-                canExport: checkPermission(section, 'EXPORT'),
-                canNewTransfer: checkPermission(section, 'NEW_TRANSFER'),
+                canAdd: hasCreate,
+                canCreate: hasCreate,
+                canEdit: hasEdit,
+                canDelete: hasDelete,
+                canPdf: isOpConfigured('PDF') ? hasPdf : (hasPdf || hasView),
+                canExport: isOpConfigured('EXPORT') ? hasExport : (hasExport || hasView),
                 canPrint: checkPermission(section, 'PRINT'),
                 canSign: checkPermission(section, 'SIGN'),
+                canApprove: checkPermission(section, 'APPROVE'),
+                canCancel: checkPermission(section, 'CANCEL'),
+                canView: hasView,
             });
         };
 

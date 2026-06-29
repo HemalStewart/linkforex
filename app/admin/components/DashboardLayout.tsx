@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { ENDPOINTS, isApiRequestUrl } from '@/app/lib/api';
 import { resolveUploadsUrl } from '@/app/lib/uploads';
 import { clearStoredUser, getStoredUserRaw } from '@/app/lib/authStorage';
-import { isPrivilegedUser as getIsPrivilegedUser, usePagePermissions } from '@/app/lib/permissions';
+import { isPrivilegedUser as getIsPrivilegedUser, usePagePermissions, checkPermission } from '@/app/lib/permissions';
 import { applyThemePreference, getStoredThemePreference, resolveTheme, type ThemePreference, type ResolvedTheme } from '@/app/lib/theme';
 import ConfirmModal from './ConfirmModal';
 import {
@@ -81,7 +81,7 @@ interface NavItem {
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-    const { canNewTransfer } = usePagePermissions('TRANSFERS');
+    const { canAdd } = usePagePermissions('TRANSFERS');
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [notificationMenuOpen, setNotificationMenuOpen] = useState(false);
     const [themeMenuOpen, setThemeMenuOpen] = useState(false);
@@ -175,23 +175,31 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     React.useEffect(() => {
         const fetchCounts = async () => {
             const timestamp = Date.now();
+            
+            const checkAndView = (sec: string, url: string) => {
+                if (checkPermission(sec, 'VIEW')) {
+                    return fetch(url).then(r => r.ok ? r.json() : []);
+                }
+                return Promise.resolve([]);
+            };
+
             try {
-                // Parallel fetch for dashboard counts
+                // Parallel fetch for dashboard counts, guarded by VIEW permission
                 const [tRes, rRes, bRes, uRes, brRes, bcrRes, banksRes, countriesRes, relRes, purposeRes, roRes, pgRes, baRes, supportOpenRes] = await Promise.allSettled([
-                    fetch(`${ENDPOINTS.TRANSFERS.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
-                    fetch(`${ENDPOINTS.REMITTERS.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
-                    fetch(`${ENDPOINTS.BENEFICIARIES.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
-                    fetch(`${ENDPOINTS.USERS.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
-                    fetch(`${ENDPOINTS.BRANCHES.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
-                    fetch(`${ENDPOINTS.BRANCH_CURRENCY_RATES.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
-                    fetch(`${ENDPOINTS.BANKS.LIST}?include_blacklisted=yes&_t=${timestamp}`).then(r => r.ok ? r.json() : []),
-                    fetch(`${ENDPOINTS.COUNTRIES.LIST}?include_blacklisted=yes&_t=${timestamp}`).then(r => r.ok ? r.json() : []),
-                    fetch(`${ENDPOINTS.RELATIONSHIPS.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
-                    fetch(`${ENDPOINTS.PURPOSES.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
-                    fetch(`${ENDPOINTS.ROLES.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
-                    fetch(`${ENDPOINTS.PERMISSION_GROUPS.LIST}?_t=${timestamp}`).then(r => r.ok ? r.json() : []),
-                    fetch(`${ENDPOINTS.BRANCH_ACCESS_REQUESTS.LIST}?status=pending&_t=${timestamp}`).then(r => r.ok ? r.json() : []),
-                    fetch(`${ENDPOINTS.SUPPORT.LIST}?status=open&_t=${timestamp}`).then(r => r.ok ? r.json() : []),
+                    checkAndView('TRANSFERS', `${ENDPOINTS.TRANSFERS.LIST}?_t=${timestamp}`),
+                    checkAndView('REMITTERS', `${ENDPOINTS.REMITTERS.LIST}?_t=${timestamp}`),
+                    checkAndView('RECEIVERS', `${ENDPOINTS.BENEFICIARIES.LIST}?_t=${timestamp}`),
+                    checkAndView('SYSTEM_USERS', `${ENDPOINTS.USERS.LIST}?_t=${timestamp}`),
+                    checkAndView('BRANCHES', `${ENDPOINTS.BRANCHES.LIST}?_t=${timestamp}`),
+                    checkAndView('BRANCH_CURRENCY_RATES', `${ENDPOINTS.BRANCH_CURRENCY_RATES.LIST}?_t=${timestamp}`),
+                    checkAndView('BANKS', `${ENDPOINTS.BANKS.LIST}?include_blacklisted=yes&_t=${timestamp}`),
+                    checkAndView('COUNTRIES', `${ENDPOINTS.COUNTRIES.LIST}?include_blacklisted=yes&_t=${timestamp}`),
+                    checkAndView('RELATIONSHIPS', `${ENDPOINTS.RELATIONSHIPS.LIST}?_t=${timestamp}`),
+                    checkAndView('PURPOSES', `${ENDPOINTS.PURPOSES.LIST}?_t=${timestamp}`),
+                    checkAndView('ROLES', `${ENDPOINTS.ROLES.LIST}?_t=${timestamp}`),
+                    checkAndView('PERMISSION_GROUPS', `${ENDPOINTS.PERMISSION_GROUPS.LIST}?_t=${timestamp}`),
+                    checkAndView('BRANCH_ACCESS_REQUESTS', `${ENDPOINTS.BRANCH_ACCESS_REQUESTS.LIST}?status=pending&_t=${timestamp}`),
+                    checkAndView('SUPPORT', `${ENDPOINTS.SUPPORT.LIST}?status=open&_t=${timestamp}`),
                 ]);
 
                 const getCount = (res: PromiseSettledResult<unknown>) => {
@@ -310,7 +318,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         if (isPublicPage || !currentUser?.id || isPrivilegedUser || !permissionsLoaded) return;
 
         // Flatten the navigation items to get a list of all routes and their sections
-        const flatItems: Array<{ href: string; sections?: string[] }> = [];
+        const flatItems: Array<{ href: string; sections?: string[] }> = [
+            { href: '/admin/profile', sections: ['PROFILE'] }
+        ];
         navigation.forEach(item => {
             if (item.href) {
                 flatItems.push({ href: item.href, sections: item.sections });
@@ -989,7 +999,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     </div>
 
                     <div className="flex items-center space-x-3">
-                        {canNewTransfer && (
+                        {canAdd && (
                             <Link
                                 href="/admin/transfers/create"
                                 className="glass-effect rounded-full px-3.5 py-2 text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 flex items-center space-x-2 hover:shadow-lg"
@@ -1084,31 +1094,57 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                 </div>
                             )}
                         </div>
-                        <Link
-                            href="/admin/profile"
-                            className="glass-effect rounded-full pl-2 pr-3.5 py-1 text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 flex items-center space-x-2 hover:shadow-lg"
-                            title="Profile Settings"
-                        >
-                            <div className="avatar-circle avatar-circle-sm shrink-0 overflow-hidden">
-                                {profilePhotoUrl ? (
-                                    <img
-                                        src={profilePhotoUrl}
-                                        alt={displayName}
-                                        className="h-full w-full object-cover"
-                                    />
-                                ) : (
-                                    displayName.charAt(0).toUpperCase()
-                                )}
+                        {canViewSections(['PROFILE']) ? (
+                            <Link
+                                href="/admin/profile"
+                                className="glass-effect rounded-full pl-2 pr-3.5 py-1 text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 flex items-center space-x-2 hover:shadow-lg cursor-pointer"
+                                title="Profile Settings"
+                            >
+                                <div className="avatar-circle avatar-circle-sm shrink-0 overflow-hidden">
+                                    {profilePhotoUrl ? (
+                                        <img
+                                            src={profilePhotoUrl}
+                                            alt={displayName}
+                                            className="h-full w-full object-cover"
+                                        />
+                                    ) : (
+                                        displayName.charAt(0).toUpperCase()
+                                    )}
+                                </div>
+                                <div className="hidden md:block text-left max-w-[180px]">
+                                    <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                                        {displayName}
+                                    </p>
+                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                                        {displayRole}
+                                    </p>
+                                </div>
+                            </Link>
+                        ) : (
+                            <div
+                                className="glass-effect rounded-full pl-2 pr-3.5 py-1 text-slate-600 dark:text-slate-300 flex items-center space-x-2 select-none"
+                            >
+                                <div className="avatar-circle avatar-circle-sm shrink-0 overflow-hidden">
+                                    {profilePhotoUrl ? (
+                                        <img
+                                            src={profilePhotoUrl}
+                                            alt={displayName}
+                                            className="h-full w-full object-cover"
+                                        />
+                                    ) : (
+                                        displayName.charAt(0).toUpperCase()
+                                    )}
+                                </div>
+                                <div className="hidden md:block text-left max-w-[180px]">
+                                    <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                                        {displayName}
+                                    </p>
+                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                                        {displayRole}
+                                    </p>
+                                </div>
                             </div>
-                            <div className="hidden md:block text-left max-w-[180px]">
-                                <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                                    {displayName}
-                                </p>
-                                <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                                    {displayRole}
-                                </p>
-                            </div>
-                        </Link>
+                        )}
 
                         <button
                             onClick={handleSignOut}
