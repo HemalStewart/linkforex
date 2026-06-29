@@ -1503,9 +1503,9 @@ export default function TransfersPage() {
                     <button
                         type="button"
                         onClick={fetchData}
-                        className="btn-primary flex items-center gap-2 border-0 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 group"
+                        className="btn-primary flex items-center space-x-2 rounded-full px-6 py-2.5 border-0 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 group text-white font-bold"
                     >
-                        <RefreshCw className={`w-4 h-4 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
+                        <RefreshCw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
                         <span>Refresh</span>
                     </button>
                     {canExport && (

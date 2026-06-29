@@ -64,7 +64,7 @@ export const ADMIN_PAGES_CONFIG: AdminCategoryInfo[] = [
             { name: 'Transfers', section: 'TRANSFERS', operations: ['VIEW', 'CREATE', 'EDIT', 'APPROVE', 'CANCEL', 'PDF', 'EXPORT', 'PRINT', 'SIGN', ...AUDIT_OPS] },
             { name: 'Remitters', section: 'REMITTERS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'PDF', 'EXPORT', 'MANUALLY_PASSED', ...AUDIT_OPS] },
             { name: 'Receivers', section: 'RECEIVERS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'PDF', 'EXPORT', 'MANUALLY_PASSED', ...AUDIT_OPS] },
-            { name: 'KYC Reviews', section: 'KYC_REVIEWS', operations: ['VIEW', 'EDIT', 'EXPORT', ...AUDIT_OPS] },
+            { name: 'KYC Reviews', section: 'KYC_REVIEWS', operations: ['VIEW', 'EXPORT'] },
             { name: 'Branch Access Flags', section: 'BRANCH_ACCESS_REQUESTS', operations: ['VIEW', 'CREATE', 'APPROVE', ...AUDIT_OPS] },
             { name: 'Support', section: 'SUPPORT', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
             { name: 'Branch Rates', section: 'BRANCH_CURRENCY_RATES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] }

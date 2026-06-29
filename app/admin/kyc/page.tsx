@@ -4,11 +4,51 @@ import React, { useState, useEffect } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
 import { Filter, Download, Clock, Search, AlertCircle, CheckCircle, XCircle, User, Phone, Calendar, FileText, Shield, RefreshCcw } from 'lucide-react';
 import { formatDateTime } from '@/app/lib/dateUtils';
+import { usePagePermissions } from '@/app/lib/permissions';
 
 export default function KYCPage() {
+    const { canExport } = usePagePermissions('KYC_REVIEWS');
     const [filterStatus, setFilterStatus] = useState('all');
     const [remitters, setRemitters] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+
+    const csvEscape = (value: unknown): string => {
+        const text = String(value ?? '').replace(/"/g, '""');
+        return `"${text}"`;
+    };
+
+    const handleExportCsv = () => {
+        const exportCols = [
+            { key: 'user', label: 'User Name' },
+            { key: 'email', label: 'Email' },
+            { key: 'phone', label: 'Phone' },
+            { key: 'submittedDate', label: 'Submitted Date' },
+            { key: 'status', label: 'Status' },
+            { key: 'riskLevel', label: 'Risk Level' },
+            { key: 'country', label: 'Country' }
+        ];
+
+        const header = exportCols.map((col) => csvEscape(col.label)).join(',');
+        const body = processedApplications.map((row: any) => (
+            exportCols
+                .map((col) => {
+                    const value = row[col.key];
+                    return csvEscape(value === null || value === undefined ? '' : String(value));
+                })
+                .join(',')
+        ));
+
+        const csv = [header, ...body].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = `kyc_reviews_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        URL.revokeObjectURL(url);
+    };
 
     useEffect(() => {
         fetchRemitters();
@@ -132,15 +172,17 @@ export default function KYCPage() {
                     </button>
           <button
             onClick={fetchRemitters}
-            className="px-5 py-3 rounded-2xl border-0 glass-effect text-slate-700 dark:text-slate-300 font-bold hover:shadow-lg transition-all flex items-center space-x-2"
+            className="btn-primary flex items-center space-x-2 rounded-full px-6 py-2.5 border-0 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 group text-white font-bold"
           >
             <RefreshCcw className="w-5 h-5" />
             <span>Refresh</span>
           </button>
-          <button className="btn-primary flex items-center space-x-2">
-            <Download className="w-5 h-5" />
-                        <span>Export Report</span>
-                    </button>
+          {canExport && (
+              <button onClick={handleExportCsv} className="btn-primary flex items-center space-x-2">
+                  <Download className="w-5 h-5" />
+                  <span>Export Report</span>
+              </button>
+          )}
                 </div>
             </div>
 

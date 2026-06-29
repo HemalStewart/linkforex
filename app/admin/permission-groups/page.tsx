@@ -425,6 +425,9 @@ export default function PermissionGroupsPage() {
             if (sec === 'REPORTS' || sec === 'DASHBOARD') {
                 return op === 'VIEW';
             }
+            if (sec === 'KYC_REVIEWS') {
+                return ['VIEW', 'EXPORT'].includes(op);
+            }
             return true;
         });
         if (!searchQuery.trim()) return baseRows;

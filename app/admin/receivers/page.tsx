@@ -587,7 +587,7 @@ export default function ReceiversPage() {
                             <button
                                 type="button"
                                 onClick={() => void fetchReceivers()}
-                                className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 border-0 group"
+                                className="btn-primary flex items-center space-x-2 rounded-full px-6 py-2 border-0 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 group text-white text-sm whitespace-nowrap"
                             >
                                 <RefreshCcw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
                                 <span>Refresh</span>
