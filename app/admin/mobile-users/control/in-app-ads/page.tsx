@@ -6,7 +6,7 @@ import { ENDPOINTS } from '@/app/lib/api';
 import { resolveUploadsUrl } from '@/app/lib/uploads';
 import ConfirmModal from '../../../components/ConfirmModal';
 import type { MobileAd } from '../_shared';
-import { useAuditColumns } from '@/app/lib/permissions';
+import { useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 import { formatDateTime } from '@/app/lib/dateUtils';
 
 const MAX_UPLOAD_BYTES = 4 * 1024 * 1024; // Keep below typical proxy/serverless limits.
@@ -90,6 +90,8 @@ const compressImage = async (file: File): Promise<File> => {
 
 export default function MobileInAppAdsPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('MOBILE_ADS');
+    const { canCreate, canDelete, canDisable } = usePagePermissions('MOBILE_ADS');
+    const showActionsColumn = canDisable || canDelete;
     const [loading, setLoading] = useState(true);
     const [creatingAd, setCreatingAd] = useState(false);
     const [ads, setAds] = useState<MobileAd[]>([]);
@@ -302,6 +304,7 @@ export default function MobileInAppAdsPage() {
                                 value={adForm.placement}
                                 onChange={(e) => setAdForm((prev) => ({ ...prev, placement: e.target.value as 'onboarding' | 'home_carousel' }))}
                                 className="input-glass py-2.5 text-sm"
+                                disabled={!canCreate}
                             >
                                 <option value="onboarding">Onboarding</option>
                                 <option value="home_carousel">Home Carousel</option>
@@ -312,12 +315,14 @@ export default function MobileInAppAdsPage() {
                             value={adForm.title}
                             onChange={(e) => setAdForm((prev) => ({ ...prev, title: e.target.value }))}
                             className="input-glass py-2.5 text-sm md:col-span-2"
+                            readOnly={!canCreate}
                         />
                         <textarea
                             placeholder="Description"
                             value={adForm.description}
                             onChange={(e) => setAdForm((prev) => ({ ...prev, description: e.target.value }))}
                             className="input-glass min-h-24 py-2.5 text-sm md:col-span-2"
+                            readOnly={!canCreate}
                         />
                         <label className="md:col-span-2">
                             <span className="mb-1.5 flex items-center gap-2 text-xs font-bold text-slate-500">
@@ -344,6 +349,7 @@ export default function MobileInAppAdsPage() {
                                     }
                                 }}
                                 className="input-glass py-2.5 text-sm"
+                                disabled={!canCreate}
                             />
                             <span className="mt-1 block text-xs text-slate-500 dark:text-slate-400">
                                 {imageFile
@@ -357,23 +363,27 @@ export default function MobileInAppAdsPage() {
                             value={adForm.priority}
                             onChange={(e) => setAdForm((prev) => ({ ...prev, priority: Number(e.target.value || 0) }))}
                             className="input-glass py-2.5 text-sm"
+                            readOnly={!canCreate}
                         />
                         <select
                             value={adForm.status}
                             onChange={(e) => setAdForm((prev) => ({ ...prev, status: e.target.value as 'active' | 'inactive' }))}
                             className="input-glass py-2.5 text-sm"
+                            disabled={!canCreate}
                         >
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
                         </select>
-                        <button
-                            onClick={createAd}
-                            disabled={creatingAd}
-                            className="btn-primary flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm md:col-span-2"
-                        >
-                            <Plus className="h-4 w-4" />
-                            Save Item
-                        </button>
+                        {canCreate && (
+                            <button
+                                onClick={createAd}
+                                disabled={creatingAd}
+                                className="btn-primary flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm md:col-span-2"
+                            >
+                                <Plus className="h-4 w-4" />
+                                Save Item
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -422,7 +432,7 @@ export default function MobileInAppAdsPage() {
                                     {showCreatedAt && <th>Created At</th>}
                                     {showUpdatedBy && <th>Updated By</th>}
                                     {showUpdatedAt && <th>Updated At</th>}
-                                    <th className="text-right">Action</th>
+                                    {showActionsColumn && <th className="text-right">Action</th>}
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -462,27 +472,33 @@ export default function MobileInAppAdsPage() {
                                         {showCreatedAt && <td className="text-sm text-slate-600 whitespace-nowrap">{ad.created_at ? formatDateTime(ad.created_at) : '—'}</td>}
                                         {showUpdatedBy && <td className="text-sm text-slate-600 font-medium">{ad.updated_by || ad.modified_user || '—'}</td>}
                                         {showUpdatedAt && <td className="text-sm text-slate-600 whitespace-nowrap">{ad.updated_at ? formatDateTime(ad.updated_at) : '—'}</td>}
-                                        <td className="text-right">
-                                            <div className="flex justify-end gap-2">
-                                                <button
-                                                    onClick={() => toggleAdStatus(ad)}
-                                                    className="rounded-full border border-slate-300 px-2.5 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-                                                >
-                                                    {ad.status === 'active' ? 'Disable' : 'Enable'}
-                                                </button>
-                                                <button
-                                                    onClick={() => deleteAd(ad)}
-                                                    className="rounded-full border border-red-200 px-2.5 py-1 text-xs font-bold text-red-600 hover:bg-red-50 dark:border-red-900/50 dark:text-red-300 dark:hover:bg-red-900/20"
-                                                >
-                                                    <Trash2 className="h-3.5 w-3.5" />
-                                                </button>
-                                            </div>
-                                        </td>
+                                        {showActionsColumn && (
+                                            <td className="text-right">
+                                                <div className="flex justify-end gap-2">
+                                                    {canDisable && (
+                                                        <button
+                                                            onClick={() => toggleAdStatus(ad)}
+                                                            className="rounded-full border border-slate-300 px-2.5 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                                                        >
+                                                            {ad.status === 'active' ? 'Disable' : 'Enable'}
+                                                        </button>
+                                                    )}
+                                                    {canDelete && (
+                                                        <button
+                                                            onClick={() => deleteAd(ad)}
+                                                            className="rounded-full border border-red-200 px-2.5 py-1 text-xs font-bold text-red-600 hover:bg-red-50 dark:border-red-900/50 dark:text-red-300 dark:hover:bg-red-900/20"
+                                                        >
+                                                            <Trash2 className="h-3.5 w-3.5" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))}
                                 {filteredAds.length === 0 && (
                                     <tr>
-                                        <td colSpan={6 + (showCreatedBy ? 1 : 0) + (showCreatedAt ? 1 : 0) + (showUpdatedBy ? 1 : 0) + (showUpdatedAt ? 1 : 0)} className="px-3 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
+                                        <td colSpan={6 + (showActionsColumn ? 1 : 0) + (showCreatedBy ? 1 : 0) + (showCreatedAt ? 1 : 0) + (showUpdatedBy ? 1 : 0) + (showUpdatedAt ? 1 : 0)} className="px-3 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
                                             {loading ? 'Loading...' : 'No content items found'}
                                         </td>
                                     </tr>

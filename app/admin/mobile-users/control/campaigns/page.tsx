@@ -5,11 +5,12 @@ import { RefreshCcw } from 'lucide-react';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../../components/ConfirmModal';
 import type { Campaign } from '../_shared';
-import { useAuditColumns } from '@/app/lib/permissions';
+import { useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 import { formatDateTime } from '@/app/lib/dateUtils';
 
 export default function MobileCampaignsPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('MOBILE_CAMPAIGNS');
+    const { canCreate } = usePagePermissions('MOBILE_CAMPAIGNS');
     const [loading, setLoading] = useState(true);
     const [creatingCampaign, setCreatingCampaign] = useState(false);
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -137,17 +138,20 @@ export default function MobileCampaignsPage() {
                         value={campaignForm.title}
                         onChange={(e) => setCampaignForm((prev) => ({ ...prev, title: e.target.value }))}
                         className="input-glass py-2.5 text-sm md:col-span-2"
+                        readOnly={!canCreate}
                     />
                     <textarea
                         placeholder="Campaign message"
                         value={campaignForm.message}
                         onChange={(e) => setCampaignForm((prev) => ({ ...prev, message: e.target.value }))}
                         className="input-glass min-h-24 py-2.5 text-sm md:col-span-2"
+                        readOnly={!canCreate}
                     />
                     <select
                         value={campaignForm.channel}
                         onChange={(e) => setCampaignForm((prev) => ({ ...prev, channel: e.target.value as 'push' | 'email' | 'both' }))}
                         className="input-glass py-2.5 text-sm"
+                        disabled={!canCreate}
                     >
                         <option value="both">Push + Email</option>
                         <option value="push">Push only</option>
@@ -157,6 +161,7 @@ export default function MobileCampaignsPage() {
                         value={campaignForm.target_audience}
                         onChange={(e) => setCampaignForm((prev) => ({ ...prev, target_audience: e.target.value as 'all' | 'kyc_pending' | 'kyc_verified' | 'inactive' }))}
                         className="input-glass py-2.5 text-sm"
+                        disabled={!canCreate}
                     >
                         <option value="all">All users</option>
                         <option value="kyc_pending">KYC pending</option>
@@ -169,25 +174,28 @@ export default function MobileCampaignsPage() {
                             checked={campaignForm.include_exchange_rate}
                             onChange={(e) => setCampaignForm((prev) => ({ ...prev, include_exchange_rate: e.target.checked }))}
                             className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                            disabled={!canCreate}
                         />
                         Include latest exchange rates in message
                     </label>
-                    <div className="flex gap-2 md:col-span-2">
-                        <button
-                            onClick={() => createCampaign(false)}
-                            disabled={creatingCampaign}
-                            className="rounded-full border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-                        >
-                            Save Draft
-                        </button>
-                        <button
-                            onClick={() => createCampaign(true)}
-                            disabled={creatingCampaign}
-                            className="btn-primary rounded-full px-4 py-2 text-sm"
-                        >
-                            Send Now
-                        </button>
-                    </div>
+                    {canCreate && (
+                        <div className="flex gap-2 md:col-span-2">
+                            <button
+                                onClick={() => createCampaign(false)}
+                                disabled={creatingCampaign}
+                                className="rounded-full border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                            >
+                                Save Draft
+                            </button>
+                            <button
+                                onClick={() => createCampaign(true)}
+                                disabled={creatingCampaign}
+                                className="btn-primary rounded-full px-4 py-2 text-sm"
+                            >
+                                Send Now
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 <div className="table-scroll mt-5 max-h-[420px] rounded-2xl border border-slate-200/70 dark:border-slate-700">
@@ -215,7 +223,7 @@ export default function MobileCampaignsPage() {
                                     {showUpdatedBy && <td className="text-sm text-slate-600 font-medium">{campaign.updated_by || campaign.modified_user || '—'}</td>}
                                     {showUpdatedAt && <td className="text-sm text-slate-600 whitespace-nowrap">{campaign.updated_at ? formatDateTime(campaign.updated_at) : '—'}</td>}
                                     <td className="text-right">
-                                        {campaign.status === 'draft' && (
+                                        {canCreate && campaign.status === 'draft' && (
                                             <button
                                                 onClick={() => sendDraftCampaign(campaign.id)}
                                                 className="rounded-full bg-teal-500 px-3 py-1 text-xs font-bold text-white hover:bg-teal-600"

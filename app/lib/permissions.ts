@@ -96,7 +96,7 @@ export const ADMIN_PAGES_CONFIG: AdminCategoryInfo[] = [
             { name: 'User Rates', section: 'MOBILE_USER_RATES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
             { name: 'Profile Review Queue', section: 'MOBILE_PROFILE_REVIEW_QUEUE', operations: ['VIEW', ...AUDIT_OPS] },
             { name: 'Campaigns', section: 'MOBILE_CAMPAIGNS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
-            { name: 'Onboarding & Carousel', section: 'MOBILE_ADS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] }
+            { name: 'Onboarding & Carousel', section: 'MOBILE_ADS', operations: ['VIEW', 'CREATE', 'DELETE', 'DISABLE', ...AUDIT_OPS] }
         ]
     },
     {
@@ -213,6 +213,7 @@ export function usePagePermissions(section: string) {
         canDisplayPreferences: false,
         canEditFuzzySearch: false,
         canResetPassword: false,
+        canDisable: false,
     });
 
     useEffect(() => {
@@ -274,6 +275,7 @@ export function usePagePermissions(section: string) {
                 canDisplayPreferences: hasDisplayPreferences,
                 canEditFuzzySearch: hasEditFuzzySearch,
                 canResetPassword: checkPermission(section, 'RESET_PASSWORD'),
+                canDisable: checkPermission(section, 'DISABLE'),
             });
         };
 
