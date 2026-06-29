@@ -456,6 +456,15 @@ export default function PermissionGroupsPage() {
             if (sec === 'TRANSACTION_SETTINGS') {
                 return ['VIEW', 'EDIT'].includes(op);
             }
+            if (sec === 'API_TOKENS') {
+                return ['VIEW', 'EDIT'].includes(op);
+            }
+            if (['DILISENSE_SOURCES', 'COUNTRIES', 'BANKS', 'RELATIONSHIPS', 'PURPOSES'].includes(sec)) {
+                return !['ADD', 'APPROVE', 'CANCEL'].includes(op);
+            }
+            if (sec === 'SETTINGS') {
+                return ['VIEW', 'EDIT'].includes(op);
+            }
             return true;
         });
         if (!searchQuery.trim()) return baseRows;

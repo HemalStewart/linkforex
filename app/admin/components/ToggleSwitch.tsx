@@ -6,16 +6,19 @@ type ToggleSwitchProps = {
   label: string;
   value: YesNo;
   onChange: (value: YesNo) => void;
+  disabled?: boolean;
 };
 
 export default function ToggleSwitch({
   label,
   value,
   onChange,
+  disabled = false,
 }: ToggleSwitchProps) {
   const enabled = value === 'yes';
 
   const handleToggle = () => {
+    if (disabled) return;
     onChange(enabled ? 'no' : 'yes');
   };
 
@@ -32,7 +35,8 @@ export default function ToggleSwitch({
         role="switch"
         aria-checked={enabled}
         onClick={handleToggle}
-        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-300 focus:outline-none ${enabled
+        disabled={disabled}
+        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-300 focus:outline-none ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${enabled
             ? 'bg-teal-500 shadow-md shadow-teal-500/30'
             : 'bg-slate-300 dark:bg-slate-600'
           }`}

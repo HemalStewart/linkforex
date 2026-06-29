@@ -13,6 +13,7 @@ import {
     Lock,
     ShieldCheck
 } from 'lucide-react';
+import { usePagePermissions } from '@/app/lib/permissions';
 
 type ApiSettings = {
     veriff_api_key: string;
@@ -36,6 +37,7 @@ type ApiSettings = {
 };
 
 export default function ApiTokensPage() {
+    const { canEdit } = usePagePermissions('API_TOKENS');
     const actingUser = useMemo(() => getStoredUser<{ id?: string | number; username?: string; name?: string }>(), []);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -311,6 +313,7 @@ export default function ApiTokensPage() {
                                             value={settings.veriff_api_key}
                                             onChange={(e) => setSettings({ ...settings, veriff_api_key: e.target.value })}
                                             placeholder="Enter Veriff API Client Key"
+                                            disabled={!canEdit}
                                         />
                                         <button
                                             type="button"
@@ -333,6 +336,7 @@ export default function ApiTokensPage() {
                                             value={settings.veriff_hmac_secret}
                                             onChange={(e) => setSettings({ ...settings, veriff_hmac_secret: e.target.value })}
                                             placeholder="Enter Veriff HMAC Secret"
+                                            disabled={!canEdit}
                                         />
                                         <button
                                             type="button"
@@ -355,6 +359,7 @@ export default function ApiTokensPage() {
                                             value={settings.veriff_aml_api_key}
                                             onChange={(e) => setSettings({ ...settings, veriff_aml_api_key: e.target.value })}
                                             placeholder="Optional dedicated AML API key"
+                                            disabled={!canEdit}
                                         />
                                         <button
                                             type="button"
@@ -377,6 +382,7 @@ export default function ApiTokensPage() {
                                             value={settings.veriff_aml_hmac_secret}
                                             onChange={(e) => setSettings({ ...settings, veriff_aml_hmac_secret: e.target.value })}
                                             placeholder="Optional dedicated AML HMAC secret"
+                                            disabled={!canEdit}
                                         />
                                         <button
                                             type="button"
@@ -399,6 +405,7 @@ export default function ApiTokensPage() {
                                         value={settings.veriff_monthly_limit}
                                         onChange={(e) => setSettings({ ...settings, veriff_monthly_limit: Math.max(0, parseInt(e.target.value) || 0) })}
                                         placeholder="0"
+                                        disabled={!canEdit}
                                     />
                                 </div>
                                 <div>
@@ -410,6 +417,7 @@ export default function ApiTokensPage() {
                                         value={settings.veriff_yearly_limit}
                                         onChange={(e) => setSettings({ ...settings, veriff_yearly_limit: Math.max(0, parseInt(e.target.value) || 0) })}
                                         placeholder="0"
+                                        disabled={!canEdit}
                                     />
                                 </div>
                             </div>
@@ -480,6 +488,7 @@ export default function ApiTokensPage() {
                                             value={settings.dilisense_api_key}
                                             onChange={(e) => setSettings({ ...settings, dilisense_api_key: e.target.value })}
                                             placeholder="Enter Dilisense API Key (x-api-key)"
+                                            disabled={!canEdit}
                                         />
                                         <button
                                             type="button"
@@ -506,6 +515,7 @@ export default function ApiTokensPage() {
                                         value={settings.dilisense_monthly_limit}
                                         onChange={(e) => setSettings({ ...settings, dilisense_monthly_limit: Math.max(0, parseInt(e.target.value) || 0) })}
                                         placeholder="0"
+                                        disabled={!canEdit}
                                     />
                                 </div>
                                 <div>
@@ -517,21 +527,24 @@ export default function ApiTokensPage() {
                                         value={settings.dilisense_yearly_limit}
                                         onChange={(e) => setSettings({ ...settings, dilisense_yearly_limit: Math.max(0, parseInt(e.target.value) || 0) })}
                                         placeholder="0"
+                                        disabled={!canEdit}
                                     />
                                 </div>
                             </div>
                         </div>
 
-                        <div className="flex justify-end border-t border-slate-100 dark:border-slate-700/50 pt-5">
-                            <button
-                                type="submit"
-                                disabled={saving || loading}
-                                className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 disabled:opacity-50"
-                            >
-                                <Save className="w-5 h-5" />
-                                <span>{saving ? 'Saving...' : 'Save'}</span>
-                            </button>
-                        </div>
+                        {canEdit && (
+                            <div className="flex justify-end border-t border-slate-100 dark:border-slate-700/50 pt-5">
+                                <button
+                                    type="submit"
+                                    disabled={saving || loading}
+                                    className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 disabled:opacity-50"
+                                >
+                                    <Save className="w-5 h-5" />
+                                    <span>{saving ? 'Saving...' : 'Save'}</span>
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </form>
             )}

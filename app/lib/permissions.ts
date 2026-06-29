@@ -75,8 +75,8 @@ export const ADMIN_PAGES_CONFIG: AdminCategoryInfo[] = [
         pages: [
             { name: 'Branches', section: 'BRANCHES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
             { name: 'Transaction Settings', section: 'TRANSACTION_SETTINGS', operations: ['VIEW', 'EDIT'] },
-            { name: 'API Tokens', section: 'API_TOKENS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
-            { name: 'Dilisense Sources', section: 'DILISENSE_SOURCES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
+            { name: 'API Tokens', section: 'API_TOKENS', operations: ['VIEW', 'EDIT'] },
+            { name: 'Dilisense Sources', section: 'DILISENSE_SOURCES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'EDIT_FUZZY_SEARCH', ...AUDIT_OPS] },
             { name: 'Currencies', section: 'CURRENCIES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] }
         ]
     },
@@ -205,6 +205,7 @@ export function usePagePermissions(section: string) {
         canManuallyPassed: false,
         canChangePassword: false,
         canDisplayPreferences: false,
+        canEditFuzzySearch: false,
     });
 
     useEffect(() => {
@@ -216,6 +217,7 @@ export function usePagePermissions(section: string) {
             const hasManuallyPassed = checkPermission(section, 'MANUALLY_PASSED');
             const hasChangePassword = checkPermission(section, 'CHANGE_PASSWORD');
             const hasDisplayPreferences = checkPermission(section, 'DISPLAY_PREFERENCES');
+            const hasEditFuzzySearch = checkPermission(section, 'EDIT_FUZZY_SEARCH');
 
             const isOpConfigured = (op: string) => {
                 for (const cat of ADMIN_PAGES_CONFIG) {
@@ -257,6 +259,7 @@ export function usePagePermissions(section: string) {
                 canManuallyPassed: hasManuallyPassed,
                 canChangePassword: hasChangePassword,
                 canDisplayPreferences: hasDisplayPreferences,
+                canEditFuzzySearch: hasEditFuzzySearch,
             });
         };
 

@@ -10,10 +10,12 @@ import {
     Save,
     Settings,
 } from 'lucide-react';
+import { usePagePermissions } from '@/app/lib/permissions';
 
 const defaultFooterText = '© 2026 LinkForex. Protected by 256-bit encryption.';
 
 export default function SettingsPage() {
+    const { canEdit } = usePagePermissions('SETTINGS');
     const [loading, setLoading] = useState(false);
     const [generalSettings, setGeneralSettings] = useState({
         footerText: defaultFooterText,
@@ -127,6 +129,7 @@ export default function SettingsPage() {
                             onChange={(e) => setGeneralSettings(prev => ({ ...prev, companyName: e.target.value }))}
                             className="input-glass w-full"
                             placeholder="Link Forex Ltd"
+                            disabled={!canEdit}
                         />
                         <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">This name is used in the footer section of generated PDF reports.</p>
                     </div>
@@ -138,20 +141,23 @@ export default function SettingsPage() {
                             value={generalSettings.footerText}
                             onChange={(e) => setGeneralSettings(prev => ({ ...prev, footerText: e.target.value }))}
                             className="input-glass w-full"
+                            disabled={!canEdit}
                         />
                     </div>
                 </div>
 
-                <div className="flex justify-end space-x-4 pt-8 border-t border-slate-100 dark:border-slate-700/50">
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40"
-                    >
-                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                        <span>{loading ? 'Saving...' : 'Save'}</span>
-                    </button>
-                </div>
+                {canEdit && (
+                    <div className="flex justify-end space-x-4 pt-8 border-t border-slate-100 dark:border-slate-700/50">
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40"
+                        >
+                            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                            <span>{loading ? 'Saving...' : 'Save'}</span>
+                        </button>
+                    </div>
+                )}
             </form>
         </div>
     );

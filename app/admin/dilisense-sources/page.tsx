@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useRowsPerPage } from '@/app/lib/uiPreferences';
 import { ENDPOINTS } from '@/app/lib/api';
+import { getStoredUser } from '@/app/lib/authStorage';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
 import Badge from '../components/ui/Badge';
@@ -68,7 +69,8 @@ const REGIONS = ['americas', 'emea', 'apac', 'international'];
 
 export default function DilisenseSourcesPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('DILISENSE_SOURCES');
-    const { canAdd, canEdit, canDelete } = usePagePermissions('DILISENSE_SOURCES');
+    const { canAdd, canEdit, canDelete, canEditFuzzySearch } = usePagePermissions('DILISENSE_SOURCES');
+    const actingUser = useMemo(() => getStoredUser<{ id?: string | number; username?: string; name?: string }>(), []);
     const [rows, setRows] = useState<DilisenseSourceRow[]>([]);
     const [loading, setLoading] = useState(true);
     const [syncing, setSyncing] = useState(false);
@@ -116,7 +118,11 @@ export default function DilisenseSourcesPage() {
     const fetchFuzzySetting = async () => {
         setLoadingFuzzy(true);
         try {
-            const res = await fetch((ENDPOINTS as any).DILISENSE_SOURCES.GET_FUZZY);
+            const res = await fetch((ENDPOINTS as any).DILISENSE_SOURCES.GET_FUZZY, {
+                headers: {
+                    'X-Acting-User-Id': String(actingUser?.id || ''),
+                }
+            });
             if (res.ok) {
                 const data = await res.json();
                 setFuzzySetting(data.dilisense_fuzzy_search);
@@ -133,7 +139,10 @@ export default function DilisenseSourcesPage() {
         try {
             const res = await fetch((ENDPOINTS as any).DILISENSE_SOURCES.UPDATE_FUZZY, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Acting-User-Id': String(actingUser?.id || ''),
+                },
                 body: JSON.stringify({ dilisense_fuzzy_search: fuzzySetting }),
             });
             const data = await res.json();
@@ -500,30 +509,32 @@ export default function DilisenseSourcesPage() {
                                     const val = e.target.value;
                                     setFuzzySetting(val === '' ? null : Number(val));
                                 }}
-                                disabled={savingFuzzy}
+                                disabled={savingFuzzy || !canEditFuzzySearch}
                                 className="input-glass text-sm min-w-[120px]"
                             >
                                 <option value="">--</option>
                                 <option value={1}>1</option>
                                 <option value={2}>2</option>
                             </select>
-                            <button
-                                onClick={saveFuzzySetting}
-                                disabled={savingFuzzy}
-                                className="btn-primary flex items-center space-x-2 bg-gradient-to-r from-teal-500 to-teal-600 border-0 text-sm whitespace-nowrap"
-                            >
-                                {savingFuzzy ? (
-                                    <>
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                        <span>Saving...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Save className="w-4 h-4" />
-                                        <span>Save</span>
-                                    </>
-                                )}
-                            </button>
+                            {canEditFuzzySearch && (
+                                <button
+                                    onClick={saveFuzzySetting}
+                                    disabled={savingFuzzy}
+                                    className="btn-primary flex items-center space-x-2 bg-gradient-to-r from-teal-500 to-teal-600 border-0 text-sm whitespace-nowrap"
+                                >
+                                    {savingFuzzy ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            <span>Saving...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Save className="w-4 h-4" />
+                                            <span>Save</span>
+                                        </>
+                                    )}
+                                </button>
+                            )}
                         </>
                     )}
                 </div>
@@ -672,7 +683,8 @@ export default function DilisenseSourcesPage() {
                                                 type="checkbox"
                                                 checked={Number(row.dilisense_status) === 1}
                                                 onChange={() => toggleActiveStatus(row)}
-                                                className="w-4 h-4 text-teal-600 border-slate-300 rounded focus:ring-teal-500 dark:focus:ring-teal-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600"
+                                                disabled={!canEdit}
+                                                className="w-4 h-4 text-teal-600 border-slate-300 rounded focus:ring-teal-500 dark:focus:ring-teal-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
                                             />
                                         </div>
                                     </td>
@@ -830,6 +842,7 @@ export default function DilisenseSourcesPage() {
                             label="Active"
                             value={form.dilisense_status === 1 ? 'yes' : 'no'}
                             onChange={(val) => setForm((prev) => ({ ...prev, dilisense_status: val === 'yes' ? 1 : 0 }))}
+                            disabled={!canEdit}
                         />
                     </div>
                     <div className="dialog-actions mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
