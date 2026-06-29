@@ -140,10 +140,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         if (!stored) return null;
         try {
             const user: CurrentUser = JSON.parse(stored);
+            const logId = typeof window !== 'undefined' ? sessionStorage.getItem('admin_log_id') : null;
             return {
                 user_id: user.id,
                 username: user.username || user.email || user.name,
-                sign_off_note: note
+                sign_off_note: note,
+                log_id: logId ? parseInt(logId, 10) : null
             };
         } catch {
             return null;
@@ -596,6 +598,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
             await logSignOff('Auto logged out, session expired.', false);
             clearStoredUser();
+            if (typeof window !== 'undefined') {
+                sessionStorage.removeItem('admin_log_id');
+            }
             setCurrentUser(null);
             router.replace('/admin/login');
         };
@@ -717,6 +722,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const handleSignOut = async () => {
         await logSignOff('User signed out', false);
         clearStoredUser();
+        if (typeof window !== 'undefined') {
+            sessionStorage.removeItem('admin_log_id');
+        }
         setCurrentUser(null);
         setNotificationMenuOpen(false);
         setThemeMenuOpen(false);

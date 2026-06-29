@@ -80,6 +80,9 @@ export default function AdminLoginPage() {
 
       if (response.ok) {
         setStoredUser(data.user, true);
+        if (data.log_id && typeof window !== 'undefined') {
+          sessionStorage.setItem('admin_log_id', String(data.log_id));
+        }
         // Redirect
         router.push('/admin/dashboard');
       } else {
@@ -125,6 +128,9 @@ export default function AdminLoginPage() {
 
       if (response.ok) {
         setStoredUser(data.user, true);
+        if (data.log_id && typeof window !== 'undefined') {
+          sessionStorage.setItem('admin_log_id', String(data.log_id));
+        }
         router.push('/admin/dashboard');
       } else {
         setConfirmModal({
