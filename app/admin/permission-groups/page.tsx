@@ -419,6 +419,19 @@ export default function PermissionGroupsPage() {
         const baseRows = rows.filter((row) => {
             const sec = String(row.page_section || '').trim().toUpperCase();
             const op = String(row.operation || '').trim().toUpperCase();
+            
+            const pageName = getPageNameFromSection(row.page_section);
+            let canonicalPage = null;
+            for (const cat of ADMIN_PAGES_CONFIG) {
+                const found = cat.pages.find(p => p.name === pageName);
+                if (found) {
+                    canonicalPage = found;
+                    break;
+                }
+            }
+            if (!canonicalPage) return false;
+            if (sec !== canonicalPage.section.toUpperCase()) return false;
+
             if (sec === 'PROFILE' || sec === 'MY_PROFILE') {
                 return !['DELETE', 'ADD', 'APPROVE', 'CANCEL', 'VIEW_CREATED_AT', 'VIEW_CREATED_BY', 'VIEW_UPDATED_AT', 'VIEW_UPDATED_BY'].includes(op);
             }
@@ -433,6 +446,9 @@ export default function PermissionGroupsPage() {
             }
             if (sec === 'SUPPORT') {
                 return !['CREATE', 'ADD', 'APPROVE', 'CANCEL'].includes(op);
+            }
+            if (sec === 'BRANCH_CURRENCY_RATES') {
+                return !['EDIT', 'DELETE', 'CANCEL', 'APPROVE', 'ADD'].includes(op);
             }
             return true;
         });
@@ -472,16 +488,36 @@ export default function PermissionGroupsPage() {
     }, [roles, rows]);
 
     const sectionOptions = useMemo(() => {
-        return Array.from(new Set(rows.map((row) => (row.page_section || '').trim()).filter(Boolean))).sort((a, b) =>
-            a.localeCompare(b, undefined, { sensitivity: 'base' })
-        );
+        const seenNames = new Set<string>();
+        const uniqueOptions: string[] = [];
+        
+        const rawSections = Array.from(new Set(rows.map((row) => (row.page_section || '').trim()).filter(Boolean)));
+        for (const sec of rawSections) {
+            const displayName = getPageNameFromSection(sec);
+            if (!seenNames.has(displayName)) {
+                seenNames.add(displayName);
+                uniqueOptions.push(sec);
+            }
+        }
+        
+        return uniqueOptions.sort((a, b) => {
+            const nameA = getPageNameFromSection(a);
+            const nameB = getPageNameFromSection(b);
+            return nameA.localeCompare(nameB, undefined, { sensitivity: 'base' });
+        });
     }, [rows]);
 
     const filtered = useMemo(() => {
         const normalizedRoleFilter = roleFilter.trim().toLowerCase();
         return searched.filter((row) => {
             if (normalizedRoleFilter && !(row.role_name || '').toLowerCase().includes(normalizedRoleFilter)) return false;
-            if (pageSectionFilter !== 'all' && row.page_section !== pageSectionFilter) return false;
+            
+            if (pageSectionFilter !== 'all') {
+                const rowPageName = getPageNameFromSection(row.page_section);
+                const filterPageName = getPageNameFromSection(pageSectionFilter);
+                if (rowPageName !== filterPageName) return false;
+            }
+
             if (operationFilter.trim() && !row.operation.toLowerCase().includes(operationFilter.trim().toLowerCase())) return false;
             if (activeFilter !== 'all' && normalizeYesNo(row.active) !== activeFilter) return false;
             if (systemDefinedFilter !== 'all' && normalizeYesNo(row.system_defined) !== systemDefinedFilter) return false;
