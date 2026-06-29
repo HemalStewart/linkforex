@@ -160,7 +160,9 @@ export const checkPermission = (section: string, operation: string): boolean => 
             (targetSec === 'ROLES' && rowSec === 'SYSGROUPS') ||
             (targetSec === 'SYSGROUPS' && rowSec === 'ROLES') ||
             (targetSec === 'PERMISSION_GROUPS' && rowSec === 'SYSGROUPS_PERMISSION') ||
-            (targetSec === 'SYSGROUPS_PERMISSION' && rowSec === 'PERMISSION_GROUPS');
+            (targetSec === 'SYSGROUPS_PERMISSION' && rowSec === 'PERMISSION_GROUPS') ||
+            (targetSec === 'AUDIT_LOGS' && (rowSec === 'SYSUSERS_LOG' || rowSec === 'SYSRECORD_LOGS' || rowSec === 'LOGS')) ||
+            ((targetSec === 'SYSUSERS_LOG' || targetSec === 'SYSRECORD_LOGS' || targetSec === 'LOGS') && rowSec === 'AUDIT_LOGS');
     });
 };
 
@@ -239,7 +241,9 @@ export function usePagePermissions(section: string) {
                             (targetSec === 'ROLES' && rowSec === 'SYSGROUPS') ||
                             (targetSec === 'SYSGROUPS' && rowSec === 'ROLES') ||
                             (targetSec === 'PERMISSION_GROUPS' && rowSec === 'SYSGROUPS_PERMISSION') ||
-                            (targetSec === 'SYSGROUPS_PERMISSION' && rowSec === 'PERMISSION_GROUPS');
+                            (targetSec === 'SYSGROUPS_PERMISSION' && rowSec === 'PERMISSION_GROUPS') ||
+                            (targetSec === 'AUDIT_LOGS' && (rowSec === 'SYSUSERS_LOG' || rowSec === 'SYSRECORD_LOGS' || rowSec === 'LOGS')) ||
+                            ((targetSec === 'SYSUSERS_LOG' || targetSec === 'SYSRECORD_LOGS' || targetSec === 'LOGS') && rowSec === 'AUDIT_LOGS');
 
                         if (match) {
                             return page.operations.includes(op);

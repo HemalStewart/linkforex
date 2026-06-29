@@ -5,6 +5,7 @@ import { Activity, AlertCircle, Clock3, Download, FilterX, RefreshCw, Search, Sh
 import { formatDateTime } from '@/app/lib/dateUtils';
 import { ENDPOINTS } from '@/app/lib/api';
 import { useRowsPerPage } from '@/app/lib/uiPreferences';
+import { getStoredUser } from '@/app/lib/authStorage';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
 import { useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
@@ -187,7 +188,12 @@ export default function LogsPage() {
         setLoading(true);
         setError(null);
         try {
-            const res = await fetch(ENDPOINTS.LOGS.LIST);
+            const actingUser = getStoredUser<{ id?: number }>();
+            const res = await fetch(ENDPOINTS.LOGS.LIST, {
+                headers: {
+                    'X-Acting-User-Id': String(actingUser?.id || ''),
+                }
+            });
             if (!res.ok) {
                 throw new Error(`Failed to load logs (${res.status})`);
             }

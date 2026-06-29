@@ -53,7 +53,8 @@ const getPageNameFromSection = (section: string): string => {
                    (ps === 'BRANCH_ACCESS_REQUESTS' && s === 'BRANCH_ACCESS') ||
                    (ps === 'SYSTEM_USERS' && s === 'SYSUSERS') ||
                    (ps === 'ROLES' && s === 'SYSGROUPS') ||
-                   (ps === 'PERMISSION_GROUPS' && s === 'SYSGROUPS_PERMISSION');
+                   (ps === 'PERMISSION_GROUPS' && s === 'SYSGROUPS_PERMISSION') ||
+                   (ps === 'AUDIT_LOGS' && (s === 'SYSUSERS_LOG' || s === 'SYSRECORD_LOGS' || s === 'LOGS'));
         });
         if (found) return found.name;
     }
