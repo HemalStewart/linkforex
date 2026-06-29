@@ -112,7 +112,7 @@ export const ADMIN_PAGES_CONFIG: AdminCategoryInfo[] = [
         category: 'System Users',
         pages: [
             { name: 'Role', section: 'ROLES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
-            { name: 'Role Permissions', section: 'PERMISSION_GROUPS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
+            { name: 'Role Permissions', section: 'PERMISSION_GROUPS', operations: ['VIEW', 'EDIT', ...AUDIT_OPS] },
             { name: 'Users', section: 'SYSTEM_USERS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
             { name: 'User Logs', section: 'AUDIT_LOGS', operations: ['VIEW', 'EXPORT', ...AUDIT_OPS] }
         ]
@@ -151,16 +151,16 @@ export const checkPermission = (section: string, operation: string): boolean => 
         const targetSec = section.toUpperCase().trim();
         const rowSec = s.toUpperCase().trim();
         return rowSec === targetSec ||
-               rowSec === targetSec + 'S' ||
-               targetSec === rowSec + 'S' ||
-               (targetSec === 'KYC_REVIEWS' && rowSec === 'KYC') ||
-               (targetSec === 'BRANCH_CURRENCY_RATES' && rowSec === 'BRANCH_CURRENCY_RATE') ||
-               (targetSec === 'BRANCH_ACCESS_REQUESTS' && rowSec === 'BRANCH_ACCESS') ||
-               (targetSec === 'SYSTEM_USERS' && rowSec === 'SYSUSERS') ||
-               (targetSec === 'ROLES' && rowSec === 'SYSGROUPS') ||
-               (targetSec === 'SYSGROUPS' && rowSec === 'ROLES') ||
-               (targetSec === 'PERMISSION_GROUPS' && rowSec === 'SYSGROUPS_PERMISSION') ||
-               (targetSec === 'SYSGROUPS_PERMISSION' && rowSec === 'PERMISSION_GROUPS');
+            rowSec === targetSec + 'S' ||
+            targetSec === rowSec + 'S' ||
+            (targetSec === 'KYC_REVIEWS' && rowSec === 'KYC') ||
+            (targetSec === 'BRANCH_CURRENCY_RATES' && rowSec === 'BRANCH_CURRENCY_RATE') ||
+            (targetSec === 'BRANCH_ACCESS_REQUESTS' && rowSec === 'BRANCH_ACCESS') ||
+            (targetSec === 'SYSTEM_USERS' && rowSec === 'SYSUSERS') ||
+            (targetSec === 'ROLES' && rowSec === 'SYSGROUPS') ||
+            (targetSec === 'SYSGROUPS' && rowSec === 'ROLES') ||
+            (targetSec === 'PERMISSION_GROUPS' && rowSec === 'SYSGROUPS_PERMISSION') ||
+            (targetSec === 'SYSGROUPS_PERMISSION' && rowSec === 'PERMISSION_GROUPS');
     });
 };
 
@@ -228,19 +228,19 @@ export function usePagePermissions(section: string) {
                     for (const page of cat.pages) {
                         const targetSec = section.toUpperCase().trim();
                         const rowSec = page.section.toUpperCase().trim();
-                        
+
                         const match = rowSec === targetSec ||
-                                      rowSec === targetSec + 'S' ||
-                                      targetSec === rowSec + 'S' ||
-                                      (targetSec === 'KYC_REVIEWS' && rowSec === 'KYC') ||
-                                      (targetSec === 'BRANCH_CURRENCY_RATES' && rowSec === 'BRANCH_CURRENCY_RATE') ||
-                                      (targetSec === 'BRANCH_ACCESS_REQUESTS' && rowSec === 'BRANCH_ACCESS') ||
-                                      (targetSec === 'SYSTEM_USERS' && rowSec === 'SYSUSERS') ||
-                                      (targetSec === 'ROLES' && rowSec === 'SYSGROUPS') ||
-                                      (targetSec === 'SYSGROUPS' && rowSec === 'ROLES') ||
-                                      (targetSec === 'PERMISSION_GROUPS' && rowSec === 'SYSGROUPS_PERMISSION') ||
-                                      (targetSec === 'SYSGROUPS_PERMISSION' && rowSec === 'PERMISSION_GROUPS');
-                                      
+                            rowSec === targetSec + 'S' ||
+                            targetSec === rowSec + 'S' ||
+                            (targetSec === 'KYC_REVIEWS' && rowSec === 'KYC') ||
+                            (targetSec === 'BRANCH_CURRENCY_RATES' && rowSec === 'BRANCH_CURRENCY_RATE') ||
+                            (targetSec === 'BRANCH_ACCESS_REQUESTS' && rowSec === 'BRANCH_ACCESS') ||
+                            (targetSec === 'SYSTEM_USERS' && rowSec === 'SYSUSERS') ||
+                            (targetSec === 'ROLES' && rowSec === 'SYSGROUPS') ||
+                            (targetSec === 'SYSGROUPS' && rowSec === 'ROLES') ||
+                            (targetSec === 'PERMISSION_GROUPS' && rowSec === 'SYSGROUPS_PERMISSION') ||
+                            (targetSec === 'SYSGROUPS_PERMISSION' && rowSec === 'PERMISSION_GROUPS');
+
                         if (match) {
                             return page.operations.includes(op);
                         }

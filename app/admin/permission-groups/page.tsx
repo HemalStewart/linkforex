@@ -10,7 +10,7 @@ import { formatDateTime } from '@/app/lib/dateUtils';
 import Badge from '../components/ui/Badge';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
-import { ADMIN_PAGES_CONFIG, useAuditColumns } from '@/app/lib/permissions';
+import { ADMIN_PAGES_CONFIG, useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 
 type PermissionGroupRow = {
     id: number;
@@ -64,6 +64,7 @@ const getPageNameFromSection = (section: string): string => {
 };
 
 export default function PermissionGroupsPage() {
+    const { canEdit } = usePagePermissions('PERMISSION_GROUPS');
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('PERMISSION_GROUPS');
     const [activeTab, setActiveTab] = useState<'grid' | 'list'>('list');
     const [selectedRole, setSelectedRole] = useState<string>('');
@@ -105,6 +106,7 @@ export default function PermissionGroupsPage() {
     });
 
     const hasInitializedRef = useRef(false);
+    const hasSetDefaultRoleRef = useRef(false);
 
     const fetchRows = useCallback(async () => {
         setLoading(true);
@@ -213,20 +215,23 @@ export default function PermissionGroupsPage() {
         }
     }, [rows, roles, loading, initializeMissingPermissions]);
 
-    // Set default selected role for grid view to the logged-in user's role
+    // Set default selected role and role filter to the logged-in user's role on load
     useEffect(() => {
-        if (roles.length > 0 && !selectedRole) {
+        if (roles.length > 0 && !hasSetDefaultRoleRef.current) {
+            hasSetDefaultRoleRef.current = true;
             const parsed = getStoredUser<{ role?: string }>();
             const currentUserRole = parsed?.role ? String(parsed.role).trim() : '';
             const matchedRole = roles.find(r => r.name.toLowerCase() === currentUserRole.toLowerCase());
 
             if (matchedRole) {
                 setSelectedRole(matchedRole.name);
+                setRoleFilter(matchedRole.name);
             } else {
                 setSelectedRole(roles[0].name);
+                setRoleFilter(roles[0].name);
             }
         }
-    }, [roles, selectedRole]);
+    }, [roles]);
 
     // Helpers for checking permission state
     const getPermissionState = useCallback((section: string, op: string) => {
@@ -394,10 +399,10 @@ export default function PermissionGroupsPage() {
                                                                 <input
                                                                     type="checkbox"
                                                                     checked={op === 'VIEW' ? isActive : (isViewActive && isActive)}
-                                                                    disabled={isAdmin || (op !== 'VIEW' && !isViewActive) || !!(perm.record && normalizeYesNo(perm.record.system_defined) === 'yes')}
+                                                                    disabled={!canEdit || isAdmin || (op !== 'VIEW' && !isViewActive) || !!(perm.record && normalizeYesNo(perm.record.system_defined) === 'yes')}
                                                                     onChange={() => togglePermission(page.section, op)}
                                                                     className="h-4.5 w-4.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-40 transition-all cursor-pointer"
-                                                                    title={op !== 'VIEW' && !isViewActive ? 'VIEW permission must be active first' : ''}
+                                                                    title={!canEdit ? 'You do not have permission to edit role permissions' : (op !== 'VIEW' && !isViewActive ? 'VIEW permission must be active first' : '')}
                                                                 />
                                                             )}
                                                         </div>
@@ -458,14 +463,14 @@ export default function PermissionGroupsPage() {
             if (sec === 'TRANSACTION_SETTINGS') {
                 return ['VIEW', 'EDIT'].includes(op);
             }
-            if (sec === 'API_TOKENS') {
+            if (['API_TOKENS', 'SETTINGS'].includes(sec)) {
                 return ['VIEW', 'EDIT'].includes(op);
+            }
+            if (['PERMISSION_GROUPS', 'SYSGROUPS_PERMISSION'].includes(sec)) {
+                return ['VIEW', 'EDIT', 'VIEW_CREATED_BY', 'VIEW_CREATED_AT', 'VIEW_UPDATED_BY', 'VIEW_UPDATED_AT'].includes(op);
             }
             if (['DILISENSE_SOURCES', 'COUNTRIES', 'BANKS', 'RELATIONSHIPS', 'PURPOSES', 'ROLES', 'SYSGROUPS'].includes(sec)) {
                 return !['ADD', 'APPROVE', 'CANCEL'].includes(op);
-            }
-            if (sec === 'SETTINGS') {
-                return ['VIEW', 'EDIT'].includes(op);
             }
             return true;
         });
@@ -1224,7 +1229,7 @@ export default function PermissionGroupsPage() {
                                                                     type="checkbox"
                                                                     checked={normalizeYesNo(row.active) === 'yes'}
                                                                     onChange={(e) => promptToggle(row, e.target.checked ? 'yes' : 'no')}
-                                                                    disabled={savingId === row.id || normalizeYesNo(row.system_defined) === 'yes'}
+                                                                    disabled={!canEdit || savingId === row.id || normalizeYesNo(row.system_defined) === 'yes'}
                                                                     className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 disabled:opacity-50"
                                                                 />
                                                             </label>
