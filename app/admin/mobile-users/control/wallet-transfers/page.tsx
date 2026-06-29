@@ -110,8 +110,11 @@ export default function WalletTransfersPage() {
                         Review all mobile transfer requests funded to the shared trust wallet and update manual settlement status.
                     </p>
                 </div>
-                <button onClick={loadTransfers} className="btn-primary flex items-center gap-2 rounded-full px-5">
-                    <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                <button
+                    onClick={loadTransfers}
+                    className="btn-primary inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 hover:scale-105 active:scale-95 transition-all duration-150 group border-0 bg-gradient-to-r from-teal-500 to-teal-600 text-white"
+                >
+                    <RefreshCw className={`h-4 w-4 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
                     Refresh
                 </button>
             </div>

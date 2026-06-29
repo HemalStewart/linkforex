@@ -6,7 +6,8 @@ import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../components/ConfirmModal';
 import VeriffReportsModal from '../../components/VeriffReportsModal';
 import { Search, UserPlus, Edit2, Download, Trash2, FileText } from 'lucide-react';
-import { useAuditColumns } from '@/app/lib/permissions';
+import { useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
+import { getStoredUser } from '@/app/lib/authStorage';
 import { formatDateTime } from '@/app/lib/dateUtils';
 
 type MobileRemitter = {
@@ -33,6 +34,7 @@ type MobileRemitter = {
 
 export default function RemittersPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('MOBILE_PROFILES');
+    const { canAdd, canEdit, canDelete, canPdf, canExport } = usePagePermissions('MOBILE_PROFILES');
     const [selectedRemitter, setSelectedRemitter] = useState<MobileRemitter | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -52,13 +54,18 @@ export default function RemittersPage() {
         const fetchRemitters = async () => {
             setLoading(true);
             try {
+                const actingUser = getStoredUser<{ id?: number }>();
                 const params = new URLSearchParams();
                 params.append('registration_source', 'mobile_app');
 
                 if (statusFilter !== 'all') params.append('status', statusFilter);
                 if (searchQuery) params.append('search', searchQuery);
 
-                const res = await fetch(`${ENDPOINTS.REMITTERS.LIST}?${params.toString()}`);
+                const res = await fetch(`${ENDPOINTS.REMITTERS.LIST}?${params.toString()}`, {
+                    headers: {
+                        'X-Acting-User-Id': String(actingUser?.id || ''),
+                    }
+                });
                 if (!res.ok) throw new Error('Failed to fetch');
                 const data = await res.json() as unknown;
                 const rows = Array.isArray(data) ? (data as MobileRemitter[]) : [];
@@ -125,7 +132,13 @@ export default function RemittersPage() {
 
         setDeleteLoading(true);
         try {
-            const res = await fetch(ENDPOINTS.REMITTERS.DETAIL(remitterToDelete.id), { method: 'DELETE' });
+            const actingUser = getStoredUser<{ id?: number }>();
+            const res = await fetch(ENDPOINTS.REMITTERS.DETAIL(remitterToDelete.id), {
+                method: 'DELETE',
+                headers: {
+                    'X-Acting-User-Id': String(actingUser?.id || ''),
+                }
+            });
             const data = await res.json().catch(() => ({}));
 
             if (res.ok) {
@@ -186,16 +199,18 @@ export default function RemittersPage() {
                     <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Detailed remitter/KYC profiles from the mobile app</p>
                 </div>
                 <div className="flex items-center space-x-4">
-                    <button className="px-5 py-3 rounded-full border-0 glass-effect text-slate-700 dark:text-slate-300 font-bold hover:shadow-lg transition-all">
-                        <span className="flex items-center space-x-2">
+                    {canExport && (
+                        <button className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 rounded-full px-6">
                             <Download className="w-5 h-5" />
-                            <span>Export</span>
-                        </span>
-                    </button>
-                    <Link href="/admin/mobile-profiles/create" className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 rounded-full px-6">
-                        <UserPlus className="w-5 h-5" />
-                        <span>Add Profile</span>
-                    </Link>
+                            <span>Export CSV</span>
+                        </button>
+                    )}
+                    {canAdd && (
+                        <Link href="/admin/mobile-profiles/create" className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 rounded-full px-6">
+                            <UserPlus className="w-5 h-5" />
+                            <span>Add Profile</span>
+                        </Link>
+                    )}
                 </div>
             </div>
 
@@ -261,8 +276,8 @@ export default function RemittersPage() {
                         <table className="table-shell">
                             <thead className="table-head">
                                 <tr>
-                                    <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>
-                                    <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Reports"><FileText className="w-4 h-4 mx-auto text-slate-400" /></th>
+                                    {canEdit && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>}
+                                    {canPdf && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Reports"><FileText className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Profile</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Contact</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Status</th>
@@ -271,7 +286,7 @@ export default function RemittersPage() {
                                     {showCreatedAt && <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Created At</th>}
                                     {showUpdatedBy && <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated By</th>}
                                     {showUpdatedAt && <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated At</th>}
-                                    <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>
+                                    {canDelete && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -280,25 +295,29 @@ export default function RemittersPage() {
                                         key={remitter.id}
                                         className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200"
                                     >
-                                        <td className="px-2 py-4 text-center">
-                                            <Link
-                                                href={`/admin/mobile-profiles/${remitter.id}`}
-                                                className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
-                                                title="Edit"
-                                            >
-                                                <Edit2 className="w-5 h-5" />
-                                            </Link>
-                                        </td>
-                                        <td className="px-2 py-4 text-center">
-                                            <button
-                                                type="button"
-                                                onClick={() => setSelectedRemitter(remitter)}
-                                                className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
-                                                title="Veriff Verification Report"
-                                            >
-                                                <FileText className="w-5 h-5" />
-                                            </button>
-                                        </td>
+                                        {canEdit && (
+                                            <td className="px-2 py-4 text-center">
+                                                <Link
+                                                    href={`/admin/mobile-profiles/${remitter.id}`}
+                                                    className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
+                                                    title="Edit"
+                                                >
+                                                    <Edit2 className="w-5 h-5" />
+                                                </Link>
+                                            </td>
+                                        )}
+                                        {canPdf && (
+                                            <td className="px-2 py-4 text-center">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSelectedRemitter(remitter)}
+                                                    className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
+                                                    title="Veriff Verification Report"
+                                                >
+                                                    <FileText className="w-5 h-5" />
+                                                </button>
+                                            </td>
+                                        )}
                                         <td className="px-8 py-5">
                                             <div>
                                                 <p className="font-bold text-slate-900 dark:text-white text-[15px]">{remitter.name}</p>
@@ -345,16 +364,18 @@ export default function RemittersPage() {
                                             </td>
                                         )}
                                         {showUpdatedAt && <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{remitter.updated_at ? formatDateTime(remitter.updated_at) : '—'}</td>}
-                                        <td className="px-2 py-4 text-center">
-                                            <button
-                                                type="button"
-                                                onClick={() => promptDelete(remitter)}
-                                                className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all inline-flex"
-                                                title="Delete"
-                                            >
-                                                <Trash2 className="w-5 h-5" />
-                                            </button>
-                                        </td>
+                                        {canDelete && (
+                                            <td className="px-2 py-4 text-center">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => promptDelete(remitter)}
+                                                    className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all inline-flex"
+                                                    title="Delete"
+                                                >
+                                                    <Trash2 className="w-5 h-5" />
+                                                </button>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))}
                             </tbody>

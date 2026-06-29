@@ -5,8 +5,10 @@ import { BadgeCheck, Bell, Mail, Megaphone, Newspaper, RefreshCcw, Save, ShieldA
 import { API_BASE_URL, ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../../components/ConfirmModal';
 import { defaultSettings, type SettingsData, yesNoKeys } from '../_shared';
+import { usePagePermissions } from '@/app/lib/permissions';
 
 export default function MobileAppFlowSettingsPage() {
+    const { canEdit } = usePagePermissions('MOBILE_FLOW_SETTINGS');
     const [loading, setLoading] = useState(true);
     const [savingSettings, setSavingSettings] = useState(false);
     const [settings, setSettings] = useState<SettingsData>(defaultSettings);
@@ -239,7 +241,11 @@ export default function MobileAppFlowSettingsPage() {
                     </p>
                 </div>
                 <div className="flex items-center gap-3 shrink-0 mt-1">
-                    <button onClick={loadSettings} className="btn-primary flex items-center gap-2 rounded-full px-5 py-2.5 text-sm shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 transition-all hover:-translate-y-0.5 group" disabled={loading}>
+                    <button
+                        onClick={loadSettings}
+                        className="btn-primary inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 hover:scale-105 active:scale-95 transition-all duration-150 group border-0 bg-gradient-to-r from-teal-500 to-teal-600 text-white"
+                        disabled={loading}
+                    >
                         <RefreshCcw className={`h-4 w-4 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
                         <span>Refresh</span>
                     </button>
@@ -277,7 +283,7 @@ export default function MobileAppFlowSettingsPage() {
                                 <input
                                     type="checkbox"
                                     checked={checked}
-                                    disabled={isDisabled}
+                                    disabled={isDisabled || !canEdit}
                                     onChange={(e) => setToggle(key, e.target.checked)}
                                     className="h-5 w-5 mt-1 cursor-pointer rounded border-slate-300 text-teal-600 focus:ring-teal-500 focus:ring-offset-2 disabled:cursor-not-allowed"
                                 />
@@ -300,6 +306,7 @@ export default function MobileAppFlowSettingsPage() {
                                 onChange={(e) => setSettings((prev) => ({ ...prev, support_email: e.target.value }))}
                                 className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
                                 placeholder="support@linkforex.com"
+                                readOnly={!canEdit}
                             />
                         </label>
 
@@ -312,6 +319,7 @@ export default function MobileAppFlowSettingsPage() {
                                 value={settings.password_rotation_days}
                                 onChange={(e) => setSettings((prev) => ({ ...prev, password_rotation_days: Number(e.target.value || 180) }))}
                                 className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
+                                readOnly={!canEdit}
                             />
                         </label>
 
@@ -326,6 +334,7 @@ export default function MobileAppFlowSettingsPage() {
                                 onChange={(e) => setSettings((prev) => ({ ...prev, blacklisted_countries: e.target.value }))}
                                 className="input-glass mt-1.5 min-h-28 w-full py-2.5 text-sm normal-case"
                                 placeholder={'Iran\nNorth Korea\nAFG'}
+                                readOnly={!canEdit}
                             />
                         </label>
                     </div>
@@ -345,6 +354,7 @@ export default function MobileAppFlowSettingsPage() {
                                 onChange={(e) => setSettings((prev) => ({ ...prev, trust_wallet_label: e.target.value }))}
                                 className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
                                 placeholder="LinkForex Trust Wallet"
+                                readOnly={!canEdit}
                             />
                         </label>
 
@@ -355,6 +365,7 @@ export default function MobileAppFlowSettingsPage() {
                                 onChange={(e) => setSettings((prev) => ({ ...prev, trust_wallet_network: e.target.value }))}
                                 className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
                                 placeholder="TRON (TRC20)"
+                                readOnly={!canEdit}
                             />
                         </label>
 
@@ -365,6 +376,7 @@ export default function MobileAppFlowSettingsPage() {
                                 onChange={(e) => setSettings((prev) => ({ ...prev, trust_wallet_address: e.target.value }))}
                                 className="input-glass mt-1.5 min-h-24 w-full py-2.5 text-sm normal-case"
                                 placeholder="Paste the fixed wallet address used for all mobile transfers"
+                                readOnly={!canEdit}
                             />
                         </label>
 
@@ -375,6 +387,7 @@ export default function MobileAppFlowSettingsPage() {
                                 onChange={(e) => setSettings((prev) => ({ ...prev, trust_wallet_instructions: e.target.value }))}
                                 className="input-glass mt-1.5 min-h-28 w-full py-2.5 text-sm normal-case"
                                 placeholder="Example: Send the exact amount to the wallet address, keep your transaction hash, and tap 'I have sent funds' in the app."
+                                readOnly={!canEdit}
                             />
                         </label>
                     </div>
@@ -394,6 +407,7 @@ export default function MobileAppFlowSettingsPage() {
                                 onChange={(e) => setSettings((prev) => ({ ...prev, exchange_rate_push_title: e.target.value }))}
                                 className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
                                 placeholder="Exchange rates updated"
+                                readOnly={!canEdit}
                             />
                         </label>
 
@@ -404,6 +418,7 @@ export default function MobileAppFlowSettingsPage() {
                                 onChange={(e) => setSettings((prev) => ({ ...prev, exchange_rate_push_body: e.target.value }))}
                                 className="input-glass mt-1.5 min-h-24 w-full py-2.5 text-sm normal-case"
                                 placeholder="New {base} to {currency} customer digital rate: {rate}"
+                                readOnly={!canEdit}
                             />
                         </label>
                     </div>
@@ -429,6 +444,7 @@ export default function MobileAppFlowSettingsPage() {
                                 value={settings.liveness_provider}
                                 onChange={(e) => setSettings((prev) => ({ ...prev, liveness_provider: e.target.value as 'none' | 'veriff' }))}
                                 className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
+                                disabled={!canEdit}
                             >
                                 <option value="veriff">Veriff</option>
                                 <option value="none">Disabled</option>
@@ -442,6 +458,7 @@ export default function MobileAppFlowSettingsPage() {
                                 onChange={(e) => setSettings((prev) => ({ ...prev, veriff_base_url: e.target.value }))}
                                 className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
                                 placeholder="https://stationapi.veriff.com"
+                                readOnly={!canEdit}
                             />
                         </label>
 
@@ -452,6 +469,7 @@ export default function MobileAppFlowSettingsPage() {
                                 onChange={(e) => setSettings((prev) => ({ ...prev, veriff_callback_url: e.target.value }))}
                                 className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
                                 placeholder="https://linkforex.vercel.app/api/veriff-return"
+                                readOnly={!canEdit}
                             />
                         </label>
 
@@ -470,6 +488,7 @@ export default function MobileAppFlowSettingsPage() {
                                     onChange={(e) => setSettings((prev) => ({ ...prev, veriff_api_key: e.target.value }))}
                                     className="input-glass w-full pr-10 py-2.5 text-sm normal-case"
                                     placeholder={settings.veriff_configured ? 'Leave blank to keep current key' : 'Enter Veriff API key'}
+                                    readOnly={!canEdit}
                                 />
                                 <button
                                     type="button"
@@ -491,6 +510,7 @@ export default function MobileAppFlowSettingsPage() {
                                     onChange={(e) => setSettings((prev) => ({ ...prev, veriff_hmac_secret: e.target.value }))}
                                     className="input-glass w-full pr-10 py-2.5 text-sm normal-case"
                                     placeholder={settings.veriff_configured ? 'Leave blank to keep current secret' : 'Enter Veriff HMAC secret'}
+                                    readOnly={!canEdit}
                                 />
                                 <button
                                     type="button"
@@ -514,6 +534,7 @@ export default function MobileAppFlowSettingsPage() {
                                 onChange={(e) => setSettings((prev) => ({ ...prev, veriff_aml_base_url: e.target.value }))}
                                 className="input-glass mt-1.5 w-full py-2.5 text-sm normal-case"
                                 placeholder="https://stationapi.veriff.com"
+                                readOnly={!canEdit}
                             />
                         </label>
 
@@ -526,6 +547,7 @@ export default function MobileAppFlowSettingsPage() {
                                     onChange={(e) => setSettings((prev) => ({ ...prev, veriff_aml_api_key: e.target.value }))}
                                     className="input-glass w-full pr-10 py-2.5 text-sm normal-case"
                                     placeholder={settings.veriff_aml_configured ? 'Leave blank to keep current AML key' : 'Enter Veriff AML API key'}
+                                    readOnly={!canEdit}
                                 />
                                 <button
                                     type="button"
@@ -547,6 +569,7 @@ export default function MobileAppFlowSettingsPage() {
                                     onChange={(e) => setSettings((prev) => ({ ...prev, veriff_aml_hmac_secret: e.target.value }))}
                                     className="input-glass w-full pr-10 py-2.5 text-sm normal-case"
                                     placeholder={settings.veriff_aml_configured ? 'Leave blank to keep current AML secret' : 'Enter Veriff AML HMAC secret'}
+                                    readOnly={!canEdit}
                                 />
                                 <button
                                     type="button"
@@ -560,12 +583,14 @@ export default function MobileAppFlowSettingsPage() {
                         </label>
                     </div>
 
-                    <div className="flex justify-end pt-6 mt-6 border-t border-slate-100 dark:border-slate-800/60">
-                        <button onClick={saveSettings} className="btn-primary flex items-center gap-2 rounded-full px-6 py-2.5 text-sm shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 transition-all hover:-translate-y-0.5" disabled={savingSettings || loading}>
-                            <Save className="h-4 w-4" />
-                            {savingSettings ? 'Saving...' : 'Save'}
-                        </button>
-                    </div>
+                    {canEdit && (
+                        <div className="flex justify-end pt-6 mt-6 border-t border-slate-100 dark:border-slate-800/60">
+                            <button onClick={saveSettings} className="btn-primary flex items-center gap-2 rounded-full px-6 py-2.5 text-sm shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 transition-all hover:-translate-y-0.5" disabled={savingSettings || loading}>
+                                <Save className="h-4 w-4" />
+                                {savingSettings ? 'Saving...' : 'Save'}
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

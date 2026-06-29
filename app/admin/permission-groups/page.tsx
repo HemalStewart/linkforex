@@ -476,7 +476,13 @@ export default function PermissionGroupsPage() {
             if (['MOBILE_OVERVIEW', 'OVERVIEW'].includes(sec)) {
                 return op === 'VIEW';
             }
-            if (['DILISENSE_SOURCES', 'COUNTRIES', 'BANKS', 'RELATIONSHIPS', 'PURPOSES', 'ROLES', 'SYSGROUPS', 'SYSTEM_USERS', 'SYSUSERS'].includes(sec)) {
+            if (['MOBILE_FLOW_SETTINGS'].includes(sec)) {
+                return ['VIEW', 'EDIT'].includes(op);
+            }
+            if (['MOBILE_DIGITAL_RATES'].includes(sec)) {
+                return !['CREATE', 'EDIT', 'DELETE', 'ADD', 'APPROVE', 'CANCEL'].includes(op);
+            }
+            if (['DILISENSE_SOURCES', 'COUNTRIES', 'BANKS', 'RELATIONSHIPS', 'PURPOSES', 'ROLES', 'SYSGROUPS', 'SYSTEM_USERS', 'SYSUSERS', 'MOBILE_PROFILES'].includes(sec)) {
                 return !['ADD', 'APPROVE', 'CANCEL'].includes(op);
             }
             return true;
