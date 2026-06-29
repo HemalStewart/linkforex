@@ -450,6 +450,12 @@ export default function PermissionGroupsPage() {
             if (sec === 'BRANCH_CURRENCY_RATES') {
                 return !['EDIT', 'DELETE', 'CANCEL', 'APPROVE', 'ADD'].includes(op);
             }
+            if (sec === 'BRANCHES') {
+                return !['ADD', 'APPROVE', 'CANCEL'].includes(op);
+            }
+            if (sec === 'TRANSACTION_SETTINGS') {
+                return ['VIEW', 'EDIT'].includes(op);
+            }
             return true;
         });
         if (!searchQuery.trim()) return baseRows;

@@ -5,6 +5,7 @@ import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../components/ConfirmModal';
 import { PoundSterling, RefreshCw, Save, SlidersHorizontal } from 'lucide-react';
+import { usePagePermissions } from '@/app/lib/permissions';
 
 type Channel = 'app' | 'backend';
 type Period = 'quarter' | 'year';
@@ -36,6 +37,7 @@ const toFixed2 = (value: string): string => {
 };
 
 export default function TransactionSettingsPage() {
+    const { canEdit } = usePagePermissions('TRANSACTION_SETTINGS');
     const actingUser = useMemo(() => getStoredUser<{ id?: string | number; username?: string; name?: string }>(), []);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -201,6 +203,7 @@ export default function TransactionSettingsPage() {
                                             onChange={(e) => updateDraft('app', 'quarter', e.target.value)}
                                             onBlur={() => normalizeBlur('app', 'quarter')}
                                             placeholder="0.00"
+                                            disabled={!canEdit}
                                         />
                                     </div>
                                 </div>
@@ -217,6 +220,7 @@ export default function TransactionSettingsPage() {
                                             onChange={(e) => updateDraft('app', 'year', e.target.value)}
                                             onBlur={() => normalizeBlur('app', 'year')}
                                             placeholder="0.00"
+                                            disabled={!canEdit}
                                         />
                                     </div>
                                 </div>
@@ -239,6 +243,7 @@ export default function TransactionSettingsPage() {
                                             onChange={(e) => updateDraft('backend', 'quarter', e.target.value)}
                                             onBlur={() => normalizeBlur('backend', 'quarter')}
                                             placeholder="0.00"
+                                            disabled={!canEdit}
                                         />
                                     </div>
                                 </div>
@@ -255,21 +260,24 @@ export default function TransactionSettingsPage() {
                                             onChange={(e) => updateDraft('backend', 'year', e.target.value)}
                                             onBlur={() => normalizeBlur('backend', 'year')}
                                             placeholder="0.00"
+                                            disabled={!canEdit}
                                         />
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div className="flex justify-end pt-2">
-                            <button
-                                onClick={() => void handleSave()}
-                                disabled={saving || loading}
-                                className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 disabled:opacity-50"
-                            >
-                                <Save className="w-5 h-5" />
-                                <span>{saving ? 'Saving...' : 'Save'}</span>
-                            </button>
-                        </div>
+                        {canEdit && (
+                            <div className="flex justify-end pt-2">
+                                <button
+                                    onClick={() => void handleSave()}
+                                    disabled={saving || loading}
+                                    className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 disabled:opacity-50"
+                                >
+                                    <Save className="w-5 h-5" />
+                                    <span>{saving ? 'Saving...' : 'Save'}</span>
+                                </button>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
