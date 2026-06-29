@@ -433,7 +433,7 @@ export default function SupportPage() {
                             <thead className="table-head">
                                 <tr>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Ticket Number</th>
-                                    <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>
+                                    {canEdit && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Customer</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Topic</th>
                                     <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Message Type</th>
@@ -453,15 +453,17 @@ export default function SupportPage() {
                                         <td className="px-8 py-5 text-sm text-slate-500 dark:text-slate-300 font-medium">
                                             {normalizeText(ticket.ticket_number, `#${ticket.id}`)}
                                         </td>
-                                        <td className="px-2 py-4 text-center">
-                                            <button
-                                                onClick={() => openTicket(ticket)}
-                                                className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all"
-                                                title="Edit"
-                                            >
-                                                <Edit2 className="w-5 h-5" />
-                                            </button>
-                                        </td>
+                                        {canEdit && (
+                                            <td className="px-2 py-4 text-center">
+                                                <button
+                                                    onClick={() => openTicket(ticket)}
+                                                    className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all"
+                                                    title="Edit"
+                                                >
+                                                    <Edit2 className="w-5 h-5" />
+                                                </button>
+                                            </td>
+                                        )}
                                         <td className="px-8 py-5 text-sm text-slate-600 dark:text-slate-300">
                                             <div className="flex flex-col gap-1">
                                                 <span className="flex items-center gap-2 text-slate-700 dark:text-slate-200 font-semibold">
@@ -577,30 +579,32 @@ export default function SupportPage() {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label className="block text-xs text-slate-400 mb-2">Update Status</label>
-                                <select
-                                    className="input-glass w-full"
-                                    value={String(selectedTicket.status || 'open').toLowerCase()}
-                                    onChange={(e) => setSelectedTicket((prev) => prev ? { ...prev, status: e.target.value } : prev)}
-                                >
-                                    {STATUS_OPTIONS.map((status) => (
-                                        <option key={status} value={status}>{toLabelCase(status)}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-xs text-slate-400 mb-2">Update Priority</label>
-                                <select
-                                    className="input-glass w-full"
-                                    value={String(selectedTicket.priority || 'normal').toLowerCase()}
-                                    onChange={(e) => setSelectedTicket((prev) => prev ? { ...prev, priority: e.target.value } : prev)}
-                                >
-                                    {PRIORITY_OPTIONS.map((priority) => (
-                                        <option key={priority} value={priority}>{toLabelCase(priority)}</option>
-                                    ))}
-                                </select>
-                            </div>
+                             <div>
+                                 <label className="block text-xs text-slate-400 mb-2">Update Status</label>
+                                 <select
+                                     className="input-glass w-full"
+                                     value={String(selectedTicket.status || 'open').toLowerCase()}
+                                     onChange={(e) => setSelectedTicket((prev) => prev ? { ...prev, status: e.target.value } : prev)}
+                                     disabled={!canEdit}
+                                 >
+                                     {STATUS_OPTIONS.map((status) => (
+                                         <option key={status} value={status}>{toLabelCase(status)}</option>
+                                     ))}
+                                 </select>
+                             </div>
+                             <div>
+                                 <label className="block text-xs text-slate-400 mb-2">Update Priority</label>
+                                 <select
+                                     className="input-glass w-full"
+                                     value={String(selectedTicket.priority || 'normal').toLowerCase()}
+                                     onChange={(e) => setSelectedTicket((prev) => prev ? { ...prev, priority: e.target.value } : prev)}
+                                     disabled={!canEdit}
+                                 >
+                                     {PRIORITY_OPTIONS.map((priority) => (
+                                         <option key={priority} value={priority}>{toLabelCase(priority)}</option>
+                                     ))}
+                                 </select>
+                             </div>
                             <div className="flex items-end">
                                 <div className="w-full rounded-2xl border border-dashed border-slate-200/70 dark:border-slate-700/70 p-4 text-xs text-slate-400 dark:text-slate-300">
                                     Update ticket status and priority before sending a reply if needed.
@@ -630,13 +634,13 @@ export default function SupportPage() {
                                 <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                                     <div>
                                         <label className="block text-xs text-slate-400 mb-2">Additional 3 Month Limit (GBP)</label>
-                                        <input
+                                                                        <input
                                             className="input-glass w-full"
                                             inputMode="decimal"
                                             placeholder={userLimitLoading ? 'Loading…' : '0.00'}
                                             value={userQuarterLimit}
                                             onChange={(e) => setUserQuarterLimit(e.target.value)}
-                                            disabled={userLimitLoading}
+                                            disabled={userLimitLoading || !canEdit}
                                         />
                                     </div>
                                     <div>
@@ -647,14 +651,14 @@ export default function SupportPage() {
                                             placeholder={userLimitLoading ? 'Loading…' : '0.00'}
                                             value={userYearLimit}
                                             onChange={(e) => setUserYearLimit(e.target.value)}
-                                            disabled={userLimitLoading}
+                                            disabled={userLimitLoading || !canEdit}
                                         />
                                     </div>
                                     <div className="flex justify-end">
                                         <button
                                             type="button"
                                             onClick={() => void handleSaveUserLimits()}
-                                            disabled={userLimitLoading || userLimitSaving || (!userQuarterLimit.trim() && !userYearLimit.trim())}
+                                            disabled={userLimitLoading || userLimitSaving || (!userQuarterLimit.trim() && !userYearLimit.trim()) || !canEdit}
                                             className="btn-primary rounded-full px-6 py-3 text-sm font-bold disabled:opacity-50"
                                         >
                                             {userLimitSaving ? 'Saving…' : 'Save Limits'}
@@ -694,20 +698,23 @@ export default function SupportPage() {
                             <textarea
                                 rows={3}
                                 className="input-glass w-full"
-                                placeholder="Write a response to the customer..."
+                                placeholder={canEdit ? "Write a response to the customer..." : "You do not have permission to reply."}
                                 value={replyMessage}
                                 onChange={(e) => setReplyMessage(e.target.value)}
+                                disabled={!canEdit}
                             />
-                            <div className="flex justify-end">
-                                <button
-                                    onClick={handleReply}
-                                    disabled={!replyMessage.trim() || sendingReply}
-                                    className="btn-primary flex items-center gap-2 shadow-lg shadow-teal-500/20 disabled:opacity-60"
-                                >
-                                    <Send className="w-4 h-4" />
-                                    {sendingReply ? 'Sending...' : 'Send Reply'}
-                                </button>
-                            </div>
+                            {canEdit && (
+                                <div className="flex justify-end">
+                                    <button
+                                        onClick={handleReply}
+                                        disabled={!replyMessage.trim() || sendingReply}
+                                        className="btn-primary flex items-center gap-2 shadow-lg shadow-teal-500/20 disabled:opacity-60"
+                                    >
+                                        <Send className="w-4 h-4" />
+                                        {sendingReply ? 'Sending...' : 'Send Reply'}
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         <div className="dialog-actions border-t border-slate-100 pt-4 dark:border-slate-700/50">

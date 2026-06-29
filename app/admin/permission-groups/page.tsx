@@ -428,6 +428,12 @@ export default function PermissionGroupsPage() {
             if (sec === 'KYC_REVIEWS') {
                 return ['VIEW', 'EXPORT'].includes(op);
             }
+            if (sec === 'BRANCH_ACCESS_REQUESTS') {
+                return !['CREATE', 'EDIT', 'DELETE', 'ADD'].includes(op);
+            }
+            if (sec === 'SUPPORT') {
+                return !['CREATE', 'ADD', 'APPROVE', 'CANCEL'].includes(op);
+            }
             return true;
         });
         if (!searchQuery.trim()) return baseRows;
