@@ -51,7 +51,9 @@ const getPageNameFromSection = (section: string): string => {
                    (ps === 'KYC_REVIEWS' && s === 'KYC') ||
                    (ps === 'BRANCH_CURRENCY_RATES' && s === 'BRANCH_CURRENCY_RATE') ||
                    (ps === 'BRANCH_ACCESS_REQUESTS' && s === 'BRANCH_ACCESS') ||
-                   (ps === 'SYSTEM_USERS' && s === 'SYSUSERS');
+                   (ps === 'SYSTEM_USERS' && s === 'SYSUSERS') ||
+                   (ps === 'ROLES' && s === 'SYSGROUPS') ||
+                   (ps === 'PERMISSION_GROUPS' && s === 'SYSGROUPS_PERMISSION');
         });
         if (found) return found.name;
     }
@@ -459,7 +461,7 @@ export default function PermissionGroupsPage() {
             if (sec === 'API_TOKENS') {
                 return ['VIEW', 'EDIT'].includes(op);
             }
-            if (['DILISENSE_SOURCES', 'COUNTRIES', 'BANKS', 'RELATIONSHIPS', 'PURPOSES'].includes(sec)) {
+            if (['DILISENSE_SOURCES', 'COUNTRIES', 'BANKS', 'RELATIONSHIPS', 'PURPOSES', 'ROLES', 'SYSGROUPS'].includes(sec)) {
                 return !['ADD', 'APPROVE', 'CANCEL'].includes(op);
             }
             if (sec === 'SETTINGS') {
@@ -504,15 +506,17 @@ export default function PermissionGroupsPage() {
     }, [roles, rows]);
 
     const sectionOptions = useMemo(() => {
-        const seenNames = new Set<string>();
         const uniqueOptions: string[] = [];
+        const seenNames = new Set<string>();
         
-        const rawSections = Array.from(new Set(rows.map((row) => (row.page_section || '').trim()).filter(Boolean)));
-        for (const sec of rawSections) {
-            const displayName = getPageNameFromSection(sec);
-            if (!seenNames.has(displayName)) {
-                seenNames.add(displayName);
-                uniqueOptions.push(sec);
+        for (const cat of ADMIN_PAGES_CONFIG) {
+            for (const page of cat.pages) {
+                const displayName = page.name;
+                const sec = page.section;
+                if (!seenNames.has(displayName)) {
+                    seenNames.add(displayName);
+                    uniqueOptions.push(sec);
+                }
             }
         }
         
@@ -521,7 +525,7 @@ export default function PermissionGroupsPage() {
             const nameB = getPageNameFromSection(b);
             return nameA.localeCompare(nameB, undefined, { sensitivity: 'base' });
         });
-    }, [rows]);
+    }, []);
 
     const filtered = useMemo(() => {
         const normalizedRoleFilter = roleFilter.trim().toLowerCase();

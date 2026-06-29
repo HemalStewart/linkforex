@@ -156,7 +156,11 @@ export const checkPermission = (section: string, operation: string): boolean => 
                (targetSec === 'KYC_REVIEWS' && rowSec === 'KYC') ||
                (targetSec === 'BRANCH_CURRENCY_RATES' && rowSec === 'BRANCH_CURRENCY_RATE') ||
                (targetSec === 'BRANCH_ACCESS_REQUESTS' && rowSec === 'BRANCH_ACCESS') ||
-               (targetSec === 'SYSTEM_USERS' && rowSec === 'SYSUSERS');
+               (targetSec === 'SYSTEM_USERS' && rowSec === 'SYSUSERS') ||
+               (targetSec === 'ROLES' && rowSec === 'SYSGROUPS') ||
+               (targetSec === 'SYSGROUPS' && rowSec === 'ROLES') ||
+               (targetSec === 'PERMISSION_GROUPS' && rowSec === 'SYSGROUPS_PERMISSION') ||
+               (targetSec === 'SYSGROUPS_PERMISSION' && rowSec === 'PERMISSION_GROUPS');
     });
 };
 
@@ -231,7 +235,11 @@ export function usePagePermissions(section: string) {
                                       (targetSec === 'KYC_REVIEWS' && rowSec === 'KYC') ||
                                       (targetSec === 'BRANCH_CURRENCY_RATES' && rowSec === 'BRANCH_CURRENCY_RATE') ||
                                       (targetSec === 'BRANCH_ACCESS_REQUESTS' && rowSec === 'BRANCH_ACCESS') ||
-                                      (targetSec === 'SYSTEM_USERS' && rowSec === 'SYSUSERS');
+                                      (targetSec === 'SYSTEM_USERS' && rowSec === 'SYSUSERS') ||
+                                      (targetSec === 'ROLES' && rowSec === 'SYSGROUPS') ||
+                                      (targetSec === 'SYSGROUPS' && rowSec === 'ROLES') ||
+                                      (targetSec === 'PERMISSION_GROUPS' && rowSec === 'SYSGROUPS_PERMISSION') ||
+                                      (targetSec === 'SYSGROUPS_PERMISSION' && rowSec === 'PERMISSION_GROUPS');
                                       
                         if (match) {
                             return page.operations.includes(op);

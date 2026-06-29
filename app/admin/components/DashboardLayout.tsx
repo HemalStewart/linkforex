@@ -711,17 +711,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         if (!sections || sections.length === 0) return true;
         if (isPrivilegedUser) return true;
 
-        const restrictedForBranchUsers = new Set([
-            'SYSGROUPS',
-            'ROLES',
-            'SYSGROUPS_PERMISSION',
-            'PERMISSION_GROUPS'
-        ]);
-
-        if (sections.some((section) => restrictedForBranchUsers.has(section.toUpperCase()))) {
-            return false;
-        }
-
         return sections.some((section) => viewSections.has(section.toUpperCase()));
     };
 
