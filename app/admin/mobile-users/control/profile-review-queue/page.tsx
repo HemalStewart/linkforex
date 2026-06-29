@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Download, FileText, Image, RefreshCcw, Search, X } from 'lucide-react';
+import { Download, FileText, Image, RefreshCcw, Search, X, Eye } from 'lucide-react';
+import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../../components/ConfirmModal';
 import { formatDateTime } from '@/app/lib/dateUtils';
@@ -365,7 +366,7 @@ export default function MobileProfileReviewQueuePage() {
                                 {showCreatedAt && <th>Created At</th>}
                                 {showUpdatedBy && <th>Updated By</th>}
                                 {showUpdatedAt && <th>Updated At</th>}
-                                <th className="text-right">Action</th>
+                                <th className="text-right">View</th>
                             </tr>
                         </thead>
                         <tbody className="table-body">
@@ -402,40 +403,13 @@ export default function MobileProfileReviewQueuePage() {
                                     {showUpdatedBy && <td className="text-xs font-bold text-slate-600">{u.updated_by || u.modified_user || '—'}</td>}
                                     {showUpdatedAt && <td className="text-xs text-slate-600 whitespace-nowrap">{u.updated_at ? formatDateTime(u.updated_at) : '—'}</td>}
                                     <td className="text-right">
-                                        <div className="inline-flex items-center gap-2">
-                                            <button
-                                                onClick={() => syncLivenessForUser(u)}
-                                                className="rounded-full border border-slate-300 px-3 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-                                            >
-                                                Sync
-                                            </button>
-                                            <button
-                                                onClick={() => openVerificationReport(u)}
-                                                className="rounded-full border border-slate-300 px-3 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-                                            >
-                                                <FileText className="mr-1 inline-block h-3 w-3" />
-                                                Report
-                                            </button>
-                                            <button
-                                                onClick={() => openMediaModal(u)}
-                                                className="rounded-full border border-slate-300 px-3 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-                                            >
-                                                <Image className="mr-1 inline-block h-3 w-3" />
-                                                Media
-                                            </button>
-                                            <button
-                                                onClick={() => approveQueueUser(u)}
-                                                className="rounded-full border border-emerald-300 px-3 py-1 text-[11px] font-bold text-emerald-700 hover:bg-emerald-50 dark:border-emerald-900/40 dark:text-emerald-300 dark:hover:bg-emerald-900/20"
-                                            >
-                                                Approve
-                                            </button>
-                                            <button
-                                                onClick={() => rejectQueueUser(u)}
-                                                className="rounded-full border border-rose-300 px-3 py-1 text-[11px] font-bold text-rose-700 hover:bg-rose-50 dark:border-rose-900/40 dark:text-rose-300 dark:hover:bg-rose-900/20"
-                                            >
-                                                Reject
-                                            </button>
-                                        </div>
+                                        <Link
+                                            href={`/admin/mobile-profiles/${u.id}`}
+                                            className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-teal-600 transition-all inline-flex"
+                                            title="View Profile"
+                                        >
+                                            <Eye className="w-5 h-5" />
+                                        </Link>
                                     </td>
                                 </tr>
                             ))}

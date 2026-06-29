@@ -5,7 +5,7 @@ import { ENDPOINTS } from '@/app/lib/api';
 import Badge from '@/app/admin/components/ui/Badge';
 import { RefreshCw, Search, Plus, Trash2 } from 'lucide-react';
 import { formatDateTime } from '@/app/lib/dateUtils';
-import { useAuditColumns } from '@/app/lib/permissions';
+import { useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 
 type MobileExchangeRate = {
     id: number;
@@ -46,6 +46,7 @@ function normalizeCurrencyLabel(row: MobileExchangeRate) {
 
 export default function MobileUserRatesPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('MOBILE_USER_RATES');
+    const { canCreate, canDelete } = usePagePermissions('MOBILE_USER_RATES');
     const [currencies, setCurrencies] = useState<MobileExchangeRate[]>([]);
     const [rows, setRows] = useState<UserRateOverride[]>([]);
     const [loading, setLoading] = useState(true);
@@ -167,14 +168,16 @@ export default function MobileUserRatesPage() {
                         <RefreshCw className={`h-4 w-4 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
                         Refresh
                     </button>
-                    <button
-                        type="button"
-                        onClick={() => setOpen(true)}
-                        className="btn-primary inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Add Override
-                    </button>
+                    {canCreate && (
+                        <button
+                            type="button"
+                            onClick={() => setOpen(true)}
+                            className="btn-primary inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Add Override
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -230,7 +233,7 @@ export default function MobileUserRatesPage() {
                                     {showCreatedAt && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Created At</th>}
                                     {showUpdatedBy && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Updated By</th>}
                                     {showUpdatedAt && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Updated At</th>}
-                                    <th className="px-4 py-4 text-right text-xs font-bold text-slate-500 dark:text-slate-300">Action</th>
+                                    {canDelete && <th className="px-4 py-4 text-right text-xs font-bold text-slate-500 dark:text-slate-300">Action</th>}
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -253,22 +256,24 @@ export default function MobileUserRatesPage() {
                                                     {row.updated_at ? formatDateTime(row.updated_at) : '—'}
                                                 </td>
                                             )}
-                                            <td className="px-4 py-4 text-right text-sm">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => void onDelete(row.id)}
-                                                    className="inline-flex items-center justify-center w-9 h-9 rounded-full hover:bg-red-50 dark:hover:bg-red-500/10 text-red-600"
-                                                    title="Delete"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </td>
+                                            {canDelete && (
+                                                <td className="px-4 py-4 text-right text-sm">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => void onDelete(row.id)}
+                                                        className="inline-flex items-center justify-center w-9 h-9 rounded-full hover:bg-red-50 dark:hover:bg-red-500/10 text-red-600"
+                                                        title="Delete"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </td>
+                                            )}
                                         </tr>
                                     );
                                 })}
                                 {sortedRows.length === 0 && (
                                     <tr>
-                                        <td colSpan={6 + (showCreatedBy ? 1 : 0) + (showCreatedAt ? 1 : 0) + (showUpdatedBy ? 1 : 0) + (showUpdatedAt ? 1 : 0)} className="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
+                                        <td colSpan={4 + (showCreatedBy ? 1 : 0) + (showCreatedAt ? 1 : 0) + (showUpdatedBy ? 1 : 0) + (showUpdatedAt ? 1 : 0) + (canDelete ? 1 : 0)} className="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
                                             No overrides found.
                                         </td>
                                     </tr>
