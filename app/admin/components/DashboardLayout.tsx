@@ -90,12 +90,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const [currentHash, setCurrentHash] = useState('');
     const [isLoadingNav, setIsLoadingNav] = useState(true);
     const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+    const currentUserRef = React.useRef<CurrentUser | null>(null);
+    currentUserRef.current = currentUser;
     const notificationMenuRef = React.useRef<HTMLDivElement | null>(null);
     const themeMenuRef = React.useRef<HTMLDivElement | null>(null);
     const originalFetchRef = React.useRef<typeof window.fetch | null>(null);
     const signOffSentRef = React.useRef(false);
     const hasCheckedTabDuplicateRef = React.useRef(false);
-    const tabId = React.useMemo(() => {
+    const [currentTabId, setCurrentTabId] = useState<string>(() => {
         if (typeof window === 'undefined') return '';
         let id = sessionStorage.getItem('current_tab_id');
         if (!id) {
@@ -103,7 +105,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             sessionStorage.setItem('current_tab_id', id);
         }
         return id;
-    }, []);
+    });
     const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
 
     React.useEffect(() => {
@@ -498,9 +500,29 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 (performance.navigation && performance.navigation.type === 1)
             );
 
+            // Chrome duplicated tabs copy sessionStorage AND report navigation type as 'reload'.
+            // If it is a real reload, the beforeunload event must have written the unloading flag.
+            // If no unloading flag is present, this is a duplicated tab.
+            let isDuplicatedTab = false;
+            if (isReload && currentTabId) {
+                try {
+                    const unloadingFlag = localStorage.getItem('tab_unloading_' + currentTabId);
+                    if (!unloadingFlag) {
+                        isDuplicatedTab = true;
+                    }
+                } catch (e) {
+                    console.error('Error checking unloading flag for duplicate check:', e);
+                }
+            }
+
             const storedLogId = sessionStorage.getItem('admin_log_id');
 
-            if (isReload && storedLogId) {
+            if (isReload && !isDuplicatedTab && storedLogId) {
+                // Page Reload: Remove unloading flag to prevent other tabs from signing us off
+                try {
+                    localStorage.removeItem('tab_unloading_' + currentTabId);
+                } catch {}
+
                 // Page Reload: Resume the existing session log on the backend
                 try {
                     await fetch(ENDPOINTS.LOGS.RESUME(storedLogId), {
@@ -513,11 +535,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 return;
             }
 
-            // Since it's not a reload and not a fresh login, this is a duplicated tab or new tab!
+            // Since it's a duplicated tab, new tab, or fresh login:
             // For a duplicated tab, sessionStorage copied 'current_tab_id' and 'admin_log_id'.
-            // Since this is a new tab instance (not reload), we MUST generate a NEW tabId and a NEW log!
+            // Since this is a duplicate tab, we MUST generate a NEW tabId and a NEW log!
             const newTabId = 'tab_' + Math.random().toString(36).substring(2, 15);
             sessionStorage.setItem('current_tab_id', newTabId);
+            setCurrentTabId(newTabId);
 
             // We register a new user log on the backend so that each tab session has its own log entry.
             try {
@@ -542,7 +565,83 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         };
 
         checkTabSession();
-    }, [isPublicPage, currentUser, tabId]);
+    }, [isPublicPage, currentUser, currentTabId]);
+
+    // Multi-tab unload/refresh coordination listener
+    React.useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        // 1. Cleanup any stale tab_unloading keys on mount (e.g. from previously closed tabs)
+        try {
+            const now = Date.now();
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('tab_unloading_')) {
+                    try {
+                        const val = localStorage.getItem(key);
+                        if (val) {
+                            const item = JSON.parse(val);
+                            // If it's been there for more than 5 seconds, it's stale (tab was closed)
+                            if (now - item.timestamp > 5000) {
+                                localStorage.removeItem(key);
+                                const payload = {
+                                    user_id: item.userId,
+                                    username: item.username,
+                                    sign_off_note: 'Tab closed',
+                                    log_id: item.logId
+                                };
+                                fetch(ENDPOINTS.LOGS.SIGNOFF, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(payload)
+                                }).catch(() => {});
+                            }
+                        }
+                    } catch {}
+                }
+            }
+        } catch (e) {
+            console.error(e);
+        }
+
+        // 2. Listen for tab_unloading changes from other tabs
+        const handleStorageChange = (e: StorageEvent) => {
+            if (!e.key || !e.key.startsWith('tab_unloading_') || !e.newValue) return;
+            
+            const targetTabId = e.key.replace('tab_unloading_', '');
+            if (targetTabId === currentTabId) return;
+
+            try {
+                const item = JSON.parse(e.newValue);
+                // Wait 1.5 seconds to see if the tab reloaded and cleared the key
+                setTimeout(() => {
+                    const currentVal = localStorage.getItem('tab_unloading_' + targetTabId);
+                    if (currentVal) {
+                        // The key is still there! This means the tab was closed, not refreshed!
+                        localStorage.removeItem('tab_unloading_' + targetTabId);
+                        
+                        const payload = {
+                            user_id: item.userId,
+                            username: item.username,
+                            sign_off_note: 'Tab closed',
+                            log_id: item.logId
+                        };
+
+                        fetch(ENDPOINTS.LOGS.SIGNOFF, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        }).catch(() => {});
+                    }
+                }, 1500);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, [currentTabId]);
 
     React.useEffect(() => {
         const onStorage = (event: StorageEvent) => {
@@ -743,7 +842,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         delete activeTabs[id];
                     }
                 });
-                activeTabs[tabId] = now;
+                 activeTabs[currentTabId] = now;
                 localStorage.setItem('active_admin_tabs', JSON.stringify(activeTabs));
             } catch (e) {
                 console.error(e);
@@ -757,8 +856,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         window.addEventListener('focus', registerTab);
 
         const handleBeforeUnload = () => {
-            logSignOff('Tab closed', true);
             try {
+                const logId = sessionStorage.getItem('admin_log_id');
+                const user = currentUserRef.current;
+                if (logId && user) {
+                    localStorage.setItem('tab_unloading_' + currentTabId, JSON.stringify({
+                        logId: parseInt(logId, 10),
+                        userId: user.id,
+                        username: user.username || user.email || user.name,
+                        timestamp: Date.now()
+                    }));
+                }
+
                 const activeTabsRaw = localStorage.getItem('active_admin_tabs');
                 let activeTabs: Record<string, number> = {};
                 if (activeTabsRaw) {
@@ -769,7 +878,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     }
                 }
                 
-                delete activeTabs[tabId];
+                delete activeTabs[currentTabId];
                 
                 const now = Date.now();
                 Object.keys(activeTabs).forEach((id) => {
@@ -793,7 +902,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             activityEvents.forEach((event) => window.removeEventListener(event, resetTimer));
             window.removeEventListener('beforeunload', handleBeforeUnload);
         };
-    }, [router, isPublicPage, logSignOff]);
+    }, [router, isPublicPage, logSignOff, currentTabId]);
 
     if (isPublicPage) {
         return <>{children}</>;
