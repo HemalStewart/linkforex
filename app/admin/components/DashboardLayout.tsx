@@ -679,10 +679,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 });
                 
                 localStorage.setItem('active_admin_tabs', JSON.stringify(activeTabs));
-
-                if (Object.keys(activeTabs).length === 0) {
-                    logSignOff('Browser closed', true);
-                }
             } catch (e) {
                 console.error(e);
             }

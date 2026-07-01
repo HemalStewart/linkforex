@@ -19,6 +19,106 @@ const HOP_BY_HOP_HEADERS = new Set([
     'upgrade',
 ]);
 
+const extractIpCandidates = (value: string | null): string[] => {
+    const input = (value || '').trim();
+    if (!input) {
+        return [];
+    }
+
+    return input
+        .split(',')
+        .map((part) => part.trim().replace(/^for=/i, '').replace(/^["'\[]|["'\]]$/g, ''))
+        .map((part) => {
+            if (/^\d{1,3}(?:\.\d{1,3}){3}:\d+$/.test(part)) {
+                return part.split(':', 1)[0];
+            }
+            return part;
+        })
+        .filter((part) => {
+            if (!part) {
+                return false;
+            }
+
+            if (part.includes(':') && part.startsWith('[') && part.endsWith(']')) {
+                return true;
+            }
+
+            return true;
+        });
+};
+
+const isValidIp = (value: string): boolean => {
+    if (!value) {
+        return false;
+    }
+
+    if (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(value)) {
+        return value.split('.').every((segment) => {
+            const num = Number(segment);
+            return num >= 0 && num <= 255;
+        });
+    }
+
+    return /^[0-9a-f:]+$/i.test(value);
+};
+
+const isPrivateOrReservedIp = (value: string): boolean => {
+    const ip = value.toLowerCase();
+
+    if (ip === '::1' || ip === '0:0:0:0:0:0:0:1') {
+        return true;
+    }
+
+    if (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(ip)) {
+        const [a, b] = ip.split('.').map(Number);
+        if (a === 10 || a === 127 || a === 0) return true;
+        if (a === 192 && b === 168) return true;
+        if (a === 172 && b >= 16 && b <= 31) return true;
+        if (a === 169 && b === 254) return true;
+        if (a === 100 && b >= 64 && b <= 127) return true;
+        return false;
+    }
+
+    return (
+        ip === '::' ||
+        ip.startsWith('fc') ||
+        ip.startsWith('fd') ||
+        ip.startsWith('fe80:') ||
+        ip.startsWith('::ffff:127.')
+    );
+};
+
+const resolveClientIp = (request: NextRequest): string | null => {
+    const headerNames = [
+        'cf-connecting-ip',
+        'x-real-ip',
+        'x-client-ip',
+        'x-forwarded-for',
+        'x-vercel-forwarded-for',
+        'true-client-ip',
+        'forwarded',
+    ];
+
+    const fallback: string[] = [];
+
+    for (const headerName of headerNames) {
+        const candidates = extractIpCandidates(request.headers.get(headerName));
+        for (const candidate of candidates) {
+            if (!isValidIp(candidate)) {
+                continue;
+            }
+
+            if (!isPrivateOrReservedIp(candidate)) {
+                return candidate;
+            }
+
+            fallback.push(candidate);
+        }
+    }
+
+    return fallback[0] || null;
+};
+
 const buildTargetUrl = (request: NextRequest, segments: string[]): URL => {
     const backendApiBaseUrl = getBackendApiBaseUrl();
     const target = new URL(backendApiBaseUrl);
@@ -39,6 +139,14 @@ const copyRequestHeaders = (request: NextRequest): Headers => {
         if (HOP_BY_HOP_HEADERS.has(key.toLowerCase())) return;
         headers.set(key, value);
     });
+
+    const clientIp = resolveClientIp(request);
+    if (clientIp) {
+        headers.set('x-client-ip', clientIp);
+        headers.set('x-real-ip', clientIp);
+        headers.set('x-forwarded-for', clientIp);
+    }
+
     return headers;
 };
 
