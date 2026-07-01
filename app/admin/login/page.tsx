@@ -46,6 +46,22 @@ export default function AdminLoginPage() {
         // keep default footer text
       }
     }
+
+    const fetchPublicIp = async () => {
+      try {
+        if (sessionStorage.getItem('client_public_ip')) return;
+        const res = await fetch('https://api64.ipify.org?format=json');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.ip) {
+            sessionStorage.setItem('client_public_ip', data.ip);
+          }
+        }
+      } catch (err) {
+        // ignore
+      }
+    };
+    fetchPublicIp();
   }, [router]);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -57,11 +73,19 @@ export default function AdminLoginPage() {
     const password = String(formData.get('password') || '');
 
     try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+      if (typeof window !== 'undefined') {
+        const clientIp = sessionStorage.getItem('client_public_ip');
+        if (clientIp) {
+          headers['X-Client-Public-Ip'] = clientIp;
+        }
+      }
+
       const response = await fetch(ENDPOINTS.AUTH.LOGIN, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers,
         body: JSON.stringify({
           email: identifier,
           username: identifier,
@@ -114,11 +138,19 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+      if (typeof window !== 'undefined') {
+        const clientIp = sessionStorage.getItem('client_public_ip');
+        if (clientIp) {
+          headers['X-Client-Public-Ip'] = clientIp;
+        }
+      }
+
       const response = await fetch(ENDPOINTS.AUTH.VERIFY_2FA, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers,
         body: JSON.stringify({
           email: twofaEmail,
           code: twofaCode

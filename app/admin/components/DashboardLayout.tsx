@@ -106,6 +106,25 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }, []);
     const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
 
+    React.useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const fetchPublicIp = async () => {
+            try {
+                if (sessionStorage.getItem('client_public_ip')) return;
+                const res = await fetch('https://api64.ipify.org?format=json');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.ip) {
+                        sessionStorage.setItem('client_public_ip', data.ip);
+                    }
+                }
+            } catch (err) {
+                // ignore
+            }
+        };
+        fetchPublicIp();
+    }, []);
+
     const [counts, setCounts] = useState({
         transfers: 0,
         remitters: 0,
@@ -412,6 +431,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             const enrichedUrl = enrichApiUrl(requestUrl);
             const headers = new Headers(init?.headers || (input instanceof Request ? input.headers : undefined));
             headers.set('X-Acting-User-Id', actingUserId);
+
+            const publicIp = sessionStorage.getItem('client_public_ip');
+            if (publicIp) {
+                headers.set('X-Client-Public-Ip', publicIp);
+            }
 
             if (input instanceof Request) {
                 const patchedBase = new Request(enrichedUrl, input);
