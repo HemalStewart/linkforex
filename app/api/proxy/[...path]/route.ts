@@ -174,19 +174,28 @@ const proxyRequest = async (request: NextRequest, context: RouteContext): Promis
     }
 
     const method = request.method.toUpperCase();
+    const headers = copyRequestHeaders(request);
 
     const init: RequestInit = {
         method,
-        headers: copyRequestHeaders(request),
+        headers,
         cache: 'no-store',
         redirect: 'manual',
     };
 
     if (method !== 'GET' && method !== 'HEAD') {
-        if (request.body) {
-            init.body = request.body;
-            // @ts-expect-error Node.js native fetch requires duplex: 'half' for ReadableStream bodies
-            init.duplex = 'half';
+        try {
+            const bodyBuffer = await request.arrayBuffer();
+            if (bodyBuffer.byteLength > 0) {
+                init.body = bodyBuffer;
+                headers.set('content-length', bodyBuffer.byteLength.toString());
+            }
+        } catch (error) {
+            if (request.body) {
+                init.body = request.body;
+                // @ts-expect-error Node.js native fetch requires duplex: 'half' for ReadableStream bodies
+                init.duplex = 'half';
+            }
         }
     }
 
