@@ -94,6 +94,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const themeMenuRef = React.useRef<HTMLDivElement | null>(null);
     const originalFetchRef = React.useRef<typeof window.fetch | null>(null);
     const signOffSentRef = React.useRef(false);
+    const hasCheckedTabDuplicateRef = React.useRef(false);
+    const tabId = React.useMemo(() => {
+        if (typeof window === 'undefined') return '';
+        let id = sessionStorage.getItem('current_tab_id');
+        if (!id) {
+            id = 'tab_' + Math.random().toString(36).substring(2, 15);
+            sessionStorage.setItem('current_tab_id', id);
+        }
+        return id;
+    }, []);
     const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
 
     const [counts, setCounts] = useState({
@@ -444,6 +454,72 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         }
     }, [pathname, router, isPublicPage]);
 
+    // Tab duplication & Session duplication detection
+    React.useEffect(() => {
+        if (isPublicPage || !currentUser || hasCheckedTabDuplicateRef.current) return;
+        hasCheckedTabDuplicateRef.current = true;
+
+        const checkTabSession = async () => {
+            const isFreshLogin = sessionStorage.getItem('fresh_login') === 'true';
+            if (isFreshLogin) {
+                // Fresh login: we already created the log on the backend login endpoint.
+                sessionStorage.removeItem('fresh_login');
+                return;
+            }
+
+            const isReload = typeof window !== 'undefined' && (
+                (performance.getEntriesByType && 
+                 performance.getEntriesByType('navigation')[0] && 
+                 (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming).type === 'reload') ||
+                (performance.navigation && performance.navigation.type === 1)
+            );
+
+            const storedLogId = sessionStorage.getItem('admin_log_id');
+
+            if (isReload && storedLogId) {
+                // Page Reload: Resume the existing session log on the backend
+                try {
+                    await fetch(ENDPOINTS.LOGS.RESUME(storedLogId), {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                } catch (err) {
+                    console.error('Failed to resume session log:', err);
+                }
+                return;
+            }
+
+            // Since it's not a reload and not a fresh login, this is a duplicated tab or new tab!
+            // For a duplicated tab, sessionStorage copied 'current_tab_id' and 'admin_log_id'.
+            // Since this is a new tab instance (not reload), we MUST generate a NEW tabId and a NEW log!
+            const newTabId = 'tab_' + Math.random().toString(36).substring(2, 15);
+            sessionStorage.setItem('current_tab_id', newTabId);
+
+            // We register a new user log on the backend so that each tab session has its own log entry.
+            try {
+                const res = await fetch(ENDPOINTS.LOGS.CREATE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: currentUser.id,
+                        username: currentUser.username || currentUser.email || currentUser.name
+                    })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.log_id) {
+                        sessionStorage.setItem('admin_log_id', String(data.log_id));
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to register session log for tab:', err);
+            }
+        };
+
+        checkTabSession();
+    }, [isPublicPage, currentUser, tabId]);
+
     React.useEffect(() => {
         const onStorage = (event: StorageEvent) => {
             if (event.key !== 'user') return;
@@ -578,7 +654,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         if (isPublicPage) return;
         signOffSentRef.current = false;
 
-        const tabId = 'tab_' + Math.random().toString(36).substring(2, 15);
         const timeoutMs = 30 * 60 * 1000;
         let timer: ReturnType<typeof setTimeout> | null = null;
 
@@ -626,7 +701,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         activityEvents.forEach((event) => window.addEventListener(event, resetTimer, { passive: true }));
         resetTimer();
 
-        const registerTab = () => {
+        const registerTab = async () => {
             try {
                 const activeTabsRaw = localStorage.getItem('active_admin_tabs');
                 let activeTabs: Record<string, number> = {};
@@ -658,6 +733,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         window.addEventListener('focus', registerTab);
 
         const handleBeforeUnload = () => {
+            logSignOff('Tab closed', true);
             try {
                 const activeTabsRaw = localStorage.getItem('active_admin_tabs');
                 let activeTabs: Record<string, number> = {};

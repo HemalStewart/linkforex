@@ -108,8 +108,10 @@ export const ENDPOINTS = {
     },
     LOGS: {
         LIST: `${API_BASE_URL}/logs`,
+        CREATE: `${API_BASE_URL}/logs`,
         DETAIL: (id: string | number) => `${API_BASE_URL}/logs/${id}`,
         SIGNOFF: `${API_BASE_URL}/logs/signoff`,
+        RESUME: (id: string | number) => `${API_BASE_URL}/logs/${id}/resume`,
     },
     REPORTS: {
         SUMMARY: `${API_BASE_URL}/reports/summary`,
