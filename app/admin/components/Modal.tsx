@@ -18,12 +18,21 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
         setMounted(true);
         // Prevent scrolling when modal is open
         if (isOpen) {
+            document.documentElement.style.overflow = 'hidden';
             document.body.style.overflow = 'hidden';
+            document.documentElement.classList.add('modal-open');
+            document.body.classList.add('modal-open');
         } else {
-            document.body.style.overflow = 'unset';
+            document.documentElement.style.overflow = '';
+            document.body.style.overflow = '';
+            document.documentElement.classList.remove('modal-open');
+            document.body.classList.remove('modal-open');
         }
         return () => {
-            document.body.style.overflow = 'unset';
+            document.documentElement.style.overflow = '';
+            document.body.style.overflow = '';
+            document.documentElement.classList.remove('modal-open');
+            document.body.classList.remove('modal-open');
         };
     }, [isOpen]);
 
