@@ -24,6 +24,7 @@ import {
     User,
     Eye,
     EyeOff,
+    ChevronDown,
 } from 'lucide-react';
 
 type StoredUser = {
@@ -221,7 +222,7 @@ export default function ProfilePage() {
 
     const updateRowsPerPageSetting = (rawValue: string) => {
         const parsed = Number(rawValue);
-        const nextRows = Number.isFinite(parsed) ? Math.max(5, Math.min(100, Math.round(parsed))) : 10;
+        const nextRows = Number.isFinite(parsed) ? Math.max(5, Math.min(1000, Math.round(parsed))) : 10;
         const next = { ...uiSettings, rowsPerPage: nextRows };
         setUiSettings(next);
         applyUiSettings(next);
@@ -909,25 +910,21 @@ export default function ProfilePage() {
                                     <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                                         Default Rows Per Page ({uiSettings.rowsPerPage})
                                     </label>
-                                    <div className="space-y-3">
-                                        <input
-                                            type="range"
-                                            min={5}
-                                            max={100}
-                                            step={1}
+                                    <div className="relative">
+                                        <select
                                             value={uiSettings.rowsPerPage ?? 10}
                                             onChange={(e) => updateRowsPerPageSetting(e.target.value)}
-                                            className="w-full accent-teal-500"
-                                        />
-                                        <input
-                                            type="number"
-                                            min={5}
-                                            max={100}
-                                            step={1}
-                                            value={uiSettings.rowsPerPage ?? 10}
-                                            onChange={(e) => updateRowsPerPageSetting(e.target.value)}
-                                            className="input-glass w-full text-sm"
-                                        />
+                                            className="input-glass w-full pr-10 appearance-none cursor-pointer text-sm py-2.5"
+                                        >
+                                            <option value={5} className="dark:bg-slate-800 dark:text-white bg-white text-slate-900">5</option>
+                                            <option value={10} className="dark:bg-slate-800 dark:text-white bg-white text-slate-900">10</option>
+                                            <option value={25} className="dark:bg-slate-800 dark:text-white bg-white text-slate-900">25</option>
+                                            <option value={50} className="dark:bg-slate-800 dark:text-white bg-white text-slate-900">50</option>
+                                            <option value={100} className="dark:bg-slate-800 dark:text-white bg-white text-slate-900">100</option>
+                                            <option value={500} className="dark:bg-slate-800 dark:text-white bg-white text-slate-900">500</option>
+                                            <option value={1000} className="dark:bg-slate-800 dark:text-white bg-white text-slate-900">1000</option>
+                                        </select>
+                                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none" />
                                     </div>
                                 </div>
                             </div>

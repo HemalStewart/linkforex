@@ -17,14 +17,15 @@ export default function Pagination({
     onPageChange,
     onRowsPerPageChange
 }: PaginationProps) {
-    const options = Array.from(new Set([10, 25, 50, 100, 500, 1000, rowsPerPage])).sort((a, b) => a - b);
+    const options = [5, 10, 25, 50, 100, 500, 1000];
+    const activeValue = options.includes(rowsPerPage) ? rowsPerPage : 10;
 
     return (
         <div className="px-6 py-4 border-t border-slate-100/70 dark:border-slate-700/60 flex flex-wrap items-center gap-3 text-sm">
             <span className="text-slate-400 dark:text-slate-300 font-medium">Rows per page</span>
             <select
                 className="input-glass px-3 py-1.5 text-sm pr-8 min-w-[70px]"
-                value={rowsPerPage}
+                value={activeValue}
                 onChange={(e) => onRowsPerPageChange(Number(e.target.value))}
             >
                 {options.map((opt) => (

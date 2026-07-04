@@ -41,7 +41,9 @@ const normalizeTableFontPx = (value: unknown): number => {
 const normalizeRowsPerPage = (value: unknown): number => {
     const num = typeof value === 'number' ? value : Number(value);
     if (!Number.isFinite(num)) return defaultSettings.rowsPerPage;
-    return Math.max(5, Math.min(100, Math.round(num)));
+    const rounded = Math.round(num);
+    const allowed = [5, 10, 25, 50, 100, 500, 1000];
+    return allowed.includes(rounded) ? rounded : 10;
 };
 
 export const getStoredUiSettings = (): UiSettings => {
