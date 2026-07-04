@@ -212,7 +212,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         }
     }, [buildSignOffPayload]);
 
-    const forceLogout = React.useCallback(async (title: string, message: string, signOffNote = 'Forced logout due to unauthorized access attempt.') => {
+    const forceLogout = React.useCallback(async (_title: string, _message: string, signOffNote = 'Forced logout due to unauthorized access attempt.') => {
         if (forcedLogoutRef.current) return;
         forcedLogoutRef.current = true;
 
@@ -223,11 +223,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         }
 
         if (typeof window !== 'undefined') {
-            sessionStorage.setItem('pending_toast', JSON.stringify({
-                title,
-                message,
-                type: 'danger',
-            }));
             sessionStorage.removeItem('admin_log_id');
         }
 
@@ -749,26 +744,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         window.addEventListener('show-toast', handleShowToast);
         return () => window.removeEventListener('show-toast', handleShowToast);
     }, []);
-
-    React.useEffect(() => {
-        if (typeof window === 'undefined') return;
-        const storedToast = sessionStorage.getItem('pending_toast');
-        if (storedToast) {
-            try {
-                const parsed = JSON.parse(storedToast);
-                setToast({
-                    isOpen: true,
-                    title: parsed.title || 'Notification',
-                    message: parsed.message || '',
-                    type: parsed.type || 'info',
-                });
-            } catch (err) {
-                console.error('Failed to parse pending toast:', err);
-            } finally {
-                sessionStorage.removeItem('pending_toast');
-            }
-        }
-    }, [pathname]);
 
     React.useEffect(() => {
         const syncHash = () => {
