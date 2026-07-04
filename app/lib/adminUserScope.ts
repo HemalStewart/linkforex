@@ -45,15 +45,5 @@ export const branchMatchesAdminScope = (
 };
 
 export const withActingUserParam = (url: string, user: StoredAdminUser | null = getCurrentAdminUser()): string => {
-    const id = user?.id;
-    if (!id) return url;
-
-    try {
-        const parsed = new URL(url, typeof window !== 'undefined' ? window.location.origin : 'http://localhost');
-        parsed.searchParams.set('acting_user_id', String(id));
-        return parsed.toString();
-    } catch {
-        const separator = url.includes('?') ? '&' : '?';
-        return `${url}${separator}acting_user_id=${encodeURIComponent(String(id))}`;
-    }
+    return url;
 };

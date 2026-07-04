@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
-import { getStoredUserRaw, setStoredUser } from '@/app/lib/authStorage';
+import { getStoredUserRaw, getStoredAdminSessionToken, setStoredAdminSession, setStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../components/ConfirmModal';
 import { Mail, Lock, Loader2, Eye, EyeOff, Shield, ArrowLeft } from 'lucide-react';
 
@@ -31,7 +31,8 @@ export default function AdminLoginPage() {
   // Check if already logged in
   React.useEffect(() => {
     const user = getStoredUserRaw();
-    if (user) {
+    const token = getStoredAdminSessionToken();
+    if (user && token) {
       router.replace('/admin/dashboard');
     }
 
@@ -104,6 +105,9 @@ export default function AdminLoginPage() {
 
       if (response.ok) {
         setStoredUser(data.user, true);
+        if (data.session_token) {
+          setStoredAdminSession(String(data.session_token), String(data.session_expires_at || ''), true);
+        }
         if (data.log_id && typeof window !== 'undefined') {
           sessionStorage.setItem('admin_log_id', String(data.log_id));
           sessionStorage.setItem('fresh_login', 'true');
@@ -161,6 +165,9 @@ export default function AdminLoginPage() {
 
       if (response.ok) {
         setStoredUser(data.user, true);
+        if (data.session_token) {
+          setStoredAdminSession(String(data.session_token), String(data.session_expires_at || ''), true);
+        }
         if (data.log_id && typeof window !== 'undefined') {
           sessionStorage.setItem('admin_log_id', String(data.log_id));
           sessionStorage.setItem('fresh_login', 'true');

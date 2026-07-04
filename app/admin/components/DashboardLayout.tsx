@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { ENDPOINTS, isApiRequestUrl } from '@/app/lib/api';
 import { resolveUploadsUrl } from '@/app/lib/uploads';
-import { clearStoredUser, getStoredUserRaw } from '@/app/lib/authStorage';
+import { clearStoredUser, getStoredAdminSessionToken, getStoredUserRaw } from '@/app/lib/authStorage';
 import { isPrivilegedUser as getIsPrivilegedUser, usePagePermissions, checkPermission } from '@/app/lib/permissions';
 import { applyThemePreference, getStoredThemePreference, resolveTheme, type ThemePreference, type ResolvedTheme } from '@/app/lib/theme';
 import ConfirmModal from './ConfirmModal';
@@ -96,6 +96,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const themeMenuRef = React.useRef<HTMLDivElement | null>(null);
     const originalFetchRef = React.useRef<typeof window.fetch | null>(null);
     const signOffSentRef = React.useRef(false);
+    const forcedLogoutRef = React.useRef(false);
     const hasCheckedTabDuplicateRef = React.useRef(false);
     const [currentTabId, setCurrentTabId] = useState<string>(() => {
         if (typeof window === 'undefined') return '';
@@ -195,15 +196,47 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 navigator.sendBeacon(ENDPOINTS.LOGS.SIGNOFF, blob);
                 return;
             }
-            await fetch(ENDPOINTS.LOGS.SIGNOFF, {
+            const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+            const sessionToken = getStoredAdminSessionToken();
+            if (sessionToken) {
+                headers['Authorization'] = `Bearer ${sessionToken}`;
+            }
+            const rawFetch = originalFetchRef.current || window.fetch.bind(window);
+            await rawFetch(ENDPOINTS.LOGS.SIGNOFF, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers,
                 body: JSON.stringify(payload)
             });
         } catch {
             // fail silently
         }
     }, [buildSignOffPayload]);
+
+    const forceLogout = React.useCallback(async (title: string, message: string, signOffNote = 'Forced logout due to unauthorized access attempt.') => {
+        if (forcedLogoutRef.current) return;
+        forcedLogoutRef.current = true;
+
+        try {
+            await logSignOff(signOffNote, false);
+        } catch {
+            // ignore
+        }
+
+        if (typeof window !== 'undefined') {
+            sessionStorage.setItem('pending_toast', JSON.stringify({
+                title,
+                message,
+                type: 'danger',
+            }));
+            sessionStorage.removeItem('admin_log_id');
+        }
+
+        clearStoredUser();
+        setCurrentUser(null);
+        setNotificationMenuOpen(false);
+        setThemeMenuOpen(false);
+        router.replace('/admin/login');
+    }, [logSignOff, router]);
 
     React.useEffect(() => {
         const fetchCounts = async () => {
@@ -379,11 +412,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
         // If the path is matched and the user cannot view this section, redirect them to a safe landing page
         if (matched && !canViewSections(matched.sections)) {
-            // Find a safe page that they DO have permission to view, default to /admin/dashboard
-            const firstAllowed = flatItems.find(item => canViewSections(item.sections));
-            router.replace(firstAllowed?.href || '/admin/dashboard');
+            void forceLogout(
+                'Access denied',
+                'Your account tried to access a restricted admin page and has been signed out.',
+                `Unauthorized route access attempt: ${pathname}`
+            );
         }
-    }, [isPublicPage, currentUser?.id, isPrivilegedUser, pathname, router, viewSections, permissionsLoaded]);
+    }, [isPublicPage, currentUser?.id, isPrivilegedUser, pathname, viewSections, permissionsLoaded, forceLogout]);
 
     React.useEffect(() => {
         if (typeof window === 'undefined') return;
@@ -393,9 +428,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         }
 
         const originalFetch = originalFetchRef.current;
-        const actingUserId = currentUser?.id ? String(currentUser.id) : '';
+        const sessionToken = getStoredAdminSessionToken();
 
-        if (!actingUserId) {
+        if (!sessionToken) {
             window.fetch = originalFetch;
             return;
         }
@@ -406,16 +441,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     return rawUrl;
                 }
                 const parsed = new URL(rawUrl, window.location.origin);
-                if (!parsed.searchParams.has('acting_user_id')) {
-                    parsed.searchParams.set('acting_user_id', actingUserId);
-                }
+                parsed.searchParams.delete('acting_user_id');
                 return parsed.toString();
             } catch {
-                return rawUrl;
+                return rawUrl.replace(/([?&])acting_user_id=[^&]*(&)?/g, '$1').replace(/[?&]$/, '');
             }
         };
 
-        window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
+        window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
             let requestUrl = '';
             if (typeof input === 'string') {
                 requestUrl = input;
@@ -432,26 +465,49 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
             const enrichedUrl = enrichApiUrl(requestUrl);
             const headers = new Headers(init?.headers || (input instanceof Request ? input.headers : undefined));
-            headers.set('X-Acting-User-Id', actingUserId);
+            headers.delete('X-Acting-User-Id');
+            headers.set('Authorization', `Bearer ${sessionToken}`);
 
             const publicIp = sessionStorage.getItem('client_public_ip');
             if (publicIp) {
                 headers.set('X-Client-Public-Ip', publicIp);
             }
 
+            let response: Response;
             if (input instanceof Request) {
                 const patchedBase = new Request(enrichedUrl, input);
                 const patchedRequest = new Request(patchedBase, { ...init, headers });
-                return originalFetch(patchedRequest);
+                response = await originalFetch(patchedRequest);
+            } else {
+                response = await originalFetch(enrichedUrl, { ...init, headers });
             }
 
-            return originalFetch(enrichedUrl, { ...init, headers });
+            if (response.status === 401 || response.status === 403) {
+                let message = response.status === 401
+                    ? 'Your admin session is no longer valid. Please sign in again.'
+                    : 'Unauthorized admin access was detected. You have been signed out.';
+
+                try {
+                    const data = await response.clone().json();
+                    message = data?.messages?.error || data?.message || message;
+                } catch {
+                    // ignore parse failures
+                }
+
+                void forceLogout(
+                    response.status === 401 ? 'Session expired' : 'Access denied',
+                    message,
+                    response.status === 401 ? 'Session expired or invalid.' : `Unauthorized API access attempt: ${requestUrl}`
+                );
+            }
+
+            return response;
         };
 
         return () => {
             window.fetch = originalFetch;
         };
-    }, [currentUser?.id]);
+    }, [currentUser?.id, forceLogout]);
 
     // Initial Auth Check
     React.useEffect(() => {
@@ -461,9 +517,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         }
 
         const stored = getStoredUserRaw();
-        if (!stored) {
+        const token = getStoredAdminSessionToken();
+        if (!stored || !token) {
             setCurrentUser(null);
             setIsLoadingNav(false);
+            clearStoredUser();
             router.replace('/admin/login');
             return;
         }

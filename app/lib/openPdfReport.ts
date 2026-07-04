@@ -1,6 +1,7 @@
 'use client';
 
 import type { StoredAdminUser } from './adminUserScope';
+import { getStoredAdminSessionToken } from './authStorage';
 
 const stripActingUser = (url: string): string => {
     try {
@@ -34,12 +35,12 @@ export const openPdfReport = async (url: string, user: StoredAdminUser | null = 
     }
 
     try {
-        const actingUserId = user?.id ? String(user.id) : '';
+        const sessionToken = getStoredAdminSessionToken();
 
-        const doFetch = async (targetUrl: string, includeActingUser: boolean): Promise<Response> => {
+        const doFetch = async (targetUrl: string): Promise<Response> => {
             const headers = new Headers();
-            if (includeActingUser && actingUserId) {
-                headers.set('X-Acting-User-Id', actingUserId);
+            if (sessionToken) {
+                headers.set('Authorization', `Bearer ${sessionToken}`);
             }
 
             return fetch(targetUrl, {
@@ -48,9 +49,9 @@ export const openPdfReport = async (url: string, user: StoredAdminUser | null = 
             });
         };
 
-        let response = await doFetch(url, true);
-        if (!response.ok && response.status === 403 && actingUserId) {
-            response = await doFetch(stripActingUser(url), false);
+        let response = await doFetch(url);
+        if (!response.ok && response.status === 403) {
+            response = await doFetch(stripActingUser(url));
         }
 
         if (!response.ok) {
