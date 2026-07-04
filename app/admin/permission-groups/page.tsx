@@ -64,6 +64,15 @@ const getPageNameFromSection = (section: string): string => {
         .replace(/\b\w/g, c => c.toUpperCase());
 };
 
+const getOperationLabel = (section: string, operation: string): string => {
+    const s = String(section || '').trim().toUpperCase();
+    const op = String(operation || '').trim().toUpperCase();
+    if (s === 'PROFILE' && op === 'EDIT') {
+        return 'UPDATE_PROFILE_PICTURE';
+    }
+    return op;
+};
+
 export default function PermissionGroupsPage() {
     const { canEdit } = usePagePermissions('PERMISSION_GROUPS');
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('PERMISSION_GROUPS');
@@ -495,7 +504,7 @@ export default function PermissionGroupsPage() {
                 row.role_name,
                 row.page_section,
                 getPageNameFromSection(row.page_section),
-                row.operation,
+                getOperationLabel(row.page_section, row.operation),
                 row.system_defined,
                 row.active,
                 cbDisplay,
@@ -556,7 +565,8 @@ export default function PermissionGroupsPage() {
                 if (rowPageName !== filterPageName) return false;
             }
 
-            if (operationFilter.trim() && !row.operation.toLowerCase().includes(operationFilter.trim().toLowerCase())) return false;
+            const opLabel = getOperationLabel(row.page_section, row.operation);
+            if (operationFilter.trim() && !opLabel.toLowerCase().includes(operationFilter.trim().toLowerCase())) return false;
             if (activeFilter !== 'all' && normalizeYesNo(row.active) !== activeFilter) return false;
             if (systemDefinedFilter !== 'all' && normalizeYesNo(row.system_defined) !== systemDefinedFilter) return false;
             return true;
@@ -571,7 +581,7 @@ export default function PermissionGroupsPage() {
             case 'page_section':
                 return getPageNameFromSection(row.page_section);
             case 'operation':
-                return row.operation || '';
+                return getOperationLabel(row.page_section, row.operation) || '';
             case 'system_defined':
                 return row.system_defined || '';
             case 'active':
@@ -1228,7 +1238,7 @@ export default function PermissionGroupsPage() {
                                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
                                                         <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{row.role_name}</td>
                                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{getPageNameFromSection(row.page_section)}</td>
-                                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.operation}</td>
+                                                        <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{getOperationLabel(row.page_section, row.operation)}</td>
                                                         <td className="px-4 py-4 text-sm text-center">
                                                             <div className="flex justify-center">
                                                                 <Badge type={normalizeYesNo(row.system_defined)}>
