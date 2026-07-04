@@ -67,7 +67,7 @@ const getPageNameFromSection = (section: string): string => {
 export default function PermissionGroupsPage() {
     const { canEdit } = usePagePermissions('PERMISSION_GROUPS');
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('PERMISSION_GROUPS');
-    const [activeTab, setActiveTab] = useState<'grid' | 'list'>('list');
+    const [activeTab, setActiveTab] = useState<'grid' | 'list'>('grid');
     const [selectedRole, setSelectedRole] = useState<string>('');
     const [toggling, setToggling] = useState<string>(''); // section|op
 
