@@ -212,7 +212,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         }
     }, [buildSignOffPayload]);
 
-    const forceLogout = React.useCallback(async (_title: string, _message: string, signOffNote = 'Forced logout due to unauthorized access attempt.') => {
+    const forceLogout = React.useCallback(async (_title: string, _message: string, signOffNote = 'Forced logout: unauthorized access attempt.') => {
         if (forcedLogoutRef.current) return;
         forcedLogoutRef.current = true;
 
@@ -410,7 +410,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             void forceLogout(
                 'Access denied',
                 'Your account tried to access a restricted admin page and has been signed out.',
-                `Unauthorized route access attempt: ${pathname}`
+                `Forced logout: unauthorized route access attempt (${pathname})`
             );
         }
     }, [isPublicPage, currentUser?.id, isPrivilegedUser, pathname, viewSections, permissionsLoaded, forceLogout]);
@@ -492,7 +492,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 void forceLogout(
                     response.status === 401 ? 'Session expired' : 'Access denied',
                     message,
-                    response.status === 401 ? 'Session expired or invalid.' : `Unauthorized API access attempt: ${requestUrl}`
+                    response.status === 401 ? 'Session expired or invalid.' : `Forced logout: unauthorized API access attempt (${requestUrl})`
                 );
             }
 
