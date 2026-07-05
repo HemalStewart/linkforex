@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../../components/ConfirmModal';
 import { formatDateTime } from '@/app/lib/dateUtils';
+import { routeKeyOf } from '@/app/lib/routeKeys';
 import type { QueueUser } from '../_shared';
 import { useAuditColumns } from '@/app/lib/permissions';
 
@@ -404,7 +405,7 @@ export default function MobileProfileReviewQueuePage() {
                                     {showUpdatedAt && <td className="text-xs text-slate-600 whitespace-nowrap">{u.updated_at ? formatDateTime(u.updated_at) : '—'}</td>}
                                     <td className="text-right">
                                         <Link
-                                            href={`/admin/mobile-profiles/${u.id}`}
+                                            href={`/admin/mobile-profiles/${encodeURIComponent(routeKeyOf(u))}`}
                                             className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-teal-600 transition-all inline-flex"
                                             title="View Profile"
                                         >

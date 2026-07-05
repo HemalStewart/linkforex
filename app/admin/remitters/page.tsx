@@ -9,6 +9,7 @@ import { openPdfReport } from '@/app/lib/openPdfReport';
 import ConfirmModal from '../components/ConfirmModal';
 import VeriffReportsModal from '../components/VeriffReportsModal';
 import { formatDateTime } from '@/app/lib/dateUtils';
+import { routeKeyOf } from '@/app/lib/routeKeys';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
 import { Search, UserPlus, Edit2, Trash2, ChevronRight, Users, FileText, ShieldCheck, X, Loader2, RefreshCcw, Download } from 'lucide-react';
@@ -768,7 +769,7 @@ export default function RemittersPage() {
                                         {canEdit && (
                                             <td className="px-2 py-4 text-center">
                                                 <Link
-                                                    href={`/admin/remitters/${row.id}`}
+                                                    href={`/admin/remitters/${encodeURIComponent(routeKeyOf(row))}`}
                                                     className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
                                                     title="Edit"
                                                 >

@@ -9,6 +9,7 @@ import { getStoredUser } from '@/app/lib/authStorage';
 import Modal from '../components/Modal';
 import SortIndicator from '../components/SortIndicator';
 import { formatDateTime } from '@/app/lib/dateUtils';
+import { routeKeyOf } from '@/app/lib/routeKeys';
 import { CheckCircle2, Download, Edit2, Eye, FileCheck2, FileText, FileX2, ImageUp, PenLine, PlusCircle, Printer, RefreshCw, RotateCcw, Save, Search, XCircle } from 'lucide-react';
 import { useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 
@@ -1606,7 +1607,7 @@ export default function TransfersPage() {
                                     {canEdit && (
                                         <td className="px-2 py-3 text-center">
                                             <Link
-                                                href={`/admin/transfers/${row.id}?edit=true`}
+                                                href={`/admin/transfers/${encodeURIComponent(routeKeyOf(row))}?edit=true`}
                                                 className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
                                                 title="Edit"
                                             >
@@ -1674,7 +1675,7 @@ export default function TransfersPage() {
                                     {canView && (
                                         <td className="px-4 py-3 text-sm">
                                             <Link
-                                                href={`/admin/transfers/${row.id}`}
+                                                href={`/admin/transfers/${encodeURIComponent(routeKeyOf(row))}`}
                                                 className="px-3 py-1.5 rounded-full glass-effect text-xs font-semibold text-slate-600 dark:text-slate-200 hover:text-teal-600 inline-flex items-center gap-1"
                                             >
                                                 <Eye className="w-3.5 h-3.5" />

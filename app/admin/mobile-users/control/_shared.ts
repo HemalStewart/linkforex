@@ -72,6 +72,7 @@ export type YesNoSettingKey = Exclude<
 
 export type QueueUser = {
     id: number;
+    route_key?: string;
     name: string;
     email: string;
     phone: string;

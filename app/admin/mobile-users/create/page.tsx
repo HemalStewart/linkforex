@@ -301,7 +301,8 @@ export default function CreateRemitterPage() {
             }
 
             const result = await res.json();
-            const remitterId = result.id; // Assuming API returns the created ID
+            const remitterId = result.id;
+            const remitterRouteKey = result.route_key || (result.id != null ? String(result.id) : '');
             // 3. Create Receivers
             const receiverPromises = receivers.map(r => {
                 return fetch(ENDPOINTS.BENEFICIARIES.LIST, {
@@ -324,7 +325,7 @@ export default function CreateRemitterPage() {
             await Promise.all(receiverPromises);
 
             queueToast('Success', 'New Individual Remitter Created Successfully!', 'success');
-            router.push(returnUrl ? `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newRemitterId=${remitterId}` : '/admin/remitters');
+            router.push(returnUrl ? `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newRemitterId=${encodeURIComponent(remitterRouteKey)}` : '/admin/remitters');
         } catch (error) {
             console.error('Failed to submit:', error);
             showToast('Error', 'An error occurred. Please try again.', 'danger');

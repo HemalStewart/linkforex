@@ -72,6 +72,11 @@ export default function EditRolePage() {
         fetchRoleAndUsers();
     }, [roleId]);
 
+    const isRoleAssigned = users.some((u) =>
+        (u.role_id && formData.id !== null && String(u.role_id) === String(formData.id)) ||
+        (u.role && String(u.role).toLowerCase().trim() === String(formData.name).toLowerCase().trim())
+    );
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!roleId) return;
@@ -104,13 +109,7 @@ export default function EditRolePage() {
     const handleDelete = async () => {
         if (!roleId) return;
 
-        // Check if role is assigned to any user
-        const isAssigned = users.some(u =>
-            (u.role_id && String(u.role_id) === String(roleId)) ||
-            (u.role && String(u.role).toLowerCase().trim() === String(formData.name).toLowerCase().trim())
-        );
-
-        if (isAssigned) {
+        if (isRoleAssigned) {
             showToast('Cannot Delete Role', `The role "${formData.name}" is currently assigned to one or more users and cannot be deleted.`, 'warning');
             return;
         }
@@ -135,11 +134,7 @@ export default function EditRolePage() {
         return <div className="max-w-7xl mx-auto py-20 text-center text-slate-500 dark:text-slate-300">Loading...</div>;
     }
 
-    const isAssigned = users.some(u =>
-        (u.role_id && String(u.role_id) === String(roleId)) ||
-        (u.role && String(u.role).toLowerCase().trim() === String(formData.name).toLowerCase().trim())
-    );
-    const isDeletable = formData.system_defined !== 'yes' && !isAssigned;
+    const isDeletable = formData.system_defined !== 'yes' && !isRoleAssigned;
 
     return (
         <div className="max-w-7xl mx-auto pb-20 animate-fade-in-up">

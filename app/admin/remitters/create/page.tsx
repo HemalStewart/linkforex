@@ -333,7 +333,7 @@ export default function CreateRemitterPage() {
     const createRemitter = React.useCallback(async (
         payload: any,
         forceCreate: boolean
-    ): Promise<{ createdId?: string | number; blockedByDuplicate?: boolean }> => {
+    ): Promise<{ createdId?: string | number; createdRouteKey?: string; blockedByDuplicate?: boolean }> => {
         let body: BodyInit;
         const headers: Record<string, string> = {};
 
@@ -383,7 +383,7 @@ export default function CreateRemitterPage() {
         }
 
         const result = await res.json();
-        return { createdId: result.id };
+        return { createdId: result.id, createdRouteKey: result.route_key || (result.id != null ? String(result.id) : undefined) };
     }, [currentUser]);
 
     const verificationLabel = (state?: string) => {
@@ -610,17 +610,18 @@ export default function CreateRemitterPage() {
                 return;
             }
             const remitterId = submitResult.createdId;
-            if (!remitterId) {
+            const remitterRouteKey = submitResult.createdRouteKey;
+            if (!remitterId || !remitterRouteKey) {
                 return;
             }
 
-            const remitterIdStr = String(remitterId);
-            setCreatedRemitterId(remitterIdStr);
-            await loadRemitterVeriffState(remitterIdStr);
+            const remitterRouteKeyStr = String(remitterRouteKey);
+            setCreatedRemitterId(remitterRouteKeyStr);
+            await loadRemitterVeriffState(remitterRouteKeyStr);
 
             if (returnUrl) {
                 queueToast('Success', 'New Individual Remitter Created Successfully!', 'success');
-                router.push(`${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newRemitterId=${remitterIdStr}`);
+                router.push(`${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newRemitterId=${encodeURIComponent(remitterRouteKeyStr)}`);
             } else {
                 queueToast('Saved', 'Remitter created successfully.', 'success');
                 router.push('/admin/remitters');
@@ -643,14 +644,15 @@ export default function CreateRemitterPage() {
         try {
             const submitResult = await createRemitter(duplicateModal.payload, true);
             const remitterId = submitResult.createdId;
-            if (!remitterId) return;
-            const remitterIdStr = String(remitterId);
-            setCreatedRemitterId(remitterIdStr);
-            await loadRemitterVeriffState(remitterIdStr);
+            const remitterRouteKey = submitResult.createdRouteKey;
+            if (!remitterId || !remitterRouteKey) return;
+            const remitterRouteKeyStr = String(remitterRouteKey);
+            setCreatedRemitterId(remitterRouteKeyStr);
+            await loadRemitterVeriffState(remitterRouteKeyStr);
 
             if (returnUrl) {
                 queueToast('Success', 'New Individual Remitter Created Successfully!', 'success');
-                router.push(`${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newRemitterId=${remitterIdStr}`);
+                router.push(`${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newRemitterId=${encodeURIComponent(remitterRouteKeyStr)}`);
             } else {
                 queueToast('Saved', 'Remitter created successfully.', 'success');
                 router.push('/admin/remitters');

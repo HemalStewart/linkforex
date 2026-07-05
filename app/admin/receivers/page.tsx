@@ -12,6 +12,7 @@ import SortIndicator from '../components/SortIndicator';
 import { Building2, Edit2, Plus, Search, Trash2, Users, FileText, ShieldCheck, X, Loader2, RefreshCcw, Download, ChevronRight } from 'lucide-react';
 import VeriffDetailsModal from '../components/VeriffDetailsModal';
 import { formatDateTime } from '@/app/lib/dateUtils';
+import { routeKeyOf } from '@/app/lib/routeKeys';
 import { useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 
 type SortDir = 'asc' | 'desc';
@@ -686,7 +687,7 @@ export default function ReceiversPage() {
                                             {canEdit && (
                                                 <td className="px-2 py-4 text-center">
                                                     <Link
-                                                        href={`/admin/receivers/${receiver.id}`}
+                                                        href={`/admin/receivers/${encodeURIComponent(routeKeyOf(receiver))}`}
                                                         className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
                                                         title="Edit"
                                                     >

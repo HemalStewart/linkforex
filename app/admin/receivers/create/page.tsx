@@ -246,7 +246,7 @@ export default function CreateReceiverPage() {
 
             if (res.ok) {
                 const created = await res.json().catch(() => null);
-                const newReceiverId = created?.id ? String(created.id) : '';
+                const newReceiverId = created?.route_key ? String(created.route_key) : (created?.id ? String(created.id) : '');
                 const redirectUrl = returnUrl
                     ? `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newReceiverId=${encodeURIComponent(newReceiverId)}`
                     : '/admin/receivers';

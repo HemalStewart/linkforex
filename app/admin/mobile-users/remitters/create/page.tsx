@@ -266,11 +266,12 @@ export default function CreateMobileUserRemitterPage() {
 
             const result = await res.json();
             const remitterId = result.id;
+            const remitterRouteKey = result.route_key || (result.id != null ? String(result.id) : '');
 
             // Note: Beneficiaries skipped here.
 
             queueToast('Success', 'New Mobile Individual Profile Created Successfully!', 'success');
-            router.push(returnUrl ? `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newRemitterId=${remitterId}` : '/admin/mobile-profiles');
+            router.push(returnUrl ? `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newRemitterId=${encodeURIComponent(remitterRouteKey)}` : '/admin/mobile-profiles');
         } catch (error) {
             console.error('Failed to submit:', error);
             showToast('Error', 'An error occurred. Please try again.', 'danger');

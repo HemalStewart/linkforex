@@ -6,6 +6,7 @@ import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import { useRowsPerPage } from '@/app/lib/uiPreferences';
 import { formatDateTime } from '@/app/lib/dateUtils';
+import { routeKeyOf } from '@/app/lib/routeKeys';
 import ConfirmModal from '../components/ConfirmModal';
 import { validatePassword } from '@/app/lib/validation';
 import Badge from '../components/ui/Badge';
@@ -636,7 +637,7 @@ export default function UsersPage() {
                                                     </span>
                                                 ) : (
                                                     <Link
-                                                        href={`/admin/users/${user.id}`}
+                                                        href={`/admin/users/${encodeURIComponent(routeKeyOf(user))}`}
                                                         className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
                                                         title="Edit"
                                                     >

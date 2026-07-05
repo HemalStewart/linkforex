@@ -9,6 +9,7 @@ import { Search, UserPlus, Edit2, Download, Trash2, FileText } from 'lucide-reac
 import { useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 import { getStoredUser } from '@/app/lib/authStorage';
 import { formatDateTime } from '@/app/lib/dateUtils';
+import { routeKeyOf } from '@/app/lib/routeKeys';
 
 type MobileRemitter = {
     id: string | number;
@@ -298,7 +299,7 @@ export default function RemittersPage() {
                                         {canEdit && (
                                             <td className="px-2 py-4 text-center">
                                                 <Link
-                                                    href={`/admin/mobile-profiles/${remitter.id}`}
+                                                    href={`/admin/mobile-profiles/${encodeURIComponent(routeKeyOf(remitter))}`}
                                                     className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
                                                     title="Edit"
                                                 >
