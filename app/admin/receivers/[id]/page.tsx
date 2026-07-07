@@ -33,6 +33,7 @@ export default function EditReceiverPage() {
     const { canManuallyPassed } = usePagePermissions('RECEIVERS');
 
     const [loading, setLoading] = useState(true);
+    const [notFound, setNotFound] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [remitters, setRemitters] = useState<any[]>([]);
     const [banks, setBanks] = useState<any[]>([]);
@@ -267,10 +268,13 @@ export default function EditReceiverPage() {
                         setVeriffCheckedAt(data.veriff_checked_at ?? '');
                         setVeriffPepSanctionMatch(data.veriff_pep_sanction_match ?? '');
                         setRegistrationSource(data.registration_source ?? 'web');
+                    } else {
+                        setNotFound(true);
                     }
                 }
             } catch (error) {
                 console.error('Failed to fetch data:', error);
+                setNotFound(true);
             } finally {
                 setLoading(false);
                 setBanksLoading(false);
@@ -347,6 +351,21 @@ export default function EditReceiverPage() {
     };
 
     if (loading) return <div className="p-12 text-center text-slate-500 font-medium animate-pulse">Loading receiver details...</div>;
+
+    if (notFound) {
+        return (
+            <div className="max-w-3xl mx-auto p-12 text-center space-y-4">
+                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Receiver not found</h1>
+                <p className="text-slate-500 dark:text-slate-300">This receiver link is invalid or the record no longer exists.</p>
+                <Link
+                    href="/admin/receivers"
+                    className="inline-flex items-center rounded-xl bg-teal-600 px-5 py-3 text-white font-semibold hover:bg-teal-700 transition-colors"
+                >
+                    Back to Receivers
+                </Link>
+            </div>
+        );
+    }
 
     const handleModalClose = () => {
         setConfirmModal({ ...confirmModal, isOpen: false });

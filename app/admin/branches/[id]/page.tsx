@@ -193,6 +193,7 @@ export default function EditBranchPage() {
     const isViewMode = searchParams.get('mode') === 'view';
 
     const [loading, setLoading] = useState(true);
+    const [notFound, setNotFound] = useState(false);
     const [saving, setSaving] = useState(false);
     const [enteredBy, setEnteredBy] = useState('');
     const [countries, setCountries] = useState<string[]>([]);
@@ -327,7 +328,10 @@ export default function EditBranchPage() {
     const fetchBranch = async () => {
         try {
             const res = await fetch(ENDPOINTS.BRANCHES.DETAIL(branchId as string));
-            if (!res.ok) return;
+            if (!res.ok) {
+                setNotFound(true);
+                return;
+            }
             const data = await res.json();
             setFormData({
                 id: data.id,
@@ -356,6 +360,7 @@ export default function EditBranchPage() {
             });
         } catch (error) {
             console.error('Failed to fetch branch:', error);
+            setNotFound(true);
         } finally {
             setLoading(false);
         }
@@ -465,6 +470,17 @@ export default function EditBranchPage() {
 
     if (loading) {
         return <div className="mx-auto max-w-7xl py-20 text-center text-slate-500 dark:text-slate-300">Loading...</div>;
+    }
+
+    if (notFound) {
+        return (
+            <div className="mx-auto max-w-7xl p-10 text-center">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Branch not found</h3>
+                <Link href="/admin/branches" className="inline-block mt-4 text-teal-600 hover:text-teal-500 font-semibold">
+                    Back to Branches
+                </Link>
+            </div>
+        );
     }
 
     const summaryRows = [

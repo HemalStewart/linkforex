@@ -46,6 +46,7 @@ export default function EditRemitterPage() {
     const id = params.id as string;
 
     const [loading, setLoading] = useState(true);
+    const [notFound, setNotFound] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [initialKycStatus, setInitialKycStatus] = useState<string>('pending');
@@ -133,22 +134,26 @@ export default function EditRemitterPage() {
     const fetchRemitter = async () => {
         try {
             const res = await fetch(ENDPOINTS.REMITTERS.DETAIL(id));
-            if (res.ok) {
-                const data = await res.json();
-                setFormData({
-                    ...data,
-                    kyc_status: data.kyc_status || 'pending',
-                    kyc_status_change_reason: data.kyc_status_change_reason || '',
-                });
-                setInitialKycStatus(data.kyc_status || 'pending');
-                setSanctionReference(data.sanction_reference ?? '');
-                setSanctionCheckedAt(data.sanction_checked_at ?? '');
-                setSanctionRawPayload(data.sanction_raw_payload ?? '');
-                setSenderDetailsAmlScreeningDoc(data.sender_details_aml_screening_doc ?? '');
-                setSanctionScore(Number(data.sanction_score ?? 0));
+            if (!res.ok) {
+                setNotFound(true);
+                return;
             }
+
+            const data = await res.json();
+            setFormData({
+                ...data,
+                kyc_status: data.kyc_status || 'pending',
+                kyc_status_change_reason: data.kyc_status_change_reason || '',
+            });
+            setInitialKycStatus(data.kyc_status || 'pending');
+            setSanctionReference(data.sanction_reference ?? '');
+            setSanctionCheckedAt(data.sanction_checked_at ?? '');
+            setSanctionRawPayload(data.sanction_raw_payload ?? '');
+            setSenderDetailsAmlScreeningDoc(data.sender_details_aml_screening_doc ?? '');
+            setSanctionScore(Number(data.sanction_score ?? 0));
         } catch (error) {
             console.error('Failed to fetch remitter:', error);
+            setNotFound(true);
         } finally {
             setLoading(false);
         }
@@ -424,6 +429,21 @@ export default function EditRemitterPage() {
 
     if (loading) {
         return <div className="w-full p-12 text-center text-slate-500 font-medium animate-pulse">Loading remitter details...</div>;
+    }
+
+    if (notFound) {
+        return (
+            <div className="max-w-3xl mx-auto p-12 text-center space-y-4">
+                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Mobile profile not found</h1>
+                <p className="text-slate-500 dark:text-slate-300">This mobile profile link is invalid or the record no longer exists.</p>
+                <Link
+                    href="/admin/mobile-profiles"
+                    className="inline-flex items-center rounded-xl bg-teal-600 px-5 py-3 text-white font-semibold hover:bg-teal-700 transition-colors"
+                >
+                    Back to Mobile Profiles
+                </Link>
+            </div>
+        );
     }
 
     const handleModalClose = () => {

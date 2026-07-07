@@ -73,6 +73,7 @@ export default function EditRemitterPage() {
     const { canManuallyPassed } = usePagePermissions('REMITTERS');
 
     const [loading, setLoading] = useState(true);
+    const [notFound, setNotFound] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [initialAmlStatus, setInitialAmlStatus] = useState<string>('pending');
     const [enableAmlOverride, setEnableAmlOverride] = useState<boolean>(false);
@@ -183,66 +184,70 @@ export default function EditRemitterPage() {
     const fetchRemitter = async () => {
         try {
             const res = await fetch(withActingUserParam(ENDPOINTS.REMITTERS.DETAIL(id), currentUser));
-            if (res.ok) {
-                const data = await res.json();
-                setFormData({
-                    company: data.company || data.company_name || '',
-                    company_name: data.company_name || '',
-                    company_type: data.company_type || '',
-                    company_reg_no: data.company_reg_no || '',
-                    branch: data.branch || '',
-                    sender_id: data.sender_id || '',
-                    sender_name: data.sender_name || data.name || '',
-                    status: data.status || 'active',
-                    dob: data.dob || '',
-                    place_of_birth: data.place_of_birth || '',
-                    phone: data.phone || '',
-                    postcode: data.postcode || '',
-                    address_1: data.address_1 || '',
-                    address_2: data.address_2 || '',
-                    city: data.city || '',
-                    county: data.county || '',
-                    country: data.country || '',
-                    occupation: data.occupation || '',
-                    id_verified: data.id_verified || 'no',
-                    proof_of_funds: data.proof_of_funds || 'no',
-                    id_type: data.id_type || '',
-                    id_number: data.id_number || '',
-                    id_issued_date: data.id_issued_date || '',
-                    id_expiry: data.id_expiry || '',
-                    other_info: data.other_info || '',
-                    use_in: data.use_in || 'All',
-                    id_copy: data.id_copy || data.passport_copy || '',
-                    other_doc: data.other_doc || '',
-                    work_related_docs: data.work_related_docs || '',
-                    sender_details_aml_screening_doc: data.sender_details_aml_screening_doc || '',
-                    sender_aml_result: normalizeAmlResult(data.sender_aml_result),
-                    aml_status_change_reason: data.aml_status_change_reason || '',
-                    rescreening_sender: data.rescreening_sender || '',
-                    veriff_status: data.veriff_status || '',
-                    veriff_decision: data.veriff_decision || '',
-                    veriff_reason: data.veriff_reason || '',
-                    veriff_checked_at: data.veriff_checked_at || '',
-                    veriff_url: data.veriff_url || '',
-                    veriff_pep_sanction_match: data.veriff_pep_sanction_match || '',
-                    registration_source: data.registration_source || '',
-                    verification_state: data.verification_state || 'not_started',
-                    id_expired: Boolean(data.id_expired),
-                    branch_veriff_enabled: Boolean(data.branch_veriff_enabled),
-                    created_by: data.created_by || '',
-                    created_at: data.created_at || '',
-                    updated_by: data.updated_by || '',
-                    updated_at: data.updated_at || ''
-                });
-                setInitialAmlStatus(normalizeAmlResult(data.sender_aml_result));
-                setSanctionReference(data.sanction_reference ?? '');
-                setSanctionCheckedAt(data.sanction_checked_at ?? '');
-                setSanctionRawPayload(data.sanction_raw_payload ?? '');
-                setSenderDetailsAmlScreeningDoc(data.sender_details_aml_screening_doc ?? '');
-                setSanctionScore(Number(data.sanction_score ?? 0));
+            if (!res.ok) {
+                setNotFound(true);
+                return;
             }
+
+            const data = await res.json();
+            setFormData({
+                company: data.company || data.company_name || '',
+                company_name: data.company_name || '',
+                company_type: data.company_type || '',
+                company_reg_no: data.company_reg_no || '',
+                branch: data.branch || '',
+                sender_id: data.sender_id || '',
+                sender_name: data.sender_name || data.name || '',
+                status: data.status || 'active',
+                dob: data.dob || '',
+                place_of_birth: data.place_of_birth || '',
+                phone: data.phone || '',
+                postcode: data.postcode || '',
+                address_1: data.address_1 || '',
+                address_2: data.address_2 || '',
+                city: data.city || '',
+                county: data.county || '',
+                country: data.country || '',
+                occupation: data.occupation || '',
+                id_verified: data.id_verified || 'no',
+                proof_of_funds: data.proof_of_funds || 'no',
+                id_type: data.id_type || '',
+                id_number: data.id_number || '',
+                id_issued_date: data.id_issued_date || '',
+                id_expiry: data.id_expiry || '',
+                other_info: data.other_info || '',
+                use_in: data.use_in || 'All',
+                id_copy: data.id_copy || data.passport_copy || '',
+                other_doc: data.other_doc || '',
+                work_related_docs: data.work_related_docs || '',
+                sender_details_aml_screening_doc: data.sender_details_aml_screening_doc || '',
+                sender_aml_result: normalizeAmlResult(data.sender_aml_result),
+                aml_status_change_reason: data.aml_status_change_reason || '',
+                rescreening_sender: data.rescreening_sender || '',
+                veriff_status: data.veriff_status || '',
+                veriff_decision: data.veriff_decision || '',
+                veriff_reason: data.veriff_reason || '',
+                veriff_checked_at: data.veriff_checked_at || '',
+                veriff_url: data.veriff_url || '',
+                veriff_pep_sanction_match: data.veriff_pep_sanction_match || '',
+                registration_source: data.registration_source || '',
+                verification_state: data.verification_state || 'not_started',
+                id_expired: Boolean(data.id_expired),
+                branch_veriff_enabled: Boolean(data.branch_veriff_enabled),
+                created_by: data.created_by || '',
+                created_at: data.created_at || '',
+                updated_by: data.updated_by || '',
+                updated_at: data.updated_at || ''
+            });
+            setInitialAmlStatus(normalizeAmlResult(data.sender_aml_result));
+            setSanctionReference(data.sanction_reference ?? '');
+            setSanctionCheckedAt(data.sanction_checked_at ?? '');
+            setSanctionRawPayload(data.sanction_raw_payload ?? '');
+            setSenderDetailsAmlScreeningDoc(data.sender_details_aml_screening_doc ?? '');
+            setSanctionScore(Number(data.sanction_score ?? 0));
         } catch (error) {
             console.error('Failed to fetch remitter:', error);
+            setNotFound(true);
         } finally {
             setLoading(false);
         }
@@ -593,6 +598,21 @@ export default function EditRemitterPage() {
 
     if (loading) {
         return <div className="max-w-7xl mx-auto p-12 text-center text-slate-500 dark:text-slate-300">Loading remitter details...</div>;
+    }
+
+    if (notFound) {
+        return (
+            <div className="max-w-3xl mx-auto p-12 text-center space-y-4">
+                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Remitter not found</h1>
+                <p className="text-slate-500 dark:text-slate-300">This remitter link is invalid or the record no longer exists.</p>
+                <Link
+                    href="/admin/remitters"
+                    className="inline-flex items-center rounded-xl bg-teal-600 px-5 py-3 text-white font-semibold hover:bg-teal-700 transition-colors"
+                >
+                    Back to Remitters
+                </Link>
+            </div>
+        );
     }
 
     return (

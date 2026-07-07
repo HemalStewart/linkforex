@@ -15,6 +15,7 @@ export default function EditRolePage() {
     const roleId = Array.isArray(params?.id) ? params.id[0] : params?.id;
 
     const [loading, setLoading] = useState(true);
+    const [notFound, setNotFound] = useState(false);
     const [saving, setSaving] = useState(false);
     const [enteredBy, setEnteredBy] = useState('');
     const [users, setUsers] = useState<any[]>([]);
@@ -49,7 +50,9 @@ export default function EditRolePage() {
                     fetch(ENDPOINTS.ROLES.DETAIL(roleId)),
                     fetch(ENDPOINTS.USERS.LIST)
                 ]);
-                if (roleRes.ok) {
+                if (!roleRes.ok) {
+                    setNotFound(true);
+                } else {
                     const data = await roleRes.json();
                     setFormData({
                         id: data.id,
@@ -64,6 +67,7 @@ export default function EditRolePage() {
                 }
             } catch (error) {
                 console.error(error);
+                setNotFound(true);
             } finally {
                 setLoading(false);
             }
@@ -132,6 +136,17 @@ export default function EditRolePage() {
 
     if (loading) {
         return <div className="max-w-7xl mx-auto py-20 text-center text-slate-500 dark:text-slate-300">Loading...</div>;
+    }
+
+    if (notFound) {
+        return (
+            <div className="max-w-7xl mx-auto p-10 text-center">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Role not found</h3>
+                <Link href="/admin/roles" className="inline-block mt-4 text-teal-600 hover:text-teal-500 font-semibold">
+                    Back to Roles
+                </Link>
+            </div>
+        );
     }
 
     const isDeletable = formData.system_defined !== 'yes' && !isRoleAssigned;
