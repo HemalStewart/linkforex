@@ -458,7 +458,6 @@ export default function RolesPage() {
                     <table className="table-shell">
                         <thead className="table-head">
                             <tr>
-                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300"></th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">No.</th>
                                 {canEdit && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-300" title="Edit"><Edit3 className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
@@ -512,20 +511,6 @@ export default function RolesPage() {
                                 const systemDefined = normalizeYesNo(role.system_defined) === 'yes';
                                 return (
                                     <tr key={role.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
-                                        <td className="px-4 py-4">
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedIds.includes(role.id)}
-                                                onChange={(e) => {
-                                                    if (e.target.checked) {
-                                                        setSelectedIds([...selectedIds, role.id]);
-                                                    } else {
-                                                        setSelectedIds(selectedIds.filter(id => id !== role.id));
-                                                    }
-                                                }}
-                                                className="w-4 h-4 accent-teal-500"
-                                            />
-                                        </td>
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
                                         {canEdit && (
                                             <td className="px-2 py-4 text-center">
