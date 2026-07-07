@@ -146,7 +146,13 @@ export const checkPermission = (section: string, operation: string): boolean => 
 
         if (r !== roleName) return false;
         if (a !== 'yes') return false;
-        if (o !== operation.toUpperCase()) return false;
+
+        const targetOp = operation.toUpperCase();
+        const rowOp = o.toUpperCase();
+        if (rowOp !== targetOp) {
+            const isCreateAddMatch = (targetOp === 'CREATE' && rowOp === 'ADD') || (targetOp === 'ADD' && rowOp === 'CREATE');
+            if (!isCreateAddMatch) return false;
+        }
 
         const targetSec = section.toUpperCase().trim();
         const rowSec = s.toUpperCase().trim();
@@ -187,8 +193,10 @@ export function useAuditColumns(section: string) {
         update();
 
         window.addEventListener('permissions-loaded', update);
+        window.addEventListener('user-loaded', update);
         return () => {
             window.removeEventListener('permissions-loaded', update);
+            window.removeEventListener('user-loaded', update);
         };
     }, [section]);
 
@@ -282,8 +290,10 @@ export function usePagePermissions(section: string) {
         update();
 
         window.addEventListener('permissions-loaded', update);
+        window.addEventListener('user-loaded', update);
         return () => {
             window.removeEventListener('permissions-loaded', update);
+            window.removeEventListener('user-loaded', update);
         };
     }, [section]);
 

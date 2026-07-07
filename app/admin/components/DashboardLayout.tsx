@@ -334,6 +334,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         if (privileged) {
             setViewSections(new Set());
             setPermissionsLoaded(true);
+            window.dispatchEvent(new CustomEvent('permissions-loaded'));
             return;
         }
 
@@ -525,6 +526,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             const parsed = JSON.parse(stored) as CurrentUser;
             setCurrentUser(parsed);
             setIsLoadingNav(false);
+            window.dispatchEvent(new CustomEvent('user-loaded'));
         } catch {
             clearStoredUser();
             setCurrentUser(null);
@@ -705,6 +707,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             }
             try {
                 setCurrentUser(JSON.parse(event.newValue));
+                window.dispatchEvent(new CustomEvent('user-loaded'));
             } catch {
                 setCurrentUser(null);
             }
@@ -714,6 +717,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             const customEvent = event as CustomEvent<CurrentUser>;
             if (!customEvent.detail) return;
             setCurrentUser(customEvent.detail);
+            window.dispatchEvent(new CustomEvent('user-loaded'));
         };
 
         window.addEventListener('storage', onStorage);

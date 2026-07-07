@@ -243,18 +243,27 @@ export default function PermissionGroupsPage() {
         }
     }, [roles]);
 
-    // Helpers for checking permission state
     const getPermissionState = useCallback((section: string, op: string) => {
         const isAdmin = selectedRole.toLowerCase().includes('admin') || selectedRole.toLowerCase().includes('super');
         if (isAdmin) {
             return { active: true, record: null };
         }
 
-        const match = rows.find(r =>
-            r.role_name === selectedRole &&
-            r.page_section === section &&
-            r.operation === op
-        );
+        const match = rows.find(r => {
+            const rowRole = String(r.role_name || '').trim().toLowerCase();
+            const targetRole = String(selectedRole || '').trim().toLowerCase();
+            if (rowRole !== targetRole) return false;
+
+            const rowSec = String(r.page_section || '').trim().toUpperCase();
+            const targetSec = String(section || '').trim().toUpperCase();
+            if (rowSec !== targetSec) return false;
+
+            const rowOp = String(r.operation || '').trim().toUpperCase();
+            const targetOp = String(op || '').trim().toUpperCase();
+            if (rowOp === targetOp) return true;
+
+            return (targetOp === 'CREATE' && rowOp === 'ADD') || (targetOp === 'ADD' && rowOp === 'CREATE');
+        });
         return {
             active: match ? normalizeYesNo(match.active) === 'yes' : false,
             record: match || null
@@ -302,7 +311,7 @@ export default function PermissionGroupsPage() {
                         role_id: roleObj?.id,
                         role_name: selectedRole,
                         page_section: section,
-                        operation: op,
+                        operation: op === 'CREATE' ? 'ADD' : op,
                         system_defined: 'no',
                         active: nextActive,
                         created_by: currentUserName || 'Admin',
@@ -797,7 +806,7 @@ export default function PermissionGroupsPage() {
                     role_id: role?.id,
                     role_name: roleName,
                     page_section: pageSection,
-                    operation,
+                    operation: operation === 'CREATE' ? 'ADD' : operation,
                     system_defined: 'no',
                     active: createForm.active,
                     created_by: currentUserName || 'Admin',
