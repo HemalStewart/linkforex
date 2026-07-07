@@ -452,20 +452,6 @@ export default function RolesPage() {
                             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Showing {totalRows === 0 ? 0 : startIndex + 1} to {endIndex} of {totalRows}</p>
                         </div>
                     </div>
-                    <div className="flex flex-wrap items-center gap-3 text-sm">
-                        <button
-                            onClick={() => setSelectedIds(sortedRoles.map(r => r.id))}
-                            className="px-3 py-1.5 rounded-full glass-effect text-slate-600 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors"
-                        >
-                            Check All
-                        </button>
-                        <button
-                            onClick={() => setSelectedIds([])}
-                            className="px-3 py-1.5 rounded-full glass-effect text-slate-600 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 transition-colors"
-                        >
-                            Uncheck All
-                        </button>
-                    </div>
                 </div>
 
                 <div className="table-scroll">

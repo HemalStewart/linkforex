@@ -600,29 +600,25 @@ export default function LogsPage() {
                                         IP <span className="text-slate-400 dark:text-slate-300">{sortIndicator('ip')}</span>
                                     </button>
                                 </th>
-                                {showCreatedBy && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Created By</th>}
-                                {showCreatedAt && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Created At</th>}
-                                {showUpdatedBy && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Updated By</th>}
-                                {showUpdatedAt && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Updated At</th>}
                                 <th>Sign-off Note</th>
                             </tr>
                         </thead>
                         <tbody className="table-body">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={10 + (showCreatedBy ? 1 : 0) + (showCreatedAt ? 1 : 0) + (showUpdatedBy ? 1 : 0) + (showUpdatedAt ? 1 : 0)} className="px-6 py-12 text-center text-slate-500 dark:text-slate-300">
+                                    <td colSpan={10} className="px-6 py-12 text-center text-slate-500 dark:text-slate-300">
                                         Loading session logs...
                                     </td>
                                 </tr>
                             ) : error ? (
                                 <tr>
-                                    <td colSpan={10 + (showCreatedBy ? 1 : 0) + (showCreatedAt ? 1 : 0) + (showUpdatedBy ? 1 : 0) + (showUpdatedAt ? 1 : 0)} className="px-6 py-12 text-center text-red-500 font-semibold">
+                                    <td colSpan={10} className="px-6 py-12 text-center text-red-500 font-semibold">
                                         {error}
                                     </td>
                                 </tr>
                             ) : paged.length === 0 ? (
                                 <tr>
-                                    <td colSpan={10 + (showCreatedBy ? 1 : 0) + (showCreatedAt ? 1 : 0) + (showUpdatedBy ? 1 : 0) + (showUpdatedAt ? 1 : 0)} className="px-6 py-12 text-center text-slate-500 dark:text-slate-300">
+                                    <td colSpan={10} className="px-6 py-12 text-center text-slate-500 dark:text-slate-300">
                                         No logs found for the selected filters.
                                     </td>
                                 </tr>
@@ -666,10 +662,6 @@ export default function LogsPage() {
                                                 </a>
                                             ) : (row.ip || '-')}
                                         </td>
-                                        {showCreatedBy && <td className="text-sm text-slate-600 dark:text-slate-300">{(row as any).created_by || '—'}</td>}
-                                        {showCreatedAt && <td className="text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatDateTime((row as any).created_at)}</td>}
-                                        {showUpdatedBy && <td className="text-sm text-slate-600 dark:text-slate-300">{(row as any).updated_by || '—'}</td>}
-                                        {showUpdatedAt && <td className="text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatDateTime((row as any).updated_at)}</td>}
                                         <td className="text-sm text-slate-600 dark:text-slate-300 min-w-[280px]">{row.signOffNote || '-'}</td>
                                     </tr>
                                 ))
