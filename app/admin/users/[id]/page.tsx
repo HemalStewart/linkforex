@@ -34,6 +34,7 @@ export default function EditUserPage() {
     const id = params.id as string;
 
     const [loading, setLoading] = useState(true);
+    const [notFound, setNotFound] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [branches, setBranches] = useState<any[]>([]);
     const [roles, setRoles] = useState<any[]>([]);
@@ -214,39 +215,43 @@ export default function EditUserPage() {
     const fetchUser = async (loadedRoles: any[] = []) => {
         try {
             const res = await fetch(ENDPOINTS.USERS.DETAIL(id));
-            if (res.ok) {
-                const data = await res.json();
+            if (!res.ok) {
+                setNotFound(true);
+                return;
+            }
 
-                let resolvedRoleId = '';
-                if (data.role_id) {
-                    resolvedRoleId = String(data.role_id);
-                } else if (data.role && loadedRoles.length > 0) {
-                    const match = loadedRoles.find(
-                        r => r.name.toLowerCase() === data.role.toLowerCase()
-                    );
-                    if (match) {
-                        resolvedRoleId = String(match.id);
-                    }
-                }
+            const data = await res.json();
 
-                setFormData({
-                    name: data.name || '',
-                    username: data.username || '',
-                    email: data.email || '',
-                    roleId: resolvedRoleId,
-                    status: data.status || 'active',
-                    branch: data.branch || '',
-                    phone: data.phone || '',
-                    address: data.address || '',
-                    twofaStatus: data.twofa_status || 'active',
-                    twofaQrCode: data.twofa_qr_code || ''
-                });
-                if (data.signature) {
-                    setExistingSignature(resolveUploadsUrl(data.signature) || null);
+            let resolvedRoleId = '';
+            if (data.role_id) {
+                resolvedRoleId = String(data.role_id);
+            } else if (data.role && loadedRoles.length > 0) {
+                const match = loadedRoles.find(
+                    r => r.name.toLowerCase() === data.role.toLowerCase()
+                );
+                if (match) {
+                    resolvedRoleId = String(match.id);
                 }
+            }
+
+            setFormData({
+                name: data.name || '',
+                username: data.username || '',
+                email: data.email || '',
+                roleId: resolvedRoleId,
+                status: data.status || 'active',
+                branch: data.branch || '',
+                phone: data.phone || '',
+                address: data.address || '',
+                twofaStatus: data.twofa_status || 'active',
+                twofaQrCode: data.twofa_qr_code || ''
+            });
+            if (data.signature) {
+                setExistingSignature(resolveUploadsUrl(data.signature) || null);
             }
         } catch (error) {
             console.error('Failed to fetch user:', error);
+            setNotFound(true);
         }
     };
 
@@ -326,6 +331,17 @@ export default function EditUserPage() {
 
     if (loading) {
         return <div className="max-w-7xl mx-auto p-12 text-center text-slate-500 font-medium animate-pulse">Loading user details...</div>;
+    }
+
+    if (notFound) {
+        return (
+            <div className="max-w-7xl mx-auto p-10 text-center">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">User not found</h3>
+                <Link href="/admin/users" className="inline-block mt-4 text-teal-600 hover:text-teal-500 font-semibold">
+                    Back to Users
+                </Link>
+            </div>
+        );
     }
 
     return (
