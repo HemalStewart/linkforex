@@ -539,6 +539,7 @@ export default function CountriesPage() {
                         <div>
                             <ToggleSwitch
                                 label="High Risk Country"
+                                align="start"
                                 value={form.high_risk_country}
                                 onChange={(value) => setForm({ ...form, high_risk_country: value })}
                             />
@@ -546,6 +547,7 @@ export default function CountriesPage() {
                         <div>
                             <ToggleSwitch
                                 label="Black List Country"
+                                align="start"
                                 value={form.black_list_country}
                                 onChange={(value) => setForm({ ...form, black_list_country: value })}
                             />
@@ -553,6 +555,7 @@ export default function CountriesPage() {
                         <div>
                             <ToggleSwitch
                                 label="Payout Currency"
+                                align="start"
                                 value={form.payout_currency}
                                 onChange={(value) => setForm({ ...form, payout_currency: value })}
                             />

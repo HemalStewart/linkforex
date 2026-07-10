@@ -7,6 +7,7 @@ type ToggleSwitchProps = {
   value: YesNo;
   onChange: (value: YesNo) => void;
   disabled?: boolean;
+  align?: 'between' | 'start';
 };
 
 export default function ToggleSwitch({
@@ -14,6 +15,7 @@ export default function ToggleSwitch({
   value,
   onChange,
   disabled = false,
+  align = 'between',
 }: ToggleSwitchProps) {
   const enabled = value === 'yes';
 
@@ -23,7 +25,7 @@ export default function ToggleSwitch({
   };
 
   return (
-    <div className="flex items-center justify-between w-full">
+    <div className={`flex items-center ${align === 'start' ? 'justify-start gap-4' : 'justify-between w-full'}`}>
       {/* Label */}
       <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">
         {label}

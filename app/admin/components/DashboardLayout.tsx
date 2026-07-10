@@ -416,20 +416,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         }
     }, [isPublicPage, currentUser?.id, isPrivilegedUser, pathname, viewSections, permissionsLoaded, forceLogout]);
 
-    React.useEffect(() => {
-        if (typeof window === 'undefined') return;
-
+    if (typeof window !== 'undefined') {
         if (!originalFetchRef.current) {
             originalFetchRef.current = window.fetch.bind(window);
         }
 
         const originalFetch = originalFetchRef.current;
-        const sessionToken = getStoredAdminSessionToken();
-
-        if (!sessionToken) {
-            window.fetch = originalFetch;
-            return;
-        }
 
         const enrichApiUrl = (rawUrl: string): string => {
             try {
@@ -455,7 +447,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             }
 
             const isApiCall = isApiRequestUrl(requestUrl, window.location.origin);
-            if (!isApiCall) {
+            const sessionToken = getStoredAdminSessionToken();
+
+            const isPublicApi = 
+                requestUrl.includes('/login') || 
+                requestUrl.includes('/verify-2fa') || 
+                requestUrl.includes('/forgot-password') || 
+                requestUrl.includes('/verify-reset-otp') || 
+                requestUrl.includes('/reset-password');
+
+            if (!isApiCall || isPublicApi || !sessionToken) {
                 return originalFetch(input, init);
             }
 
@@ -478,10 +479,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 response = await originalFetch(enrichedUrl, { ...init, headers });
             }
 
-            if (response.status === 401 || response.status === 403) {
-                let message = response.status === 401
-                    ? 'Your admin session is no longer valid. Please sign in again.'
-                    : 'Unauthorized admin access was detected. You have been signed out.';
+            if (response.status === 401) {
+                let message = 'Your admin session is no longer valid. Please sign in again.';
 
                 try {
                     const data = await response.clone().json();
@@ -491,19 +490,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 }
 
                 void forceLogout(
-                    response.status === 401 ? 'Session expired' : 'Access denied',
+                    'Session expired',
                     message,
-                    response.status === 401 ? 'Session expired or invalid.' : `Forced logout: unauthorized API access attempt (${requestUrl})`
+                    'Session expired or invalid.'
                 );
             }
 
             return response;
         };
-
-        return () => {
-            window.fetch = originalFetch;
-        };
-    }, [currentUser?.id, forceLogout]);
+    }
 
     // Initial Auth Check
     React.useEffect(() => {
@@ -636,8 +631,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         const val = localStorage.getItem(key);
                         if (val) {
                             const item = JSON.parse(val);
-                            // If it's been there for more than 5 seconds, it's stale (tab was closed)
-                            if (now - item.timestamp > 5000) {
+                            // If it's been there for more than 15 seconds, it's stale (tab was closed)
+                            if (now - item.timestamp > 15000) {
                                 localStorage.removeItem(key);
                                 const payload = {
                                     user_id: item.userId,
@@ -668,7 +663,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
             try {
                 const item = JSON.parse(e.newValue);
-                // Wait 1.5 seconds to see if the tab reloaded and cleared the key
+                // Wait 8 seconds to see if the tab reloaded and cleared the key
                 setTimeout(() => {
                     const currentVal = localStorage.getItem('tab_unloading_' + targetTabId);
                     if (currentVal) {
@@ -688,7 +683,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                             body: JSON.stringify(payload)
                         }).catch(() => {});
                     }
-                }, 1500);
+                }, 8000);
             } catch (err) {
                 console.error(err);
             }

@@ -565,6 +565,7 @@ export default function BanksPage() {
                         <div>
                             <ToggleSwitch
                                 label="Sender Bank"
+                                align="start"
                                 value={form.sender_bank ? 'yes' : 'no'}
                                 onChange={(value) =>
                                     setForm({
@@ -577,6 +578,7 @@ export default function BanksPage() {
                         <div>
                             <ToggleSwitch
                                 label="Receiver Bank"
+                                align="start"
                                 value={form.receiver_bank ? 'yes' : 'no'}
                                 onChange={(value) =>
                                     setForm({
@@ -589,6 +591,7 @@ export default function BanksPage() {
                         <div>
                             <ToggleSwitch
                                 label="Cash Pickup Bank"
+                                align="start"
                                 value={form.pickup_bank ? 'yes' : 'no'}
                                 onChange={(value) =>
                                     setForm({
