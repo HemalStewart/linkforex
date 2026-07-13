@@ -93,7 +93,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const [currentHash, setCurrentHash] = useState('');
     const [isLoadingNav, setIsLoadingNav] = useState(true);
     const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
-    const [branches, setBranches] = useState<any[]>([]);
     const currentUserRef = React.useRef<CurrentUser | null>(null);
     currentUserRef.current = currentUser;
 
@@ -111,41 +110,24 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             .toLowerCase()
             .replace(/\b\w/g, (char) => char.toUpperCase());
     };
-    const displayName = String(currentUser?.name || '').trim() || 'User';
-    const displayBranchName = React.useMemo(() => {
-        if (!currentUser) return '';
-        if (currentUser.branch_name) {
-            return currentUser.branch_name.trim();
-        }
-
-        const userBranchVal = String(currentUser.branch || currentUser.branch_id || '').trim();
+    const displayName = String(currentUser?.username || '').trim() || 'User';
+    const userBranchVal = String(currentUser?.branch_name || currentUser?.branch_id || currentUser?.branch || '').trim();
+    const displayRole = React.useMemo(() => {
         if (!userBranchVal || userBranchVal === '-') {
-            return '';
+            return toTitleCase(currentUser?.role, 'Guest');
         }
 
-        const matched = branches.find(b => 
-            String(b.id) === userBranchVal ||
-            String(b.code).toLowerCase() === userBranchVal.toLowerCase() ||
-            String(b.name).toLowerCase() === userBranchVal.toLowerCase() ||
-            String(b.transaction_prefix).toLowerCase() === userBranchVal.toLowerCase()
-        );
-
-        if (matched && matched.name) {
-            return matched.name;
-        }
-
+        let rawName = userBranchVal;
         const upperVal = userBranchVal.toUpperCase();
-        if (upperVal === 'LFX' || upperVal === 'LON001') {
-            return 'London - Link Forex Ltd';
-        }
-        if (upperVal === 'BLF' || upperVal === 'MAN001' || upperVal === 'BHM001') {
-            return 'Birmingham - Premier Link';
+        if (upperVal === 'LFX' || upperVal === 'LON001' || upperVal.startsWith('LON')) {
+            rawName = 'London - Link Forex Ltd';
+        } else if (upperVal === 'BLF' || upperVal === 'MAN001' || upperVal === 'BHM001' || upperVal.startsWith('MAN') || upperVal.startsWith('BHM')) {
+            rawName = 'Birmingham - Premier Link';
         }
 
-        return userBranchVal;
-    }, [currentUser, branches]);
-
-    const displayRole = displayBranchName || toTitleCase(currentUser?.role, 'Guest');
+        const parts = rawName.split('-');
+        return parts[0].trim();
+    }, [userBranchVal, currentUser]);
     const profilePhotoUrl = resolveProfilePhotoUrl(currentUser);
     const notificationMenuRef = React.useRef<HTMLDivElement | null>(null);
     const themeMenuRef = React.useRef<HTMLDivElement | null>(null);
@@ -584,25 +566,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             router.replace('/admin/login');
         }
     }, [pathname, router, isPublicPage]);
-
-    // Fetch branches to resolve branch names for display
-    React.useEffect(() => {
-        if (isPublicPage || !currentUser) return;
-        const fetchBranches = async () => {
-            try {
-                const res = await fetch(ENDPOINTS.BRANCHES.LIST);
-                if (res.ok) {
-                    const data = await res.json();
-                    if (Array.isArray(data)) {
-                        setBranches(data);
-                    }
-                }
-            } catch (err) {
-                console.error('Failed to fetch branches in layout:', err);
-            }
-        };
-        fetchBranches();
-    }, [currentUser, isPublicPage]);
 
     // Tab duplication & Session duplication detection
     React.useEffect(() => {
