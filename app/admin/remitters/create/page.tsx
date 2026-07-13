@@ -230,6 +230,8 @@ export default function CreateRemitterPage() {
     const [veriffActionLoading, setVeriffActionLoading] = useState(false);
 
 
+    const [countries, setCountries] = useState<any[]>([]);
+
     React.useEffect(() => {
         const fetchBranches = async () => {
             try {
@@ -242,8 +244,33 @@ export default function CreateRemitterPage() {
                 console.error("Failed to fetch branches", e);
             }
         };
+        const fetchCountries = async () => {
+            try {
+                const res = await fetch(ENDPOINTS.COUNTRIES.LIST);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (Array.isArray(data)) {
+                        const filtered = data.filter((c: any) => 
+                            String(c.black_list_country || '').toLowerCase() !== 'yes' &&
+                            String(c.status || '').toLowerCase() !== 'inactive'
+                        );
+                        setCountries(filtered);
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to fetch countries", e);
+            }
+        };
         fetchBranches();
+        fetchCountries();
     }, []);
+
+    const countryOptions = React.useMemo<SelectOption[]>(() => {
+        return countries.map((c: any) => ({
+            value: c.name,
+            label: c.name,
+        }));
+    }, [countries]);
 
     const branchOptions = React.useMemo<SelectOption[]>(() => {
         const source = branches.length > 0 ? branches : (scopedBranchCode ? [{ code: scopedBranchCode, name: scopedBranchCode }] : []);
@@ -859,15 +886,16 @@ export default function CreateRemitterPage() {
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, postcode: e.target.value }))}
                         />
                         <FormInput label="County" name="county" Icon={MapPin} />
-                        <FormInput
+                        <FormSelect
                             label="Country"
                             name="country"
+                            options={countryOptions}
                             value={country}
                             required
                             Icon={Globe}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            onChange={(e: any) => {
                                 setCountry(e.target.value);
-                                setDuplicateFormSignals((prev) => ({ ...prev, country: e.target.value }));
+                                setDuplicateFormSignals((prev: any) => ({ ...prev, country: e.target.value }));
                             }}
                         />
                     </div>

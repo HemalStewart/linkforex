@@ -204,6 +204,35 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const isForgotPasswordPage = pathname.startsWith('/admin/forgot-password');
     const isPublicPage = isLoginPage || isForgotPasswordPage;
 
+    // Disable browser autofill/autocomplete across all inputs on page change and DOM updates
+    React.useEffect(() => {
+        const disableAutofill = () => {
+            const inputs = document.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                input.setAttribute('autocomplete', 'one-time-code');
+                input.setAttribute('autocorrect', 'off');
+                input.setAttribute('autocapitalize', 'off');
+                input.setAttribute('spellcheck', 'false');
+            });
+        };
+        
+        disableAutofill();
+        
+        const timer1 = setTimeout(disableAutofill, 500);
+        const timer2 = setTimeout(disableAutofill, 1500);
+        const timer3 = setTimeout(disableAutofill, 3000);
+        
+        const observer = new MutationObserver(disableAutofill);
+        observer.observe(document.body, { childList: true, subtree: true });
+        
+        return () => {
+            clearTimeout(timer1);
+            clearTimeout(timer2);
+            clearTimeout(timer3);
+            observer.disconnect();
+        };
+    }, [pathname]);
+
     const buildSignOffPayload = React.useCallback((note: string) => {
         const stored = getStoredUserRaw();
         if (!stored) return null;

@@ -128,6 +128,7 @@ export default function EditRemitterPage() {
     });
     const [veriffLoading, setVeriffLoading] = useState(false);
     const [showVeriffModal, setShowVeriffModal] = useState(false);
+    const [countries, setCountries] = useState<any[]>([]);
 
     // Dilisense AML screening states
     const [sanctionReference, setSanctionReference] = useState<string>('');
@@ -180,6 +181,27 @@ export default function EditRemitterPage() {
     useEffect(() => {
         if (id) fetchRemitter();
     }, [id]);
+
+    useEffect(() => {
+        const fetchCountries = async () => {
+            try {
+                const res = await fetch(ENDPOINTS.COUNTRIES.LIST);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (Array.isArray(data)) {
+                        const filtered = data.filter((c: any) => 
+                            String(c.black_list_country || '').toLowerCase() !== 'yes' &&
+                            String(c.status || '').toLowerCase() !== 'inactive'
+                        );
+                        setCountries(filtered);
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to fetch countries", e);
+            }
+        };
+        fetchCountries();
+    }, []);
 
     const fetchRemitter = async () => {
         try {
@@ -977,7 +999,16 @@ export default function EditRemitterPage() {
                     </div>
                     <div>
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Country</label>
-                        <input className="input-glass w-full" value={formData.country} onChange={(e) => setFormData({ ...formData, country: e.target.value })} />
+                        <select
+                            className="input-glass w-full py-3 px-4 pr-10 appearance-none cursor-pointer text-sm"
+                            value={formData.country}
+                            onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                        >
+                            <option value="">Select Country</option>
+                            {countries.map((c: any) => (
+                                <option key={c.id} value={c.name}>{c.name}</option>
+                            ))}
+                        </select>
                     </div>
                     <div>
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Occupation</label>
