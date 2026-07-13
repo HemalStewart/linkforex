@@ -62,6 +62,8 @@ interface CurrentUser {
     system_defined?: string;
     profile_photo?: string;
     profile_photo_url?: string;
+    branch?: string;
+    branch_id?: string | number;
 }
 
 interface NavChild {
@@ -90,8 +92,48 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const [currentHash, setCurrentHash] = useState('');
     const [isLoadingNav, setIsLoadingNav] = useState(true);
     const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+    const [branches, setBranches] = useState<any[]>([]);
     const currentUserRef = React.useRef<CurrentUser | null>(null);
     currentUserRef.current = currentUser;
+
+    const resolveProfilePhotoUrl = (user: CurrentUser | null): string | null => {
+        const raw = String(user?.profile_photo_url || user?.profile_photo || '').trim();
+        if (!raw) return null;
+
+        return resolveUploadsUrl(raw) || null;
+    };
+    const toTitleCase = (value?: string, fallback = ''): string => {
+        const text = String(value || '').trim();
+        if (!text) return fallback;
+        return text
+            .replace(/[_-]+/g, ' ')
+            .toLowerCase()
+            .replace(/\b\w/g, (char) => char.toUpperCase());
+    };
+    const displayName = String(currentUser?.name || '').trim() || 'User';
+    const displayBranchName = React.useMemo(() => {
+        if (!currentUser) return '';
+        const userBranchVal = String(currentUser.branch || currentUser.branch_id || '').trim();
+        if (!userBranchVal || userBranchVal === '-') {
+            return '';
+        }
+
+        const matched = branches.find(b => 
+            String(b.id) === userBranchVal ||
+            String(b.code).toLowerCase() === userBranchVal.toLowerCase() ||
+            String(b.name).toLowerCase() === userBranchVal.toLowerCase() ||
+            String(b.transaction_prefix).toLowerCase() === userBranchVal.toLowerCase()
+        );
+
+        if (matched && matched.name) {
+            return matched.name;
+        }
+
+        return userBranchVal;
+    }, [currentUser, branches]);
+
+    const displayRole = displayBranchName || toTitleCase(currentUser?.role, 'Guest');
+    const profilePhotoUrl = resolveProfilePhotoUrl(currentUser);
     const notificationMenuRef = React.useRef<HTMLDivElement | null>(null);
     const themeMenuRef = React.useRef<HTMLDivElement | null>(null);
     const originalFetchRef = React.useRef<typeof window.fetch | null>(null);
@@ -529,6 +571,25 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             router.replace('/admin/login');
         }
     }, [pathname, router, isPublicPage]);
+
+    // Fetch branches to resolve branch names for display
+    React.useEffect(() => {
+        if (isPublicPage || !currentUser) return;
+        const fetchBranches = async () => {
+            try {
+                const res = await fetch(ENDPOINTS.BRANCHES.LIST);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (Array.isArray(data)) {
+                        setBranches(data);
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to fetch branches in layout:', err);
+            }
+        };
+        fetchBranches();
+    }, [currentUser, isPublicPage]);
 
     // Tab duplication & Session duplication detection
     React.useEffect(() => {
@@ -976,23 +1037,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     };
 
     const notifications: Array<{ id: string; text: string }> = [];
-    const resolveProfilePhotoUrl = (user: CurrentUser | null): string | null => {
-        const raw = String(user?.profile_photo_url || user?.profile_photo || '').trim();
-        if (!raw) return null;
-
-        return resolveUploadsUrl(raw) || null;
-    };
-    const toTitleCase = (value?: string, fallback = ''): string => {
-        const text = String(value || '').trim();
-        if (!text) return fallback;
-        return text
-            .replace(/[_-]+/g, ' ')
-            .toLowerCase()
-            .replace(/\b\w/g, (char) => char.toUpperCase());
-    };
-    const displayName = String(currentUser?.name || '').trim() || 'User';
-    const displayRole = toTitleCase(currentUser?.role, 'Guest');
-    const profilePhotoUrl = resolveProfilePhotoUrl(currentUser);
 
     const navigation: NavItem[] = [
         {
