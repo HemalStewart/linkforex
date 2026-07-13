@@ -27,6 +27,7 @@ import {
     Wallet,
 } from 'lucide-react';
 import { ENDPOINTS } from '../../lib/api';
+import { usePagePermissions } from '@/app/lib/permissions';
 
 type RangeKey = '7d' | '30d' | '90d';
 type DashboardTransfer = Record<string, any>;
@@ -184,6 +185,11 @@ export default function DashboardPage() {
     const [branches, setBranches] = React.useState<DashboardBranch[]>([]);
     const [chartPalette, setChartPalette] = React.useState<ChartPalette>(fallbackChartPalette);
 
+    const { canView: canViewTransfers } = usePagePermissions('TRANSFERS');
+    const { canView: canViewAuditLogs } = usePagePermissions('AUDIT_LOGS');
+    const { canView: canViewKyc } = usePagePermissions('KYC_REVIEWS');
+    const { canView: canViewRemitters } = usePagePermissions('REMITTERS');
+
     React.useEffect(() => {
         setMounted(true);
     }, []);
@@ -325,36 +331,42 @@ export default function DashboardPage() {
             value: loading ? '...' : filteredTransfers.length.toLocaleString(),
             description: `${previousTransfers.length.toLocaleString()} in previous range`,
             icon: ArrowRightLeft,
+            show: canViewTransfers,
         },
         {
             title: 'Transfer Volume',
             value: loading ? '...' : formatCompactCurrency(totalVolume),
             description: `${formatCompactCurrency(previousVolume)} previous range`,
             icon: Wallet,
+            show: canViewTransfers,
         },
         {
             title: 'Pending Transfers',
             value: loading ? '...' : pendingTransfers.length.toLocaleString(),
             description: 'Pending, in review, or processing',
             icon: Activity,
+            show: canViewTransfers,
         },
         {
             title: 'Active Users',
             value: loading ? '...' : activeUsers.toLocaleString(),
             description: 'Current active remitter accounts',
             icon: Users,
+            show: canViewAuditLogs,
         },
         {
             title: 'Pending KYC',
             value: loading ? '...' : pendingKYC.toLocaleString(),
             description: 'Profiles awaiting review',
             icon: ShieldCheck,
+            show: canViewKyc,
         },
         {
             title: 'New Customers',
             value: loading ? '...' : filteredCustomers.length.toLocaleString(),
             description: `${previousCustomers.length.toLocaleString()} in previous range`,
             icon: Globe2,
+            show: canViewRemitters,
         },
     ];
 
@@ -584,7 +596,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-                {summaryCards.map((card) => {
+                {summaryCards.filter(card => card.show).map((card) => {
                     const Icon = card.icon;
                     return (
                         <div key={card.title} className="card-glass p-4">
