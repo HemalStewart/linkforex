@@ -70,7 +70,7 @@ export default function EditRemitterPage() {
     const currentUser = React.useMemo(() => getCurrentAdminUser(), []);
     const isPrivilegedUser = React.useMemo(() => isPrivilegedAdminUser(currentUser), [currentUser]);
     const scopedBranchCode = React.useMemo(() => getAdminBranchCode(currentUser), [currentUser]);
-    const { canManuallyPassed } = usePagePermissions('REMITTERS');
+    const { canManuallyPassed, canPdf } = usePagePermissions('REMITTERS');
 
     const [loading, setLoading] = useState(true);
     const [notFound, setNotFound] = useState(false);
@@ -1125,22 +1125,24 @@ export default function EditRemitterPage() {
                                 <p className="text-xs text-slate-500 dark:text-slate-400">Watchlist and PEP checks</p>
                             </div>
                         </div>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                const isMobile = String(formData.registration_source || '').trim().toLowerCase() === 'mobile_app';
-                                if (isMobile) {
-                                    setShowVeriffModal(true);
-                                } else {
-                                    openReportsModal();
-                                }
-                            }}
-                            className="inline-flex items-center justify-center space-x-2 px-4 py-2 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-400 font-semibold text-xs transition-all border border-teal-500/20 shadow-sm shadow-teal-500/5 hover:shadow-teal-500/10"
-                        >
-                            <FileText className="w-4 h-4" />
-                            <span>{String(formData.registration_source || '').trim().toLowerCase() === 'mobile_app' ? "Veriff Report" : "Dilisense Reports"}</span>
-                            <ExternalLink className="w-3.5 h-3.5" />
-                        </button>
+                        {canPdf && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const isMobile = String(formData.registration_source || '').trim().toLowerCase() === 'mobile_app';
+                                    if (isMobile) {
+                                        setShowVeriffModal(true);
+                                    } else {
+                                        openReportsModal();
+                                    }
+                                }}
+                                className="inline-flex items-center justify-center space-x-2 px-4 py-2 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-400 font-semibold text-xs transition-all border border-teal-500/20 shadow-sm shadow-teal-500/5 hover:shadow-teal-500/10"
+                            >
+                                <FileText className="w-4 h-4" />
+                                <span>{String(formData.registration_source || '').trim().toLowerCase() === 'mobile_app' ? "Veriff Report" : "Dilisense Reports"}</span>
+                                <ExternalLink className="w-3.5 h-3.5" />
+                            </button>
+                        )}
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">

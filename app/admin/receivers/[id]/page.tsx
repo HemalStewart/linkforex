@@ -30,7 +30,7 @@ export default function EditReceiverPage() {
     const params = useParams();
     const id = params.id as string;
     const currentUser = React.useMemo(() => getCurrentAdminUser(), []);
-    const { canManuallyPassed } = usePagePermissions('RECEIVERS');
+    const { canManuallyPassed, canPdf } = usePagePermissions('RECEIVERS');
 
     const [loading, setLoading] = useState(true);
     const [notFound, setNotFound] = useState(false);
@@ -1084,15 +1084,17 @@ export default function EditReceiverPage() {
                                 <p className="text-xs text-slate-500 dark:text-slate-400">Watchlist and PEP checks</p>
                             </div>
                         </div>
-                        <button
-                            type="button"
-                            onClick={openReportsModal}
-                            className="inline-flex items-center justify-center space-x-2 px-4 py-2 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-400 font-semibold text-xs transition-all border border-teal-500/20 shadow-sm shadow-teal-500/5 hover:shadow-teal-500/10"
-                        >
-                            <FileText className="w-4 h-4" />
-                            <span>Dilisense Reports</span>
-                            <ExternalLink className="w-3.5 h-3.5" />
-                        </button>
+                        {canPdf && (
+                            <button
+                                type="button"
+                                onClick={openReportsModal}
+                                className="inline-flex items-center justify-center space-x-2 px-4 py-2 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-400 font-semibold text-xs transition-all border border-teal-500/20 shadow-sm shadow-teal-500/5 hover:shadow-teal-500/10"
+                            >
+                                <FileText className="w-4 h-4" />
+                                <span>Dilisense Reports</span>
+                                <ExternalLink className="w-3.5 h-3.5" />
+                            </button>
+                        )}
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
