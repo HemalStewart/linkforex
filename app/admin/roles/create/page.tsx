@@ -57,6 +57,15 @@ export default function CreateRolePage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+        setConfirmModal({
+            isOpen: true,
+            title: 'Creating Role',
+            message: 'Creating the role and initializing permission records. Please wait...',
+            type: 'info',
+            isAlert: false,
+            shouldRedirect: false
+        });
+
         try {
             const res = await fetch(ENDPOINTS.ROLES.LIST, {
                 method: 'POST',
@@ -69,21 +78,67 @@ export default function CreateRolePage() {
             });
 
             if (res.ok) {
-                queueToast('Success', 'Role created successfully', 'success');
-                router.push('/admin/roles');
+                const createdRole = await res.json();
+                
+                // Show that we are initializing permissions
+                setConfirmModal(prev => ({
+                    ...prev,
+                    message: 'Initializing role permissions...'
+                }));
+
+                // Run the validation endpoint to populate all permission records
+                const validateRes = await fetch(`${ENDPOINTS.ROLES.LIST}/validate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (validateRes.ok) {
+                    setConfirmModal({
+                        isOpen: true,
+                        title: 'Success',
+                        message: 'Role created and permission records initialized successfully.',
+                        type: 'success',
+                        isAlert: false,
+                        shouldRedirect: true
+                    });
+                } else {
+                    setConfirmModal({
+                        isOpen: true,
+                        title: 'Partial Success',
+                        message: 'Role created, but we could not initialize all permission records automatically. You can validate them later from the roles list page.',
+                        type: 'warning',
+                        isAlert: false,
+                        shouldRedirect: true
+                    });
+                }
             } else {
                 const err = await res.text();
-                showToast('Error', err || 'Failed to create role', 'danger');
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Error',
+                    message: err || 'Failed to create role',
+                    type: 'danger',
+                    isAlert: false,
+                    shouldRedirect: false
+                });
             }
         } catch (error) {
             console.error(error);
-            showToast('Error', 'Failed to create role', 'danger');
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'An unexpected error occurred while creating the role.',
+                type: 'danger',
+                isAlert: false,
+                shouldRedirect: false
+            });
         } finally {
             setLoading(false);
         }
     };
 
     const handleModalClose = () => {
+        if (loading) return; // Prevent closing while processing is active
         setConfirmModal({ ...confirmModal, isOpen: false });
         if (confirmModal.shouldRedirect) {
             router.push('/admin/roles');
@@ -101,6 +156,7 @@ export default function CreateRolePage() {
                 type={confirmModal.type as any}
                 isAlert={confirmModal.isAlert}
                 confirmText="OK"
+                loading={loading}
             />
 
             <div className="mb-8">
