@@ -67,6 +67,11 @@ const getPageNameFromSection = (section: string): string => {
 const getOperationLabel = (section: string, operation: string): string => {
     const s = String(section || '').trim().toUpperCase();
     const op = String(operation || '').trim().toUpperCase();
+    if (op === 'PDF') {
+        if (s === 'REMITTERS' || s === 'RECEIVERS' || s === 'MOBILE_PROFILES') {
+            return 'Compliance report';
+        }
+    }
     if (s === 'PROFILE' && op === 'EDIT') {
         return 'UPDATE_PROFILE_PICTURE';
     }
