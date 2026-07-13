@@ -64,6 +64,7 @@ interface CurrentUser {
     profile_photo_url?: string;
     branch?: string;
     branch_id?: string | number;
+    branch_name?: string;
 }
 
 interface NavChild {
@@ -113,6 +114,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const displayName = String(currentUser?.name || '').trim() || 'User';
     const displayBranchName = React.useMemo(() => {
         if (!currentUser) return '';
+        if (currentUser.branch_name) {
+            return currentUser.branch_name.trim();
+        }
+
         const userBranchVal = String(currentUser.branch || currentUser.branch_id || '').trim();
         if (!userBranchVal || userBranchVal === '-') {
             return '';
@@ -127,6 +132,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
         if (matched && matched.name) {
             return matched.name;
+        }
+
+        const upperVal = userBranchVal.toUpperCase();
+        if (upperVal === 'LFX' || upperVal === 'LON001') {
+            return 'London - Link Forex Ltd';
+        }
+        if (upperVal === 'BLF' || upperVal === 'MAN001' || upperVal === 'BHM001') {
+            return 'Birmingham - Premier Link';
         }
 
         return userBranchVal;
