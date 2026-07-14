@@ -46,15 +46,15 @@ const getPageNameFromSection = (section: string): string => {
         const found = cat.pages.find(p => {
             const ps = p.section.toUpperCase();
             return ps === s ||
-                   ps === s + 'S' ||
-                   s === ps + 'S' ||
-                   (ps === 'KYC_REVIEWS' && s === 'KYC') ||
-                   (ps === 'BRANCH_CURRENCY_RATES' && s === 'BRANCH_CURRENCY_RATE') ||
-                   (ps === 'BRANCH_ACCESS_REQUESTS' && s === 'BRANCH_ACCESS') ||
-                   (ps === 'SYSTEM_USERS' && s === 'SYSUSERS') ||
-                   (ps === 'ROLES' && s === 'SYSGROUPS') ||
-                   (ps === 'PERMISSION_GROUPS' && s === 'SYSGROUPS_PERMISSION') ||
-                   (ps === 'AUDIT_LOGS' && (s === 'SYSUSERS_LOG' || s === 'SYSRECORD_LOGS' || s === 'LOGS'));
+                ps === s + 'S' ||
+                s === ps + 'S' ||
+                (ps === 'KYC_REVIEWS' && s === 'KYC') ||
+                (ps === 'BRANCH_CURRENCY_RATES' && s === 'BRANCH_CURRENCY_RATE') ||
+                (ps === 'BRANCH_ACCESS_REQUESTS' && s === 'BRANCH_ACCESS') ||
+                (ps === 'SYSTEM_USERS' && s === 'SYSUSERS') ||
+                (ps === 'ROLES' && s === 'SYSGROUPS') ||
+                (ps === 'PERMISSION_GROUPS' && s === 'SYSGROUPS_PERMISSION') ||
+                (ps === 'AUDIT_LOGS' && (s === 'SYSUSERS_LOG' || s === 'SYSRECORD_LOGS' || s === 'LOGS'));
         });
         if (found) return found.name;
     }
@@ -69,7 +69,7 @@ const getOperationLabel = (section: string, operation: string): string => {
     const op = String(operation || '').trim().toUpperCase();
     if (op === 'PDF') {
         if (s === 'REMITTERS' || s === 'RECEIVERS' || s === 'MOBILE_PROFILES') {
-            return 'Compliance report';
+            return 'COMPLIANCE REPORTS';
         }
     }
     if (s === 'PROFILE' && op === 'EDIT') {
@@ -450,7 +450,7 @@ export default function PermissionGroupsPage() {
         const baseRows = rows.filter((row) => {
             const sec = String(row.page_section || '').trim().toUpperCase();
             const op = String(row.operation || '').trim().toUpperCase();
-            
+
             const pageName = getPageNameFromSection(row.page_section);
             let canonicalPage = null;
             for (const cat of ADMIN_PAGES_CONFIG) {
@@ -549,7 +549,7 @@ export default function PermissionGroupsPage() {
     const sectionOptions = useMemo(() => {
         const uniqueOptions: string[] = [];
         const seenNames = new Set<string>();
-        
+
         for (const cat of ADMIN_PAGES_CONFIG) {
             for (const page of cat.pages) {
                 const displayName = page.name;
@@ -560,7 +560,7 @@ export default function PermissionGroupsPage() {
                 }
             }
         }
-        
+
         return uniqueOptions.sort((a, b) => {
             const nameA = getPageNameFromSection(a);
             const nameB = getPageNameFromSection(b);
@@ -572,7 +572,7 @@ export default function PermissionGroupsPage() {
         const normalizedRoleFilter = roleFilter.trim().toLowerCase();
         return searched.filter((row) => {
             if (normalizedRoleFilter && !(row.role_name || '').toLowerCase().includes(normalizedRoleFilter)) return false;
-            
+
             if (pageSectionFilter !== 'all') {
                 const rowPageName = getPageNameFromSection(row.page_section);
                 const filterPageName = getPageNameFromSection(pageSectionFilter);
@@ -616,7 +616,7 @@ export default function PermissionGroupsPage() {
 
     const sorted = useMemo(() => {
         const list = [...filtered];
-        
+
         const opOrder = ['VIEW', 'CREATE', 'EDIT', 'DELETE'];
         const getOpWeight = (op: string) => {
             const idx = opOrder.indexOf(op.toUpperCase());
@@ -626,14 +626,14 @@ export default function PermissionGroupsPage() {
         list.sort((a, b) => {
             const aVal = getSortValue(a, sortKey);
             const bVal = getSortValue(b, sortKey);
-            
+
             let primaryDiff = 0;
             if (typeof aVal === 'number' && typeof bVal === 'number') {
                 primaryDiff = aVal - bVal;
             } else {
                 primaryDiff = collator.compare(String(aVal), String(bVal));
             }
-            
+
             if (sortDir === 'desc') {
                 primaryDiff = -primaryDiff;
             }
@@ -1272,10 +1272,10 @@ export default function PermissionGroupsPage() {
                                                             </label>
                                                         </td>
                                                         {showCreatedBy && (
-                                                             <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">
-                                                                 {String(row.created_by || '').trim().toLowerCase() === 'system' ? 'Admin' : (row.created_by || '—')}
-                                                             </td>
-                                                         )}
+                                                            <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">
+                                                                {String(row.created_by || '').trim().toLowerCase() === 'system' ? 'Admin' : (row.created_by || '—')}
+                                                            </td>
+                                                        )}
                                                         {showCreatedAt && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{row.created_at ? formatDateTime(row.created_at) : '—'}</td>}
                                                         {showUpdatedBy && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.updated_by || '—'}</td>}
                                                         {showUpdatedAt && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{row.updated_at ? formatDateTime(row.updated_at) : '—'}</td>}
