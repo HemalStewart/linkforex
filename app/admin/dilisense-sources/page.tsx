@@ -82,6 +82,16 @@ export default function DilisenseSourcesPage() {
     const [typeFilter, setTypeFilter] = useState('all');
     const [regionFilter, setRegionFilter] = useState('all');
     const [activeFilter, setActiveFilter] = useState('all');
+    const [countryFilter, setCountryFilter] = useState('all');
+
+    const countryOptions = useMemo(() => {
+        const countries = new Set<string>();
+        rows.forEach((row) => {
+            const trimmed = String(row.dilisense_country_name || '').trim();
+            if (trimmed) countries.add(trimmed);
+        });
+        return Array.from(countries).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+    }, [rows]);
 
     // Sorting & Pagination
     const [sortKey, setSortKey] = useState<SortKey>('dilisense_name');
@@ -272,10 +282,11 @@ export default function DilisenseSourcesPage() {
             const matchesActive = activeFilter === 'all' ||
                 (activeFilter === 'yes' && Number(row.dilisense_status) === 1) ||
                 (activeFilter === 'no' && Number(row.dilisense_status) === 0);
+            const matchesCountry = countryFilter === 'all' || String(row.dilisense_country_name || '').trim().toLowerCase() === countryFilter.toLowerCase();
 
-            return matchesQuery && matchesType && matchesRegion && matchesActive;
+            return matchesQuery && matchesType && matchesRegion && matchesActive && matchesCountry;
         });
-    }, [rows, searchQuery, typeFilter, regionFilter, activeFilter]);
+    }, [rows, searchQuery, typeFilter, regionFilter, activeFilter, countryFilter]);
 
     const sortedRows = useMemo(() => {
         const data = [...filteredRows];
@@ -533,7 +544,7 @@ export default function DilisenseSourcesPage() {
             )}
 
             <div className="card-glass p-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
                     <div className="lg:col-span-2">
                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Search</label>
                         <div className="relative input-icon">
@@ -551,7 +562,7 @@ export default function DilisenseSourcesPage() {
                     <div>
                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Source Type</label>
                         <select
-                            className="input-glass w-full text-sm"
+                            className="input-glass w-full text-sm cursor-pointer"
                             value={typeFilter}
                             onChange={(event) => setTypeFilter(event.target.value)}
                         >
@@ -562,9 +573,34 @@ export default function DilisenseSourcesPage() {
                         </select>
                     </div>
                     <div>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Status</label>
+                        <select
+                            className="input-glass w-full text-sm cursor-pointer"
+                            value={activeFilter}
+                            onChange={(event) => setActiveFilter(event.target.value)}
+                        >
+                            <option value="all">All Statuses</option>
+                            <option value="yes">Active Only</option>
+                            <option value="no">Inactive Only</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Country</label>
+                        <select
+                            className="input-glass w-full text-sm cursor-pointer"
+                            value={countryFilter}
+                            onChange={(event) => setCountryFilter(event.target.value)}
+                        >
+                            <option value="all">All Countries</option>
+                            {countryOptions.map((country) => (
+                                <option key={country} value={country}>{country}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Region</label>
                         <select
-                            className="input-glass w-full text-sm"
+                            className="input-glass w-full text-sm cursor-pointer"
                             value={regionFilter}
                             onChange={(event) => setRegionFilter(event.target.value)}
                         >
@@ -572,18 +608,6 @@ export default function DilisenseSourcesPage() {
                             {REGIONS.map((region) => (
                                 <option key={region} value={region}>{region.toUpperCase()}</option>
                             ))}
-                        </select>
-                    </div>
-                    <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Status</label>
-                        <select
-                            className="input-glass w-full text-sm"
-                            value={activeFilter}
-                            onChange={(event) => setActiveFilter(event.target.value)}
-                        >
-                            <option value="all">All Statuses</option>
-                            <option value="yes">Active Only</option>
-                            <option value="no">Inactive Only</option>
                         </select>
                     </div>
                 </div>
