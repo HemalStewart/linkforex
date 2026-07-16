@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "LinkForex Admin",
+  title: {
+    default: "LinkForex",
+    template: "%s | LinkForex",
+  },
   description: "LinkForex administration portal",
   icons: {
     icon: "/favicon.ico",

@@ -112,6 +112,7 @@ export const ENDPOINTS = {
         DETAIL: (id: string | number) => `${API_BASE_URL}/logs/${id}`,
         SIGNOFF: `${API_BASE_URL}/logs/signoff`,
         RESUME: (id: string | number) => `${API_BASE_URL}/logs/${id}/resume`,
+        HEARTBEAT: `${API_BASE_URL}/logs/heartbeat`,
     },
     REPORTS: {
         SUMMARY: `${API_BASE_URL}/reports/summary`,

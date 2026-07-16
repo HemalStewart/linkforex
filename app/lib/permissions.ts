@@ -64,7 +64,6 @@ export const ADMIN_PAGES_CONFIG: AdminCategoryInfo[] = [
             { name: 'Transfers', section: 'TRANSFERS', operations: ['VIEW', 'CREATE', 'EDIT', 'APPROVE', 'CANCEL', 'PDF', 'EXPORT', 'PRINT', 'SIGN', ...AUDIT_OPS] },
             { name: 'Remitters', section: 'REMITTERS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'PDF', 'EXPORT', 'MANUALLY_PASSED', ...AUDIT_OPS] },
             { name: 'Receivers', section: 'RECEIVERS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'PDF', 'EXPORT', 'MANUALLY_PASSED', ...AUDIT_OPS] },
-            { name: 'KYC Reviews', section: 'KYC_REVIEWS', operations: ['VIEW', 'EXPORT'] },
             { name: 'Branch Access Flags', section: 'BRANCH_ACCESS_REQUESTS', operations: ['VIEW', 'APPROVE', 'CANCEL', ...AUDIT_OPS] },
             { name: 'Support', section: 'SUPPORT', operations: ['VIEW', 'EDIT', 'DELETE', ...AUDIT_OPS] },
             { name: 'Branch Rates', section: 'BRANCH_CURRENCY_RATES', operations: ['VIEW', 'CREATE', ...AUDIT_OPS] }
@@ -159,7 +158,6 @@ export const checkPermission = (section: string, operation: string): boolean => 
         return rowSec === targetSec ||
             rowSec === targetSec + 'S' ||
             targetSec === rowSec + 'S' ||
-            (targetSec === 'KYC_REVIEWS' && rowSec === 'KYC') ||
             (targetSec === 'BRANCH_CURRENCY_RATES' && rowSec === 'BRANCH_CURRENCY_RATE') ||
             (targetSec === 'BRANCH_ACCESS_REQUESTS' && rowSec === 'BRANCH_ACCESS') ||
             (targetSec === 'SYSTEM_USERS' && rowSec === 'SYSUSERS') ||
@@ -244,7 +242,6 @@ export function usePagePermissions(section: string) {
                         const match = rowSec === targetSec ||
                             rowSec === targetSec + 'S' ||
                             targetSec === rowSec + 'S' ||
-                            (targetSec === 'KYC_REVIEWS' && rowSec === 'KYC') ||
                             (targetSec === 'BRANCH_CURRENCY_RATES' && rowSec === 'BRANCH_CURRENCY_RATE') ||
                             (targetSec === 'BRANCH_ACCESS_REQUESTS' && rowSec === 'BRANCH_ACCESS') ||
                             (targetSec === 'SYSTEM_USERS' && rowSec === 'SYSUSERS') ||

@@ -96,6 +96,18 @@ export default function AdminLoginPage() {
 
       const data = await response.json();
 
+      if (response.status === 409) {
+        setConfirmModal({
+          isOpen: true,
+          title: 'Active Session Warning',
+          message: data?.message || 'You are already logged in and active in another session.',
+          type: 'warning',
+          isAlert: true
+        });
+        setLoading(false);
+        return;
+      }
+
       if (response.status === 202 && data.require_2fa) {
         setRequire2FA(true);
         setTwofaEmail(data.email || identifier);
@@ -162,6 +174,18 @@ export default function AdminLoginPage() {
       });
 
       const data = await response.json();
+
+      if (response.status === 409) {
+        setConfirmModal({
+          isOpen: true,
+          title: 'Active Session Warning',
+          message: data?.message || 'You are already logged in and active in another session.',
+          type: 'warning',
+          isAlert: true
+        });
+        setLoading(false);
+        return;
+      }
 
       if (response.ok) {
         setStoredUser(data.user, true);

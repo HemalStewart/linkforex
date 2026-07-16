@@ -83,6 +83,97 @@ interface NavItem {
     sections?: string[];
 }
 
+const ADMIN_ROUTE_NAMES: Record<string, string> = {
+    '/admin/login': 'Login',
+    '/admin/forgot-password': 'Forgot Password',
+    '/admin/profile': 'Profile',
+    '/admin/dashboard': 'Dashboard',
+    '/admin/transfers': 'Transfers',
+    '/admin/remitters': 'Remitters',
+    '/admin/receivers': 'Receivers',
+    '/admin/branch-access': 'Branch Access Flags',
+    '/admin/support': 'Support',
+    '/admin/branch-rates': 'Branch Rates',
+    '/admin/branch-currency-rates': 'Branch Currency Rates',
+    '/admin/branches': 'Branches',
+    '/admin/transaction-settings': 'Transaction Settings',
+    '/admin/api-tokens': 'API Tokens',
+    '/admin/dilisense-sources': 'Dilisense Sources',
+    '/admin/reports': 'Reports',
+    '/admin/mobile-users/control/overview': 'Mobile Overview',
+    '/admin/mobile-profiles': 'Mobile Profiles',
+    '/admin/mobile-users/control/app-flow-settings': 'App Flow Settings',
+    '/admin/mobile-users/control/exchange-rates': 'Customer Digital Rates',
+    '/admin/mobile-users/control/user-rates': 'User Rates',
+    '/admin/mobile-users/control/profile-review-queue': 'Profile Review Queue',
+    '/admin/mobile-users/control/campaigns': 'Campaigns',
+    '/admin/mobile-users/control/in-app-ads': 'Onboarding & Carousel',
+    '/admin/countries': 'Countries',
+    '/admin/banks': 'Banks',
+    '/admin/relationships': 'Relationships',
+    '/admin/purposes': 'Purposes',
+    '/admin/roles': 'Role',
+    '/admin/permission-groups': 'Role Permissions',
+    '/admin/users': 'Users',
+    '/admin/logs': 'User Logs',
+    '/admin/settings': 'Settings',
+    '/admin/beneficiaries': 'Beneficiaries',
+    '/admin/mobile-users': 'Mobile Users',
+};
+
+const getPageTitleFromPath = (path: string): string => {
+    if (ADMIN_ROUTE_NAMES[path]) {
+        return ADMIN_ROUTE_NAMES[path];
+    }
+    
+    const sortedRoutes = Object.keys(ADMIN_ROUTE_NAMES).sort((a, b) => b.length - a.length);
+    const segments = path.split('/').filter(Boolean);
+    const isCreate = segments.includes('create');
+    const isEdit = segments.includes('edit');
+    
+    if (segments.length > 2 && segments[0] === 'admin') {
+        const modulePath = `/admin/${segments[1]}`;
+        const baseName = ADMIN_ROUTE_NAMES[modulePath] || 
+            segments[1]
+                .split(/[-_]/)
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+                
+        let singularBaseName = baseName;
+        if (baseName.endsWith('ies')) {
+            singularBaseName = baseName.slice(0, -3) + 'y';
+        } else if (baseName.endsWith('s') && !baseName.endsWith('access')) {
+            singularBaseName = baseName.slice(0, -1);
+        }
+
+        if (isCreate) {
+            return `Create ${singularBaseName}`;
+        }
+        if (isEdit) {
+            return `Edit ${singularBaseName}`;
+        }
+        if (segments[segments.length - 1] !== segments[1]) {
+            return `${singularBaseName} Details`;
+        }
+    }
+    
+    for (const route of sortedRoutes) {
+        if (path.startsWith(route)) {
+            return ADMIN_ROUTE_NAMES[route];
+        }
+    }
+    
+    if (segments.length > 0) {
+        const lastSegment = segments[segments.length - 1];
+        return lastSegment
+            .split(/[-_]/)
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    }
+    
+    return '';
+};
+
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const { canAdd } = usePagePermissions('TRANSFERS');
     const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -179,7 +270,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         roles: 0,
         permissionGroups: 0,
         branchAccessFlags: 0,
-        kyc: 0,
         supportOpen: 0
     });
     const [countsRefreshNonce, setCountsRefreshNonce] = useState(0);
@@ -203,6 +293,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const isLoginPage = pathname.startsWith('/admin/login');
     const isForgotPasswordPage = pathname.startsWith('/admin/forgot-password');
     const isPublicPage = isLoginPage || isForgotPasswordPage;
+
+    // Dynamically update document title on pathname change
+    React.useEffect(() => {
+        const pageName = getPageTitleFromPath(pathname);
+        if (pageName) {
+            document.title = `${pageName} | LinkForex Admin`;
+        } else {
+            document.title = 'LinkForex Admin';
+        }
+    }, [pathname]);
 
     // Disable browser autofill/autocomplete across all inputs on page change and DOM updates
     React.useEffect(() => {
@@ -342,15 +442,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     return 0;
                 };
 
-                // For KYC, we need to filter remitters
-                let kycCount = 0;
-                if (rRes.status === 'fulfilled' && Array.isArray(rRes.value)) {
-                    kycCount = rRes.value.filter((r: unknown) => {
-                        if (!r || typeof r !== 'object') return false;
-                        return (r as { kyc_status?: string }).kyc_status === 'pending';
-                    }).length;
-                }
-
                 setCounts({
                     transfers: getCount(tRes),
                     remitters: getCount(rRes),
@@ -365,7 +456,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     roles: getCount(roRes),
                     permissionGroups: getCount(pgRes),
                     branchAccessFlags: getCount(baRes),
-                    kyc: kycCount,
                     supportOpen: getCount(supportOpenRes),
                 });
 
@@ -950,6 +1040,28 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         registerTab();
         const tabHeartbeat = setInterval(registerTab, 10000);
 
+        const sendBackendHeartbeat = async () => {
+            const sessionToken = getStoredAdminSessionToken();
+            if (!sessionToken) return;
+
+            try {
+                const rawFetch = originalFetchRef.current || window.fetch.bind(window);
+                await rawFetch(ENDPOINTS.LOGS.HEARTBEAT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${sessionToken}`
+                    }
+                });
+            } catch (err) {
+                // ignore
+            }
+        };
+
+        // Send backend heartbeat every 30 seconds
+        sendBackendHeartbeat();
+        const backendHeartbeat = setInterval(sendBackendHeartbeat, 30000);
+
         window.addEventListener('visibilitychange', registerTab);
         window.addEventListener('focus', registerTab);
 
@@ -995,6 +1107,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         return () => {
             if (timer) clearTimeout(timer);
             clearInterval(tabHeartbeat);
+            clearInterval(backendHeartbeat);
             window.removeEventListener('visibilitychange', registerTab);
             window.removeEventListener('focus', registerTab);
             activityEvents.forEach((event) => window.removeEventListener(event, resetTimer));
@@ -1057,7 +1170,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 { name: 'Transfers', href: '/admin/transfers', icon: <ArrowRightLeft className="w-4 h-4" />, sections: ['MONEY_CHANGER', 'TELEX_TRANSFER', 'ACCOUNT_TRANSACTIONS', 'TRANSFERS'] },
                 { name: 'Remitters', href: '/admin/remitters', icon: <Users className="w-4 h-4" />, sections: ['SENDER_DETAILS', 'CUSTOMER', 'REMITTERS'] },
                 { name: 'Receivers', href: '/admin/receivers', icon: <UserCheck className="w-4 h-4" />, sections: ['RECEIVER_DETAILS', 'BENEFICIARIES', 'CUSTOMER', 'RECEIVERS'] },
-                { name: 'KYC Reviews', href: '/admin/kyc', badge: counts.kyc > 0 ? counts.kyc.toString() : undefined, icon: <ShieldCheck className="w-4 h-4" />, sections: ['KYC_REVIEWS'] },
                 { name: 'Branch Access Flags', href: '/admin/branch-access', badge: counts.branchAccessFlags > 0 ? counts.branchAccessFlags.toString() : undefined, icon: <AlertTriangle className="w-4 h-4" />, sections: ['BRANCH_ACCESS_REQUESTS'] },
                 { name: 'Support', href: '/admin/support', icon: <MessageCircle className="w-4 h-4" />, badge: counts.supportOpen > 0 ? counts.supportOpen.toString() : undefined, sections: ['SUPPORT'] },
                 { name: 'Branch Rates', href: '/admin/branch-rates', icon: <Coins className="w-4 h-4" />, sections: ['BRANCH_CURRENCY_RATE', 'BRANCH_CURRENCY_RATES', 'MOBILE_EXCHANGE_RATES', 'MOBILE_APP_FLOW_SETTINGS'] },

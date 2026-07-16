@@ -768,7 +768,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="grid gap-6 xl:grid-cols-3">
-                <div className="card-glass p-6">
+                <div className={`card-glass p-6 ${canViewKyc ? '' : 'xl:col-span-3'}`}>
                     <h2 className="text-xl font-extrabold text-gradient-blue tracking-tight">Weekday Activity</h2>
                     <div className="h-[260px] min-h-[260px]">
                         <ResponsiveContainer width="100%" height="100%">
@@ -783,40 +783,42 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                <div className="card-glass p-6 xl:col-span-2">
-                    <h2 className="text-xl font-extrabold text-gradient-blue tracking-tight">KYC Pipeline</h2>
-                    <div className="mt-4 grid gap-4 md:grid-cols-[320px_1fr]">
-                        <div className="relative h-[260px] min-h-[260px] w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie data={kycBreakdown} cx="50%" cy="50%" innerRadius={56} outerRadius={86} paddingAngle={3} dataKey="value">
-                                        {kycBreakdown.map((entry, index) => <Cell key={`kyc-cell-${index}`} fill={entry.color} />)}
-                                    </Pie>
-                                    <Tooltip contentStyle={chartTooltipStyle} itemStyle={{ color: chartPalette.foreground }} labelStyle={{ color: chartPalette.foreground }} />
-                                </PieChart>
-                            </ResponsiveContainer>
-                            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                                <span className="text-3xl font-black text-slate-900 dark:text-white">{customers.length}</span>
-                                <span className="text-xs text-slate-500">Customers</span>
+                {canViewKyc && (
+                    <div className="card-glass p-6 xl:col-span-2">
+                        <h2 className="text-xl font-extrabold text-gradient-blue tracking-tight">KYC Pipeline</h2>
+                        <div className="mt-4 grid gap-4 md:grid-cols-[320px_1fr]">
+                            <div className="relative h-[260px] min-h-[260px] w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie data={kycBreakdown} cx="50%" cy="50%" innerRadius={56} outerRadius={86} paddingAngle={3} dataKey="value">
+                                            {kycBreakdown.map((entry, index) => <Cell key={`kyc-cell-${index}`} fill={entry.color} />)}
+                                        </Pie>
+                                        <Tooltip contentStyle={chartTooltipStyle} itemStyle={{ color: chartPalette.foreground }} labelStyle={{ color: chartPalette.foreground }} />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                                    <span className="text-3xl font-black text-slate-900 dark:text-white">{customers.length}</span>
+                                    <span className="text-xs text-slate-500">Customers</span>
+                                </div>
+                            </div>
+                            <div className="space-y-4">
+                                {kycBreakdown.map((item) => (
+                                    <div key={item.name} className="rounded-xl border border-white/20 bg-white/35 p-3 dark:border-white/10 dark:bg-white/5">
+                                        <div className="mb-2 flex items-center justify-between gap-2">
+                                            <div className="flex items-center gap-2">
+                                                <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{item.name}</span>
+                                            </div>
+                                            <span className="text-sm font-black text-slate-900 dark:text-white">{item.value}</span>
+                                        </div>
+                                        <ProgressBar value={item.share} color={item.color} />
+                                        <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">{item.share.toFixed(1)}% of total customers</div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                        <div className="space-y-4">
-                            {kycBreakdown.map((item) => (
-                                <div key={item.name} className="rounded-xl border border-white/20 bg-white/35 p-3 dark:border-white/10 dark:bg-white/5">
-                                    <div className="mb-2 flex items-center justify-between gap-2">
-                                        <div className="flex items-center gap-2">
-                                            <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                                            <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{item.name}</span>
-                                        </div>
-                                        <span className="text-sm font-black text-slate-900 dark:text-white">{item.value}</span>
-                                    </div>
-                                    <ProgressBar value={item.share} color={item.color} />
-                                    <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">{item.share.toFixed(1)}% of total customers</div>
-                                </div>
-                            ))}
-                        </div>
                     </div>
-                </div>
+                )}
             </div>
         </div>
     );
