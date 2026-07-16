@@ -21,6 +21,15 @@ export const isSuperAdminRole = (role?: string | null): boolean => {
     return normalized === 'super admin' || normalized === 'superadmin' || normalized.includes('super admin');
 };
 
+export const formatAuditUser = (val: string | null | undefined): string => {
+    const trimmed = String(val || '').trim();
+    if (!trimmed || trimmed.toLowerCase() === 'system') {
+        const user = getStoredUser<{ username?: string; name?: string; email?: string }>();
+        return user?.username || user?.name || user?.email || 'Admin';
+    }
+    return trimmed;
+};
+
 export const isPrivilegedUser = (user?: UserPermissionShape | null): boolean => {
     if (!user) return false;
     if (String(user.system_defined || '').toLowerCase() === 'yes') return true;

@@ -10,7 +10,7 @@ import { formatDateTime } from '@/app/lib/dateUtils';
 import Badge from '../components/ui/Badge';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
-import { ADMIN_PAGES_CONFIG, useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
+import { ADMIN_PAGES_CONFIG, useAuditColumns, usePagePermissions, formatAuditUser } from '@/app/lib/permissions';
 
 type PermissionGroupRow = {
     id: number;
@@ -513,7 +513,7 @@ export default function PermissionGroupsPage() {
         if (!searchQuery.trim()) return baseRows;
         const term = searchQuery.trim().toLowerCase();
         return baseRows.filter((row) => {
-            const cbDisplay = String(row.created_by || '').trim().toLowerCase() === 'system' ? 'Admin' : (row.created_by || '');
+            const cbDisplay = formatAuditUser(row.created_by);
             const haystack = [
                 row.role_name,
                 row.page_section,
@@ -601,12 +601,11 @@ export default function PermissionGroupsPage() {
             case 'active':
                 return row.active || '';
             case 'created_by':
-                const cb = row.created_by || '';
-                return String(cb).trim().toLowerCase() === 'system' ? 'Admin' : cb;
+                return formatAuditUser(row.created_by);
             case 'created_at':
                 return new Date(normalizeDate(row.created_at)).getTime() || 0;
             case 'updated_by':
-                return row.updated_by || '';
+                return formatAuditUser(row.updated_by);
             case 'updated_at':
                 return new Date(normalizeDate(row.updated_at)).getTime() || 0;
             default:
@@ -1273,11 +1272,11 @@ export default function PermissionGroupsPage() {
                                                         </td>
                                                         {showCreatedBy && (
                                                             <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">
-                                                                {String(row.created_by || '').trim().toLowerCase() === 'system' ? 'Admin' : (row.created_by || '—')}
+                                                                {formatAuditUser(row.created_by)}
                                                             </td>
                                                         )}
                                                         {showCreatedAt && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{row.created_at ? formatDateTime(row.created_at) : '—'}</td>}
-                                                        {showUpdatedBy && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{row.updated_by || '—'}</td>}
+                                                        {showUpdatedBy && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300">{formatAuditUser(row.updated_by)}</td>}
                                                         {showUpdatedAt && <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 whitespace-nowrap">{row.updated_at ? formatDateTime(row.updated_at) : '—'}</td>}
                                                     </tr>
                                                 ))
