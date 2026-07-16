@@ -298,9 +298,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     React.useEffect(() => {
         const pageName = getPageTitleFromPath(pathname);
         if (pageName) {
-            document.title = `${pageName} | LinkForex Admin`;
+            document.title = `${pageName} | LinkForex`;
         } else {
-            document.title = 'LinkForex Admin';
+            document.title = 'LinkForex';
         }
     }, [pathname]);
 
