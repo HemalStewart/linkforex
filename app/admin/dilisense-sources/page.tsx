@@ -71,7 +71,7 @@ const REGIONS = ['americas', 'emea', 'apac', 'international'];
 export default function DilisenseSourcesPage() {
     const router = useRouter();
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('DILISENSE_SOURCES');
-    const { canAdd, canEdit, canDelete, canEditFuzzySearch, canSyncSources } = usePagePermissions('DILISENSE_SOURCES');
+    const { canEdit, canDelete, canEditFuzzySearch, canSyncSources } = usePagePermissions('DILISENSE_SOURCES');
     const actingUser = useMemo(() => getStoredUser<{ id?: string | number; username?: string; name?: string }>(), []);
     const [rows, setRows] = useState<DilisenseSourceRow[]>([]);
     const [loading, setLoading] = useState(true);
@@ -472,16 +472,7 @@ export default function DilisenseSourcesPage() {
                             </span>
                         </button>
                     )}
-                    {canAdd && (
-                        <button
-                            onClick={openCreateModal}
-                            disabled={syncing || loading}
-                            className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 disabled:opacity-50"
-                        >
-                            <PlusCircle className="w-5 h-5" />
-                            <span>Add New</span>
-                        </button>
-                    )}
+
                 </div>
             </div>
 
@@ -748,131 +739,7 @@ export default function DilisenseSourcesPage() {
                 />
             </div>
 
-            {/* Create/Edit Modal */}
-            <Modal
-                isOpen={modalOpen}
-                title={editingId ? 'Edit Dilisense Source' : 'Add Dilisense Source'}
-                onClose={() => setModalOpen(false)}
-            >
-                <form className="space-y-4 max-h-[80vh] overflow-y-auto pr-2" onSubmit={handleSubmit}>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">Source Code *</label>
-                            <input
-                                className="input-glass w-full"
-                                value={form.dilisense_source}
-                                onChange={(event) => setForm((prev) => ({ ...prev, dilisense_source: event.target.value }))}
-                                placeholder="e.g. us_ofac"
-                                required
-                                disabled={editingId !== null}
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">Source Name *</label>
-                            <input
-                                className="input-glass w-full"
-                                value={form.dilisense_name}
-                                onChange={(event) => setForm((prev) => ({ ...prev, dilisense_name: event.target.value }))}
-                                placeholder="e.g. OFAC Sanctions"
-                                required
-                            />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">Description</label>
-                        <textarea
-                            className="input-glass w-full min-h-[80px]"
-                            value={form.dilisense_description}
-                            onChange={(event) => setForm((prev) => ({ ...prev, dilisense_description: event.target.value }))}
-                            placeholder="Brief details about this watchlist..."
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">Source Link / URL</label>
-                        <input
-                            type="url"
-                            className="input-glass w-full"
-                            value={form.dilisense_link}
-                            onChange={(event) => setForm((prev) => ({ ...prev, dilisense_link: event.target.value }))}
-                            placeholder="https://example.com/sanctions"
-                        />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">Source Type</label>
-                            <select
-                                className="input-glass w-full"
-                                value={form.dilisense_source_type}
-                                onChange={(event) => setForm((prev) => ({ ...prev, dilisense_source_type: event.target.value }))}
-                            >
-                                {SOURCE_TYPES.map(type => (
-                                    <option key={type} value={type}>{type.toUpperCase()}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">Region</label>
-                            <select
-                                className="input-glass w-full"
-                                value={form.dilisense_region}
-                                onChange={(event) => setForm((prev) => ({ ...prev, dilisense_region: event.target.value }))}
-                            >
-                                {REGIONS.map(region => (
-                                    <option key={region} value={region}>{region.toUpperCase()}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">Country Code (2-chars)</label>
-                            <input
-                                className="input-glass w-full"
-                                value={form.dilisense_country_code}
-                                onChange={(event) => setForm((prev) => ({ ...prev, dilisense_country_code: event.target.value }))}
-                                placeholder="e.g. us"
-                                maxLength={2}
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">Country Name</label>
-                            <input
-                                className="input-glass w-full"
-                                value={form.dilisense_country_name}
-                                onChange={(event) => setForm((prev) => ({ ...prev, dilisense_country_name: event.target.value }))}
-                                placeholder="e.g. United States"
-                            />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">Issuer Name</label>
-                        <input
-                            className="input-glass w-full"
-                            value={form.dilisense_issuer_name}
-                            onChange={(event) => setForm((prev) => ({ ...prev, dilisense_issuer_name: event.target.value }))}
-                            placeholder="e.g. US Department of the Treasury"
-                        />
-                    </div>
-                    <div>
-                        <ToggleSwitch
-                            label="Active"
-                            value={form.dilisense_status === 1 ? 'yes' : 'no'}
-                            onChange={(val) => setForm((prev) => ({ ...prev, dilisense_status: val === 'yes' ? 1 : 0 }))}
-                            disabled={!canEdit}
-                        />
-                    </div>
-                    <div className="dialog-actions mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
-                        <button type="button" className="btn-secondary text-sm" onClick={() => setModalOpen(false)}>Cancel</button>
-                        <button type="submit" className="btn-primary glass-effect hover-lift text-sm disabled:opacity-60" disabled={submitting}>
-                            {submitting ? (
-                                <span className="flex items-center gap-2"><Save className="w-4 h-4" /> Saving…</span>
-                            ) : (
-                                <span className="flex items-center gap-2"><Save className="w-4 h-4" /> Save</span>
-                            )}
-                        </button>
-                    </div>
-                </form>
-            </Modal>
+
 
             {/* View Details Modal */}
             <Modal
