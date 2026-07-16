@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useRowsPerPage } from '@/app/lib/uiPreferences';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
@@ -68,6 +69,7 @@ const SOURCE_TYPES = ['sanction', 'pep', 'criminal', 'other'];
 const REGIONS = ['americas', 'emea', 'apac', 'international'];
 
 export default function DilisenseSourcesPage() {
+    const router = useRouter();
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('DILISENSE_SOURCES');
     const { canAdd, canEdit, canDelete, canEditFuzzySearch, canSyncSources } = usePagePermissions('DILISENSE_SOURCES');
     const actingUser = useMemo(() => getStoredUser<{ id?: string | number; username?: string; name?: string }>(), []);
@@ -305,21 +307,7 @@ export default function DilisenseSourcesPage() {
     };
 
     const openEditModal = (row: DilisenseSourceRow) => {
-        setEditingId(row.id);
-        setForm({
-            dilisense_source: String(row.dilisense_source || ''),
-            dilisense_name: String(row.dilisense_name || ''),
-            dilisense_description: String(row.dilisense_description || ''),
-            dilisense_link: String(row.dilisense_link || ''),
-            dilisense_source_type: String(row.dilisense_source_type || 'sanction'),
-            dilisense_region: String(row.dilisense_region || 'international'),
-            dilisense_country_code: String(row.dilisense_country_code || ''),
-            dilisense_country_name: String(row.dilisense_country_name || ''),
-            dilisense_issuer_name: String(row.dilisense_issuer_name || ''),
-            dilisense_size: Number(row.dilisense_size || 0),
-            dilisense_status: Number(row.dilisense_status ?? 1),
-        });
-        setModalOpen(true);
+        router.push(`/admin/dilisense-sources/${row.id}`);
     };
 
     const handleSubmit = async (event: React.FormEvent) => {
