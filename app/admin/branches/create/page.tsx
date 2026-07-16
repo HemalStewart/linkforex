@@ -324,10 +324,10 @@ export default function CreateBranchPage() {
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                         <TextField label="Branch Name" value={formData.name} onChange={(value) => updateField('name', value)} placeholder="Enter branch name" icon={<Store className="h-5 w-5" />} required />
                         <TextField label="Building Number" value={formData.building_number} onChange={(value) => updateField('building_number', value)} placeholder="Enter building number" icon={<Building className="h-5 w-5" />} />
-                        <TextField label="Address" value={formData.address_line_1} onChange={(value) => updateField('address_line_1', value)} placeholder="Enter branch address" icon={<MapPin className="h-5 w-5" />} />
-                        <TextField label="City" value={formData.city} onChange={(value) => updateField('city', value)} placeholder="Enter city" icon={<Building className="h-5 w-5" />} />
-                        <TextField label="Post Code" value={formData.postcode} onChange={(value) => updateField('postcode', value)} placeholder="Enter post code" icon={<MapPin className="h-5 w-5" />} />
-                        <SelectField label="Country" value={formData.country} onChange={(value) => updateField('country', value)} icon={<Flag className="h-5 w-5" />}>
+                        <TextField label="Address" value={formData.address_line_1} onChange={(value) => updateField('address_line_1', value)} placeholder="Enter branch address" icon={<MapPin className="h-5 w-5" />} required />
+                        <TextField label="City" value={formData.city} onChange={(value) => updateField('city', value)} placeholder="Enter city" icon={<Building className="h-5 w-5" />} required />
+                        <TextField label="Post Code" value={formData.postcode} onChange={(value) => updateField('postcode', value)} placeholder="Enter post code" icon={<MapPin className="h-5 w-5" />} required />
+                        <SelectField label="Country" value={formData.country} onChange={(value) => updateField('country', value)} icon={<Flag className="h-5 w-5" />} required>
                             <option value="">Select country</option>
                             {countryOptions.map((country) => (
                                 <option key={country} value={country}>
@@ -340,7 +340,7 @@ export default function CreateBranchPage() {
 
                 <SectionCard title="Contact Section" description="Primary and secondary contact details for this branch.">
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                        <TextField label="Primary Contact" value={formData.telephone_1} onChange={(value) => updateField('telephone_1', value)} placeholder="Enter primary contact number" icon={<Phone className="h-5 w-5" />} />
+                        <TextField label="Primary Contact" value={formData.telephone_1} onChange={(value) => updateField('telephone_1', value)} placeholder="Enter primary contact number" icon={<Phone className="h-5 w-5" />} required />
                         <TextField label="Secondary Contact" value={formData.telephone_2} onChange={(value) => updateField('telephone_2', value)} placeholder="Enter secondary contact number" icon={<Phone className="h-5 w-5" />} />
                         <TextField label="Primary Fax" value={formData.fax_1} onChange={(value) => updateField('fax_1', value)} placeholder="Enter primary fax" icon={<Printer className="h-5 w-5" />} />
                         <TextField label="Secondary Fax" value={formData.fax_2} onChange={(value) => updateField('fax_2', value)} placeholder="Enter secondary fax" icon={<Printer className="h-5 w-5" />} />
