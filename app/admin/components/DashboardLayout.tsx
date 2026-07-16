@@ -177,6 +177,7 @@ const getPageTitleFromPath = (path: string): string => {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const { canAdd } = usePagePermissions('TRANSFERS');
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [globalSearch, setGlobalSearch] = useState('');
     const [notificationMenuOpen, setNotificationMenuOpen] = useState(false);
     const [themeMenuOpen, setThemeMenuOpen] = useState(false);
     const [themePreference, setThemePreference] = useState<ThemePreference>('system');
@@ -1390,6 +1391,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                 type="text"
                                 placeholder="Search everything..."
                                 className="input-glass w-full pr-4 py-2.5 text-sm transition-all duration-300"
+                                value={globalSearch}
+                                onChange={(e) => setGlobalSearch(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        router.push(`/admin/transfers?search=${encodeURIComponent(globalSearch)}`);
+                                    }
+                                }}
                             />
                         </div>
                     </div>

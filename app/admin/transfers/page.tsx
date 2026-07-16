@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useRowsPerPage } from '@/app/lib/uiPreferences';
 import Pagination from '../components/ui/Pagination';
 import Link from 'next/link';
@@ -287,12 +288,21 @@ export default function TransfersPage() {
     const [branches, setBranches] = useState<Branch[]>([]);
     const [users, setUsers] = useState<User[]>([]);
 
+    const searchParams = useSearchParams();
+    const urlQuery = searchParams.get('search') || '';
+
     const [filterStatus, setFilterStatus] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [sortKey, setSortKey] = useState<keyof TransferRow>('invoiceDate');
     const [sortDir, setSortDir] = useState<SortDir>('desc');
     const [rowsPerPage, setRowsPerPage] = useRowsPerPage(10);
     const [page, setPage] = useState(1);
+
+    useEffect(() => {
+        if (urlQuery) {
+            setSearchQuery(urlQuery);
+        }
+    }, [urlQuery]);
     const [signModalOpen, setSignModalOpen] = useState(false);
     const [signingTransferId, setSigningTransferId] = useState<string | null>(null);
     const [signingBusy, setSigningBusy] = useState(false);
@@ -596,6 +606,25 @@ export default function TransfersPage() {
 
         if (!searchQuery.trim()) return statusFiltered;
         const term = searchQuery.toLowerCase().trim();
+
+        if (term.includes(',')) {
+            const terms = term.split(',').map((t) => t.trim()).filter(Boolean);
+            if (terms.length > 0) {
+                return statusFiltered.filter((row) => {
+                    const invoiceNoLower = String(row.invoiceNo || '').toLowerCase();
+                    const rowRefLower = String(row.rowRef || '').toLowerCase();
+                    const transactionIdLower = String(row.transactionId || '').toLowerCase();
+                    const idLower = String(row.id || '').toLowerCase();
+
+                    return terms.some((t) =>
+                        invoiceNoLower.includes(t) ||
+                        rowRefLower.includes(t) ||
+                        transactionIdLower.includes(t) ||
+                        idLower.includes(t)
+                    );
+                });
+            }
+        }
 
         return statusFiltered.filter((row) => {
             const text = Object.values(row)
