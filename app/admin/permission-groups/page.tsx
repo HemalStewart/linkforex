@@ -571,7 +571,7 @@ export default function PermissionGroupsPage() {
     const filtered = useMemo(() => {
         const normalizedRoleFilter = roleFilter.trim().toLowerCase();
         return searched.filter((row) => {
-            if (normalizedRoleFilter && !(row.role_name || '').toLowerCase().includes(normalizedRoleFilter)) return false;
+            if (normalizedRoleFilter && String(row.role_name || '').trim().toLowerCase() !== normalizedRoleFilter) return false;
 
             if (pageSectionFilter !== 'all') {
                 const rowPageName = getPageNameFromSection(row.page_section);
