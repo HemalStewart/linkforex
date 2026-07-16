@@ -1167,6 +1167,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             name: 'Operations',
             icon: <Layers className="w-5 h-5" />,
             children: [
+                ...(canAdd ? [{ name: 'New Transfer', href: '/admin/transfers/create', icon: <PlusCircle className="w-4 h-4" />, sections: ['TRANSFERS'] }] : []),
                 { name: 'Transfers', href: '/admin/transfers', icon: <ArrowRightLeft className="w-4 h-4" />, sections: ['MONEY_CHANGER', 'TELEX_TRANSFER', 'ACCOUNT_TRANSACTIONS', 'TRANSFERS'] },
                 { name: 'Remitters', href: '/admin/remitters', icon: <Users className="w-4 h-4" />, sections: ['SENDER_DETAILS', 'CUSTOMER', 'REMITTERS'] },
                 { name: 'Receivers', href: '/admin/receivers', icon: <UserCheck className="w-4 h-4" />, sections: ['RECEIVER_DETAILS', 'BENEFICIARIES', 'CUSTOMER', 'RECEIVERS'] },
