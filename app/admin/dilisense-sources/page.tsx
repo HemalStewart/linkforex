@@ -69,7 +69,7 @@ const REGIONS = ['americas', 'emea', 'apac', 'international'];
 
 export default function DilisenseSourcesPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('DILISENSE_SOURCES');
-    const { canAdd, canEdit, canDelete, canEditFuzzySearch } = usePagePermissions('DILISENSE_SOURCES');
+    const { canAdd, canEdit, canDelete, canEditFuzzySearch, canSyncSources } = usePagePermissions('DILISENSE_SOURCES');
     const actingUser = useMemo(() => getStoredUser<{ id?: string | number; username?: string; name?: string }>(), []);
     const [rows, setRows] = useState<DilisenseSourceRow[]>([]);
     const [loading, setLoading] = useState(true);
@@ -461,16 +461,18 @@ export default function DilisenseSourcesPage() {
                     </p>
                 </div>
                 <div className="flex items-center space-x-3">
-                    <button
-                        onClick={handleSync}
-                        disabled={syncing || loading}
-                        className="px-5 py-3 rounded-2xl border-0 glass-effect text-teal-700 dark:text-teal-300 font-bold hover:shadow-lg transition-all group disabled:opacity-50"
-                    >
-                        <span className="flex items-center space-x-2">
-                            <RefreshCw className={`w-5 h-5 group-hover:spin-slow ${syncing ? 'animate-spin' : ''}`} />
-                            <span>{syncing ? 'Syncing...' : 'Sync Dilisense Sources'}</span>
-                        </span>
-                    </button>
+                    {canSyncSources && (
+                        <button
+                            onClick={handleSync}
+                            disabled={syncing || loading}
+                            className="px-5 py-3 rounded-2xl border-0 glass-effect text-teal-700 dark:text-teal-300 font-bold hover:shadow-lg transition-all group disabled:opacity-50"
+                        >
+                            <span className="flex items-center space-x-2">
+                                <RefreshCw className={`w-5 h-5 group-hover:spin-slow ${syncing ? 'animate-spin' : ''}`} />
+                                <span>{syncing ? 'Syncing...' : 'Sync Dilisense Sources'}</span>
+                            </span>
+                        </button>
+                    )}
                     {canAdd && (
                         <button
                             onClick={openCreateModal}
@@ -485,60 +487,62 @@ export default function DilisenseSourcesPage() {
             </div>
 
             {/* Fuzzy Search Setting Card */}
-            <div className="card-glass p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="max-w-2xl">
-                    <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <SlidersHorizontal className="w-5 h-5 text-teal-500" />
-                        <span>Fuzzy Search Setting</span>
-                    </h2>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
-                        This parameter defines if spelling differences need to be considered for the search string (e.g. if 'Angelo' should be matched in case 'Angela' has been provided). The example signifies a search distance of '1'. Available search distances are '1' and '2'.
-                    </p>
-                </div>
-                <div className="flex items-center gap-3 self-end md:self-center">
-                    {loadingFuzzy ? (
-                        <div className="flex items-center space-x-2 text-slate-400 text-sm py-2 px-4">
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            <span>Loading settings...</span>
-                        </div>
-                    ) : (
-                        <>
-                            <select
-                                value={fuzzySetting === null ? '' : fuzzySetting}
-                                onChange={(e) => {
-                                    const val = e.target.value;
-                                    setFuzzySetting(val === '' ? null : Number(val));
-                                }}
-                                disabled={savingFuzzy || !canEditFuzzySearch}
-                                className="input-glass text-sm min-w-[120px]"
-                            >
-                                <option value="">--</option>
-                                <option value={1}>1</option>
-                                <option value={2}>2</option>
-                            </select>
-                            {canEditFuzzySearch && (
-                                <button
-                                    onClick={saveFuzzySetting}
-                                    disabled={savingFuzzy}
-                                    className="btn-primary flex items-center space-x-2 bg-gradient-to-r from-teal-500 to-teal-600 border-0 text-sm whitespace-nowrap"
+            {canEditFuzzySearch && (
+                <div className="card-glass p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="max-w-2xl">
+                        <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <SlidersHorizontal className="w-5 h-5 text-teal-500" />
+                            <span>Fuzzy Search Setting</span>
+                        </h2>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
+                            This parameter defines if spelling differences need to be considered for the search string (e.g. if 'Angelo' should be matched in case 'Angela' has been provided). The example signifies a search distance of '1'. Available search distances are '1' and '2'.
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-3 self-end md:self-center">
+                        {loadingFuzzy ? (
+                            <div className="flex items-center space-x-2 text-slate-400 text-sm py-2 px-4">
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <span>Loading settings...</span>
+                            </div>
+                        ) : (
+                            <>
+                                <select
+                                    value={fuzzySetting === null ? '' : fuzzySetting}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setFuzzySetting(val === '' ? null : Number(val));
+                                    }}
+                                    disabled={savingFuzzy || !canEditFuzzySearch}
+                                    className="input-glass text-sm min-w-[120px]"
                                 >
-                                    {savingFuzzy ? (
-                                        <>
-                                            <Loader2 className="w-4 h-4 animate-spin" />
-                                            <span>Saving...</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Save className="w-4 h-4" />
-                                            <span>Save</span>
-                                        </>
-                                    )}
-                                </button>
-                            )}
-                        </>
-                    )}
+                                    <option value="">EXACT MATCH</option>
+                                    <option value={1}>1</option>
+                                    <option value={2}>2</option>
+                                </select>
+                                {canEditFuzzySearch && (
+                                    <button
+                                        onClick={saveFuzzySetting}
+                                        disabled={savingFuzzy}
+                                        className="btn-primary flex items-center space-x-2 bg-gradient-to-r from-teal-500 to-teal-600 border-0 text-sm whitespace-nowrap"
+                                    >
+                                        {savingFuzzy ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                <span>Saving...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Save className="w-4 h-4" />
+                                                <span>Save</span>
+                                            </>
+                                        )}
+                                    </button>
+                                )}
+                            </>
+                        )}
+                    </div>
                 </div>
-            </div>
+            )}
 
             <div className="card-glass p-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
