@@ -259,21 +259,19 @@ export default function BranchesPage() {
             </div>
 
             <div className="card-glass p-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Search</label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left">
-                                <Search className="w-4 h-4" />
-                            </span>
-                            <input
-                                type="text"
-                                placeholder="Search branches"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="input-glass w-full text-sm"
-                            />
-                        </div>
+                <div className="w-full">
+                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Search</label>
+                    <div className="relative input-icon">
+                        <span className="input-icon-left">
+                            <Search className="w-4 h-4" />
+                        </span>
+                        <input
+                            type="text"
+                            placeholder="Search branches"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="input-glass w-full text-sm"
+                        />
                     </div>
                 </div>
             </div>

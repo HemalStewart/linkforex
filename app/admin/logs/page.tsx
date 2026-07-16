@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Activity, AlertCircle, Clock3, Download, FilterX, RefreshCw, Search, ShieldAlert, UserCheck } from 'lucide-react';
+import { Activity, AlertCircle, Clock3, Download, RefreshCw, Search, ShieldAlert, UserCheck } from 'lucide-react';
 import { formatDateTime } from '@/app/lib/dateUtils';
 import { ENDPOINTS } from '@/app/lib/api';
 import { useRowsPerPage } from '@/app/lib/uiPreferences';
@@ -537,11 +537,10 @@ export default function LogsPage() {
                     <div className="xl:col-span-2 flex items-end">
                         <button
                             onClick={resetFilters}
-                            className="w-full glass-effect rounded-xl px-3 py-2.5 text-slate-500 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all inline-flex items-center justify-center"
-                            title="Reset filters"
+                            className="w-full glass-effect rounded-full px-4 py-2.5 text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all inline-flex items-center justify-center font-medium text-sm"
+                            title="Clear all filters"
                         >
-                            <FilterX className="w-4 h-4 mr-2" />
-                            Reset
+                            Clear Filters
                         </button>
                     </div>
                 </div>
