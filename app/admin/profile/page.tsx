@@ -120,6 +120,51 @@ export default function ProfilePage() {
         rowsPerPage: 10,
     });
     const [profile, setProfile] = useState<ProfileData | null>(null);
+    const [branches, setBranches] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchBranches = async () => {
+            try {
+                const res = await fetch(ENDPOINTS.BRANCHES.LIST);
+                if (res.ok) {
+                    const data = await res.json();
+                    setBranches(data);
+                }
+            } catch (err) {
+                console.error('Failed to fetch branches:', err);
+            }
+        };
+        void fetchBranches();
+    }, []);
+
+    const resolvedBranchName = useMemo(() => {
+        const userBranchValue = String(profile?.branch || storedUser?.branch || '').trim();
+        if (!userBranchValue || userBranchValue === '-') return '—';
+
+        if (branches.length > 0) {
+            const found = branches.find((b) => {
+                const bCode = String(b.code || b.transaction_prefix || '').trim().toLowerCase();
+                if (!bCode) return false;
+                return userBranchValue.toLowerCase() === bCode || 
+                       userBranchValue.toLowerCase().startsWith(bCode) || 
+                       bCode.startsWith(userBranchValue.toLowerCase());
+            });
+            if (found) {
+                return found.name;
+            }
+        }
+
+        const upperVal = userBranchValue.toUpperCase();
+        if (upperVal === 'LFX' || upperVal === 'LON001' || upperVal.startsWith('LON')) {
+            return 'London';
+        }
+        if (upperVal === 'BLF' || upperVal === 'MAN001' || upperVal === 'BHM001' || upperVal.startsWith('MAN') || upperVal.startsWith('BHM')) {
+            return 'Birmingham';
+        }
+
+        return userBranchValue;
+    }, [branches, profile?.branch, storedUser?.branch]);
+
     const email = useMemo(() => String(profile?.email || storedUser?.email || '').trim(), [profile, storedUser]);
     const [photoFile, setPhotoFile] = useState<File | null>(null);
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -796,10 +841,10 @@ export default function ProfilePage() {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Branch</label>
+                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Branch Name</label>
                                     <div className="relative input-icon">
                                         <span className="input-icon-left"><Building2 className="w-5 h-5 text-slate-400" /></span>
-                                        <input type="text" readOnly value={toLabel(profile?.branch || storedUser?.branch, '')} className="input-glass w-full opacity-80 cursor-not-allowed" />
+                                        <input type="text" readOnly value={toLabel(resolvedBranchName, '')} className="input-glass w-full opacity-80 cursor-not-allowed" />
                                     </div>
                                 </div>
                             </div>
