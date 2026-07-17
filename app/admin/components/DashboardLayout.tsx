@@ -1316,39 +1316,52 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                     {/* Submenu Items */}
                                     {sidebarOpen && isExpanded && (
                                         <div className="mt-1.5 ml-4 pl-4 border-l border-teal-200/60 dark:border-teal-800/50 space-y-1 animate-slide-down">
-                                            {visibleChildren.map((child) => {
-                                                const href = child.href || '';
-                                                const hashIndex = href.indexOf('#');
-                                                const queryIndex = href.indexOf('?');
-                                                const cutIndex = [hashIndex, queryIndex].filter((value) => value >= 0).sort((a, b) => a - b)[0];
-                                                const basePath = cutIndex !== undefined ? href.slice(0, cutIndex) : href;
-                                                const hash = hashIndex >= 0 ? href.slice(hashIndex) : '';
-                                                const pathMatched = pathname === basePath || pathname.startsWith(`${basePath}/`);
-                                                const isChildItemActive = pathMatched && (!hash || currentHash === hash);
-                                                return (
-                                                    <Link
-                                                        key={child.name}
-                                                        href={child.href!}
-                                                        className={`flex items-center justify-between px-3.5 py-2 rounded-full transition-all duration-300 text-[13px] font-medium ${isChildItemActive
-                                                            ? 'bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-sm shadow-teal-500/30'
-                                                            : 'text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-white/5 hover:text-teal-600 dark:hover:text-teal-300'
-                                                            }`}
-                                                    >
-                                                        <div className="flex items-center space-x-2">
-                                                            {child.icon && <span className="opacity-70">{child.icon}</span>}
-                                                            <span>{child.name}</span>
-                                                        </div>
-                                                        {child.badge && (
-                                                            <span className={`px-2 py-0.5 rounded-full text-xs font-bold shadow-sm ${isChildItemActive
-                                                                ? 'bg-white/20 text-white backdrop-blur-md'
-                                                                : 'bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300'
-                                                                }`}>
-                                                                {child.badge}
-                                                            </span>
-                                                        )}
-                                                    </Link>
-                                                );
-                                            })}
+                                            {(() => {
+                                                const hasExactChildActive = visibleChildren.some(c => {
+                                                    const h = c.href || '';
+                                                    const hashIdx = h.indexOf('#');
+                                                    const queryIdx = h.indexOf('?');
+                                                    const cutIdx = [hashIdx, queryIdx].filter((v) => v >= 0).sort((a, b) => a - b)[0];
+                                                    const bp = cutIdx !== undefined ? h.slice(0, cutIdx) : h;
+                                                    const hs = hashIdx >= 0 ? h.slice(hashIdx) : '';
+                                                    return pathname === bp && (!hs || currentHash === hs);
+                                                });
+                                                return visibleChildren.map((child) => {
+                                                    const href = child.href || '';
+                                                    const hashIndex = href.indexOf('#');
+                                                    const queryIndex = href.indexOf('?');
+                                                    const cutIndex = [hashIndex, queryIndex].filter((value) => value >= 0).sort((a, b) => a - b)[0];
+                                                    const basePath = cutIndex !== undefined ? href.slice(0, cutIndex) : href;
+                                                    const hash = hashIndex >= 0 ? href.slice(hashIndex) : '';
+                                                    const pathMatched = hasExactChildActive
+                                                        ? pathname === basePath
+                                                        : (pathname === basePath || pathname.startsWith(`${basePath}/`));
+                                                    const isChildItemActive = pathMatched && (!hash || currentHash === hash);
+                                                    return (
+                                                        <Link
+                                                            key={child.name}
+                                                            href={child.href!}
+                                                            className={`flex items-center justify-between px-3.5 py-2 rounded-full transition-all duration-300 text-[13px] font-medium ${isChildItemActive
+                                                                ? 'bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-sm shadow-teal-500/30'
+                                                                : 'text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-white/5 hover:text-teal-600 dark:hover:text-teal-300'
+                                                                }`}
+                                                        >
+                                                            <div className="flex items-center space-x-2">
+                                                                {child.icon && <span className="opacity-70">{child.icon}</span>}
+                                                                <span>{child.name}</span>
+                                                            </div>
+                                                            {child.badge && (
+                                                                <span className={`px-2 py-0.5 rounded-full text-xs font-bold shadow-sm ${isChildItemActive
+                                                                    ? 'bg-white/20 text-white backdrop-blur-md'
+                                                                    : 'bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300'
+                                                                    }`}>
+                                                                    {child.badge}
+                                                                </span>
+                                                            )}
+                                                        </Link>
+                                                    );
+                                                });
+                                            })()}
                                         </div>
                                     )}
                                 </div>

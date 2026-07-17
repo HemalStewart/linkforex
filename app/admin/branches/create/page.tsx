@@ -78,7 +78,7 @@ const INITIAL_FORM: BranchFormData = {
 
 function SectionCard({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
     return (
-        <section className="rounded-[28px] border border-white/8 p-6 md:p-7">
+        <section className="rounded-[28px] border border-slate-100/70 bg-slate-50/40 p-6 md:p-7 dark:border-slate-700/50 dark:bg-slate-900/30">
             <div className="mb-5">
                 <h2 className="text-base font-bold text-slate-900 dark:text-white">{title}</h2>
                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-300">{description}</p>

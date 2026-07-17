@@ -91,7 +91,7 @@ const INITIAL_FORM: BranchFormData = {
 
 function SectionCard({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
     return (
-        <section className="rounded-[28px] border border-white/8 bg-slate-950/20 p-6 md:p-7">
+        <section className="rounded-[28px] border border-slate-100/70 bg-slate-50/40 p-6 md:p-7 dark:border-slate-700/50 dark:bg-slate-900/30">
             <div className="mb-5">
                 <h2 className="text-base font-bold text-slate-900 dark:text-white">{title}</h2>
                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-300">{description}</p>
@@ -521,25 +521,27 @@ export default function EditBranchPage() {
                 </div>
             </div>
 
-            <div className="card-glass mb-8 p-6">
-                <div className="mb-4">
-                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">Branch Summary</h2>
-                    <p className="text-xs text-slate-500 dark:text-slate-300">Key details and audit information.</p>
+            {isViewMode && (
+                <div className="card-glass mb-8 p-6">
+                    <div className="mb-4">
+                        <h2 className="text-lg font-bold text-slate-900 dark:text-white">Branch Summary</h2>
+                        <p className="text-xs text-slate-500 dark:text-slate-300">Key details and audit information.</p>
+                    </div>
+                    <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2 lg:grid-cols-3">
+                        {summaryRows.map((row) => (
+                            <div key={row.label} className="rounded-2xl border border-slate-100/70 bg-slate-50/40 px-4 py-3 dark:border-slate-700/50 dark:bg-slate-900/30">
+                                <div className="text-xs font-bold text-slate-500 dark:text-slate-300">{row.label}</div>
+                                <div className={`mt-1 font-semibold text-slate-800 dark:text-slate-100 ${row.nowrap ? 'whitespace-nowrap' : 'break-words'}`}>{row.value || '-'}</div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-                <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2 lg:grid-cols-3">
-                    {summaryRows.map((row) => (
-                        <div key={row.label} className="rounded-2xl border border-slate-100/70 bg-slate-50/40 px-4 py-3 dark:border-slate-700/50 dark:bg-slate-900/30">
-                            <div className="text-xs font-bold text-slate-500 dark:text-slate-300">{row.label}</div>
-                            <div className={`mt-1 font-semibold text-slate-800 dark:text-slate-100 ${row.nowrap ? 'whitespace-nowrap' : 'break-words'}`}>{row.value || '-'}</div>
-                        </div>
-                    ))}
-                </div>
-            </div>
+            )}
 
             <form onSubmit={handleSubmit} className="card-glass relative space-y-6 overflow-hidden p-8">
                 <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-teal-500/5 blur-3xl"></div>
 
-                <fieldset disabled={isReadOnly} className="contents">
+                <fieldset disabled={isReadOnly} className="space-y-6 block">
                     <SectionCard title="Branch Details" description="Core location and branch identity information.">
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <TextField label="Branch Name" value={formData.name} onChange={(value) => updateField('name', value)} placeholder="Enter branch name" icon={<Store className="h-5 w-5" />} required disabled={isReadOnly} />
