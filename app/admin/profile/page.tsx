@@ -851,48 +851,6 @@ export default function ProfilePage() {
                         )}
                     </div>
 
-                    {profile?.twofa_status === 'active' && profile?.twofa_qr_code && (
-                        <div className="card-glass p-8 space-y-6 shadow-md">
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white border-b border-slate-100/60 dark:border-slate-800/40 pb-3 flex items-center gap-2">
-                                <Shield className="w-5 h-5 text-teal-500" />
-                                Two-Factor Authentication Setup
-                            </h3>
-                            <div className="flex flex-col md:flex-row items-center gap-8">
-                                <div className="bg-white p-3 rounded-2xl shadow-inner border border-slate-100/80 dark:bg-slate-800 dark:border-slate-700/50 shrink-0">
-                                    <img
-                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(
-                                            `otpauth://totp/LinkForex:${profile?.email || storedUser?.email || ''}?secret=${profile?.twofa_qr_code || ''}&issuer=LinkForex`
-                                        )}`}
-                                        alt="2FA QR Code"
-                                        width={160}
-                                        height={160}
-                                        className="rounded-lg"
-                                    />
-                                </div>
-                                <div className="space-y-4 flex-1 w-full text-center md:text-left">
-                                    <div>
-                                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                                            Configure Authenticator App
-                                        </p>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                                            Scan the QR code with Google Authenticator, Microsoft Authenticator, Authy, or any other TOTP-compliant authenticator app.
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                                            Manual Setup Code
-                                        </p>
-                                        <div className="mt-1 flex items-center justify-center md:justify-start gap-2">
-                                            <code className="px-3 py-1.5 bg-slate-100 dark:bg-slate-900/60 text-slate-800 dark:text-teal-400 rounded-lg text-sm font-mono font-bold tracking-wider select-all">
-                                                {profile?.twofa_qr_code || '—'}
-                                            </code>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
 
                     {canDisplayPreferences && (
                         <div className="card-glass p-8 space-y-6 shadow-md">
