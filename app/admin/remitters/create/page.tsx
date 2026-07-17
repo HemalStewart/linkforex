@@ -250,7 +250,7 @@ export default function CreateRemitterPage() {
                 if (res.ok) {
                     const data = await res.json();
                     if (Array.isArray(data)) {
-                        const filtered = data.filter((c: any) => 
+                        const filtered = data.filter((c: any) =>
                             String(c.black_list_country || '').toLowerCase() !== 'yes' &&
                             String(c.status || '').toLowerCase() !== 'inactive'
                         );
@@ -733,7 +733,7 @@ export default function CreateRemitterPage() {
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Create New Remitter</h1>
-                        <p className="text-slate-500 dark:text-slate-400 mt-2">Onboard a new customer to the platform.</p>
+                        <p className="text-slate-500 dark:text-slate-400 mt-2">Onboard a new remitter to the platform.</p>
                     </div>
                 </div>
             </div>
@@ -768,25 +768,25 @@ export default function CreateRemitterPage() {
                         Personal Details
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormInput label="Sender ID" name="sender_id" placeholder="Auto-generated" disabled defaultValue={'LF3992'} Icon={CreditCard} />
-                                <FormInput
-                                    label="Full Name"
-                                    name="sender_name"
-                                    placeholder="Full Name"
-                                    required
-                                    Icon={User}
-                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, sender_name: e.target.value }))}
-                                />
-                                <FormInput
-                                    label="Date of Birth"
-                                    name="date_of_birth"
-                                    type="date"
-                                    required
-                                    Icon={Calendar}
-                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, date_of_birth: e.target.value }))}
-                                />
-                                <FormInput label="Place of Birth" name="place_of_birth" placeholder="City, Country" Icon={MapPin} />
-                                <FormInput label="Occupation" name="occupation" placeholder="Occupation" Icon={Briefcase} />
+                        <FormInput label="Remitter ID" name="sender_id" placeholder="Auto-generated" disabled defaultValue={'LF3992'} Icon={CreditCard} />
+                        <FormInput
+                            label="Full Name"
+                            name="sender_name"
+                            placeholder="Full Name"
+                            required
+                            Icon={User}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, sender_name: e.target.value }))}
+                        />
+                        <FormInput
+                            label="Date of Birth"
+                            name="date_of_birth"
+                            type="date"
+                            required
+                            Icon={Calendar}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, date_of_birth: e.target.value }))}
+                        />
+                        <FormInput label="Place of Birth" name="place_of_birth" placeholder="City, Country" Icon={MapPin} />
+                        <FormInput label="Occupation" name="occupation" placeholder="Occupation" Icon={Briefcase} />
                         <FormInput
                             label="Telephone"
                             name="telephone"

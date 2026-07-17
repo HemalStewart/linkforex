@@ -820,7 +820,7 @@ export default function EditRemitterPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                     <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
                         <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Identity</p>
-                        <p className="mt-2 text-sm font-semibold text-slate-900 dark:text-white">Sender Id: {displayText(formData.sender_id)}</p>
+                        <p className="mt-2 text-sm font-semibold text-slate-900 dark:text-white">Remitter ID: {displayText(formData.sender_id)}</p>
                         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">DOB: {displayText(formData.dob)}</p>
                         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Place: {displayText(formData.place_of_birth)}</p>
                     </div>
@@ -940,14 +940,14 @@ export default function EditRemitterPage() {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Sender Id</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Remitter ID</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Tag className="w-5 h-5" /></span>
                             <input className="input-glass w-full" value={formData.sender_id} onChange={(e) => setFormData({ ...formData, sender_id: e.target.value })} />
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Sender Name</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Remitter Name</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><User className="w-5 h-5" /></span>
                             <input className="input-glass w-full" value={formData.sender_name} onChange={(e) => setFormData({ ...formData, sender_name: e.target.value })} />
@@ -1064,7 +1064,7 @@ export default function EditRemitterPage() {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Sender AML Result</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Remitter AML Result</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Shield className="w-5 h-5" /></span>
                             <select
@@ -1111,7 +1111,7 @@ export default function EditRemitterPage() {
                         </div>
                     )}
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Re/screening Sender</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Re/screening Remitter</label>
                         <input className="input-glass w-full" value={formData.rescreening_sender} onChange={(e) => setFormData({ ...formData, rescreening_sender: e.target.value })} />
                     </div>
                     <div className="md:col-span-2">

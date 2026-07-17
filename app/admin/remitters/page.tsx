@@ -482,8 +482,8 @@ export default function RemittersPage() {
     const columns = [
         { key: 'company', label: 'Company' },
         { key: 'branch_name', label: 'Branch' },
-        { key: 'sender_id', label: 'Sender Id' },
-        { key: 'sender_name', label: 'Sender Name' },
+        { key: 'sender_id', label: 'Remitter ID' },
+        { key: 'sender_name', label: 'Remitter Name' },
         { key: 'active', label: 'Active' },
         { key: 'dob', label: 'Date Of Birth' },
         { key: 'place_of_birth', label: 'Place Of Birth' },
@@ -507,9 +507,9 @@ export default function RemittersPage() {
         { key: 'id_copy', label: 'View ID Copy' },
         { key: 'other_doc', label: 'View Other Doc' },
         { key: 'work_related_doc', label: 'View Work related Doc' },
-        { key: 'sender_aml_doc', label: 'Sender AML Document' },
-        { key: 'sender_aml_result', label: 'Sender AML Result' },
-        { key: 'rescreening_sender', label: 'Re/screening Sender' },
+        { key: 'sender_aml_doc', label: 'Remitter AML Document' },
+        { key: 'sender_aml_result', label: 'Remitter AML Result' },
+        { key: 'rescreening_sender', label: 'Re/screening Remitter' },
         ...(showCreatedBy ? [{ key: 'entered_user', label: 'Created By' }] : []),
         ...(showCreatedAt ? [{ key: 'entered_date', label: 'Created At' }] : []),
         ...(showUpdatedBy ? [{ key: 'modified_user', label: 'Updated By' }] : []),
@@ -661,19 +661,9 @@ export default function RemittersPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Remitters</h1>
-                    <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">Manage sender profiles for branch and mobile app</p>
+                    <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">Manage remitter profiles for branch and mobile app</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    {canExport && (
-                        <button
-                            type="button"
-                            onClick={handleExportCsv}
-                            className="btn-primary flex items-center space-x-2 rounded-full px-6 py-2.5 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 border-0 text-white whitespace-nowrap"
-                        >
-                            <Download className="w-5 h-5" />
-                            <span>Export CSV</span>
-                        </button>
-                    )}
                     {canAdd && (
                         <Link href="/admin/remitters/create" className="btn-primary flex items-center space-x-2 rounded-full px-6 py-2.5">
                             <UserPlus className="w-5 h-5" />
