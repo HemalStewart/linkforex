@@ -443,7 +443,7 @@ export default function DilisenseSourcesPage() {
         return <SortIndicator active={sortKey === key} dir={sortDir} className="text-slate-400 dark:text-slate-300" />;
     };
 
-    const baseColSpan = 12;
+    const baseColSpan = 11;
     const dynamicColSpan = baseColSpan +
         (showCreatedBy ? 1 : 0) +
         (showCreatedAt ? 1 : 0) +
@@ -503,11 +503,11 @@ export default function DilisenseSourcesPage() {
                                         setFuzzySetting(val === '' ? null : Number(val));
                                     }}
                                     disabled={savingFuzzy || !canEditFuzzySearch}
-                                    className="input-glass text-sm min-w-[120px]"
+                                    className="input-glass text-sm min-w-[280px]"
                                 >
-                                    <option value="">EXACT MATCH</option>
-                                    <option value={1}>1</option>
-                                    <option value={2}>2</option>
+                                    <option value="">No fuzziness (Exact match)</option>
+                                    <option value={1}>1 - distance 1 (small variations)</option>
+                                    <option value={2}>2 - distance 2 (bigger variations)</option>
                                 </select>
                                 {canEditFuzzySearch && (
                                     <button
@@ -617,12 +617,10 @@ export default function DilisenseSourcesPage() {
                         <thead className="table-head">
                             <tr>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">#</th>
+                                <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Info"><Info className="w-4 h-4 mx-auto text-slate-400" /></th>
                                 {canEdit && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                     <button onClick={() => toggleSort('dilisense_source_type')} className="flex items-center gap-1">Source Type {sortIndicator('dilisense_source_type')}</button>
-                                </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
-                                    <button onClick={() => toggleSort('dilisense_source')} className="flex items-center gap-1">Source Code {sortIndicator('dilisense_source')}</button>
                                 </th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                     <button onClick={() => toggleSort('dilisense_name')} className="flex items-center gap-1">Source Name {sortIndicator('dilisense_name')}</button>
@@ -658,7 +656,6 @@ export default function DilisenseSourcesPage() {
                                         <button onClick={() => toggleSort('modified_date')} className="flex items-center gap-1">Updated At {sortIndicator('modified_date')}</button>
                                     </th>
                                 )}
-                                <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Info"><Info className="w-4 h-4 mx-auto text-slate-400" /></th>
                                 {canDelete && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>}
                             </tr>
                         </thead>
@@ -669,6 +666,15 @@ export default function DilisenseSourcesPage() {
                             {!loading && pagedRows.map((row, idx) => (
                                 <tr key={row.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
                                     <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
+                                    <td className="px-2 py-4 text-center">
+                                        <button
+                                            className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all"
+                                            title="View details"
+                                            onClick={() => setViewRow(row)}
+                                        >
+                                            <Info className="w-5 h-5" />
+                                        </button>
+                                    </td>
                                     {canEdit && (
                                         <td className="px-2 py-4 text-center">
                                             <button
@@ -681,7 +687,6 @@ export default function DilisenseSourcesPage() {
                                         </td>
                                     )}
                                     <td className="px-6 py-4 text-sm text-slate-800 dark:text-slate-100 font-semibold">{row.dilisense_source_type || '—'}</td>
-                                    <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400 font-mono">{row.dilisense_source || '—'}</td>
                                     <td className="px-6 py-4 text-sm font-semibold text-slate-800 dark:text-slate-100 max-w-xs truncate" title={row.dilisense_name || ''}>{row.dilisense_name || '—'}</td>
                                     <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-300">{row.dilisense_size ?? 0}</td>
                                     <td className="px-6 py-4">
@@ -702,15 +707,6 @@ export default function DilisenseSourcesPage() {
                                     {showCreatedAt && <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{row.entered_date ? formatDateTime(row.entered_date) : '—'}</td>}
                                     {showUpdatedBy && <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{row.modified_user || '—'}</td>}
                                     {showUpdatedAt && <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{row.modified_date ? formatDateTime(row.modified_date) : '—'}</td>}
-                                    <td className="px-2 py-4 text-center">
-                                        <button
-                                            className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all"
-                                            title="View details"
-                                            onClick={() => setViewRow(row)}
-                                        >
-                                            <Info className="w-5 h-5" />
-                                        </button>
-                                    </td>
                                     {canDelete && (
                                         <td className="px-2 py-4 text-center">
                                             <button

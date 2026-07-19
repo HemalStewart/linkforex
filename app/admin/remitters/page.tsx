@@ -157,7 +157,6 @@ export default function RemittersPage() {
     const searchedRows = searchQuery.trim()
         ? remitters.filter((r: any) => {
             const haystack = [
-                r.company,
                 r.branch_name,
                 r.sender_id,
                 r.sender_name,
@@ -480,7 +479,6 @@ export default function RemittersPage() {
     };
 
     const columns = [
-        { key: 'company', label: 'Company' },
         { key: 'branch_name', label: 'Branch' },
         { key: 'sender_id', label: 'Remitter ID' },
         { key: 'sender_name', label: 'Remitter Name' },
@@ -689,7 +687,7 @@ export default function RemittersPage() {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Status</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Mobile Status</label>
                         <div className="relative input-icon">
                             <select
                                 className="input-glass w-full appearance-none pr-10 text-sm"
@@ -786,7 +784,6 @@ export default function RemittersPage() {
                                                 </button>
                                             </td>
                                         )}
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.company || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
                                             <div className="flex items-center gap-2">
                                                 <span>{row.branch_name || '-'}</span>
