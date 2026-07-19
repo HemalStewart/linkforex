@@ -24,7 +24,7 @@ const csvEscape = (value: unknown): string => {
 
 export default function RemittersPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('REMITTERS');
-    const { canAdd, canEdit, canDelete, canPdf, canExport, canReScreening, canDeleteComplianceReport } = usePagePermissions('REMITTERS');
+    const { canAdd, canEdit, canDelete, canPdf, canExport, canReScreening, canDeleteComplianceReport, canBatchScreening } = usePagePermissions('REMITTERS');
     const currentUser = useMemo(() => getCurrentAdminUser(), []);
     const [selectedRemitter, setSelectedRemitter] = useState<any | null>(null);
     const [remitters, setRemitters] = useState<any[]>([]);
@@ -103,6 +103,80 @@ export default function RemittersPage() {
             console.error('Failed to fetch fuzzy setting:', error);
         }
         return '';
+    };
+    const [selectedIds, setSelectedIds] = useState<Set<string | number>>(new Set());
+    const [batchRunning, setBatchRunning] = useState(false);
+    const [showBatchConfirm, setShowBatchConfirm] = useState(false);
+
+    const handleToggleSelect = (id: string | number) => {
+        setSelectedIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) {
+                next.delete(id);
+            } else {
+                next.add(id);
+            }
+            return next;
+        });
+    };
+
+    const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.checked) {
+            const ids = pagedRows.map((row: any) => row.id);
+            setSelectedIds(new Set(ids));
+        } else {
+            setSelectedIds(new Set());
+        }
+    };
+
+    const handleRunBatchScreening = async () => {
+        if (selectedIds.size === 0) return;
+        setBatchRunning(true);
+        setShowBatchConfirm(false);
+        try {
+            const res = await fetch(
+                withActingUserParam(
+                    `${process.env.NEXT_PUBLIC_API_BASE_URL || '/api/proxy'}/remitters/batch-dilisense-reports`,
+                    currentUser
+                ),
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids: Array.from(selectedIds) }),
+                }
+            );
+            const data = await res.json().catch(() => ({}));
+            if (res.ok) {
+                setSelectedIds(new Set());
+                fetchRemitters();
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Batch Screening Completed',
+                    message: `Successfully processed batch Dilisense checks for the selected remitters.`,
+                    type: 'success',
+                    isAlert: true,
+                });
+            } else {
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Batch Screening Failed',
+                    message: data?.message || 'Failed to process batch screening.',
+                    type: 'danger',
+                    isAlert: true,
+                });
+            }
+        } catch (error) {
+            console.error('Failed to run batch screening:', error);
+            setConfirmModal({
+                isOpen: true,
+                title: 'Error',
+                message: 'An error occurred while running batch screening.',
+                type: 'danger',
+                isAlert: true,
+            });
+        } finally {
+            setBatchRunning(false);
+        }
     };
 
 
@@ -952,6 +1026,32 @@ export default function RemittersPage() {
                 </div>
             </div>
 
+            {canBatchScreening && selectedIds.size > 0 && (
+                <div className="mb-4 flex items-center justify-between rounded-2xl bg-teal-50/50 p-4 dark:bg-slate-800/80 border border-teal-100/30 dark:border-slate-700 animate-fade-in shadow-md">
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                        {selectedIds.size} {selectedIds.size === 1 ? 'remitter' : 'remitters'} selected
+                    </span>
+                    <button
+                        type="button"
+                        disabled={batchRunning}
+                        onClick={() => setShowBatchConfirm(true)}
+                        className="inline-flex items-center gap-2 rounded-full bg-teal-600 hover:bg-teal-700 px-5 py-2.5 text-xs font-bold text-white transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {batchRunning ? (
+                            <>
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                Processing Batch...
+                            </>
+                        ) : (
+                            <>
+                                <RefreshCcw className="h-3.5 w-3.5" />
+                                Run Batch Dilisense Check
+                            </>
+                        )}
+                    </button>
+                </div>
+            )}
+
             <div className="card-glass overflow-hidden shadow-xl">
                 <div className="px-6 py-4 border-b border-slate-100/70 dark:border-slate-700/60 flex items-center space-x-3">
                     <Users className="w-6 h-6 text-slate-400" />
@@ -968,6 +1068,16 @@ export default function RemittersPage() {
                         <table className="table-shell whitespace-nowrap">
                             <thead className="table-head">
                                 <tr>
+                                    {canBatchScreening && (
+                                        <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-300 w-10">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedIds.size === pagedRows.length && pagedRows.length > 0}
+                                                onChange={handleSelectAll}
+                                                className="rounded border-slate-300 text-teal-600 focus:ring-teal-500 h-4 w-4"
+                                            />
+                                        </th>
+                                    )}
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">No.</th>
                                     {canEdit && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                     {canPdf && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="AML PDF"><FileText className="w-4 h-4 mx-auto text-slate-400" /></th>}
@@ -984,6 +1094,16 @@ export default function RemittersPage() {
                             <tbody className="table-body">
                                 {pagedRows.map((row: any, idx: number) => (
                                     <tr key={row.id} className="hover:bg-teal-50/30 dark:hover:bg-slate-700/30 transition-colors duration-200">
+                                        {canBatchScreening && (
+                                            <td className="px-2 py-4 text-center w-10">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedIds.has(row.id)}
+                                                    onChange={() => handleToggleSelect(row.id)}
+                                                    className="rounded border-slate-300 text-teal-600 focus:ring-teal-500 h-4 w-4"
+                                                />
+                                            </td>
+                                        )}
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
                                         {canEdit && (
                                             <td className="px-2 py-4 text-center">
@@ -1123,6 +1243,35 @@ export default function RemittersPage() {
                     remitterName={String(selectedRemitter.sender_name || '')}
                     veriffSessionId={String(selectedRemitter.veriff_session_id || '')}
                 />
+            )}
+            {showBatchConfirm && (
+                <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-md">
+                    <div className="w-full max-w-md rounded-3xl border border-slate-200/50 bg-white/95 p-6 shadow-2xl dark:border-slate-700/50 dark:bg-slate-900/95 backdrop-blur-lg transform scale-100 transition-all duration-300">
+                        <div className="mb-4 text-center">
+                            <ShieldCheck className="mx-auto h-12 w-12 text-teal-500 mb-3" />
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Confirm Batch Screening</h3>
+                            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                                Are you sure you want to run new Dilisense checks for the {selectedIds.size} selected remitters?
+                            </p>
+                        </div>
+                        <div className="flex gap-3 mt-6">
+                            <button
+                                type="button"
+                                onClick={() => setShowBatchConfirm(false)}
+                                className="w-1/2 rounded-full border border-slate-200 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800 transition"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleRunBatchScreening}
+                                className="w-1/2 rounded-full bg-teal-600 py-2.5 text-xs font-bold text-white hover:bg-teal-700 transition"
+                            >
+                                Confirm
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
