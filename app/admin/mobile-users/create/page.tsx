@@ -104,6 +104,7 @@ export default function CreateRemitterPage() {
     const [activeTab, setActiveTab] = useState('general');
     const [branches, setBranches] = useState<any[]>([]);
     const [relationships, setRelationships] = useState<string[]>(['Family']);
+    const [occupations, setOccupations] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
 
     const [confirmModal, setConfirmModal] = useState({
@@ -152,7 +153,20 @@ export default function CreateRemitterPage() {
                 console.error('Failed to fetch relationships:', error);
             }
         };
+        const fetchOccupations = async () => {
+            try {
+                const res = await fetch(`${ENDPOINTS.OCCUPATIONS.LIST}?active=yes`);
+                if (!res.ok) return;
+                const data = await res.json();
+                if (Array.isArray(data)) {
+                    setOccupations(data.map((o) => String(o?.name || '').trim()).filter(Boolean));
+                }
+            } catch (e) {
+                console.error('Failed to fetch occupations:', e);
+            }
+        };
         fetchRelationships();
+        fetchOccupations();
     }, []);
 
     const addReceiver = () => {
@@ -422,7 +436,7 @@ export default function CreateRemitterPage() {
                                         <FormInput label="Sender Name *" name="sender_name" placeholder="Full Name" required />
                                         <FormInput label="Date of Birth *" name="date_of_birth" type="date" required />
                                         <FormInput label="Place of Birth" name="place_of_birth" placeholder="City, Country" />
-                                        <FormInput label="Occupation" name="occupation" placeholder="Occupation" />
+                                        <FormSelect label="Occupation *" name="occupation" options={occupations} defaultValue={occupations[0]} />
 
                                 <FormInput label="Telephone *" name="telephone" placeholder="Phone number" required />
                             </div>

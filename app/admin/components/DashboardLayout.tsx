@@ -19,6 +19,7 @@ import {
     Settings,
     Shield,
     Building2,
+    Briefcase,
     Database,
     Globe,
     Coins,
@@ -1215,6 +1216,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 { name: 'Banks', href: '/admin/banks', icon: <Building2 className="w-4 h-4" />, sections: ['BANKS'] },
                 { name: 'Relationships', href: '/admin/relationships', icon: <Users className="w-4 h-4" />, sections: ['RELATIONSHIPS'] },
                 { name: 'Purposes', href: '/admin/purposes', icon: <ListChecks className="w-4 h-4" />, sections: ['PURPOSES'] },
+                { name: 'Occupations', href: '/admin/occupations', icon: <Briefcase className="w-4 h-4" />, sections: ['OCCUPATIONS'] },
             ]
         },
         {

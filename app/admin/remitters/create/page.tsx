@@ -234,6 +234,7 @@ export default function CreateRemitterPage() {
 
 
     const [countries, setCountries] = useState<any[]>([]);
+    const [occupations, setOccupations] = useState<any[]>([]);
 
     React.useEffect(() => {
         const fetchBranches = async () => {
@@ -264,8 +265,20 @@ export default function CreateRemitterPage() {
                 console.error("Failed to fetch countries", e);
             }
         };
+        const fetchOccupations = async () => {
+            try {
+                const res = await fetch(`${ENDPOINTS.OCCUPATIONS.LIST}?active=yes`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setOccupations(Array.isArray(data) ? data : []);
+                }
+            } catch (e) {
+                console.error("Failed to fetch occupations", e);
+            }
+        };
         fetchBranches();
         fetchCountries();
+        fetchOccupations();
     }, []);
 
     const countryOptions = React.useMemo<SelectOption[]>(() => {
@@ -274,6 +287,13 @@ export default function CreateRemitterPage() {
             label: c.name,
         }));
     }, [countries]);
+
+    const occupationOptions = React.useMemo<SelectOption[]>(() => {
+        return occupations.map((o: any) => ({
+            value: o.name,
+            label: o.name,
+        }));
+    }, [occupations]);
 
     const branchOptions = React.useMemo<SelectOption[]>(() => {
         const source = branches.length > 0 ? branches : (scopedBranchCode ? [{ code: scopedBranchCode, name: scopedBranchCode }] : []);
@@ -790,7 +810,7 @@ export default function CreateRemitterPage() {
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, date_of_birth: e.target.value }))}
                         />
                         <FormInput label="Place of Birth" name="place_of_birth" placeholder="City, Country" Icon={MapPin} />
-                        <FormInput label="Occupation" name="occupation" placeholder="Occupation" Icon={Briefcase} />
+                        <FormSelect label="Occupation" name="occupation" Icon={Briefcase} options={occupationOptions} required />
                         <FormInput
                             label="Telephone"
                             name="telephone"
@@ -800,7 +820,7 @@ export default function CreateRemitterPage() {
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, telephone: e.target.value }))}
                         />
                         <FormInput
-                            label="Email (Optional)"
+                            label="Email"
                             name="email"
                             type="email"
                             placeholder="Email address"

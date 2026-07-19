@@ -151,6 +151,7 @@ export default function CreateMobileUserRemitterPage() {
     const { canMultiBranch } = usePagePermissions('BRANCHES');
 
     const [branches, setBranches] = useState<any[]>([]);
+    const [occupations, setOccupations] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
 
     const [confirmModal, setConfirmModal] = useState({
@@ -176,8 +177,27 @@ export default function CreateMobileUserRemitterPage() {
                 console.error("Failed to fetch branches", e);
             }
         };
+        const fetchOccupations = async () => {
+            try {
+                const res = await fetch(`${ENDPOINTS.OCCUPATIONS.LIST}?active=yes`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setOccupations(Array.isArray(data) ? data : []);
+                }
+            } catch (e) {
+                console.error("Failed to fetch occupations", e);
+            }
+        };
         fetchBranches();
+        fetchOccupations();
     }, []);
+
+    const occupationOptions = React.useMemo<SelectOption[]>(() => {
+        return occupations.map((o: any) => ({
+            value: o.name,
+            label: o.name,
+        }));
+    }, [occupations]);
 
     const branchOptions = React.useMemo<SelectOption[]>(() => {
         const source = branches.length > 0 ? branches : (scopedBranchCode ? [{ code: scopedBranchCode, name: scopedBranchCode }] : []);
@@ -359,7 +379,7 @@ export default function CreateMobileUserRemitterPage() {
                                 <FormInput label="Full Name" name="sender_name" placeholder="Full Name" required Icon={User} />
                                 <FormInput label="Date of Birth" name="date_of_birth" type="date" required Icon={Calendar} />
                                 <FormInput label="Place of Birth" name="place_of_birth" placeholder="City, Country" Icon={MapPin} />
-                                <FormInput label="Occupation" name="occupation" placeholder="Occupation" Icon={Briefcase} />
+                                <FormSelect label="Occupation" name="occupation" Icon={Briefcase} options={occupationOptions} required />
                         <FormInput label="Telephone" name="telephone" placeholder="Phone number" required Icon={Phone} />
                     </div>
                 </div>

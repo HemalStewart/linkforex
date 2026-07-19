@@ -154,6 +154,7 @@ export default function EditRemitterPage() {
     const [veriffLoading, setVeriffLoading] = useState(false);
     const [showVeriffModal, setShowVeriffModal] = useState(false);
     const [countries, setCountries] = useState<any[]>([]);
+    const [occupations, setOccupations] = useState<any[]>([]);
 
     // Dilisense AML screening states
     const [sanctionReference, setSanctionReference] = useState<string>('');
@@ -251,7 +252,19 @@ export default function EditRemitterPage() {
                 console.error("Failed to fetch countries", e);
             }
         };
+        const fetchOccupations = async () => {
+            try {
+                const res = await fetch(`${ENDPOINTS.OCCUPATIONS.LIST}?active=yes`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setOccupations(Array.isArray(data) ? data : []);
+                }
+            } catch (e) {
+                console.error("Failed to fetch occupations", e);
+            }
+        };
         fetchCountries();
+        fetchOccupations();
     }, []);
 
     const fetchRemitter = async () => {
@@ -1300,7 +1313,18 @@ export default function EditRemitterPage() {
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Occupation</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Briefcase className="w-5 h-5" /></span>
-                            <input className="input-glass w-full" value={formData.occupation} onChange={(e) => setFormData({ ...formData, occupation: e.target.value })} />
+                            <select
+                                required
+                                className="input-glass w-full pr-10 appearance-none cursor-pointer"
+                                value={formData.occupation}
+                                onChange={(e) => setFormData({ ...formData, occupation: e.target.value })}
+                            >
+                                <option value="">Select Occupation...</option>
+                                {occupations.map((o: any) => (
+                                    <option key={o.id} value={o.name}>{o.name}</option>
+                                ))}
+                            </select>
+                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
                         </div>
                     </div>
                     <div>
