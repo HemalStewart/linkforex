@@ -71,8 +71,8 @@ export const ADMIN_PAGES_CONFIG: AdminCategoryInfo[] = [
         category: 'Operations',
         pages: [
             { name: 'Transfers', section: 'TRANSFERS', operations: ['VIEW', 'CREATE', 'EDIT', 'APPROVE', 'CANCEL', 'PDF', 'EXPORT', 'PRINT', 'SIGN', ...AUDIT_OPS] },
-            { name: 'Remitters', section: 'REMITTERS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'PDF', 'EXPORT', 'MANUALLY_PASSED', ...AUDIT_OPS] },
-            { name: 'Receivers', section: 'RECEIVERS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'PDF', 'EXPORT', 'MANUALLY_PASSED', ...AUDIT_OPS] },
+            { name: 'Remitters', section: 'REMITTERS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'PDF', 'EXPORT', 'MANUALLY_PASSED', 'RE_SCREENING', 'DELETE_COMPLIANCE_REPORT', ...AUDIT_OPS] },
+            { name: 'Receivers', section: 'RECEIVERS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'PDF', 'EXPORT', 'MANUALLY_PASSED', 'RE_SCREENING', 'DELETE_COMPLIANCE_REPORT', ...AUDIT_OPS] },
             { name: 'Branch Access Flags', section: 'BRANCH_ACCESS_REQUESTS', operations: ['VIEW', 'APPROVE', 'CANCEL', ...AUDIT_OPS] },
             { name: 'Support', section: 'SUPPORT', operations: ['VIEW', 'EDIT', 'DELETE', ...AUDIT_OPS] },
             { name: 'Branch Rates', section: 'BRANCH_CURRENCY_RATES', operations: ['VIEW', 'CREATE', ...AUDIT_OPS] }
@@ -230,6 +230,8 @@ export function usePagePermissions(section: string) {
         canSyncSources: false,
         canResetPassword: false,
         canDisable: false,
+        canReScreening: false,
+        canDeleteComplianceReport: false,
     });
 
     useEffect(() => {
@@ -243,6 +245,8 @@ export function usePagePermissions(section: string) {
             const hasDisplayPreferences = checkPermission(section, 'DISPLAY_PREFERENCES');
             const hasEditFuzzySearch = checkPermission(section, 'EDIT_FUZZY_SEARCH');
             const hasSyncSources = checkPermission(section, 'SYNC_SOURCES');
+            const hasReScreening = checkPermission(section, 'RE_SCREENING');
+            const hasDeleteComplianceReport = checkPermission(section, 'DELETE_COMPLIANCE_REPORT');
 
             const isOpConfigured = (op: string) => {
                 for (const cat of ADMIN_PAGES_CONFIG) {
@@ -293,6 +297,8 @@ export function usePagePermissions(section: string) {
                 canSyncSources: hasSyncSources,
                 canResetPassword: checkPermission(section, 'RESET_PASSWORD'),
                 canDisable: checkPermission(section, 'DISABLE'),
+                canReScreening: hasReScreening,
+                canDeleteComplianceReport: hasDeleteComplianceReport,
             });
         };
 
