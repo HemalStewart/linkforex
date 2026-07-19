@@ -10,6 +10,8 @@ import { showToast, queueToast } from '@/app/lib/toast';
 import Modal from '../../components/Modal';
 import { resolveUploadsUrl } from '@/app/lib/uploads';
 import { ArrowLeft, User, Mail, Shield, Building, Save, Loader2, ChevronRight, Lock, MapPin, Phone, FileSignature, RotateCcw } from 'lucide-react';
+import { usePagePermissions } from '@/app/lib/permissions';
+import { getCurrentAdminUser, getAdminBranchCode, isPrivilegedAdminUser } from '@/app/lib/adminUserScope';
 
 const generateBase32Secret = (length = 16): string => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
@@ -33,6 +35,11 @@ export default function EditUserPage() {
     const params = useParams();
     const id = params.id as string;
 
+    const { canMultiBranch } = usePagePermissions('BRANCHES');
+    const currentUser = React.useMemo(() => getCurrentAdminUser(), []);
+    const isPrivilegedUser = React.useMemo(() => isPrivilegedAdminUser(currentUser), [currentUser]);
+    const scopedBranchCode = React.useMemo(() => getAdminBranchCode(currentUser), [currentUser]);
+
     const [loading, setLoading] = useState(true);
     const [notFound, setNotFound] = useState(false);
     const [submitting, setSubmitting] = useState(false);
@@ -40,6 +47,12 @@ export default function EditUserPage() {
     const [roles, setRoles] = useState<any[]>([]);
     const [enteredBy, setEnteredBy] = useState('');
     const [showQrModal, setShowQrModal] = useState(false);
+
+    React.useEffect(() => {
+        if (!isPrivilegedUser && !canMultiBranch && scopedBranchCode) {
+            setFormData((prev: any) => ({ ...prev, branch: scopedBranchCode }));
+        }
+    }, [isPrivilegedUser, canMultiBranch, scopedBranchCode]);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -587,7 +600,8 @@ export default function EditUserPage() {
                             </span>
                             <select
                                 required
-                                className="input-glass w-full pr-10 appearance-none cursor-pointer"
+                                disabled={!isPrivilegedUser && !canMultiBranch}
+                                className="input-glass w-full pr-10 appearance-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                                 value={formData.branch}
                                 onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
                             >

@@ -81,7 +81,7 @@ export const ADMIN_PAGES_CONFIG: AdminCategoryInfo[] = [
     {
         category: 'Master Data',
         pages: [
-            { name: 'Branches', section: 'BRANCHES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
+            { name: 'Branches', section: 'BRANCHES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'MULTI_BRANCH', ...AUDIT_OPS] },
             { name: 'Transaction Settings', section: 'TRANSACTION_SETTINGS', operations: ['VIEW', 'EDIT'] },
             { name: 'API Tokens', section: 'API_TOKENS', operations: ['VIEW', 'EDIT'] },
             { name: 'Dilisense Sources', section: 'DILISENSE_SOURCES', operations: ['VIEW', 'EDIT', 'DELETE', 'EDIT_FUZZY_SEARCH', 'SYNC_SOURCES', ...AUDIT_OPS] },
@@ -233,6 +233,7 @@ export function usePagePermissions(section: string) {
         canReScreening: false,
         canDeleteComplianceReport: false,
         canBatchScreening: false,
+        canMultiBranch: false,
     });
 
     useEffect(() => {
@@ -249,6 +250,7 @@ export function usePagePermissions(section: string) {
             const hasReScreening = checkPermission(section, 'RE_SCREENING');
             const hasDeleteComplianceReport = checkPermission(section, 'DELETE_COMPLIANCE_REPORT');
             const hasBatchScreening = checkPermission(section, 'BATCH_SCREENING');
+            const hasMultiBranch = checkPermission(section, 'MULTI_BRANCH');
 
             const isOpConfigured = (op: string) => {
                 for (const cat of ADMIN_PAGES_CONFIG) {
@@ -302,6 +304,7 @@ export function usePagePermissions(section: string) {
                 canReScreening: hasReScreening,
                 canDeleteComplianceReport: hasDeleteComplianceReport,
                 canBatchScreening: hasBatchScreening,
+                canMultiBranch: hasMultiBranch,
             });
         };
 

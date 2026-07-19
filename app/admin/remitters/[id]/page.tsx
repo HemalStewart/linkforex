@@ -35,6 +35,7 @@ import {
     RefreshCcw,
     ExternalLink,
     ChevronDown,
+    ChevronRight,
     ChevronUp,
     ShieldCheck,
     X,
@@ -71,12 +72,36 @@ export default function EditRemitterPage() {
     const isPrivilegedUser = React.useMemo(() => isPrivilegedAdminUser(currentUser), [currentUser]);
     const scopedBranchCode = React.useMemo(() => getAdminBranchCode(currentUser), [currentUser]);
     const { canManuallyPassed, canPdf, canReScreening, canDeleteComplianceReport } = usePagePermissions('REMITTERS');
+    const { canMultiBranch } = usePagePermissions('BRANCHES');
 
     const [loading, setLoading] = useState(true);
     const [notFound, setNotFound] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [initialAmlStatus, setInitialAmlStatus] = useState<string>('pending');
     const [enableAmlOverride, setEnableAmlOverride] = useState<boolean>(false);
+    const [branches, setBranches] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchBranches = async () => {
+            try {
+                const res = await fetch(ENDPOINTS.BRANCHES.LIST);
+                if (res.ok) {
+                    const data = await res.json();
+                    setBranches(Array.isArray(data) ? data : []);
+                }
+            } catch (e) {
+                console.error("Failed to fetch branches", e);
+            }
+        };
+        fetchBranches();
+    }, []);
+
+    useEffect(() => {
+        if (!isPrivilegedUser && !canMultiBranch && scopedBranchCode) {
+            setFormData((prev: any) => ({ ...prev, branch: scopedBranchCode }));
+        }
+    }, [isPrivilegedUser, canMultiBranch, scopedBranchCode]);
+
     const [formData, setFormData] = useState<any>({
         company: '',
         company_name: '',
@@ -1183,7 +1208,21 @@ export default function EditRemitterPage() {
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Branch</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Building className="w-5 h-5" /></span>
-                            <input className="input-glass w-full" value={formData.branch} onChange={(e) => setFormData({ ...formData, branch: e.target.value })} />
+                            <select
+                                required
+                                disabled={!isPrivilegedUser && !canMultiBranch}
+                                className="input-glass w-full pr-10 appearance-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                                value={formData.branch}
+                                onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
+                            >
+                                <option value="">Select Branch...</option>
+                                {branches.map((b: any) => (
+                                    <option key={b.id} value={b.code || b.name}>
+                                        {b.name} ({b.code})
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
                         </div>
                     </div>
                     <div>

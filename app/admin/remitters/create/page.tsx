@@ -18,6 +18,7 @@ import {
     Globe, FileText, Upload, Trash2, Plus, ArrowLeft,
     CheckCircle, Shield, Layers, Save, Users, AlertCircle, RefreshCcw
 } from 'lucide-react';
+import { usePagePermissions } from '@/app/lib/permissions';
 
 type DuplicateMatch = {
     id: number;
@@ -102,7 +103,7 @@ function FormInput({ label, name, type = 'text', placeholder, disabled, step, de
     );
 }
 
-function FormSelect({ label, name, options, defaultValue, Icon, required, value, onChange }: any) {
+function FormSelect({ label, name, options, defaultValue, Icon, required, value, onChange, disabled }: any) {
     return (
         <div className="w-full">
             <label htmlFor={name} className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
@@ -121,7 +122,8 @@ function FormSelect({ label, name, options, defaultValue, Icon, required, value,
                     value={value}
                     onChange={onChange}
                     required={required}
-                    className={`input-glass w-full py-3 ${Icon ? '' : 'pl-4'} pr-10 appearance-none cursor-pointer text-sm`}
+                    disabled={disabled}
+                    className={`input-glass w-full py-3 ${Icon ? '' : 'pl-4'} pr-10 appearance-none cursor-pointer text-sm disabled:opacity-60 disabled:cursor-not-allowed`}
                 >
                     {options.map((opt: SelectOption, index: number) => {
                         const optionValue = typeof opt === 'string' ? opt : opt.value;
@@ -186,6 +188,7 @@ export default function CreateRemitterPage() {
     const currentUser = React.useMemo(() => getCurrentAdminUser(), []);
     const isPrivilegedUser = React.useMemo(() => isPrivilegedAdminUser(currentUser), [currentUser]);
     const scopedBranchCode = React.useMemo(() => getAdminBranchCode(currentUser), [currentUser]);
+    const { canMultiBranch } = usePagePermissions('BRANCHES');
 
     const [branches, setBranches] = useState<any[]>([]);
     const [idType, setIdType] = useState('Passport');
@@ -274,7 +277,7 @@ export default function CreateRemitterPage() {
 
     const branchOptions = React.useMemo<SelectOption[]>(() => {
         const source = branches.length > 0 ? branches : (scopedBranchCode ? [{ code: scopedBranchCode, name: scopedBranchCode }] : []);
-        const scoped = isPrivilegedUser ? source : source.filter((branch) => branchMatchesAdminScope(branch, currentUser));
+        const scoped = (isPrivilegedUser || canMultiBranch) ? source : source.filter((branch) => branchMatchesAdminScope(branch, currentUser));
         const senderBranches = scoped.filter(isSenderBranch);
         const filtered = branches.length > 0 ? senderBranches : scoped;
         const seen = new Set<string>();
@@ -291,7 +294,7 @@ export default function CreateRemitterPage() {
             });
         const sorted = [...options].sort((a, b) => Number(isLondonBranchOption(b)) - Number(isLondonBranchOption(a)));
         return sorted.length > 0 ? sorted : [{ value: 'London - Link Forex Ltd', label: 'London - Link Forex Ltd' }];
-    }, [branches, currentUser, isPrivilegedUser, scopedBranchCode]);
+    }, [branches, currentUser, isPrivilegedUser, scopedBranchCode, canMultiBranch]);
 
     const hasMinimumDuplicateSignals = React.useCallback((signals: typeof duplicateFormSignals): boolean => {
         const rawName = signals.sender_name;
@@ -755,6 +758,7 @@ export default function CreateRemitterPage() {
                                 Icon={Building}
                                 options={branchOptions}
                                 required
+                                disabled={!isPrivilegedUser && !canMultiBranch}
                                 defaultValue={typeof branchOptions[0] === 'string' ? branchOptions[0] : branchOptions[0]?.value}
                             />
                         </div>

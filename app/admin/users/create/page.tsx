@@ -9,12 +9,25 @@ import ConfirmModal from '../../components/ConfirmModal';
 import { validatePassword } from '@/app/lib/validation';
 import { showToast, queueToast } from '@/app/lib/toast';
 import { ArrowLeft, User, Mail, Lock, Shield, Building, Save, MapPin, Phone, FileSignature, ChevronRight, Eye, EyeOff } from 'lucide-react';
+import { usePagePermissions } from '@/app/lib/permissions';
+import { getCurrentAdminUser, getAdminBranchCode, isPrivilegedAdminUser } from '@/app/lib/adminUserScope';
 
 export default function CreateUserPage() {
     const router = useRouter();
 
+    const { canMultiBranch } = usePagePermissions('BRANCHES');
+    const currentUser = React.useMemo(() => getCurrentAdminUser(), []);
+    const isPrivilegedUser = React.useMemo(() => isPrivilegedAdminUser(currentUser), [currentUser]);
+    const scopedBranchCode = React.useMemo(() => getAdminBranchCode(currentUser), [currentUser]);
+
     const [branches, setBranches] = useState<any[]>([]);
     const [roles, setRoles] = useState<any[]>([]);
+
+    React.useEffect(() => {
+        if (!isPrivilegedUser && !canMultiBranch && scopedBranchCode) {
+            setFormData((prev: any) => ({ ...prev, branch: scopedBranchCode }));
+        }
+    }, [isPrivilegedUser, canMultiBranch, scopedBranchCode]);
 
     React.useEffect(() => {
         const fetchData = async () => {
@@ -463,7 +476,8 @@ export default function CreateUserPage() {
               </span>
               <select
                 required
-                className="input-glass w-full pr-10 appearance-none cursor-pointer"
+                disabled={!isPrivilegedUser && !canMultiBranch}
+                className="input-glass w-full pr-10 appearance-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                 value={formData.branch}
                 onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
               >
