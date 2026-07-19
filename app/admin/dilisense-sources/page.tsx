@@ -443,7 +443,7 @@ export default function DilisenseSourcesPage() {
         return <SortIndicator active={sortKey === key} dir={sortDir} className="text-slate-400 dark:text-slate-300" />;
     };
 
-    const baseColSpan = 11;
+    const baseColSpan = 10;
     const dynamicColSpan = baseColSpan +
         (showCreatedBy ? 1 : 0) +
         (showCreatedAt ? 1 : 0) +
@@ -625,7 +625,6 @@ export default function DilisenseSourcesPage() {
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                     <button onClick={() => toggleSort('dilisense_name')} className="flex items-center gap-1">Source Name {sortIndicator('dilisense_name')}</button>
                                 </th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Record Count</th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400">
                                     <button onClick={() => toggleSort('dilisense_status')} className="flex items-center gap-1">Active {sortIndicator('dilisense_status')}</button>
                                 </th>
@@ -688,7 +687,6 @@ export default function DilisenseSourcesPage() {
                                     )}
                                     <td className="px-6 py-4 text-sm text-slate-800 dark:text-slate-100 font-semibold">{row.dilisense_source_type || '—'}</td>
                                     <td className="px-6 py-4 text-sm font-semibold text-slate-800 dark:text-slate-100 max-w-xs truncate" title={row.dilisense_name || ''}>{row.dilisense_name || '—'}</td>
-                                    <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-300">{row.dilisense_size ?? 0}</td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center">
                                             <input
@@ -742,80 +740,94 @@ export default function DilisenseSourcesPage() {
                 isOpen={viewRow !== null}
                 title="Dilisense Source Details"
                 onClose={() => setViewRow(null)}
+                size="lg"
             >
                 {viewRow && (
-                    <div className="space-y-6 max-h-[80vh] overflow-y-auto pr-2">
+                    <div className="space-y-6 max-h-[80vh] overflow-y-auto pr-2 custom-scrollbar">
+                        {/* Header card with name and badges */}
+                        <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/50 space-y-3">
+                            <div>
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500">Source Name</span>
+                                <h3 className="text-base font-extrabold text-slate-900 dark:text-white mt-1 leading-snug">
+                                    {viewRow.dilisense_name}
+                                </h3>
+                            </div>
+                            <div className="flex flex-wrap gap-2 pt-1">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300 border border-teal-100 dark:border-teal-900/50 capitalize">
+                                    {viewRow.dilisense_source_type || 'Unknown Type'}
+                                </span>
+                                <Badge type={Number(viewRow.dilisense_status) === 1 ? 'yes' : 'no'}>
+                                    {Number(viewRow.dilisense_status) === 1 ? 'Active' : 'Inactive'}
+                                </Badge>
+                            </div>
+                        </div>
+
+                        {/* Grid metadata */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <span className="text-xs font-bold text-slate-400">Source Name</span>
-                                <p className="text-base font-bold text-slate-900 dark:text-white mt-0.5">{viewRow.dilisense_name}</p>
+                            <div className="p-4 rounded-xl bg-slate-50/50 dark:bg-slate-800/20 border border-slate-100/50 dark:border-slate-700/30 col-span-1 md:col-span-2">
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500">Source Code</span>
+                                <p className="text-sm font-mono text-slate-700 dark:text-slate-300 mt-1 break-all bg-slate-100/50 dark:bg-slate-900/50 p-2.5 rounded-lg border border-slate-200/50 dark:border-slate-800/50 leading-relaxed">
+                                    {viewRow.dilisense_source}
+                                </p>
                             </div>
-                            <div>
-                                <span className="text-xs font-bold text-slate-400">Source Code</span>
-                                <p className="text-sm font-mono text-slate-700 dark:text-slate-300 mt-0.5">{viewRow.dilisense_source}</p>
+
+                            <div className="p-4 rounded-xl bg-slate-50/50 dark:bg-slate-800/20 border border-slate-100/50 dark:border-slate-700/30">
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500">Region / Continent</span>
+                                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 mt-1 capitalize">{viewRow.dilisense_region || '—'}</p>
                             </div>
-                            <div>
-                                <span className="text-xs font-bold text-slate-400">Source Type</span>
-                                <p className="text-sm text-slate-700 dark:text-slate-300 mt-0.5 capitalize">{viewRow.dilisense_source_type}</p>
+
+                            <div className="p-4 rounded-xl bg-slate-50/50 dark:bg-slate-800/20 border border-slate-100/50 dark:border-slate-700/30">
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500">Country Name</span>
+                                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 mt-1">
+                                    {viewRow.dilisense_country_name || '—'} {viewRow.dilisense_country_code ? `(${viewRow.dilisense_country_code.toUpperCase()})` : ''}
+                                </p>
                             </div>
-                            <div>
-                                <span className="text-xs font-bold text-slate-400">Region / Continent</span>
-                                <p className="text-sm text-slate-700 dark:text-slate-300 mt-0.5 capitalize">{viewRow.dilisense_region}</p>
-                            </div>
-                            <div>
-                                <span className="text-xs font-bold text-slate-400">Country Name</span>
-                                <p className="text-sm text-slate-700 dark:text-slate-300 mt-0.5">{viewRow.dilisense_country_name} ({viewRow.dilisense_country_code?.toUpperCase() || '—'})</p>
-                            </div>
-                            <div>
-                                <span className="text-xs font-bold text-slate-400">Issuer Name</span>
-                                <p className="text-sm text-slate-700 dark:text-slate-300 mt-0.5">{viewRow.dilisense_issuer_name || '—'}</p>
-                            </div>
-                            <div>
-                                <span className="text-xs font-bold text-slate-400">Record Count</span>
-                                <p className="text-sm text-slate-700 dark:text-slate-300 mt-0.5">{viewRow.dilisense_size ?? 0}</p>
-                            </div>
-                            <div>
-                                <span className="text-xs font-bold text-slate-400">Screening Status</span>
-                                <div className="mt-1">
-                                    <Badge type={Number(viewRow.dilisense_status) === 1 ? 'yes' : 'no'}>
-                                        {Number(viewRow.dilisense_status) === 1 ? 'Active' : 'Inactive'}
-                                    </Badge>
-                                </div>
+
+                            <div className="p-4 rounded-xl bg-slate-50/50 dark:bg-slate-800/20 border border-slate-100/50 dark:border-slate-700/30 col-span-1 md:col-span-2">
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500">Issuer Name</span>
+                                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 mt-1">{viewRow.dilisense_issuer_name || '—'}</p>
                             </div>
                         </div>
 
+                        {/* Description field */}
                         <div>
-                            <span className="text-xs font-bold text-slate-400">Description</span>
-                            <p className="text-sm text-slate-700 dark:text-slate-300 mt-1 leading-relaxed">{viewRow.dilisense_description || 'No description provided.'}</p>
+                            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500">Description</span>
+                            <p className="text-sm text-slate-700 dark:text-slate-300 mt-1 leading-relaxed bg-slate-50/30 dark:bg-slate-800/10 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+                                {viewRow.dilisense_description || 'No description provided.'}
+                            </p>
                         </div>
 
+                        {/* Official Webpage */}
                         {viewRow.dilisense_link && (
                             <div>
-                                <span className="text-xs font-bold text-slate-400">Official Webpage</span>
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500">Official Webpage</span>
                                 <a
                                     href={viewRow.dilisense_link}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="text-teal-600 hover:text-teal-500 font-semibold text-sm flex items-center gap-1 mt-1 transition-all"
+                                    className="text-teal-600 hover:text-teal-500 font-semibold text-sm flex items-center gap-1.5 mt-1 transition-all hover:underline"
                                 >
-                                    <span>{viewRow.dilisense_link}</span>
-                                    <ExternalLink className="w-3.5 h-3.5" />
+                                    <span className="break-all">{viewRow.dilisense_link}</span>
+                                    <ExternalLink className="w-4 h-4 shrink-0" />
                                 </a>
                             </div>
                         )}
 
-                        <div className="border-t border-slate-100 dark:border-slate-800 pt-4 grid grid-cols-2 gap-4 text-xs text-slate-400">
-                            <div>
-                                <p>Created By: <span className="font-semibold text-slate-600 dark:text-slate-300">{viewRow.entered_user}</span></p>
-                                <p className="mt-0.5 whitespace-nowrap">Created At: <span className="font-semibold text-slate-600 dark:text-slate-300">{formatDateTime(viewRow.entered_date)}</span></p>
+                        {/* Audit information */}
+                        <div className="border-t border-slate-100 dark:border-slate-800/60 pt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-400">
+                            <div className="bg-slate-50/30 dark:bg-slate-800/10 p-3 rounded-xl border border-slate-100 dark:border-slate-800/50">
+                                <span className="text-[9px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 block mb-1">Creation Details</span>
+                                <p>By: <span className="font-semibold text-slate-600 dark:text-slate-300">{viewRow.entered_user || '—'}</span></p>
+                                <p className="mt-0.5">At: <span className="font-semibold text-slate-600 dark:text-slate-300">{viewRow.entered_date ? formatDateTime(viewRow.entered_date) : '—'}</span></p>
                             </div>
-                            <div>
-                                <p>Updated By: <span className="font-semibold text-slate-600 dark:text-slate-300">{viewRow.modified_user}</span></p>
-                                <p className="mt-0.5 whitespace-nowrap">Updated At: <span className="font-semibold text-slate-600 dark:text-slate-300">{formatDateTime(viewRow.modified_date)}</span></p>
+                            <div className="bg-slate-50/30 dark:bg-slate-800/10 p-3 rounded-xl border border-slate-100 dark:border-slate-800/50">
+                                <span className="text-[9px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 block mb-1">Last Update Details</span>
+                                <p>By: <span className="font-semibold text-slate-600 dark:text-slate-300">{viewRow.modified_user || '—'}</span></p>
+                                <p className="mt-0.5">At: <span className="font-semibold text-slate-600 dark:text-slate-300">{viewRow.modified_date ? formatDateTime(viewRow.modified_date) : '—'}</span></p>
                             </div>
                         </div>
 
-                        <div className="dialog-actions pt-4 border-t border-slate-100 dark:border-slate-800">
+                        <div className="dialog-actions pt-4 border-t border-slate-100 dark:border-slate-800/60">
                             <button type="button" className="btn-secondary text-sm" onClick={() => setViewRow(null)}>Close</button>
                         </div>
                     </div>
