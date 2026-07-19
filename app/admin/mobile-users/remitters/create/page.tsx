@@ -375,7 +375,7 @@ export default function CreateMobileUserRemitterPage() {
                         Personal Details
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormInput label="Sender ID" name="sender_id" placeholder="Auto-generated" disabled defaultValue={'LF3992'} Icon={CreditCard} />
+                        <FormInput label="Sender ID" name="sender_id" placeholder="Enter Sender ID" required Icon={CreditCard} />
                                 <FormInput label="Full Name" name="sender_name" placeholder="Full Name" required Icon={User} />
                                 <FormInput label="Date of Birth" name="date_of_birth" type="date" required Icon={Calendar} />
                                 <FormInput label="Place of Birth" name="place_of_birth" placeholder="City, Country" Icon={MapPin} />

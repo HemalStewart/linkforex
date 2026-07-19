@@ -431,7 +431,7 @@ export default function CreateRemitterPage() {
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <FormInput label="Sender ID" name="sender_id" placeholder="Auto-generated" disabled defaultValue={'LF3992'} />
+                                <FormInput label="Sender ID *" name="sender_id" placeholder="Enter Sender ID" required />
 
                                         <FormInput label="Sender Name *" name="sender_name" placeholder="Full Name" required />
                                         <FormInput label="Date of Birth *" name="date_of_birth" type="date" required />

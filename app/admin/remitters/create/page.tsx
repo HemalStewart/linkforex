@@ -792,7 +792,7 @@ export default function CreateRemitterPage() {
                         Personal Details
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormInput label="Remitter ID" name="sender_id" placeholder="Auto-generated" disabled defaultValue={'LF3992'} Icon={CreditCard} />
+                        <FormInput label="Remitter ID" name="sender_id" placeholder="Enter Remitter ID" required Icon={CreditCard} />
                         <FormInput
                             label="Full Name"
                             name="sender_name"
