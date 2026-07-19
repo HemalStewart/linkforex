@@ -40,7 +40,10 @@ import {
     ShieldCheck,
     X,
     Loader2,
-    Download
+    Download,
+    CheckCircle,
+    Eye,
+    Upload
 } from 'lucide-react';
 import { resolveUploadsUrl } from '@/app/lib/uploads';
 
@@ -130,6 +133,7 @@ export default function EditRemitterPage() {
         other_info: '',
         use_in: 'All',
         id_copy: '',
+        proof_of_address_doc: '',
         other_doc: '',
         work_related_docs: '',
         sender_details_aml_screening_doc: '',
@@ -304,6 +308,7 @@ export default function EditRemitterPage() {
                 other_info: data.other_info || '',
                 use_in: data.use_in || 'All',
                 id_copy: data.id_copy || data.passport_copy || '',
+                proof_of_address_doc: data.proof_of_address_doc || '',
                 other_doc: data.other_doc || '',
                 work_related_docs: data.work_related_docs || '',
                 sender_details_aml_screening_doc: data.sender_details_aml_screening_doc || '',
@@ -371,7 +376,8 @@ export default function EditRemitterPage() {
  
         setSubmitting(true);
 
-        const payload = {
+        const payload = new FormData();
+        const basePayload = {
             ...formData,
             branch: isPrivilegedUser ? formData.branch : (scopedBranchCode || formData.branch),
             name: formData.sender_name,
@@ -379,11 +385,26 @@ export default function EditRemitterPage() {
             active: formData.status === 'active' ? 'Active' : 'Inactive'
         };
 
+        Object.entries(basePayload).forEach(([key, value]) => {
+            if (value !== null && value !== undefined && value !== '') {
+                payload.append(key, String(value));
+            }
+        });
+
+        const formElement = e.currentTarget as HTMLFormElement;
+        const submitFormData = new FormData(formElement);
+        const uploadFields = ['passport_copy', 'proof_of_address_doc', 'work_related_docs', 'sender_details_aml_screening_doc', 'other_doc', 'id_copy'];
+        uploadFields.forEach((field) => {
+            const file = submitFormData.get(field);
+            if (file instanceof File && file.size > 0) {
+                payload.append(field, file);
+            }
+        });
+
         try {
-            const res = await fetch(withActingUserParam(ENDPOINTS.REMITTERS.DETAIL(id), currentUser), {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
+            const res = await fetch(withActingUserParam(`${ENDPOINTS.REMITTERS.DETAIL(id)}/update`, currentUser), {
+                method: 'POST',
+                body: payload,
             });
 
             if (res.ok) {
@@ -1197,7 +1218,12 @@ export default function EditRemitterPage() {
                         <p className="mt-2 text-sm text-slate-700 dark:text-slate-200">{displayText(formData.address_1)}</p>
                         {displayText(formData.address_2) !== '-' && <p className="text-sm text-slate-700 dark:text-slate-200">{displayText(formData.address_2)}</p>}
                         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-                            {displayText(formData.city)}, {displayText(formData.county)}, {displayText(formData.country)} {displayText(formData.postcode)}
+                            {[formData.city, formData.county, formData.country]
+                                .map((part) => String(part || '').trim())
+                                .filter((part) => part && part !== '-')
+                                .join(', ')
+                            }
+                            {formData.postcode && String(formData.postcode).trim() ? ` ${String(formData.postcode).trim()}` : ''}
                         </p>
                     </div>
                     <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
@@ -1291,10 +1317,6 @@ export default function EditRemitterPage() {
                     <div>
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">City</label>
                         <input className="input-glass w-full" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">County</label>
-                        <input className="input-glass w-full" value={formData.county} onChange={(e) => setFormData({ ...formData, county: e.target.value })} />
                     </div>
                     <div>
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Country</label>
@@ -1433,6 +1455,20 @@ export default function EditRemitterPage() {
                     </div>
                 </div>
 
+                {/* Section 4: Documents */}
+                <div className="border-t border-slate-100 dark:border-slate-800 pt-6 mt-6">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
+                        <FileText className="w-5 h-5 mr-2 text-teal-500" />
+                        Documents
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                        <FormFileUpload label="ID Copy" name="passport_copy" compact defaultValue={formData.id_copy} />
+                        <FormFileUpload label="Proof of Address" name="proof_of_address_doc" compact defaultValue={formData.proof_of_address_doc} />
+                        <FormFileUpload label="Source of Income" name="work_related_docs" compact defaultValue={formData.work_related_docs} />
+                        <FormFileUpload label="AML Doc" name="sender_details_aml_screening_doc" compact defaultValue={formData.sender_details_aml_screening_doc} />
+                    </div>
+                </div>
+
                 <div className="flex justify-end space-x-4 pt-8 mt-6 border-t border-slate-100 dark:border-slate-700/50">
                     <Link
                         href="/admin/remitters"
@@ -1548,6 +1584,139 @@ export default function EditRemitterPage() {
                     veriffSessionId={String(formData.veriff_session_id || '')}
                 />
             )}
+        </div>
+    );
+}
+
+function FormFileUpload({ label, name, compact, defaultValue, required }: any) {
+    const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
+    const inputRef = React.useRef<HTMLInputElement>(null);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0] || null;
+        setSelectedFile(file);
+        if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+            setPreviewUrl(null);
+        }
+        if (file) {
+            if (file.type.startsWith('image/')) {
+                setPreviewUrl(URL.createObjectURL(file));
+            } else {
+                setPreviewUrl(null);
+            }
+        }
+    };
+
+    const handleClear = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setSelectedFile(null);
+        if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+            setPreviewUrl(null);
+        }
+        if (inputRef.current) {
+            inputRef.current.value = '';
+        }
+    };
+
+    const displayExisting = defaultValue && !selectedFile;
+    const UPLOADS_BASE_URL = '/api/uploads';
+    const fullExistingUrl = defaultValue
+        ? (defaultValue.startsWith('http') || defaultValue.startsWith('/')
+            ? defaultValue
+            : `${UPLOADS_BASE_URL}/${defaultValue.replace(/^uploads\//, '')}`)
+        : '';
+
+    const isExistingImage = defaultValue && (
+        defaultValue.toLowerCase().endsWith('.jpg') ||
+        defaultValue.toLowerCase().endsWith('.jpeg') ||
+        defaultValue.toLowerCase().endsWith('.png') ||
+        defaultValue.toLowerCase().endsWith('.gif') ||
+        defaultValue.toLowerCase().endsWith('.webp')
+    );
+
+    return (
+        <div>
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
+                {label} {required && <span className="text-red-500">*</span>}
+            </label>
+            <div 
+                onClick={() => inputRef.current?.click()}
+                className={`border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-2xl ${compact ? 'px-3 py-3' : 'px-4 py-8'} bg-slate-50/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800 transition-all duration-300 cursor-pointer text-center relative max-w-full overflow-hidden group hover:border-teal-400 dark:hover:border-teal-500`}
+            >
+                <div className="flex flex-col items-center justify-center">
+                    {previewUrl ? (
+                        <div className="relative w-16 h-16 mb-2 rounded-lg border border-slate-200 overflow-hidden group-hover:scale-105 transition-transform duration-300">
+                            <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                        </div>
+                    ) : selectedFile ? (
+                        <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center mb-2">
+                            <FileText className="w-5 h-5 text-teal-500 animate-pulse" />
+                        </div>
+                    ) : isExistingImage && displayExisting ? (
+                        <div className="relative w-16 h-16 mb-2 rounded-lg border border-slate-200 overflow-hidden group-hover:scale-105 transition-transform duration-300">
+                            <img src={fullExistingUrl} alt="Existing Preview" className="w-full h-full object-cover" />
+                        </div>
+                    ) : displayExisting ? (
+                        <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center mb-2">
+                            <FileText className="w-5 h-5 text-teal-600" />
+                        </div>
+                    ) : !compact ? (
+                        <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+                            <Upload className="w-6 h-6 text-slate-400 group-hover:text-teal-500 transition-colors" />
+                        </div>
+                    ) : null}
+
+                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300 truncate w-full px-2">
+                        {selectedFile ? (
+                            <span className="text-teal-600 dark:text-teal-400 flex items-center justify-center gap-1">
+                                <CheckCircle className="w-3.5 h-3.5 shrink-0" /> {selectedFile.name}
+                            </span>
+                        ) : displayExisting ? (
+                            <span className="text-slate-600 dark:text-slate-300 flex items-center justify-center gap-1">
+                                <CheckCircle className="w-3.5 h-3.5 shrink-0 text-slate-400" /> {defaultValue.split('/').pop()}
+                            </span>
+                        ) : (
+                            <span className="group-hover:text-teal-500 transition-colors">{compact ? 'Upload' : 'Click to upload'}</span>
+                        )}
+                    </span>
+
+                    <div className="flex items-center space-x-2 mt-2 z-10">
+                        {selectedFile && (
+                            <button
+                                type="button"
+                                onClick={handleClear}
+                                className="px-2 py-0.5 rounded bg-rose-50 dark:bg-rose-950/30 text-rose-500 hover:bg-rose-100 hover:text-rose-600 text-[10px] font-bold transition-colors"
+                            >
+                                Clear
+                            </button>
+                        )}
+                        {displayExisting && (
+                            <a
+                                href={fullExistingUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 text-[10px] font-bold transition-colors flex items-center gap-0.5"
+                            >
+                                <Eye className="w-2.5 h-2.5" /> View Existing
+                            </a>
+                        )}
+                    </div>
+
+                    <input 
+                        type="file" 
+                        ref={inputRef}
+                        name={name} 
+                        required={required && !defaultValue} 
+                        onChange={handleFileChange}
+                        className="hidden" 
+                    />
+                </div>
+            </div>
         </div>
     );
 }

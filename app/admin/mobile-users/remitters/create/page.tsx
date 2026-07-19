@@ -15,7 +15,7 @@ import { showToast, queueToast } from '@/app/lib/toast';
 import {
     User, Calendar, MapPin, Briefcase, Phone, Building, CreditCard,
     Globe, FileText, Upload, Trash2, Plus, ArrowLeft,
-    CheckCircle, Shield, Layers, Save, Users, AlertCircle
+    CheckCircle, Shield, Layers, Save, Users, AlertCircle, Eye
 } from 'lucide-react';
 import { usePagePermissions } from '@/app/lib/permissions';
 
@@ -113,28 +113,131 @@ function FormSelect({ label, name, options, defaultValue, Icon, required, value,
 }
 
 function FormFileUpload({ label, name, compact, defaultValue }: any) {
+    const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
+    const inputRef = React.useRef<HTMLInputElement>(null);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0] || null;
+        setSelectedFile(file);
+        if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+            setPreviewUrl(null);
+        }
+        if (file) {
+            if (file.type.startsWith('image/')) {
+                setPreviewUrl(URL.createObjectURL(file));
+            } else {
+                setPreviewUrl(null);
+            }
+        }
+    };
+
+    const handleClear = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setSelectedFile(null);
+        if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+            setPreviewUrl(null);
+        }
+        if (inputRef.current) {
+            inputRef.current.value = '';
+        }
+    };
+
+    const displayExisting = defaultValue && !selectedFile;
+    const UPLOADS_BASE_URL = '/api/uploads';
+    const fullExistingUrl = defaultValue
+        ? (defaultValue.startsWith('http') || defaultValue.startsWith('/')
+            ? defaultValue
+            : `${UPLOADS_BASE_URL}/${defaultValue.replace(/^uploads\//, '')}`)
+        : '';
+
+    const isExistingImage = defaultValue && (
+        defaultValue.toLowerCase().endsWith('.jpg') ||
+        defaultValue.toLowerCase().endsWith('.jpeg') ||
+        defaultValue.toLowerCase().endsWith('.png') ||
+        defaultValue.toLowerCase().endsWith('.gif') ||
+        defaultValue.toLowerCase().endsWith('.webp')
+    );
+
     return (
         <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
                 {label}
             </label>
-            <div className={`border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-2xl ${compact ? 'px-3 py-3' : 'px-4 py-8'} bg-slate-50/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800 transition-all duration-300 cursor-pointer text-center relative max-w-full overflow-hidden group hover:border-teal-400 dark:hover:border-teal-500`}>
+            <div 
+                onClick={() => inputRef.current?.click()}
+                className={`border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-2xl ${compact ? 'px-3 py-3' : 'px-4 py-8'} bg-slate-50/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800 transition-all duration-300 cursor-pointer text-center relative max-w-full overflow-hidden group hover:border-teal-400 dark:hover:border-teal-500`}
+            >
                 <div className="flex flex-col items-center justify-center">
-                    {!compact && (
+                    {previewUrl ? (
+                        <div className="relative w-16 h-16 mb-2 rounded-lg border border-slate-200 overflow-hidden group-hover:scale-105 transition-transform duration-300">
+                            <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                        </div>
+                    ) : selectedFile ? (
+                        <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center mb-2">
+                            <FileText className="w-5 h-5 text-teal-500 animate-pulse" />
+                        </div>
+                    ) : isExistingImage && displayExisting ? (
+                        <div className="relative w-16 h-16 mb-2 rounded-lg border border-slate-200 overflow-hidden group-hover:scale-105 transition-transform duration-300">
+                            <img src={fullExistingUrl} alt="Existing Preview" className="w-full h-full object-cover" />
+                        </div>
+                    ) : displayExisting ? (
+                        <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center mb-2">
+                            <FileText className="w-5 h-5 text-teal-600" />
+                        </div>
+                    ) : !compact ? (
                         <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
                             <Upload className="w-6 h-6 text-slate-400 group-hover:text-teal-500 transition-colors" />
                         </div>
-                    )}
-                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 truncate w-full px-2">
-                        {defaultValue ? (
+                    ) : null}
+
+                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300 truncate w-full px-2">
+                        {selectedFile ? (
                             <span className="text-teal-600 dark:text-teal-400 flex items-center justify-center gap-1">
-                                <CheckCircle className="w-3 h-3" /> {defaultValue}
+                                <CheckCircle className="w-3.5 h-3.5 shrink-0" /> {selectedFile.name}
+                            </span>
+                        ) : displayExisting ? (
+                            <span className="text-slate-600 dark:text-slate-300 flex items-center justify-center gap-1">
+                                <CheckCircle className="w-3.5 h-3.5 shrink-0 text-slate-400" /> {defaultValue.split('/').pop()}
                             </span>
                         ) : (
                             <span className="group-hover:text-teal-500 transition-colors">{compact ? 'Upload' : 'Click to upload'}</span>
                         )}
                     </span>
-                    <input type="file" name={name} className="absolute inset-0 opacity-0 cursor-pointer" />
+
+                    <div className="flex items-center space-x-2 mt-2 z-10">
+                        {selectedFile && (
+                            <button
+                                type="button"
+                                onClick={handleClear}
+                                className="px-2 py-0.5 rounded bg-rose-50 dark:bg-rose-950/30 text-rose-500 hover:bg-rose-100 hover:text-rose-600 text-[10px] font-bold transition-colors"
+                            >
+                                Clear
+                            </button>
+                        )}
+                        {displayExisting && (
+                            <a
+                                href={fullExistingUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 text-[10px] font-bold transition-colors flex items-center gap-0.5"
+                            >
+                                <Eye className="w-2.5 h-2.5" /> View Existing
+                            </a>
+                        )}
+                    </div>
+
+                    <input 
+                        type="file" 
+                        ref={inputRef}
+                        name={name} 
+                        onChange={handleFileChange}
+                        className="hidden" 
+                    />
                 </div>
             </div>
         </div>
