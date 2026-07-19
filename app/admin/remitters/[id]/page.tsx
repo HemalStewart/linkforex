@@ -13,7 +13,7 @@ import {
 import { openPdfReport } from '@/app/lib/openPdfReport';
 import ConfirmModal from '../../components/ConfirmModal';
 import { showToast, queueToast } from '@/app/lib/toast';
-import { usePagePermissions } from '@/app/lib/permissions';
+import { usePagePermissions, checkPermission } from '@/app/lib/permissions';
 import VeriffReportsModal from '../../components/VeriffReportsModal';
 import { formatDateTime } from '@/app/lib/dateUtils';
 import {
@@ -177,6 +177,32 @@ export default function EditRemitterPage() {
         generating: false,
         reports: []
     });
+
+    const [showRescreenConfirm, setShowRescreenConfirm] = useState(false);
+    const [rescreenParams, setRescreenParams] = useState({
+        isOpen: false,
+        name: '',
+        dob: '',
+        fuzzySearch: '',
+        defaultFuzzy: '',
+        hasFuzzyPermission: false,
+        isSubmitting: false,
+    });
+
+    const fetchDefaultFuzzySearch = async () => {
+        try {
+            const res = await fetch(ENDPOINTS.DILISENSE_SOURCES.GET_FUZZY);
+            if (res.ok) {
+                const data = await res.json();
+                return data.dilisense_fuzzy_search !== null && data.dilisense_fuzzy_search !== undefined
+                    ? String(data.dilisense_fuzzy_search)
+                    : '';
+            }
+        } catch (error) {
+            console.error('Failed to fetch fuzzy setting:', error);
+        }
+        return '';
+    };
 
     useEffect(() => {
         if (id) fetchRemitter();
@@ -398,6 +424,10 @@ export default function EditRemitterPage() {
             reports: [],
         });
         fetchReports();
+    };
+
+    const handleStartRescreenFlow = () => {
+        setShowRescreenConfirm(true);
     };
 
     const handleGenerateReport = async () => {
@@ -687,7 +717,7 @@ export default function EditRemitterPage() {
                                 <button
                                     type="button"
                                     disabled={reportsModal.generating || !formData.sender_name}
-                                    onClick={handleGenerateReport}
+                                    onClick={handleStartRescreenFlow}
                                     className="inline-flex items-center justify-center gap-2 rounded-full bg-teal-600 hover:bg-teal-700 px-5 py-2.5 text-xs font-bold text-white transition-all shadow-md shadow-teal-600/10 hover:shadow-teal-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {reportsModal.generating ? (
@@ -779,6 +809,219 @@ export default function EditRemitterPage() {
                                 </table>
                             </div>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {showRescreenConfirm && (
+                <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-md">
+                    <div className="w-full max-w-md rounded-3xl border border-slate-200/50 bg-white/95 p-6 shadow-2xl dark:border-slate-700/50 dark:bg-slate-900/95 backdrop-blur-lg transform scale-100 transition-all duration-300">
+                        <div className="mb-4 text-center">
+                            <ShieldCheck className="mx-auto h-12 w-12 text-teal-500 mb-3" />
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Confirm Rescreening</h3>
+                            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                                Are you sure you want to rescreen the remitter?
+                            </p>
+                        </div>
+                        <div className="flex gap-3 mt-6">
+                            <button
+                                type="button"
+                                onClick={() => setShowRescreenConfirm(false)}
+                                className="w-1/2 rounded-full border border-slate-200 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800 transition"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={async () => {
+                                    setShowRescreenConfirm(false);
+                                    const defaultFuzzy = await fetchDefaultFuzzySearch();
+                                    const fuzzyPerm = checkPermission('DILISENSE_SOURCES', 'EDIT_FUZZY_SEARCH');
+                                    
+                                    setRescreenParams({
+                                        isOpen: true,
+                                        name: formData.sender_name || '',
+                                        dob: formData.dob || '',
+                                        fuzzySearch: defaultFuzzy,
+                                        defaultFuzzy,
+                                        hasFuzzyPermission: fuzzyPerm,
+                                        isSubmitting: false,
+                                    });
+                                }}
+                                className="w-1/2 rounded-full bg-teal-600 py-2.5 text-xs font-bold text-white hover:bg-teal-700 transition"
+                            >
+                                Confirm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {rescreenParams.isOpen && (
+                <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-md">
+                    <div className="w-full max-w-lg rounded-3xl border border-slate-200/50 bg-white/95 p-6 shadow-2xl dark:border-slate-700/50 dark:bg-slate-900/95 backdrop-blur-lg">
+                        <div className="mb-4 flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Rescreening Parameters</h3>
+                            <button
+                                type="button"
+                                onClick={() => setRescreenParams(prev => ({ ...prev, isOpen: false }))}
+                                className="rounded-full p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
+                        
+                        <div className="space-y-4 py-2">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
+                                    Remitter Name
+                                </label>
+                                <input
+                                    type="text"
+                                    value={rescreenParams.name}
+                                    onChange={(e) => setRescreenParams(prev => ({ ...prev, name: e.target.value }))}
+                                    className="w-full rounded-xl border border-slate-200/50 bg-white/95 px-3.5 py-2 text-sm text-slate-900 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 focus:outline-none dark:border-slate-700/50 dark:bg-slate-800/90 dark:text-white"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
+                                    Date of Birth
+                                </label>
+                                <input
+                                    type="text"
+                                    value={rescreenParams.dob}
+                                    onChange={(e) => setRescreenParams(prev => ({ ...prev, dob: e.target.value }))}
+                                    placeholder="YYYY-MM-DD"
+                                    className="w-full rounded-xl border border-slate-200/50 bg-white/95 px-3.5 py-2 text-sm text-slate-900 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 focus:outline-none dark:border-slate-700/50 dark:bg-slate-800/90 dark:text-white"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
+                                    Fuzzy Search Distance
+                                </label>
+                                <select
+                                    disabled={!rescreenParams.hasFuzzyPermission}
+                                    value={rescreenParams.fuzzySearch}
+                                    onChange={(e) => setRescreenParams(prev => ({ ...prev, fuzzySearch: e.target.value }))}
+                                    className="w-full rounded-xl border border-slate-200/50 bg-white/95 px-3.5 py-2 text-sm text-slate-900 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 focus:outline-none dark:border-slate-700/50 dark:bg-slate-800/90 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                                >
+                                    <option value="">No fuzziness (Exact match)</option>
+                                    <option value="1">1 - distance 1 (small variations)</option>
+                                    <option value="2">2 - distance 2 (bigger variations)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 mt-6 border-t border-slate-100 dark:border-slate-800 pt-4">
+                            <button
+                                type="button"
+                                disabled={rescreenParams.isSubmitting}
+                                onClick={() => setRescreenParams(prev => ({ ...prev, isOpen: false }))}
+                                className="w-1/2 rounded-full border border-slate-200 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800 transition"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                disabled={rescreenParams.isSubmitting || !rescreenParams.name.trim()}
+                                onClick={async () => {
+                                    setRescreenParams(prev => ({ ...prev, isSubmitting: true }));
+                                    setReportsModal(prev => ({ ...prev, generating: true }));
+                                    
+                                    try {
+                                        const res = await fetch(
+                                            withActingUserParam(
+                                                ENDPOINTS.REMITTERS.DILISENSE_REPORT_GENERATE(id),
+                                                currentUser
+                                            ),
+                                            {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({
+                                                    name: rescreenParams.name,
+                                                    dob: rescreenParams.dob,
+                                                    fuzzy_search: rescreenParams.fuzzySearch,
+                                                })
+                                            }
+                                        );
+                                        const data = await res.json().catch(() => ({}));
+                                        if (res.ok) {
+                                            const listRes = await fetch(
+                                                withActingUserParam(
+                                                    ENDPOINTS.REMITTERS.DILISENSE_REPORTS_LIST(id),
+                                                    currentUser
+                                                )
+                                            );
+                                            const listData = await listRes.json().catch(() => []);
+                                            setReportsModal(prev => ({
+                                                ...prev,
+                                                generating: false,
+                                                reports: Array.isArray(listData) ? listData : prev.reports,
+                                            }));
+                                            
+                                            const remitterRes = await fetch(withActingUserParam(ENDPOINTS.REMITTERS.DETAIL(id), currentUser));
+                                            if (remitterRes.ok) {
+                                                const rData = await remitterRes.json();
+                                                setFormData((prev: any) => ({
+                                                    ...prev,
+                                                    status: rData.status ?? 'active',
+                                                    sender_details_aml_screening_doc: rData.sender_details_aml_screening_doc ?? '',
+                                                }));
+                                                setSanctionReference(rData.sanction_reference ?? '');
+                                                setSanctionCheckedAt(rData.sanction_checked_at ?? '');
+                                                setSanctionRawPayload(rData.sanction_raw_payload ?? '');
+                                                setSenderDetailsAmlScreeningDoc(rData.sender_details_aml_screening_doc ?? '');
+                                                setSanctionScore(Number(rData.sanction_score ?? 0));
+                                            }
+                                            
+                                            setRescreenParams(prev => ({ ...prev, isOpen: false }));
+                                            
+                                            setConfirmModal({
+                                                isOpen: true,
+                                                title: 'Check Success',
+                                                message: 'A new Dilisense AML check has been run and PDF report saved successfully.',
+                                                type: 'success',
+                                                isAlert: true,
+                                                shouldRedirect: false,
+                                            });
+                                        } else {
+                                            setReportsModal(prev => ({ ...prev, generating: false }));
+                                            setRescreenParams(prev => ({ ...prev, isSubmitting: false }));
+                                            setConfirmModal({
+                                                isOpen: true,
+                                                title: 'Check Failed',
+                                                message: data?.message || 'Failed to run Dilisense check.',
+                                                type: 'danger',
+                                                isAlert: true,
+                                                shouldRedirect: false,
+                                            });
+                                        }
+                                    } catch (err) {
+                                        console.error('Failed to run screening:', err);
+                                        setReportsModal(prev => ({ ...prev, generating: false }));
+                                        setRescreenParams(prev => ({ ...prev, isSubmitting: false }));
+                                        setConfirmModal({
+                                            isOpen: true,
+                                            title: 'Error',
+                                            message: 'An error occurred while running the check.',
+                                            type: 'danger',
+                                            isAlert: true,
+                                            shouldRedirect: false,
+                                        });
+                                    }
+                                }}
+                                className="w-1/2 rounded-full bg-teal-600 py-2.5 text-xs font-bold text-white hover:bg-teal-700 transition flex items-center justify-center gap-1.5"
+                            >
+                                {rescreenParams.isSubmitting ? (
+                                    <>
+                                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                        Running...
+                                    </>
+                                ) : 'Run Check'}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
