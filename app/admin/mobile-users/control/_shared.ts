@@ -45,6 +45,7 @@ export type SettingsData = {
     veriff_callback_url: string;
     veriff_configured?: boolean;
     veriff_aml_configured?: boolean;
+    default_branch: string;
 };
 
 export type YesNoSettingKey = Exclude<
@@ -68,6 +69,7 @@ export type YesNoSettingKey = Exclude<
     | 'veriff_callback_url'
     | 'veriff_configured'
     | 'veriff_aml_configured'
+    | 'default_branch'
 >;
 
 export type QueueUser = {
@@ -251,4 +253,5 @@ export const defaultSettings: SettingsData = {
     veriff_callback_url: 'https://linkforex.vercel.app/api/veriff-return',
     veriff_configured: false,
     veriff_aml_configured: false,
+    default_branch: '',
 };

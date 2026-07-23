@@ -9,6 +9,7 @@ import {
     Loader2,
     Save,
     Settings,
+    ChevronDown,
 } from 'lucide-react';
 import { usePagePermissions } from '@/app/lib/permissions';
 
@@ -17,9 +18,11 @@ const defaultFooterText = '© 2026 LinkForex. Protected by 256-bit encryption.';
 export default function SettingsPage() {
     const { canEdit } = usePagePermissions('SETTINGS');
     const [loading, setLoading] = useState(false);
+    const [branches, setBranches] = useState<{ id: number; name: string; code: string }[]>([]);
     const [generalSettings, setGeneralSettings] = useState({
         footerText: defaultFooterText,
         companyName: 'Link Forex Ltd',
+        defaultBranch: '',
     });
     const [uiSettings, setUiSettings] = useState<UiSettings>({
         tableFontSizePx: 14,
@@ -41,27 +44,41 @@ export default function SettingsPage() {
             }
         }
 
+        const fetchBranches = async () => {
+            try {
+                const res = await fetch(ENDPOINTS.BRANCHES.LIST);
+                if (res.ok) {
+                    const data = await res.json();
+                    setBranches(data || []);
+                }
+            } catch (err) {
+                console.error('Failed to load branches:', err);
+            }
+        };
+
         const fetchBackendSettings = async () => {
             try {
                 const res = await fetch(ENDPOINTS.MOBILE_ADMIN.SETTINGS);
                 if (res.ok) {
                     const data = await res.json();
-                    if (data && typeof data.company_name === 'string') {
-                        setGeneralSettings({
-                            footerText: initialFooter,
-                            companyName: data.company_name.trim() || 'Link Forex Ltd',
-                        });
-                        return;
-                    }
+                    setGeneralSettings({
+                        footerText: initialFooter,
+                        companyName: (data && typeof data.company_name === 'string') ? data.company_name.trim() : 'Link Forex Ltd',
+                        defaultBranch: (data && typeof data.default_branch === 'string') ? data.default_branch.trim() : '',
+                    });
+                    return;
                 }
             } catch (err) {
-                console.error('Failed to load company name:', err);
+                console.error('Failed to load settings from backend:', err);
             }
             setGeneralSettings({
                 footerText: initialFooter,
                 companyName: 'Link Forex Ltd',
+                defaultBranch: '',
             });
         };
+
+        fetchBranches();
         fetchBackendSettings();
 
         const loadedUiSettings = getStoredUiSettings();
@@ -77,7 +94,8 @@ export default function SettingsPage() {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    company_name: generalSettings.companyName.trim()
+                    company_name: generalSettings.companyName.trim(),
+                    default_branch: generalSettings.defaultBranch.trim()
                 }),
             });
             if (!res.ok) {
@@ -132,6 +150,27 @@ export default function SettingsPage() {
                             disabled={!canEdit}
                         />
                         <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">This name is used in the footer section of generated PDF reports.</p>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Default Branch for Mobile Users</label>
+                        <div className="relative">
+                            <select
+                                value={generalSettings.defaultBranch}
+                                onChange={(e) => setGeneralSettings(prev => ({ ...prev, defaultBranch: e.target.value }))}
+                                className="input-glass w-full pr-10 appearance-none cursor-pointer text-sm py-2.5 text-slate-900 dark:text-white"
+                                disabled={!canEdit}
+                            >
+                                <option value="" className="dark:bg-slate-800 dark:text-white bg-white text-slate-900">Select a Branch</option>
+                                {branches.map((b) => (
+                                    <option key={b.id} value={b.code} className="dark:bg-slate-800 dark:text-white bg-white text-slate-900">
+                                        {b.name} ({b.code})
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none" />
+                        </div>
+                        <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">Newly registered mobile app users will be assigned to this branch by default.</p>
                     </div>
 
                     <div>

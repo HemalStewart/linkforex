@@ -28,6 +28,7 @@ export default function RemittersPage() {
     const currentUser = useMemo(() => getCurrentAdminUser(), []);
     const [selectedRemitter, setSelectedRemitter] = useState<any | null>(null);
     const [remitters, setRemitters] = useState<any[]>([]);
+    const [branches, setBranches] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -191,6 +192,22 @@ export default function RemittersPage() {
     const fetchRemitters = async () => {
         setLoading(true);
         try {
+            let currentBranches = branches;
+            if (currentBranches.length === 0) {
+                try {
+                    const bRes = await fetch(ENDPOINTS.BRANCHES.LIST);
+                    if (bRes.ok) {
+                        const bData = await bRes.json();
+                        currentBranches = bData || [];
+                        setBranches(currentBranches);
+                    }
+                } catch (bErr) {
+                    console.error('Failed to load branches:', bErr);
+                }
+            }
+
+            const branchesMap = new Map(currentBranches.map((b: any) => [b.code, b.name]));
+
             const params = new URLSearchParams();
             if (statusFilter !== 'all') params.append('status', statusFilter);
             if (sourceFilter !== 'all') params.append('registration_source', sourceFilter);
@@ -209,7 +226,7 @@ export default function RemittersPage() {
                 ...r,
                 shared_access: Boolean(r.shared_access),
                 company: r.company || r.company_name || 'Link Forex Ltd',
-                branch_name: r.branch || '-',
+                branch_name: branchesMap.get(r.branch) || r.branch || '-',
                 sender_id: r.sender_id || '-',
                 sender_name: r.sender_name || r.name || '-',
                 active: (r.status || 'inactive').toLowerCase() === 'active' ? 'Active' : 'Inactive',

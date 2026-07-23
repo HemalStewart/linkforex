@@ -1133,7 +1133,9 @@ export default function EditRemitterPage() {
 
                     <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
                         <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Branch & Use</p>
-                        <p className="mt-2 text-sm font-semibold text-slate-900 dark:text-white">{displayText(formData.branch)}</p>
+                        <p className="mt-2 text-sm font-semibold text-slate-900 dark:text-white">
+                            {displayText(branches.find((b: any) => b.code === formData.branch)?.name || formData.branch)}
+                        </p>
                         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Use In: {displayText(formData.use_in)}</p>
                         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Occupation: {displayText(formData.occupation)}</p>
                     </div>
