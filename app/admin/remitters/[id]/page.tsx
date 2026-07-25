@@ -74,15 +74,33 @@ export default function EditRemitterPage() {
     const currentUser = React.useMemo(() => getCurrentAdminUser(), []);
     const isPrivilegedUser = React.useMemo(() => isPrivilegedAdminUser(currentUser), [currentUser]);
     const scopedBranchCode = React.useMemo(() => getAdminBranchCode(currentUser), [currentUser]);
-    const { canManuallyPassed, canPdf, canReScreening, canDeleteComplianceReport } = usePagePermissions('REMITTERS');
+    const { canManuallyPassed, canPdf, canReScreening, canDilisenseScreening, canDeleteComplianceReport } = usePagePermissions('REMITTERS');
     const { canMultiBranch } = usePagePermissions('BRANCHES');
 
     const [loading, setLoading] = useState(true);
     const [notFound, setNotFound] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    const [dilisenseEnabled, setDilisenseEnabled] = useState<boolean>(true);
     const [initialAmlStatus, setInitialAmlStatus] = useState<string>('pending');
     const [enableAmlOverride, setEnableAmlOverride] = useState<boolean>(false);
     const [branches, setBranches] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchDilisenseSetting = async () => {
+            try {
+                const res = await fetch(ENDPOINTS.MOBILE_ADMIN.SETTINGS);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && typeof data.enable_sanction_screening === 'string') {
+                        setDilisenseEnabled(data.enable_sanction_screening.toLowerCase() !== 'no');
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to fetch dilisense setting:', e);
+            }
+        };
+        fetchDilisenseSetting();
+    }, []);
 
     useEffect(() => {
         const fetchBranches = async () => {
@@ -245,7 +263,7 @@ export default function EditRemitterPage() {
                 if (res.ok) {
                     const data = await res.json();
                     if (Array.isArray(data)) {
-                        const filtered = data.filter((c: any) => 
+                        const filtered = data.filter((c: any) =>
                             String(c.black_list_country || '').toLowerCase() !== 'yes' &&
                             String(c.status || '').toLowerCase() !== 'inactive'
                         );
@@ -373,7 +391,7 @@ export default function EditRemitterPage() {
             setConfirmModal({ isOpen: true, title: 'Validation Error', message: 'Reason for AML Status Change is required.', type: 'warning', isAlert: true, shouldRedirect: false });
             return;
         }
- 
+
         setSubmitting(true);
 
         const payload = new FormData();
@@ -752,10 +770,10 @@ export default function EditRemitterPage() {
                                         <span className="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
                                     </span>
                                     <ShieldCheck className="h-6 w-6 text-teal-500" />
-                                    Dilisense AML Reports
+                                    AML Reports
                                 </h2>
                                 <p className="mt-1 text-sm font-medium text-slate-500 dark:text-slate-400">
-                                    Manage, view, run checks, or delete Dilisense AML reports for {formData.sender_name || '-'}.
+                                    Manage, view, run checks, or delete AML Reports for {formData.sender_name || '-'}.
                                 </p>
                             </div>
                             <button
@@ -772,7 +790,7 @@ export default function EditRemitterPage() {
                             <div className="text-xs font-semibold text-slate-600 dark:text-slate-300">
                                 Remitter Name: <span className="font-bold text-teal-600 dark:text-teal-400">{formData.sender_name || 'N/A'}</span>
                             </div>
-                            {canReScreening && (
+                            {dilisenseEnabled && (canReScreening || canDilisenseScreening) && (
                                 <button
                                     type="button"
                                     disabled={reportsModal.generating || !formData.sender_name}
@@ -787,7 +805,7 @@ export default function EditRemitterPage() {
                                     ) : (
                                         <>
                                             <RefreshCcw className="h-3.5 w-3.5" />
-                                            Run New Dilisense Check
+                                            New Check
                                         </>
                                     )}
                                 </button>
@@ -805,7 +823,7 @@ export default function EditRemitterPage() {
                                 <FileText className="mx-auto h-12 w-12 text-slate-300 dark:text-slate-600 mb-3" />
                                 <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">No Dilisense reports run yet</h4>
                                 <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto">
-                                    Click "Run New Dilisense Check" above to query Dilisense name screening.
+                                    Click "New Check" above to query Dilisense name screening.
                                 </p>
                             </div>
                         ) : (
@@ -814,6 +832,7 @@ export default function EditRemitterPage() {
                                     <thead>
                                         <tr className="border-b border-slate-200 dark:border-slate-800 text-[11px] font-extrabold text-slate-400">
                                             <th className="py-3 px-4">Date Checked</th>
+                                            <th className="py-3 px-4">Provider</th>
                                             <th className="py-3 px-4">Reference</th>
                                             <th className="py-3 px-4">Checked By</th>
                                             <th className="py-3 px-4 text-right">Actions</th>
@@ -824,6 +843,9 @@ export default function EditRemitterPage() {
                                             <tr key={report.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
                                                 <td className="py-4 px-4 text-sm font-bold text-slate-800 dark:text-slate-100 whitespace-nowrap">
                                                     {formatDateTime(report.created_at)}
+                                                </td>
+                                                <td className="py-4 px-4 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                                                    {(report as any).provider || (report.reference?.startsWith('VERIFF') ? 'Veriff' : 'Dilisense')}
                                                 </td>
                                                 <td className="py-4 px-4 font-mono text-xs text-slate-500 dark:text-slate-400">
                                                     {report.reference}
@@ -896,7 +918,7 @@ export default function EditRemitterPage() {
                                     setShowRescreenConfirm(false);
                                     const defaultFuzzy = await fetchDefaultFuzzySearch();
                                     const fuzzyPerm = checkPermission('DILISENSE_SOURCES', 'EDIT_FUZZY_SEARCH');
-                                    
+
                                     setRescreenParams({
                                         isOpen: true,
                                         name: formData.sender_name || '',
@@ -929,7 +951,7 @@ export default function EditRemitterPage() {
                                 <X className="h-4 w-4" />
                             </button>
                         </div>
-                        
+
                         <div className="space-y-4 py-2">
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
@@ -988,7 +1010,7 @@ export default function EditRemitterPage() {
                                 onClick={async () => {
                                     setRescreenParams(prev => ({ ...prev, isSubmitting: true }));
                                     setReportsModal(prev => ({ ...prev, generating: true }));
-                                    
+
                                     try {
                                         const res = await fetch(
                                             withActingUserParam(
@@ -1019,7 +1041,7 @@ export default function EditRemitterPage() {
                                                 generating: false,
                                                 reports: Array.isArray(listData) ? listData : prev.reports,
                                             }));
-                                            
+
                                             const remitterRes = await fetch(withActingUserParam(ENDPOINTS.REMITTERS.DETAIL(id), currentUser));
                                             if (remitterRes.ok) {
                                                 const rData = await remitterRes.json();
@@ -1034,9 +1056,9 @@ export default function EditRemitterPage() {
                                                 setSenderDetailsAmlScreeningDoc(rData.sender_details_aml_screening_doc ?? '');
                                                 setSanctionScore(Number(rData.sanction_score ?? 0));
                                             }
-                                            
+
                                             setRescreenParams(prev => ({ ...prev, isOpen: false }));
-                                            
+
                                             setConfirmModal({
                                                 isOpen: true,
                                                 title: 'Check Success',
@@ -1403,9 +1425,9 @@ export default function EditRemitterPage() {
                             <span className="input-icon-left"><Shield className="w-5 h-5" /></span>
                             <select
                                 className={`input-glass w-full font-semibold transition-colors duration-200 ${formData.sender_aml_result === 'passed' || formData.sender_aml_result === 'manually passed' || formData.sender_aml_result === 'clear' ? 'text-emerald-600 dark:text-emerald-400' :
-                                        formData.sender_aml_result === 'review' ? 'text-amber-600 dark:text-amber-400' :
-                                            formData.sender_aml_result === 'hit' ? 'text-rose-600 dark:text-rose-400' :
-                                                'text-slate-600 dark:text-slate-400'
+                                    formData.sender_aml_result === 'review' ? 'text-amber-600 dark:text-amber-400' :
+                                        formData.sender_aml_result === 'hit' ? 'text-rose-600 dark:text-rose-400' :
+                                            'text-slate-600 dark:text-slate-400'
                                     }`}
                                 value={formData.sender_aml_result}
                                 disabled={!canManuallyPassed}
@@ -1493,7 +1515,7 @@ export default function EditRemitterPage() {
             {sanctionReference && (
                 <div className="card-glass p-8 relative overflow-hidden mt-8">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
-                    
+
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-slate-100 dark:border-slate-700/50 pb-4">
                         <div className="flex items-center space-x-3">
                             <div className="p-2 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400">
@@ -1645,7 +1667,7 @@ function FormFileUpload({ label, name, compact, defaultValue, required }: any) {
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
                 {label} {required && <span className="text-red-500">*</span>}
             </label>
-            <div 
+            <div
                 onClick={() => inputRef.current?.click()}
                 className={`border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-2xl ${compact ? 'px-3 py-3' : 'px-4 py-8'} bg-slate-50/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800 transition-all duration-300 cursor-pointer text-center relative max-w-full overflow-hidden group hover:border-teal-400 dark:hover:border-teal-500`}
             >
@@ -1709,13 +1731,13 @@ function FormFileUpload({ label, name, compact, defaultValue, required }: any) {
                         )}
                     </div>
 
-                    <input 
-                        type="file" 
+                    <input
+                        type="file"
                         ref={inputRef}
-                        name={name} 
-                        required={required && !defaultValue} 
+                        name={name}
+                        required={required && !defaultValue}
                         onChange={handleFileChange}
-                        className="hidden" 
+                        className="hidden"
                     />
                 </div>
             </div>

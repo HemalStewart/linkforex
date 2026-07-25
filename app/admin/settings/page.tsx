@@ -23,6 +23,7 @@ export default function SettingsPage() {
         footerText: defaultFooterText,
         companyName: 'Link Forex Ltd',
         defaultBranch: '',
+        enableDilisenseScreening: 'yes',
     });
     const [uiSettings, setUiSettings] = useState<UiSettings>({
         tableFontSizePx: 14,
@@ -65,6 +66,7 @@ export default function SettingsPage() {
                         footerText: initialFooter,
                         companyName: (data && typeof data.company_name === 'string') ? data.company_name.trim() : 'Link Forex Ltd',
                         defaultBranch: (data && typeof data.default_branch === 'string') ? data.default_branch.trim() : '',
+                        enableDilisenseScreening: (data && typeof data.enable_sanction_screening === 'string') ? (data.enable_sanction_screening.toLowerCase() === 'no' ? 'no' : 'yes') : 'yes',
                     });
                     return;
                 }
@@ -75,6 +77,7 @@ export default function SettingsPage() {
                 footerText: initialFooter,
                 companyName: 'Link Forex Ltd',
                 defaultBranch: '',
+                enableDilisenseScreening: 'yes',
             });
         };
 
@@ -95,7 +98,8 @@ export default function SettingsPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     company_name: generalSettings.companyName.trim(),
-                    default_branch: generalSettings.defaultBranch.trim()
+                    default_branch: generalSettings.defaultBranch.trim(),
+                    enable_sanction_screening: generalSettings.enableDilisenseScreening,
                 }),
             });
             if (!res.ok) {
@@ -150,6 +154,23 @@ export default function SettingsPage() {
                             disabled={!canEdit}
                         />
                         <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">This name is used in the footer section of generated PDF reports.</p>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Enable Dilisense Screening</label>
+                        <div className="relative">
+                            <select
+                                value={generalSettings.enableDilisenseScreening}
+                                onChange={(e) => setGeneralSettings(prev => ({ ...prev, enableDilisenseScreening: e.target.value }))}
+                                className="input-glass w-full pr-10 appearance-none cursor-pointer text-sm py-2.5 text-slate-900 dark:text-white"
+                                disabled={!canEdit}
+                            >
+                                <option value="yes" className="dark:bg-slate-800 dark:text-white bg-white text-slate-900">Enabled</option>
+                                <option value="no" className="dark:bg-slate-800 dark:text-white bg-white text-slate-900">Disabled</option>
+                            </select>
+                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none" />
+                        </div>
+                        <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">Enable or disable Dilisense AML name & sanction screening across the system.</p>
                     </div>
 
                     <div>

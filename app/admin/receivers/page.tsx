@@ -71,8 +71,27 @@ const statusBadgeClass = (value: unknown): string => {
 
 export default function ReceiversPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('RECEIVERS');
-    const { canAdd, canEdit, canDelete, canPdf, canExport, canReScreening, canDeleteComplianceReport } = usePagePermissions('RECEIVERS');
+    const { canAdd, canEdit, canDelete, canPdf, canExport, canReScreening, canDilisenseScreening, canDeleteComplianceReport } = usePagePermissions('RECEIVERS');
     const currentUser = useMemo(() => getCurrentAdminUser(), []);
+    const [dilisenseEnabled, setDilisenseEnabled] = useState<boolean>(true);
+
+    useEffect(() => {
+        const fetchDilisenseSetting = async () => {
+            try {
+                const res = await fetch(ENDPOINTS.MOBILE_ADMIN.SETTINGS);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && typeof data.enable_sanction_screening === 'string') {
+                        setDilisenseEnabled(data.enable_sanction_screening.toLowerCase() !== 'no');
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to fetch dilisense setting:', e);
+            }
+        };
+        fetchDilisenseSetting();
+    }, []);
+
     const [confirmModal, setConfirmModal] = useState<{
         isOpen: boolean;
         title: string;
@@ -731,7 +750,7 @@ export default function ReceiversPage() {
                                                         type="button"
                                                         onClick={() => openReportsModal(receiver.id, receiver.name || '')}
                                                         className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
-                                                        title="Dilisense AML Reports"
+                                                        title="AML Reports"
                                                     >
                                                         <FileText className="w-5 h-5" />
                                                     </button>
@@ -845,10 +864,10 @@ export default function ReceiversPage() {
                                         <span className="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
                                     </span>
                                     <ShieldCheck className="h-6 w-6 text-teal-500" />
-                                    Dilisense AML Reports
+                                    AML Reports
                                 </h2>
                                 <p className="mt-1 text-sm font-medium text-slate-500 dark:text-slate-400">
-                                    Manage, view, run checks, or delete Dilisense AML reports for {reportsModal.selectedName || '-'}.
+                                    Manage, view, run checks, or delete AML Reports for {reportsModal.selectedName || '-'}.
                                 </p>
                             </div>
                             <button
@@ -865,7 +884,7 @@ export default function ReceiversPage() {
                             <div className="text-xs font-semibold text-slate-600 dark:text-slate-300">
                                 Receiver Name: <span className="font-bold text-teal-600 dark:text-teal-400">{reportsModal.selectedName || 'N/A'}</span>
                             </div>
-                            {canReScreening && (
+                            {dilisenseEnabled && (canReScreening || canDilisenseScreening) && (
                                 <button
                                     type="button"
                                     disabled={reportsModal.generating || !reportsModal.selectedName}
@@ -898,7 +917,7 @@ export default function ReceiversPage() {
                                 <FileText className="mx-auto h-12 w-12 text-slate-300 dark:text-slate-600 mb-3" />
                                 <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">No Dilisense reports run yet</h4>
                                 <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto">
-                                    Click "Run New Dilisense Check" above to query Dilisense name screening.
+                                    Click "New Check" above to query Dilisense name screening.
                                 </p>
                             </div>
                         ) : (
@@ -907,6 +926,7 @@ export default function ReceiversPage() {
                                     <thead>
                                         <tr className="border-b border-slate-200 dark:border-slate-800 text-[11px] font-extrabold text-slate-400">
                                             <th className="py-3 px-4">Date Checked</th>
+                                            <th className="py-3 px-4">Provider</th>
                                             <th className="py-3 px-4">Reference</th>
                                             <th className="py-3 px-4">Checked By</th>
                                             <th className="py-3 px-4 text-right">Actions</th>
@@ -917,6 +937,9 @@ export default function ReceiversPage() {
                                             <tr key={report.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
                                                 <td className="py-4 px-4 text-sm font-bold text-slate-800 dark:text-slate-100 whitespace-nowrap">
                                                     {formatDateTime(report.created_at)}
+                                                </td>
+                                                <td className="py-4 px-4 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                                                    {(report as any).provider || (report.reference?.startsWith('VERIFF') ? 'Veriff' : 'Dilisense')}
                                                 </td>
                                                 <td className="py-4 px-4 font-mono text-xs text-slate-500 dark:text-slate-400">
                                                     {report.reference}
@@ -990,7 +1013,7 @@ export default function ReceiversPage() {
                                     const receiver = receivers.find(r => r.id === reportsModal.selectedId);
                                     const defaultFuzzy = await fetchDefaultFuzzySearch();
                                     const fuzzyPerm = checkPermission('DILISENSE_SOURCES', 'EDIT_FUZZY_SEARCH');
-                                    
+
                                     setRescreenParams({
                                         isOpen: true,
                                         name: receiver?.name || reportsModal.selectedName,
@@ -1023,7 +1046,7 @@ export default function ReceiversPage() {
                                 <X className="h-4 w-4" />
                             </button>
                         </div>
-                        
+
                         <div className="space-y-4 py-2">
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
@@ -1082,7 +1105,7 @@ export default function ReceiversPage() {
                                 onClick={async () => {
                                     setRescreenParams(prev => ({ ...prev, isSubmitting: true }));
                                     setReportsModal(prev => ({ ...prev, generating: true }));
-                                    
+
                                     try {
                                         const res = await fetch(
                                             withActingUserParam(
@@ -1113,9 +1136,9 @@ export default function ReceiversPage() {
                                                 generating: false,
                                                 reports: Array.isArray(listData) ? listData : prev.reports,
                                             }));
-                                            
+
                                             setRescreenParams(prev => ({ ...prev, isOpen: false }));
-                                            
+
                                             setConfirmModal({
                                                 isOpen: true,
                                                 title: 'Check Success',

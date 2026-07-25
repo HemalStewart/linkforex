@@ -24,19 +24,38 @@ const csvEscape = (value: unknown): string => {
 
 export default function RemittersPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('REMITTERS');
-    const { canAdd, canEdit, canDelete, canPdf, canExport, canReScreening, canDeleteComplianceReport, canBatchScreening } = usePagePermissions('REMITTERS');
+    const { canAdd, canEdit, canDelete, canPdf, canExport, canReScreening, canDilisenseScreening, canDeleteComplianceReport, canBatchScreening } = usePagePermissions('REMITTERS');
     const currentUser = useMemo(() => getCurrentAdminUser(), []);
     const [selectedRemitter, setSelectedRemitter] = useState<any | null>(null);
     const [remitters, setRemitters] = useState<any[]>([]);
     const [branches, setBranches] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [dilisenseEnabled, setDilisenseEnabled] = useState<boolean>(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [sourceFilter, setSourceFilter] = useState('all');
+    const [branchFilter, setBranchFilter] = useState('all');
     const [sortKey, setSortKey] = useState('created_at');
     const [sortDir, setSortDir] = useState<SortDir>('desc');
     const [rowsPerPage, setRowsPerPage] = useRowsPerPage(10);
     const [page, setPage] = useState(1);
+
+    useEffect(() => {
+        const fetchDilisenseSetting = async () => {
+            try {
+                const res = await fetch(ENDPOINTS.MOBILE_ADMIN.SETTINGS);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && typeof data.enable_sanction_screening === 'string') {
+                        setDilisenseEnabled(data.enable_sanction_screening.toLowerCase() !== 'no');
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to fetch dilisense setting:', e);
+            }
+        };
+        fetchDilisenseSetting();
+    }, []);
 
     const [confirmModal, setConfirmModal] = useState<{
         isOpen: boolean;
@@ -183,7 +202,7 @@ export default function RemittersPage() {
 
     useEffect(() => {
         fetchRemitters();
-    }, [statusFilter, sourceFilter]);
+    }, [statusFilter, sourceFilter, branchFilter]);
 
     useEffect(() => {
         setPage(1);
@@ -211,6 +230,7 @@ export default function RemittersPage() {
             const params = new URLSearchParams();
             if (statusFilter !== 'all') params.append('status', statusFilter);
             if (sourceFilter !== 'all') params.append('registration_source', sourceFilter);
+            if (branchFilter !== 'all') params.append('branch', branchFilter);
             if (searchQuery.trim()) params.append('search', searchQuery.trim());
 
             const query = params.toString();
@@ -662,10 +682,10 @@ export default function RemittersPage() {
                                         <span className="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
                                     </span>
                                     <ShieldCheck className="h-6 w-6 text-teal-500" />
-                                    Dilisense AML Reports
+                                    AML Reports
                                 </h2>
                                 <p className="mt-1 text-sm font-medium text-slate-500 dark:text-slate-400">
-                                    Manage, view, run checks, or delete Dilisense AML reports for {reportsModal.selectedName || '-'}.
+                                    Manage, view, run checks, or delete AML Reports for {reportsModal.selectedName || '-'}.
                                 </p>
                             </div>
                             <button
@@ -682,7 +702,7 @@ export default function RemittersPage() {
                             <div className="text-xs font-semibold text-slate-600 dark:text-slate-300">
                                 Remitter Name: <span className="font-bold text-teal-600 dark:text-teal-400">{reportsModal.selectedName || 'N/A'}</span>
                             </div>
-                            {canReScreening && (
+                            {dilisenseEnabled && (canReScreening || canDilisenseScreening) && (
                                 <button
                                     type="button"
                                     disabled={reportsModal.generating || !reportsModal.selectedName}
@@ -697,7 +717,7 @@ export default function RemittersPage() {
                                     ) : (
                                         <>
                                             <RefreshCcw className="h-3.5 w-3.5" />
-                                            Run New Dilisense Check
+                                            New Check
                                         </>
                                     )}
                                 </button>
@@ -715,7 +735,7 @@ export default function RemittersPage() {
                                 <FileText className="mx-auto h-12 w-12 text-slate-300 dark:text-slate-600 mb-3" />
                                 <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">No Dilisense reports run yet</h4>
                                 <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto">
-                                    Click "Run New Dilisense Check" above to query Dilisense name screening.
+                                    Click "New Check" above to query Dilisense name screening.
                                 </p>
                             </div>
                         ) : (
@@ -724,6 +744,7 @@ export default function RemittersPage() {
                                     <thead>
                                         <tr className="border-b border-slate-200 dark:border-slate-800 text-[11px] font-extrabold text-slate-400">
                                             <th className="py-3 px-4">Date Checked</th>
+                                            <th className="py-3 px-4">Provider</th>
                                             <th className="py-3 px-4">Reference</th>
                                             <th className="py-3 px-4">Checked By</th>
                                             <th className="py-3 px-4 text-right">Actions</th>
@@ -734,6 +755,9 @@ export default function RemittersPage() {
                                             <tr key={report.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
                                                 <td className="py-4 px-4 text-sm font-bold text-slate-800 dark:text-slate-100 whitespace-nowrap">
                                                     {formatDateTime(report.created_at)}
+                                                </td>
+                                                <td className="py-4 px-4 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                                                    {(report as any).provider || (report.reference?.startsWith('VERIFF') ? 'Veriff' : 'Dilisense')}
                                                 </td>
                                                 <td className="py-4 px-4 font-mono text-xs text-slate-500 dark:text-slate-400">
                                                     {report.reference}
@@ -807,7 +831,7 @@ export default function RemittersPage() {
                                     const remitter = remitters.find(r => r.id === reportsModal.selectedId);
                                     const defaultFuzzy = await fetchDefaultFuzzySearch();
                                     const fuzzyPerm = checkPermission('DILISENSE_SOURCES', 'EDIT_FUZZY_SEARCH');
-                                    
+
                                     setRescreenParams({
                                         isOpen: true,
                                         name: remitter?.sender_name || reportsModal.selectedName,
@@ -840,7 +864,7 @@ export default function RemittersPage() {
                                 <X className="h-4 w-4" />
                             </button>
                         </div>
-                        
+
                         <div className="space-y-4 py-2">
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
@@ -899,7 +923,7 @@ export default function RemittersPage() {
                                 onClick={async () => {
                                     setRescreenParams(prev => ({ ...prev, isSubmitting: true }));
                                     setReportsModal(prev => ({ ...prev, generating: true }));
-                                    
+
                                     try {
                                         const res = await fetch(
                                             withActingUserParam(
@@ -930,9 +954,9 @@ export default function RemittersPage() {
                                                 generating: false,
                                                 reports: Array.isArray(listData) ? listData : prev.reports,
                                             }));
-                                            
+
                                             setRescreenParams(prev => ({ ...prev, isOpen: false }));
-                                            
+
                                             setConfirmModal({
                                                 isOpen: true,
                                                 title: 'Check Success',
@@ -1040,10 +1064,28 @@ export default function RemittersPage() {
                             <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-500 dark:text-slate-200 pointer-events-none" />
                         </div>
                     </div>
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Branch</label>
+                        <div className="relative input-icon">
+                            <select
+                                className="input-glass w-full appearance-none pr-10 text-sm"
+                                value={branchFilter}
+                                onChange={(e) => setBranchFilter(e.target.value)}
+                            >
+                                <option value="all">All</option>
+                                {branches.map((b: any) => (
+                                    <option key={b.id || b.code} value={b.code || b.name}>
+                                        {b.name && b.code && b.name !== b.code ? `${b.name} (${b.code})` : (b.name || b.code)}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-500 dark:text-slate-200 pointer-events-none" />
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            {canBatchScreening && selectedIds.size > 0 && (
+            {dilisenseEnabled && canBatchScreening && selectedIds.size > 0 && (
                 <div className="mb-4 flex items-center justify-between rounded-2xl bg-teal-50/50 p-4 dark:bg-slate-800/80 border border-teal-100/30 dark:border-slate-700 animate-fade-in shadow-md">
                     <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
                         {selectedIds.size} {selectedIds.size === 1 ? 'remitter' : 'remitters'} selected
@@ -1146,7 +1188,7 @@ export default function RemittersPage() {
                                                         }
                                                     }}
                                                     className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
-                                                    title={String(row.registration_source || '').trim().toLowerCase() === 'mobile_app' ? "Veriff Verification Report" : "Dilisense AML Reports"}
+                                                    title={String(row.registration_source || '').trim().toLowerCase() === 'mobile_app' ? "Veriff Verification Report" : "AML Reports"}
                                                 >
                                                     <FileText className="w-5 h-5" />
                                                 </button>
@@ -1181,8 +1223,7 @@ export default function RemittersPage() {
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.id_no || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.id_expire_date || '-'}</td>
                                         <td className="px-4 py-4 text-sm">
-                                            <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                                                row.verification_state === 'verified'
+                                            <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${row.verification_state === 'verified'
                                                     ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300'
                                                     : row.verification_state === 'pending'
                                                         ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
@@ -1191,7 +1232,7 @@ export default function RemittersPage() {
                                                             : row.verification_state === 'expired'
                                                                 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
                                                                 : 'bg-slate-100 text-slate-700 dark:bg-slate-700/40 dark:text-slate-300'
-                                            }`}>
+                                                }`}>
                                                 {String(row.verification_state || 'not_started').replaceAll('_', ' ')}
                                             </span>
                                         </td>

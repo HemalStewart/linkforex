@@ -71,8 +71,8 @@ export const ADMIN_PAGES_CONFIG: AdminCategoryInfo[] = [
         category: 'Operations',
         pages: [
             { name: 'Transfers', section: 'TRANSFERS', operations: ['VIEW', 'CREATE', 'EDIT', 'APPROVE', 'CANCEL', 'PDF', 'EXPORT', 'PRINT', 'SIGN', ...AUDIT_OPS] },
-            { name: 'Remitters', section: 'REMITTERS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'PDF', 'EXPORT', 'MANUALLY_PASSED', 'RE_SCREENING', 'DELETE_COMPLIANCE_REPORT', 'BATCH_SCREENING', ...AUDIT_OPS] },
-            { name: 'Receivers', section: 'RECEIVERS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'PDF', 'EXPORT', 'MANUALLY_PASSED', 'RE_SCREENING', 'DELETE_COMPLIANCE_REPORT', ...AUDIT_OPS] },
+            { name: 'Remitters', section: 'REMITTERS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'PDF', 'EXPORT', 'MANUALLY_PASSED', 'RE_SCREENING', 'DILISENSE_SCREENING', 'DELETE_COMPLIANCE_REPORT', 'BATCH_SCREENING', ...AUDIT_OPS] },
+            { name: 'Receivers', section: 'RECEIVERS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'PDF', 'EXPORT', 'MANUALLY_PASSED', 'RE_SCREENING', 'DILISENSE_SCREENING', 'DELETE_COMPLIANCE_REPORT', ...AUDIT_OPS] },
             { name: 'Branch Access Flags', section: 'BRANCH_ACCESS_REQUESTS', operations: ['VIEW', 'APPROVE', 'CANCEL', ...AUDIT_OPS] },
             { name: 'Support', section: 'SUPPORT', operations: ['VIEW', 'EDIT', 'DELETE', ...AUDIT_OPS] },
             { name: 'Branch Rates', section: 'BRANCH_CURRENCY_RATES', operations: ['VIEW', 'CREATE', ...AUDIT_OPS] }
@@ -232,6 +232,7 @@ export function usePagePermissions(section: string) {
         canResetPassword: false,
         canDisable: false,
         canReScreening: false,
+        canDilisenseScreening: false,
         canDeleteComplianceReport: false,
         canBatchScreening: false,
         canMultiBranch: false,
@@ -248,7 +249,8 @@ export function usePagePermissions(section: string) {
             const hasDisplayPreferences = checkPermission(section, 'DISPLAY_PREFERENCES');
             const hasEditFuzzySearch = checkPermission(section, 'EDIT_FUZZY_SEARCH');
             const hasSyncSources = checkPermission(section, 'SYNC_SOURCES');
-            const hasReScreening = checkPermission(section, 'RE_SCREENING');
+            const hasReScreening = checkPermission(section, 'RE_SCREENING') || checkPermission(section, 'DILISENSE_SCREENING');
+            const hasDilisenseScreening = checkPermission(section, 'DILISENSE_SCREENING') || checkPermission(section, 'RE_SCREENING');
             const hasDeleteComplianceReport = checkPermission(section, 'DELETE_COMPLIANCE_REPORT');
             const hasBatchScreening = checkPermission(section, 'BATCH_SCREENING');
             const hasMultiBranch = checkPermission(section, 'MULTI_BRANCH');
@@ -303,6 +305,7 @@ export function usePagePermissions(section: string) {
                 canResetPassword: checkPermission(section, 'RESET_PASSWORD'),
                 canDisable: checkPermission(section, 'DISABLE'),
                 canReScreening: hasReScreening,
+                canDilisenseScreening: hasDilisenseScreening,
                 canDeleteComplianceReport: hasDeleteComplianceReport,
                 canBatchScreening: hasBatchScreening,
                 canMultiBranch: hasMultiBranch,
