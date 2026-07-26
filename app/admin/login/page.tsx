@@ -368,7 +368,6 @@ export default function AdminLoginPage() {
                     inputMode="numeric"
                     pattern="[0-9]{6}"
                     maxLength={6}
-                    placeholder="000000"
                     className="input-glass w-full py-3.5 text-center tracking-[0.5em] text-lg font-bold shadow-inner"
                     value={twofaCode}
                     onChange={(e) => setTwofaCode(e.target.value.replace(/\D/g, ''))}

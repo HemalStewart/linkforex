@@ -709,7 +709,6 @@ export default function ProfilePage() {
                                         setPasswordForm((prev) => ({ ...prev, twofaCode: val }));
                                     }}
                                     className="input-glass w-full text-sm font-mono tracking-widest text-center"
-                                    placeholder="000000"
                                     required
                                 />
                             </div>
