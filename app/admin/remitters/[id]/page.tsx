@@ -987,10 +987,9 @@ export default function EditRemitterPage() {
                                     Fuzzy Search Distance
                                 </label>
                                 <select
-                                    disabled={!rescreenParams.hasFuzzyPermission}
                                     value={rescreenParams.fuzzySearch}
                                     onChange={(e) => setRescreenParams(prev => ({ ...prev, fuzzySearch: e.target.value }))}
-                                    className="w-full rounded-xl border border-slate-200/50 bg-white/95 px-3.5 py-2 text-sm text-slate-900 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 focus:outline-none dark:border-slate-700/50 dark:bg-slate-800/90 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                                    className="w-full rounded-xl border border-slate-200/50 bg-white/95 px-3.5 py-2 text-sm text-slate-900 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 focus:outline-none dark:border-slate-700/50 dark:bg-slate-800/90 dark:text-white"
                                 >
                                     <option value="">No fuzziness (Exact match)</option>
                                     <option value="1">1 - distance 1 (small variations)</option>
@@ -1012,6 +1011,12 @@ export default function EditRemitterPage() {
                                 type="button"
                                 disabled={rescreenParams.isSubmitting || !rescreenParams.name.trim()}
                                 onClick={async () => {
+                                    const pdfWindow = window.open('', '_blank');
+                                    if (pdfWindow) {
+                                        pdfWindow.document.write('<title>Generating AML Report...</title><div style="font-family: system-ui, sans-serif; padding: 24px; color: #334155;"><h3>Generating AML Report...</h3><p>Running Dilisense name screening and building PDF report, please wait...</p></div>');
+                                        pdfWindow.document.close();
+                                    }
+
                                     setRescreenParams(prev => ({ ...prev, isSubmitting: true }));
                                     setReportsModal(prev => ({ ...prev, generating: true }));
 
@@ -1063,6 +1068,20 @@ export default function EditRemitterPage() {
 
                                             setRescreenParams(prev => ({ ...prev, isOpen: false }));
 
+                                            const newReportId = data?.id || (Array.isArray(listData) && listData[0]?.id);
+                                            if (newReportId) {
+                                                void openPdfReport(
+                                                    withActingUserParam(
+                                                        ENDPOINTS.REMITTERS.DILISENSE_REPORT_DOWNLOAD(id, newReportId),
+                                                        currentUser
+                                                    ),
+                                                    currentUser,
+                                                    pdfWindow
+                                                );
+                                            } else if (pdfWindow) {
+                                                pdfWindow.close();
+                                            }
+
                                             setConfirmModal({
                                                 isOpen: true,
                                                 title: 'Check Success',
@@ -1072,6 +1091,7 @@ export default function EditRemitterPage() {
                                                 shouldRedirect: false,
                                             });
                                         } else {
+                                            if (pdfWindow) pdfWindow.close();
                                             setReportsModal(prev => ({ ...prev, generating: false }));
                                             setRescreenParams(prev => ({ ...prev, isSubmitting: false }));
                                             setConfirmModal({
@@ -1084,6 +1104,7 @@ export default function EditRemitterPage() {
                                             });
                                         }
                                     } catch (err) {
+                                        if (pdfWindow) pdfWindow.close();
                                         console.error('Failed to run screening:', err);
                                         setReportsModal(prev => ({ ...prev, generating: false }));
                                         setRescreenParams(prev => ({ ...prev, isSubmitting: false }));

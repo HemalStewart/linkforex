@@ -26,10 +26,14 @@ const extractErrorMessage = async (response: Response): Promise<string> => {
     }
 };
 
-export const openPdfReport = async (url: string, user: StoredAdminUser | null = null): Promise<void> => {
-    const reportWindow = window.open('', '_blank');
+export const openPdfReport = async (
+    url: string,
+    user: StoredAdminUser | null = null,
+    existingWindow: Window | null = null
+): Promise<void> => {
+    const reportWindow = existingWindow || window.open('', '_blank');
 
-    if (reportWindow) {
+    if (reportWindow && !existingWindow) {
         reportWindow.document.write('<title>Loading PDF...</title><p style="font-family: sans-serif; padding: 16px;">Loading PDF...</p>');
         reportWindow.document.close();
     }
