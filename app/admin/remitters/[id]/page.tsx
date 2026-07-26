@@ -60,9 +60,10 @@ const isValidUkPassportNumber = (value: string): boolean => /^\d{9}$/.test(value
 
 const normalizeAmlResult = (val: string | null | undefined): string => {
     const s = String(val || '').trim().toLowerCase();
-    if (['pass', 'passed', 'clear', 'approved', 'verified', 'manually passed', 'clean', 'no_match', 'no match', 'ok'].includes(s) || s.includes('pass') || s.includes('clear') || s.includes('verified')) return 'passed';
+    if (s === 'manually passed' || s === 'manually_passed') return 'manually passed';
+    if (['pass', 'passed', 'clear', 'approved', 'verified', 'clean', 'no_match', 'no match', 'ok'].includes(s) || s.includes('pass') || s.includes('clear') || s.includes('verified')) return 'passed';
+    if (['refer', 'referred', 'review', 'under_review'].includes(s) || s.includes('refer') || s.includes('review')) return 'review';
     if (['fail', 'failed', 'hit', 'match', 'matches', 'rejected', 'expired'].includes(s) || s.includes('hit') || s.includes('fail')) return 'hit';
-    if (s === 'review' || s.includes('review')) return 'review';
     return 'pending';
 };
 
@@ -1357,7 +1358,8 @@ export default function EditRemitterPage() {
                                 onChange={(e) => setFormData({ ...formData, sender_aml_result: e.target.value })}
                             >
                                 <option value="pending" className="text-slate-700 dark:text-slate-200">Pending</option>
-                                <option value="passed" className="text-emerald-700 dark:text-emerald-400">Manually Passed</option>
+                                <option value="passed" className="text-emerald-700 dark:text-emerald-400">Pass</option>
+                                <option value="manually passed" className="text-emerald-700 dark:text-emerald-400">Manually Passed</option>
                                 <option value="review" className="text-amber-700 dark:text-amber-400">Review</option>
                                 <option value="hit" className="text-rose-700 dark:text-rose-400">Hit</option>
                             </select>
