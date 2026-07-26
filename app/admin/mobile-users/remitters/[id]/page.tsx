@@ -663,7 +663,7 @@ export default function EditRemitterPage() {
                                 ) : (
                                     <>
                                         <RefreshCcw className="h-3.5 w-3.5" />
-                                        Pull New Reports
+                                        New Check
                                     </>
                                 )}
                             </button>
@@ -680,7 +680,7 @@ export default function EditRemitterPage() {
                                 <FileText className="mx-auto h-12 w-12 text-slate-300 dark:text-slate-600 mb-3" />
                                 <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">No reports pulled yet</h4>
                                 <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto">
-                                    Click "Pull New Reports" above to pull a fresh KYC verification report.
+                                    Click "New Check" above to pull a fresh KYC verification report.
                                 </p>
                             </div>
                         ) : (

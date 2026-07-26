@@ -47,8 +47,12 @@ export default function EditReceiverPage() {
                 const res = await fetch(ENDPOINTS.MOBILE_ADMIN.SETTINGS);
                 if (res.ok) {
                     const data = await res.json();
-                    if (data && typeof data.enable_sanction_screening === 'string') {
-                        setDilisenseEnabled(data.enable_sanction_screening.toLowerCase() !== 'no');
+                    if (data) {
+                        const raw = data.enable_sanction_screening ?? data.enable_dilisense_screening;
+                        if (raw !== undefined && raw !== null) {
+                            const str = String(raw).toLowerCase().trim();
+                            setDilisenseEnabled(str !== 'no' && str !== 'false' && str !== '0');
+                        }
                     }
                 }
             } catch (e) {

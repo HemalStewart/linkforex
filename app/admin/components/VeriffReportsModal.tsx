@@ -256,7 +256,7 @@ export default function VeriffReportsModal({
                             ) : (
                                 <>
                                     <RefreshCcw className="h-3.5 w-3.5" />
-                                    Pull New Reports
+                                    New Check
                                 </>
                             )}
                         </button>
@@ -273,7 +273,7 @@ export default function VeriffReportsModal({
                             <FileText className="mx-auto h-12 w-12 text-slate-300 dark:text-slate-600 mb-3" />
                             <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">No Veriff reports pulled yet</h4>
                             <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto">
-                                Click "Pull New Reports" above to request and save the Veriff verification document.
+                                Click "New Check" above to request and save the Veriff verification document.
                             </p>
                         </div>
                     ) : (
