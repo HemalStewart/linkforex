@@ -2222,16 +2222,20 @@ class Auth extends BaseController
             return $this->fail('Profile photo file is required.', 400);
         }
 
-        $uploadDir = FCPATH . 'uploads/remitters';
+        $categoryFolder = $this->request->getPost('doc_type') ?? 'id_copy';
+        $safeName = strtolower(trim((string) preg_replace('/[^a-z0-9_-]/i', '_', (string) ($user['sender_name'] ?? $user['name'] ?? 'remitter'))));
+        $remitterFolder = ($safeName !== '' ? $safeName : 'remitter') . '_' . ((int) $user['id']);
+
+        $uploadDir = FCPATH . 'uploads/remitters/' . $remitterFolder . '/' . $categoryFolder;
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);
         }
 
         $ext = $file->getExtension() ?: 'jpg';
-        $name = 'profile_' . ((int) $user['id']) . '_' . time() . '.' . $ext;
+        $name = time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
         $file->move($uploadDir, $name, true);
 
-        $relativePath = 'uploads/remitters/' . $name;
+        $relativePath = 'uploads/remitters/' . $remitterFolder . '/' . $categoryFolder . '/' . $name;
         $model->update((int) $user['id'], [
             'profile_photo' => $relativePath,
             'updated_at' => date('Y-m-d H:i:s'),

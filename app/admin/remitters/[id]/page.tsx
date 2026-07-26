@@ -15,6 +15,7 @@ import ConfirmModal from '../../components/ConfirmModal';
 import { showToast, queueToast } from '@/app/lib/toast';
 import { usePagePermissions, checkPermission } from '@/app/lib/permissions';
 import VeriffReportsModal from '../../components/VeriffReportsModal';
+import RemitterDocumentsModal from '../../components/RemitterDocumentsModal';
 import { formatDateTime } from '@/app/lib/dateUtils';
 import {
     ArrowLeft,
@@ -43,7 +44,8 @@ import {
     Download,
     CheckCircle,
     Eye,
-    Upload
+    Upload,
+    FolderOpen
 } from 'lucide-react';
 import { resolveUploadsUrl } from '@/app/lib/uploads';
 
@@ -181,6 +183,8 @@ export default function EditRemitterPage() {
     const [showVeriffModal, setShowVeriffModal] = useState(false);
     const [countries, setCountries] = useState<any[]>([]);
     const [occupations, setOccupations] = useState<any[]>([]);
+    const [docModalOpen, setDocModalOpen] = useState(false);
+    const [veriffReportsModalOpen, setVeriffReportsModalOpen] = useState(false);
 
     // Dilisense AML screening states
     const [sanctionReference, setSanctionReference] = useState<string>('');
@@ -1396,15 +1400,23 @@ export default function EditRemitterPage() {
 
                 {/* Section 4: Documents */}
                 <div className="border-t border-slate-100 dark:border-slate-800 pt-6 mt-6">
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
-                        <FileText className="w-5 h-5 mr-2 text-teal-500" />
-                        Documents
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                        <FormFileUpload label="ID Copy" name="passport_copy" compact defaultValue={formData.id_copy} />
-                        <FormFileUpload label="Proof of Address" name="proof_of_address_doc" compact defaultValue={formData.proof_of_address_doc} />
-                        <FormFileUpload label="Source of Income" name="work_related_docs" compact defaultValue={formData.work_related_docs} />
-                        <FormFileUpload label="AML Doc" name="sender_details_aml_screening_doc" compact defaultValue={formData.sender_details_aml_screening_doc} />
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
+                                <FileText className="w-5 h-5 mr-2 text-teal-500" />
+                                Documents
+                            </h3>
+                            <p className="text-xs font-medium text-slate-400 mt-0.5">
+                                View and upload remitter ID, Proof of Address, Income & AML documents
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setDocModalOpen(true)}
+                            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-extrabold bg-teal-500 hover:bg-teal-600 text-white shadow-md shadow-teal-500/20 transition-all"
+                        >
+                            <FolderOpen className="w-4 h-4" /> Manage & View Documents
+                        </button>
                     </div>
                 </div>
 
@@ -1428,15 +1440,22 @@ export default function EditRemitterPage() {
 
 
 
-            {showVeriffModal && (
+            {veriffReportsModalOpen && (
                 <VeriffReportsModal
-                    isOpen={showVeriffModal}
-                    onClose={() => setShowVeriffModal(false)}
+                    isOpen={veriffReportsModalOpen}
+                    onClose={() => setVeriffReportsModalOpen(false)}
                     remitterId={id}
-                    remitterName={String(formData.sender_name || formData.name || '')}
-                    veriffSessionId={String(formData.veriff_session_id || '')}
+                    remitterName={formData.sender_name}
+                    veriffSessionId={formData.veriff_url}
                 />
             )}
+
+            <RemitterDocumentsModal
+                isOpen={docModalOpen}
+                onClose={() => setDocModalOpen(false)}
+                remitterId={id}
+                remitterName={formData.sender_name}
+            />
         </div>
     );
 }

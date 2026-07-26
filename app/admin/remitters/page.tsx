@@ -8,11 +8,12 @@ import { getCurrentAdminUser, withActingUserParam } from '@/app/lib/adminUserSco
 import { openPdfReport } from '@/app/lib/openPdfReport';
 import ConfirmModal from '../components/ConfirmModal';
 import VeriffReportsModal from '../components/VeriffReportsModal';
+import RemitterDocumentsModal from '../components/RemitterDocumentsModal';
 import { formatDateTime } from '@/app/lib/dateUtils';
 import { routeKeyOf } from '@/app/lib/routeKeys';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
-import { Search, UserPlus, Edit2, Info, Trash2, ChevronRight, Users, FileText, ShieldCheck, X, Loader2, RefreshCcw, Download } from 'lucide-react';
+import { Search, UserPlus, Edit2, Info, Trash2, ChevronRight, Users, FileText, ShieldCheck, X, Loader2, RefreshCcw, Download, FolderOpen } from 'lucide-react';
 import { useAuditColumns, usePagePermissions, checkPermission } from '@/app/lib/permissions';
 
 type SortDir = 'asc' | 'desc';
@@ -119,6 +120,15 @@ export default function RemittersPage() {
         isAlert: false,
         actionType: 'delete_remitter',
         targetReportId: null
+    });
+    const [docModal, setDocModal] = useState<{
+        isOpen: boolean;
+        remitterId: string | number;
+        remitterName: string;
+    }>({
+        isOpen: false,
+        remitterId: '',
+        remitterName: '',
     });
     const [remitterToDelete, setRemitterToDelete] = useState<any | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
@@ -708,6 +718,13 @@ export default function RemittersPage() {
                 loading={deleteLoading}
             />
 
+            <RemitterDocumentsModal
+                isOpen={docModal.isOpen}
+                onClose={() => setDocModal({ isOpen: false, remitterId: '', remitterName: '' })}
+                remitterId={docModal.remitterId}
+                remitterName={docModal.remitterName}
+            />
+
             {reportsModal.isOpen && (
                 <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 transition-all duration-300">
                     <div className="w-full max-w-4xl rounded-3xl border border-slate-200/50 bg-white/95 p-6 shadow-2xl dark:border-slate-700/50 dark:bg-slate-900/95 backdrop-blur-lg transform transition-all duration-300 scale-100">
@@ -1222,6 +1239,7 @@ export default function RemittersPage() {
                                     )}
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">No.</th>
                                     <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="View Overview"><Info className="w-4 h-4 mx-auto text-slate-400" /></th>
+                                    <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Documents"><FolderOpen className="w-4 h-4 mx-auto text-slate-400" /></th>
                                     {canEdit && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                     {canPdf && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="AML PDF"><FileText className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                     {columns.map((col) => (
@@ -1256,6 +1274,16 @@ export default function RemittersPage() {
                                                 title="View Overview"
                                             >
                                                 <Info className="w-5 h-5" />
+                                            </button>
+                                        </td>
+                                        <td className="px-2 py-4 text-center">
+                                            <button
+                                                type="button"
+                                                onClick={() => setDocModal({ isOpen: true, remitterId: row.id, remitterName: row.sender_name })}
+                                                className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
+                                                title="Remitter Documents"
+                                            >
+                                                <FolderOpen className="w-5 h-5" />
                                             </button>
                                         </td>
                                         {canEdit && (
@@ -1449,6 +1477,13 @@ export default function RemittersPage() {
                                 </h2>
                             </div>
                             <div className="flex items-center gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setDocModal({ isOpen: true, remitterId: viewOverviewRemitter.id, remitterName: viewOverviewRemitter.sender_name })}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-teal-500 hover:bg-teal-600 text-white shadow-sm transition-all"
+                                >
+                                    <FolderOpen className="w-4 h-4" /> Documents
+                                </button>
                                 <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ${
                                     String(viewOverviewRemitter.active || '').toLowerCase() === 'active'
                                         ? 'bg-teal-500/15 text-teal-600 dark:text-teal-300'
