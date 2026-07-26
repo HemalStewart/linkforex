@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../../components/ConfirmModal';
+import PostcodeLookup, { AddressData } from '@/app/admin/components/PostcodeLookup';
 import { ArrowLeft, User, Mail, Phone, Calendar, MapPin, Flag, Save, Loader2, CheckCircle, AlertTriangle, Building, ChevronDown, ChevronUp, ExternalLink, Trash2, ShieldCheck, IdCard, Image, Download, FileText, RefreshCcw, X } from 'lucide-react';
 import { resolveUploadsUrl } from '@/app/lib/uploads';
 import { usePagePermissions } from '@/app/lib/permissions';
@@ -1150,19 +1151,20 @@ export default function EditRemitterPage() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Postcode</label>
-                        <div className="relative input-icon group">
-                            <span className="input-icon-left">
-                                <MapPin className="w-5 h-5 group-focus-within:text-teal-500 transition-colors" />
-                            </span>
-                            <input
-                                type="text"
-                                value={formData.postcode || ''}
-                                onChange={(e) => setFormData({ ...formData, postcode: e.target.value })}
-                                className="input-glass w-full py-3"
-                                placeholder="Postcode"
-                            />
-                        </div>
+                        <PostcodeLookup
+                            label="Postcode"
+                            name="postcode"
+                            value={formData.postcode || ''}
+                            onChange={(val) => setFormData((prev: any) => ({ ...prev, postcode: val }))}
+                            onAddressSelect={(addr: AddressData) => {
+                                setFormData((prev: any) => ({
+                                    ...prev,
+                                    address_1: addr.address_1 || prev.address_1,
+                                    city: addr.city || prev.city,
+                                    country: addr.country || prev.country,
+                                }));
+                            }}
+                        />
                     </div>
 
                     <div>

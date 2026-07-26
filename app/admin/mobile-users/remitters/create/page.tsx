@@ -11,6 +11,7 @@ import {
     isPrivilegedAdminUser,
 } from '@/app/lib/adminUserScope';
 import ConfirmModal from '../../../components/ConfirmModal';
+import PostcodeLookup, { AddressData } from '@/app/admin/components/PostcodeLookup';
 import { showToast, queueToast } from '@/app/lib/toast';
 import {
     User, Calendar, MapPin, Briefcase, Phone, Building, CreditCard,
@@ -256,6 +257,11 @@ export default function CreateMobileUserRemitterPage() {
     const [branches, setBranches] = useState<any[]>([]);
     const [occupations, setOccupations] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
+    const [postcode, setPostcode] = useState('');
+    const [address1, setAddress1] = useState('');
+    const [city, setCity] = useState('');
+    const [county, setCounty] = useState('');
+    const [country, setCountry] = useState('United Kingdom');
 
     const [confirmModal, setConfirmModal] = useState({
         isOpen: false,
@@ -494,16 +500,59 @@ export default function CreateMobileUserRemitterPage() {
                         Address Details
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <PostcodeLookup
+                                label="Postcode"
+                                name="postcode"
+                                value={postcode}
+                                required
+                                onChange={(val) => setPostcode(val)}
+                                onAddressSelect={(addr: AddressData) => {
+                                    if (addr.address_1) setAddress1(addr.address_1);
+                                    if (addr.city) setCity(addr.city);
+                                    if (addr.county) setCounty(addr.county);
+                                    if (addr.country) setCountry(addr.country);
+                                }}
+                            />
+                        </div>
+                        <FormInput
+                            label="Country"
+                            name="country"
+                            value={country}
+                            onChange={(e: any) => setCountry(e.target.value)}
+                            required
+                            Icon={Globe}
+                        />
                         <div className="md:col-span-2">
-                            <FormInput label="Address Line 1" name="address_1" placeholder="House/Flat Number, Street" required Icon={MapPin} />
+                            <FormInput
+                                label="Address Line 1"
+                                name="address_1"
+                                value={address1}
+                                onChange={(e: any) => setAddress1(e.target.value)}
+                                placeholder="House/Flat Number, Street"
+                                required
+                                Icon={MapPin}
+                            />
                         </div>
                         <div className="md:col-span-2">
                             <FormInput label="Address Line 2" name="address_2" placeholder="Locality / Area" Icon={MapPin} />
                         </div>
-                        <FormInput label="City" name="city" placeholder="City" required Icon={Building} />
-                        <FormInput label="Postcode" name="postcode" placeholder="Postcode" required Icon={MapPin} />
-                        <FormInput label="County" name="county" Icon={MapPin} />
-                        <FormInput label="Country" name="country" defaultValue="United Kingdom" required Icon={Globe} />
+                        <FormInput
+                            label="City"
+                            name="city"
+                            value={city}
+                            onChange={(e: any) => setCity(e.target.value)}
+                            placeholder="City"
+                            required
+                            Icon={Building}
+                        />
+                        <FormInput
+                            label="County"
+                            name="county"
+                            value={county}
+                            onChange={(e: any) => setCounty(e.target.value)}
+                            Icon={MapPin}
+                        />
                     </div>
                 </div>
 

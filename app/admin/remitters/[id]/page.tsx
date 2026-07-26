@@ -12,6 +12,7 @@ import {
 } from '@/app/lib/adminUserScope';
 import { openPdfReport } from '@/app/lib/openPdfReport';
 import ConfirmModal from '../../components/ConfirmModal';
+import PostcodeLookup, { AddressData } from '../../components/PostcodeLookup';
 import { showToast, queueToast } from '@/app/lib/toast';
 import { usePagePermissions, checkPermission } from '@/app/lib/permissions';
 import VeriffReportsModal from '../../components/VeriffReportsModal';
@@ -1246,11 +1247,20 @@ export default function EditRemitterPage() {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Postcode</label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left"><MapPin className="w-5 h-5" /></span>
-                            <input className="input-glass w-full" value={formData.postcode} onChange={(e) => setFormData({ ...formData, postcode: e.target.value })} />
-                        </div>
+                        <PostcodeLookup
+                            label="Postcode"
+                            name="postcode"
+                            value={formData.postcode || ''}
+                            onChange={(val) => setFormData((prev: any) => ({ ...prev, postcode: val }))}
+                            onAddressSelect={(addr: AddressData) => {
+                                setFormData((prev: any) => ({
+                                    ...prev,
+                                    address_1: addr.address_1 || prev.address_1,
+                                    city: addr.city || prev.city,
+                                    country: addr.country || prev.country,
+                                }));
+                            }}
+                        />
                     </div>
                     <div>
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Address 1</label>
