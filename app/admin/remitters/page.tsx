@@ -22,6 +22,47 @@ const csvEscape = (value: unknown): string => {
     return `"${text}"`;
 };
 
+const resolveAmlStatus = (r: any): string => {
+    if (!r) return 'pending';
+
+    // 1. Explicit sender_aml_result / dilisense_result / sanction_result if populated and valid
+    const amlRes = String(r.sender_aml_result || r.aml_result || r.aml_status || r.dilisense_result || r.sanction_result || r.verdict || '').trim().toLowerCase();
+    if (amlRes && amlRes !== '-' && amlRes !== 'pending' && amlRes !== 'not_started' && amlRes !== 'null' && amlRes !== 'undefined') {
+        return amlRes;
+    }
+
+    // 2. Sanction status from backend engine
+    const sancStatus = String(r.sanction_status || '').trim().toLowerCase();
+    if (sancStatus && sancStatus !== '-' && sancStatus !== 'pending' && sancStatus !== 'not_started') {
+        if (sancStatus === 'clear') return 'pass';
+        if (sancStatus === 'review' || sancStatus === 'refer') return 'refer';
+        if (sancStatus === 'hit' || sancStatus === 'fail') return 'hit';
+        return sancStatus;
+    }
+
+    // 3. Sanction score rules
+    if (r.sanction_score !== undefined && r.sanction_score !== null && r.sanction_score !== '') {
+        const score = Number(r.sanction_score);
+        if (!isNaN(score)) {
+            if (score >= 80) return 'hit';
+            if (score >= 55) return 'refer';
+            if (r.sanction_checked_at || r.sanction_reference) return 'pass';
+        }
+    }
+
+    // 4. Verification flags
+    if (String(r.sanction_list_verified || '').toLowerCase() === 'yes' || String(r.id_verified || '').toLowerCase() === 'yes' || String(r.verification_state || '').toLowerCase() === 'verified') {
+        return 'pass';
+    }
+
+    // 5. Screening document or timestamp present
+    if (r.sender_details_aml_screening_doc || r.sender_aml_doc || r.sanction_checked_at || r.sanction_reference) {
+        return 'pass';
+    }
+
+    return 'pending';
+};
+
 export default function RemittersPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('REMITTERS');
     const { canAdd, canEdit, canDelete, canPdf, canExport, canReScreening, canDilisenseScreening, canDeleteComplianceReport, canBatchScreening } = usePagePermissions('REMITTERS');
@@ -273,16 +314,7 @@ export default function RemittersPage() {
                 other_info: r.other_info || '-',
                 use_in: r.use_in || 'All',
                 sender_aml_doc: r.sender_details_aml_screening_doc || '-',
-                sender_aml_result: (() => {
-                    const res = r.sender_aml_result || r.aml_result || r.aml_status || r.dilisense_result || r.sanction_result || r.verdict;
-                    if (res && res !== '-' && res !== 'not_started') {
-                        return res;
-                    }
-                    if (String(r.id_verified).toLowerCase() === 'yes' || r.verification_state === 'verified') {
-                        return 'passed';
-                    }
-                    return res || '-';
-                })(),
+                sender_aml_result: resolveAmlStatus(r),
                 rescreening_sender: r.rescreening_sender || '-',
                 veriff_status: r.veriff_status || '-',
                 veriff_decision: r.veriff_decision || '-',
@@ -1285,10 +1317,7 @@ export default function RemittersPage() {
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.id_expire_date || '-'}</td>
                                         <td className="px-4 py-4 text-sm">
                                             {(() => {
-                                                const rawVal = row.sender_aml_result && row.sender_aml_result !== '-' && row.sender_aml_result !== 'not_started'
-                                                    ? row.sender_aml_result
-                                                    : (row.verification_state && row.verification_state !== 'not_started' ? row.verification_state : (row.veriff_decision || 'pending'));
-
+                                                const rawVal = resolveAmlStatus(row);
                                                 const s = String(rawVal || '').trim().toLowerCase();
 
                                                 const isPass = ['pass', 'passed', 'clear', 'approved', 'verified', 'manually passed', 'clean', 'no_match', 'no match', 'ok'].includes(s) || s.includes('pass') || s.includes('clear');
