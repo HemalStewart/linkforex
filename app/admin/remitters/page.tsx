@@ -12,7 +12,7 @@ import { formatDateTime } from '@/app/lib/dateUtils';
 import { routeKeyOf } from '@/app/lib/routeKeys';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
-import { Search, UserPlus, Edit2, Trash2, ChevronRight, Users, FileText, ShieldCheck, X, Loader2, RefreshCcw, Download } from 'lucide-react';
+import { Search, UserPlus, Edit2, Info, Trash2, ChevronRight, Users, FileText, ShieldCheck, X, Loader2, RefreshCcw, Download } from 'lucide-react';
 import { useAuditColumns, usePagePermissions, checkPermission } from '@/app/lib/permissions';
 
 type SortDir = 'asc' | 'desc';
@@ -27,6 +27,7 @@ export default function RemittersPage() {
     const { canAdd, canEdit, canDelete, canPdf, canExport, canReScreening, canDilisenseScreening, canDeleteComplianceReport, canBatchScreening } = usePagePermissions('REMITTERS');
     const currentUser = useMemo(() => getCurrentAdminUser(), []);
     const [selectedRemitter, setSelectedRemitter] = useState<any | null>(null);
+    const [viewOverviewRemitter, setViewOverviewRemitter] = useState<any | null>(null);
     const [remitters, setRemitters] = useState<any[]>([]);
     const [branches, setBranches] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -272,7 +273,16 @@ export default function RemittersPage() {
                 other_info: r.other_info || '-',
                 use_in: r.use_in || 'All',
                 sender_aml_doc: r.sender_details_aml_screening_doc || '-',
-                sender_aml_result: r.sender_aml_result || '-',
+                sender_aml_result: (() => {
+                    const res = r.sender_aml_result || r.aml_result || r.aml_status || r.dilisense_result || r.sanction_result || r.verdict;
+                    if (res && res !== '-' && res !== 'not_started') {
+                        return res;
+                    }
+                    if (String(r.id_verified).toLowerCase() === 'yes' || r.verification_state === 'verified') {
+                        return 'passed';
+                    }
+                    return res || '-';
+                })(),
                 rescreening_sender: r.rescreening_sender || '-',
                 veriff_status: r.veriff_status || '-',
                 veriff_decision: r.veriff_decision || '-',
@@ -626,17 +636,16 @@ export default function RemittersPage() {
 
     const columns = [
         { key: 'branch_name', label: 'Branch' },
-        { key: 'sender_id', label: 'Remitter ID' },
+        { key: 'sender_id', label: 'Remitter Reference ID' },
         { key: 'sender_name', label: 'Remitter Name' },
         { key: 'active', label: 'Active' },
         { key: 'dob', label: 'Date Of Birth' },
-        { key: 'place_of_birth', label: 'Place Of Birth' },
+        { key: 'place_of_birth', label: 'Country of Birth' },
         { key: 'telephone', label: 'Telephone' },
         { key: 'postcode', label: 'Postcode' },
         { key: 'address_1', label: 'Address 1' },
         { key: 'address_2', label: 'Address 2' },
         { key: 'city', label: 'City' },
-        { key: 'county', label: 'County' },
         { key: 'country', label: 'Country' },
         { key: 'occupation', label: 'Occupation' },
         { key: 'id_verified', label: 'ID Verified' },
@@ -644,16 +653,8 @@ export default function RemittersPage() {
         { key: 'id_type', label: 'ID Type' },
         { key: 'id_no', label: 'ID No' },
         { key: 'id_expire_date', label: 'ID Expire Date' },
-        { key: 'verification_state', label: 'Verification' },
+        { key: 'verification_state', label: 'AML Verifications' },
         { key: 'id_expired', label: 'ID Expired' },
-        { key: 'other_info', label: 'Other Info' },
-        { key: 'use_in', label: 'Use In' },
-        { key: 'id_copy', label: 'View ID Copy' },
-        { key: 'other_doc', label: 'View Other Doc' },
-        { key: 'work_related_doc', label: 'View Work related Doc' },
-        { key: 'sender_aml_doc', label: 'Remitter AML Document' },
-        { key: 'sender_aml_result', label: 'Remitter AML Result' },
-        { key: 'rescreening_sender', label: 'Re/screening Remitter' },
         ...(showCreatedBy ? [{ key: 'entered_user', label: 'Created By' }] : []),
         ...(showCreatedAt ? [{ key: 'entered_date', label: 'Created At' }] : []),
         ...(showUpdatedBy ? [{ key: 'modified_user', label: 'Updated By' }] : []),
@@ -676,7 +677,7 @@ export default function RemittersPage() {
             />
 
             {reportsModal.isOpen && (
-                <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-md transition-all duration-300">
+                <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 transition-all duration-300">
                     <div className="w-full max-w-4xl rounded-3xl border border-slate-200/50 bg-white/95 p-6 shadow-2xl dark:border-slate-700/50 dark:bg-slate-900/95 backdrop-blur-lg transform transition-all duration-300 scale-100">
                         <div className="mb-6 flex items-start justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
                             <div>
@@ -811,7 +812,7 @@ export default function RemittersPage() {
             )}
 
             {showRescreenConfirm && (
-                <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-md">
+                <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 transition-all duration-300">
                     <div className="w-full max-w-md rounded-3xl border border-slate-200/50 bg-white/95 p-6 shadow-2xl dark:border-slate-700/50 dark:bg-slate-900/95 backdrop-blur-lg transform scale-100 transition-all duration-300">
                         <div className="mb-4 text-center">
                             <ShieldCheck className="mx-auto h-12 w-12 text-teal-500 mb-3" />
@@ -856,7 +857,7 @@ export default function RemittersPage() {
             )}
 
             {rescreenParams.isOpen && (
-                <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-md">
+                <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 transition-all duration-300">
                     <div className="w-full max-w-lg rounded-3xl border border-slate-200/50 bg-white/95 p-6 shadow-2xl dark:border-slate-700/50 dark:bg-slate-900/95 backdrop-blur-lg">
                         <div className="mb-4 flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                             <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Rescreening Parameters</h3>
@@ -979,6 +980,31 @@ export default function RemittersPage() {
                                             } else if (pdfWindow) {
                                                 pdfWindow.close();
                                             }
+
+                                            // Synchronously update remitters list and overview modal with latest Dilisense check result
+                                            const newStatus = data?.sender_aml_result || data?.aml_result || data?.status || data?.verdict || (data?.hits_count > 0 ? 'hit' : 'passed');
+                                            const newAmlResult = (['pass', 'passed', 'clear', 'approved', 'verified', 'manually passed'].includes(String(newStatus).toLowerCase()) || String(newStatus).toLowerCase().includes('pass')) ? 'passed' : newStatus;
+
+                                            setRemitters((prev) => prev.map((rItem) => {
+                                                if (rItem.id === reportsModal.selectedId) {
+                                                    return {
+                                                        ...rItem,
+                                                        sender_aml_result: newAmlResult,
+                                                        verification_state: 'verified',
+                                                    };
+                                                }
+                                                return rItem;
+                                            }));
+
+                                            if (viewOverviewRemitter?.id === reportsModal.selectedId) {
+                                                setViewOverviewRemitter((prev: any) => ({
+                                                    ...prev,
+                                                    sender_aml_result: newAmlResult,
+                                                    verification_state: 'verified',
+                                                }));
+                                            }
+
+                                            void fetchRemitters();
 
                                             setConfirmModal({
                                                 isOpen: true,
@@ -1163,6 +1189,7 @@ export default function RemittersPage() {
                                         </th>
                                     )}
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">No.</th>
+                                    <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="View Overview"><Info className="w-4 h-4 mx-auto text-slate-400" /></th>
                                     {canEdit && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                     {canPdf && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="AML PDF"><FileText className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                     {columns.map((col) => (
@@ -1189,6 +1216,16 @@ export default function RemittersPage() {
                                             </td>
                                         )}
                                         <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-300 font-medium">{startIndex + idx + 1}</td>
+                                        <td className="px-2 py-4 text-center">
+                                            <button
+                                                type="button"
+                                                onClick={() => setViewOverviewRemitter(row)}
+                                                className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
+                                                title="View Overview"
+                                            >
+                                                <Info className="w-5 h-5" />
+                                            </button>
+                                        </td>
                                         {canEdit && (
                                             <td className="px-2 py-4 text-center">
                                                 <Link
@@ -1239,7 +1276,6 @@ export default function RemittersPage() {
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.address_1 || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.address_2 || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.city || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.county || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.country || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.occupation || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{yesNo(row.id_verified)}</td>
@@ -1248,30 +1284,41 @@ export default function RemittersPage() {
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.id_no || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.id_expire_date || '-'}</td>
                                         <td className="px-4 py-4 text-sm">
-                                            <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${row.verification_state === 'verified'
-                                                    ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300'
-                                                    : row.verification_state === 'pending'
-                                                        ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
-                                                        : row.verification_state === 'rejected'
-                                                            ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300'
-                                                            : row.verification_state === 'expired'
-                                                                ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
-                                                                : 'bg-slate-100 text-slate-700 dark:bg-slate-700/40 dark:text-slate-300'
-                                                }`}>
-                                                {String(row.verification_state || 'not_started').replaceAll('_', ' ')}
-                                            </span>
+                                            {(() => {
+                                                const rawVal = row.sender_aml_result && row.sender_aml_result !== '-' && row.sender_aml_result !== 'not_started'
+                                                    ? row.sender_aml_result
+                                                    : (row.verification_state && row.verification_state !== 'not_started' ? row.verification_state : (row.veriff_decision || 'pending'));
+
+                                                const s = String(rawVal || '').trim().toLowerCase();
+
+                                                const isPass = ['pass', 'passed', 'clear', 'approved', 'verified', 'manually passed', 'clean', 'no_match', 'no match', 'ok'].includes(s) || s.includes('pass') || s.includes('clear');
+                                                const isRefer = ['refer', 'referred', 'review', 'under_review'].includes(s) || s.includes('refer') || s.includes('review');
+                                                const isHit = ['hit', 'fail', 'failed', 'match', 'matches', 'rejected', 'expired'].includes(s) || s.includes('hit') || s.includes('fail');
+
+                                                let badgeText = 'PENDING';
+                                                let badgeClass = 'bg-amber-500 text-white font-extrabold px-3 py-1 text-xs rounded-lg shadow-sm';
+
+                                                if (isPass) {
+                                                    badgeText = '✓ PASS';
+                                                    badgeClass = 'bg-emerald-500 text-white font-extrabold px-3 py-1 text-xs rounded-lg shadow-sm';
+                                                } else if (isRefer) {
+                                                    badgeText = s.includes('refer') ? 'REFER' : 'REVIEW';
+                                                    badgeClass = 'bg-amber-500 text-white font-extrabold px-3 py-1 text-xs rounded-lg shadow-sm';
+                                                } else if (isHit) {
+                                                    badgeText = '⚠ HIT';
+                                                    badgeClass = 'bg-rose-600 text-white font-extrabold px-3 py-1 text-xs rounded-lg shadow-sm';
+                                                }
+
+                                                return (
+                                                    <span className={`inline-flex items-center justify-center ${badgeClass}`}>
+                                                        {badgeText}
+                                                    </span>
+                                                );
+                                            })()}
                                         </td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
                                             {row.id_expired ? 'Yes' : 'No'}
                                         </td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.other_info || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.use_in || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{renderDocCell(row.id_copy)}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{renderDocCell(row.other_doc)}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{renderDocCell(row.work_related_doc)}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{renderDocCell(row.sender_aml_doc)}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.sender_aml_result || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.rescreening_sender || '-'}</td>
                                         {showCreatedBy && (
                                             <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
                                                 {row.created_by && row.created_by !== '-'
@@ -1328,7 +1375,7 @@ export default function RemittersPage() {
                 />
             )}
             {showBatchConfirm && (
-                <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-md">
+                <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 transition-all duration-300">
                     <div className="w-full max-w-md rounded-3xl border border-slate-200/50 bg-white/95 p-6 shadow-2xl dark:border-slate-700/50 dark:bg-slate-900/95 backdrop-blur-lg transform scale-100 transition-all duration-300">
                         <div className="mb-4 text-center">
                             <ShieldCheck className="mx-auto h-12 w-12 text-teal-500 mb-3" />
@@ -1351,6 +1398,153 @@ export default function RemittersPage() {
                                 className="w-1/2 rounded-full bg-teal-600 py-2.5 text-xs font-bold text-white hover:bg-teal-700 transition"
                             >
                                 Confirm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {viewOverviewRemitter && (
+                <div
+                    onClick={() => setViewOverviewRemitter(null)}
+                    className="fixed inset-0 z-[1050] flex items-center justify-center p-4 transition-all duration-300 pointer-events-auto"
+                >
+                    <div
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-200/50 bg-white/95 p-6 shadow-2xl dark:border-slate-700/50 dark:bg-slate-900/95 backdrop-blur-lg"
+                    >
+                        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+                            <div>
+                                <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Remitter Overview</p>
+                                <h2 className="mt-1 text-xl font-extrabold text-slate-900 dark:text-white">
+                                    {viewOverviewRemitter.sender_name || '-'}
+                                </h2>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ${
+                                    String(viewOverviewRemitter.active || '').toLowerCase() === 'active'
+                                        ? 'bg-teal-500/15 text-teal-600 dark:text-teal-300'
+                                        : 'bg-slate-500/15 text-slate-600 dark:text-slate-300'
+                                }`}>
+                                    {viewOverviewRemitter.active || 'Inactive'}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => setViewOverviewRemitter(null)}
+                                    className="rounded-full border border-slate-200 p-2 text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800 transition-colors"
+                                >
+                                    <X className="h-4 w-4" />
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                                {/* Identity */}
+                                <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
+                                    <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Identity</p>
+                                    <p className="mt-2 text-sm font-semibold text-slate-900 dark:text-white">Remitter Reference ID: {viewOverviewRemitter.sender_id || '-'}</p>
+                                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">DOB: {viewOverviewRemitter.dob || '-'}</p>
+                                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Country of Birth: {viewOverviewRemitter.place_of_birth || '-'}</p>
+                                </div>
+
+                                {/* Branch */}
+                                <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
+                                    <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Branch</p>
+                                    <p className="mt-2 text-sm font-semibold text-slate-900 dark:text-white">
+                                        {viewOverviewRemitter.branch_name || '-'}
+                                    </p>
+                                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Occupation: {viewOverviewRemitter.occupation || '-'}</p>
+                                </div>
+
+                                {/* Compliance */}
+                                <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
+                                    <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Compliance</p>
+                                    <div className="mt-2 flex items-center justify-between gap-2">
+                                        <span className="text-sm text-slate-600 dark:text-slate-300">ID Verified</span>
+                                        <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${
+                                            String(viewOverviewRemitter.id_verified || '').toLowerCase() === 'yes'
+                                                ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300'
+                                                : 'bg-slate-100 text-slate-700 dark:bg-slate-700/40 dark:text-slate-300'
+                                        }`}>
+                                            {String(viewOverviewRemitter.id_verified || '').toLowerCase() === 'yes' ? 'Yes' : 'No'}
+                                        </span>
+                                    </div>
+                                    <div className="mt-2 flex items-center justify-between gap-2">
+                                        <span className="text-sm text-slate-600 dark:text-slate-300">Proof Of Funds</span>
+                                        <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${
+                                            String(viewOverviewRemitter.proof_of_funds || '').toLowerCase() === 'yes'
+                                                ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300'
+                                                : 'bg-slate-100 text-slate-700 dark:bg-slate-700/40 dark:text-slate-300'
+                                        }`}>
+                                            {String(viewOverviewRemitter.proof_of_funds || '').toLowerCase() === 'yes' ? 'Yes' : 'No'}
+                                        </span>
+                                    </div>
+                                    <div className="mt-2 flex items-center justify-between gap-2">
+                                        <span className="text-sm text-slate-600 dark:text-slate-300">Verification</span>
+                                        <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${
+                                            viewOverviewRemitter.verification_state === 'verified'
+                                                ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300'
+                                                : viewOverviewRemitter.verification_state === 'pending'
+                                                    ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
+                                                    : viewOverviewRemitter.verification_state === 'rejected'
+                                                        ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300'
+                                                        : 'bg-slate-100 text-slate-700 dark:bg-slate-700/40 dark:text-slate-300'
+                                        }`}>
+                                            {String(viewOverviewRemitter.verification_state || 'not_started').replaceAll('_', ' ')}
+                                        </span>
+                                    </div>
+                                    {viewOverviewRemitter.id_expired ? (
+                                        <p className="mt-2 text-xs font-semibold text-red-600 dark:text-red-300">ID expired: transfer will be blocked until re-verified.</p>
+                                    ) : null}
+                                </div>
+
+                                {/* Audit */}
+                                <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
+                                    <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Audit</p>
+                                    <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Created By: <span className="font-semibold text-slate-900 dark:text-white">{viewOverviewRemitter.entered_user || '-'}</span></p>
+                                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">Created At: {formatDateTime(viewOverviewRemitter.entered_date)}</p>
+                                    <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Updated By: <span className="font-semibold text-slate-900 dark:text-white">{viewOverviewRemitter.modified_user || '-'}</span></p>
+                                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">Updated At: {formatDateTime(viewOverviewRemitter.modified_date)}</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Address */}
+                                <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
+                                    <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Address</p>
+                                    <p className="mt-2 text-sm text-slate-700 dark:text-slate-200">{viewOverviewRemitter.address_1 || '-'}</p>
+                                    {viewOverviewRemitter.address_2 && viewOverviewRemitter.address_2 !== '-' && (
+                                        <p className="text-sm text-slate-700 dark:text-slate-200">{viewOverviewRemitter.address_2}</p>
+                                    )}
+                                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                                        {[viewOverviewRemitter.city, viewOverviewRemitter.county, viewOverviewRemitter.country]
+                                            .map((part) => String(part || '').trim())
+                                            .filter((part) => part && part !== '-')
+                                            .join(', ')
+                                        }
+                                        {viewOverviewRemitter.postcode && String(viewOverviewRemitter.postcode).trim() ? ` ${String(viewOverviewRemitter.postcode).trim()}` : ''}
+                                    </p>
+                                </div>
+
+                                {/* ID & AML */}
+                                <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
+                                    <p className="text-xs font-bold text-slate-500 dark:text-slate-300">ID & AML</p>
+                                    <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">ID Type: <span className="font-semibold text-slate-900 dark:text-white">{viewOverviewRemitter.id_type || '-'}</span></p>
+                                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">ID No: <span className="font-semibold text-slate-900 dark:text-white">{viewOverviewRemitter.id_no || '-'}</span></p>
+                                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">ID Expiry: <span className="font-semibold text-slate-900 dark:text-white">{viewOverviewRemitter.id_expire_date || '-'}</span></p>
+                                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Veriff Decision: <span className="font-semibold text-slate-900 dark:text-white">{viewOverviewRemitter.veriff_decision || '-'}</span></p>
+                                    <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">AML Result: <span className="font-semibold text-slate-900 dark:text-white">{viewOverviewRemitter.sender_aml_result || '-'}</span></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-6 flex justify-end">
+                            <button
+                                type="button"
+                                onClick={() => setViewOverviewRemitter(null)}
+                                className="rounded-full bg-slate-100 px-6 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 transition"
+                            >
+                                Close
                             </button>
                         </div>
                     </div>

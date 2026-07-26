@@ -897,7 +897,7 @@ export default function CreateRemitterPage() {
                         Personal Details
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormInput label="Remitter ID" name="sender_id" placeholder="Enter Remitter ID" required Icon={CreditCard} />
+                        <FormInput label="Remitter Reference ID" name="sender_id" placeholder="Enter Remitter Reference ID" required Icon={CreditCard} />
                         <FormInput
                             label="Full Name"
                             name="sender_name"
@@ -914,7 +914,7 @@ export default function CreateRemitterPage() {
                             Icon={Calendar}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, date_of_birth: e.target.value }))}
                         />
-                        <FormInput label="Place of Birth" name="place_of_birth" placeholder="City, Country" Icon={MapPin} />
+                        <FormInput label="Country of Birth" name="place_of_birth" placeholder="Country" Icon={MapPin} />
                         <FormSelect label="Occupation" name="occupation" Icon={Briefcase} options={occupationOptions} required />
                         <FormInput
                             label="Telephone"
@@ -1039,7 +1039,7 @@ export default function CreateRemitterPage() {
                         <FormSelect
                             label="ID Type"
                             name="id_type"
-                            options={['Passport', 'Driving License', 'National ID', 'Residence Permit']}
+                            options={['NIC', 'Passport', 'Driving License', 'CNIC', 'Other']}
                             required
                             Icon={CreditCard}
                             value={idType}
@@ -1076,7 +1076,7 @@ export default function CreateRemitterPage() {
                         <div>
                             <h4 className="text-sm font-bold text-slate-900 dark:text-white">Verification Status</h4>
                             <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">
-                                Verification starts after saving because a remitter ID is required.
+                                Verification starts after saving because a remitter reference ID is required.
                             </p>
                         </div>
                         {createdRemitterVeriff?.verification_state ? (
@@ -1093,7 +1093,7 @@ export default function CreateRemitterPage() {
                     ) : (
                         <div className="mt-4 space-y-3">
                             <div className="text-xs text-slate-600 dark:text-slate-300 flex flex-wrap items-center gap-4">
-                                <span>Remitter ID: <span className="font-semibold text-slate-800 dark:text-slate-200">{createdRemitterId}</span></span>
+                                <span>Remitter Reference ID: <span className="font-semibold text-slate-800 dark:text-slate-200">{createdRemitterId}</span></span>
                                 <span>ID Expiry: <span className="font-semibold text-slate-800 dark:text-slate-200">{createdRemitterVeriff?.id_expiry || '-'}</span></span>
                                 <span>Last Check: <span className="font-semibold text-slate-800 dark:text-slate-200">{createdRemitterVeriff?.veriff_checked_at || '-'}</span></span>
                             </div>

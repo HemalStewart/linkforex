@@ -60,10 +60,9 @@ const isValidUkPassportNumber = (value: string): boolean => /^\d{9}$/.test(value
 
 const normalizeAmlResult = (val: string | null | undefined): string => {
     const s = String(val || '').trim().toLowerCase();
-    if (s === 'pass' || s === 'passed' || s === 'clear') return 'passed';
-    if (s === 'fail' || s === 'hit') return 'hit';
-    if (s === 'review') return 'review';
-    if (s === 'pending') return 'pending';
+    if (['pass', 'passed', 'clear', 'approved', 'verified', 'manually passed', 'clean', 'no_match', 'no match', 'ok'].includes(s) || s.includes('pass') || s.includes('clear') || s.includes('verified')) return 'passed';
+    if (['fail', 'failed', 'hit', 'match', 'matches', 'rejected', 'expired'].includes(s) || s.includes('hit') || s.includes('fail')) return 'hit';
+    if (s === 'review' || s.includes('review')) return 'review';
     return 'pending';
 };
 
@@ -334,7 +333,16 @@ export default function EditRemitterPage() {
                 other_doc: data.other_doc || '',
                 work_related_docs: data.work_related_docs || '',
                 sender_details_aml_screening_doc: data.sender_details_aml_screening_doc || '',
-                sender_aml_result: normalizeAmlResult(data.sender_aml_result),
+                sender_aml_result: (() => {
+                    const res = data.sender_aml_result || data.aml_result || data.aml_status || data.dilisense_result || data.sanction_result || data.verdict;
+                    if (res && res !== '-' && res !== 'pending') {
+                        return normalizeAmlResult(res);
+                    }
+                    if (data.sender_details_aml_screening_doc || data.sanction_checked_at || data.sanction_reference || String(data.id_verified).toLowerCase() === 'yes' || data.verification_state === 'verified') {
+                        return 'passed';
+                    }
+                    return normalizeAmlResult(res);
+                })(),
                 aml_status_change_reason: data.aml_status_change_reason || '',
                 rescreening_sender: data.rescreening_sender || '',
                 veriff_status: data.veriff_status || '',
@@ -764,7 +772,7 @@ export default function EditRemitterPage() {
             />
 
             {reportsModal.isOpen && (
-                <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-md transition-all duration-300">
+                <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 transition-all duration-300">
                     <div className="w-full max-w-4xl rounded-3xl border border-slate-200/50 bg-white/95 p-6 shadow-2xl dark:border-slate-700/50 dark:bg-slate-900/95 backdrop-blur-lg transform transition-all duration-300 scale-100">
                         <div className="mb-6 flex items-start justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
                             <div>
@@ -899,7 +907,7 @@ export default function EditRemitterPage() {
             )}
 
             {showRescreenConfirm && (
-                <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-md">
+                <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 transition-all duration-300">
                     <div className="w-full max-w-md rounded-3xl border border-slate-200/50 bg-white/95 p-6 shadow-2xl dark:border-slate-700/50 dark:bg-slate-900/95 backdrop-blur-lg transform scale-100 transition-all duration-300">
                         <div className="mb-4 text-center">
                             <ShieldCheck className="mx-auto h-12 w-12 text-teal-500 mb-3" />
@@ -943,7 +951,7 @@ export default function EditRemitterPage() {
             )}
 
             {rescreenParams.isOpen && (
-                <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-md">
+                <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 transition-all duration-300">
                     <div className="w-full max-w-lg rounded-3xl border border-slate-200/50 bg-white/95 p-6 shadow-2xl dark:border-slate-700/50 dark:bg-slate-900/95 backdrop-blur-lg">
                         <div className="mb-4 flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                             <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Rescreening Parameters</h3>
@@ -1053,12 +1061,17 @@ export default function EditRemitterPage() {
 
                                             const remitterRes = await fetch(withActingUserParam(ENDPOINTS.REMITTERS.DETAIL(id), currentUser));
                                             if (remitterRes.ok) {
-                                                const rData = await remitterRes.json();
+                                                const rData = remitterRes.ok ? await remitterRes.json().catch(() => ({})) : {};
+                                                const rawStatus = rData.sender_aml_result || data?.sender_aml_result || data?.aml_result || data?.status || data?.verdict || (data?.hits_count > 0 ? 'hit' : 'passed');
+                                                const newAmlResult = normalizeAmlResult(rawStatus);
                                                 setFormData((prev: any) => ({
                                                     ...prev,
-                                                    status: rData.status ?? 'active',
-                                                    sender_details_aml_screening_doc: rData.sender_details_aml_screening_doc ?? '',
+                                                    status: rData.status ?? prev.status ?? 'active',
+                                                    sender_details_aml_screening_doc: rData.sender_details_aml_screening_doc ?? prev.sender_details_aml_screening_doc ?? '',
+                                                    sender_aml_result: newAmlResult,
+                                                    verification_state: 'verified',
                                                 }));
+                                                setInitialAmlStatus(newAmlResult);
                                                 setSanctionReference(rData.sanction_reference ?? '');
                                                 setSanctionCheckedAt(rData.sanction_checked_at ?? '');
                                                 setSanctionRawPayload(rData.sanction_raw_payload ?? '');
@@ -1159,134 +1172,7 @@ export default function EditRemitterPage() {
                 </div>
             </div>
 
-            <div className="card-glass p-6 space-y-5">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Remitter Overview</p>
-                        <h2 className="mt-1 text-xl font-extrabold text-slate-900 dark:text-white">{displayText(formData.sender_name)}</h2>
-                    </div>
-                    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ${isActive ? 'bg-teal-500/15 text-teal-600 dark:text-teal-300' : 'bg-slate-500/15 text-slate-600 dark:text-slate-300'}`}>
-                        {isActive ? 'Active' : 'Inactive'}
-                    </span>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                    <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                        <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Identity</p>
-                        <p className="mt-2 text-sm font-semibold text-slate-900 dark:text-white">Remitter ID: {displayText(formData.sender_id)}</p>
-                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">DOB: {displayText(formData.dob)}</p>
-                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Place: {displayText(formData.place_of_birth)}</p>
-                    </div>
-
-                    <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                        <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Branch & Use</p>
-                        <p className="mt-2 text-sm font-semibold text-slate-900 dark:text-white">
-                            {displayText(branches.find((b: any) => b.code === formData.branch)?.name || formData.branch)}
-                        </p>
-                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Use In: {displayText(formData.use_in)}</p>
-                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Occupation: {displayText(formData.occupation)}</p>
-                    </div>
-
-                    <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                        <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Compliance</p>
-                        <div className="mt-2 flex items-center justify-between gap-2">
-                            <span className="text-sm text-slate-600 dark:text-slate-300">ID Verified</span>
-                            <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${yesNoBadge(formData.id_verified)}`}>{yesNoText(formData.id_verified)}</span>
-                        </div>
-                        <div className="mt-2 flex items-center justify-between gap-2">
-                            <span className="text-sm text-slate-600 dark:text-slate-300">Proof Of Funds</span>
-                            <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${yesNoBadge(formData.proof_of_funds)}`}>{yesNoText(formData.proof_of_funds)}</span>
-                        </div>
-                        <div className="mt-2 flex items-center justify-between gap-2">
-                            <span className="text-sm text-slate-600 dark:text-slate-300">Verification</span>
-                            <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${verificationBadgeClass(formData.verification_state)}`}>
-                                {verificationLabel(formData.verification_state)}
-                            </span>
-                        </div>
-                        {formData.id_expired ? (
-                            <p className="mt-2 text-xs font-semibold text-red-600 dark:text-red-300">ID expired: transfer will be blocked until re-verified.</p>
-                        ) : null}
-                        {formData.veriff_reason ? (
-                            <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">Reason: {formData.veriff_reason}</p>
-                        ) : null}
-                        <div className="mt-3 flex flex-wrap gap-2">
-                            <button
-                                type="button"
-                                onClick={() => void refreshCompliance()}
-                                disabled={veriffLoading}
-                                className="px-2.5 py-1.5 rounded-full text-[11px] font-bold glass-effect text-slate-700 dark:text-slate-200 disabled:opacity-40"
-                            >
-                                <RefreshCcw className={`inline-block w-3 h-3 mr-1 ${veriffLoading ? 'animate-spin' : ''}`} />
-                                Refresh Status
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => syncVeriff('start')}
-                                disabled={veriffLoading || formData.branch_veriff_enabled === false || (formData.verification_state === 'verified' && !formData.id_expired)}
-                                className="px-2.5 py-1.5 rounded-full text-[11px] font-bold glass-effect text-slate-700 dark:text-slate-200 disabled:opacity-40"
-                            >
-                                {veriffLoading ? 'Working...' : 'Start Verification'}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => syncVeriff('sync')}
-                                disabled={veriffLoading || formData.branch_veriff_enabled === false}
-                                className="px-2.5 py-1.5 rounded-full text-[11px] font-bold glass-effect text-slate-700 dark:text-slate-200 disabled:opacity-40"
-                            >
-                                <RefreshCcw className="inline-block w-3 h-3 mr-1" />
-                                Sync Result
-                            </button>
-                            {formData.veriff_url ? (
-                                <button
-                                    type="button"
-                                    onClick={() => window.open(formData.veriff_url, '_blank', 'noopener,noreferrer')}
-                                    className="px-2.5 py-1.5 rounded-full text-[11px] font-bold glass-effect text-slate-700 dark:text-slate-200"
-                                >
-                                    <ExternalLink className="inline-block w-3 h-3 mr-1" />
-                                    Open Link
-                                </button>
-                            ) : null}
-                        </div>
-                        {formData.branch_veriff_enabled === false ? (
-                            <p className="mt-2 text-xs font-semibold text-amber-600 dark:text-amber-300">Branch verification is currently disabled by backend flag.</p>
-                        ) : null}
-                    </div>
-
-                    <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                        <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Audit</p>
-                        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Created By: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.created_by)}</span></p>
-                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">Created At: {formatDateTime(formData.created_at)}</p>
-                        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Updated By: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.updated_by)}</span></p>
-                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">Updated At: {formatDateTime(formData.updated_at)}</p>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                        <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Address</p>
-                        <p className="mt-2 text-sm text-slate-700 dark:text-slate-200">{displayText(formData.address_1)}</p>
-                        {displayText(formData.address_2) !== '-' && <p className="text-sm text-slate-700 dark:text-slate-200">{displayText(formData.address_2)}</p>}
-                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-                            {[formData.city, formData.county, formData.country]
-                                .map((part) => String(part || '').trim())
-                                .filter((part) => part && part !== '-')
-                                .join(', ')
-                            }
-                            {formData.postcode && String(formData.postcode).trim() ? ` ${String(formData.postcode).trim()}` : ''}
-                        </p>
-                    </div>
-                    <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                        <p className="text-xs font-bold text-slate-500 dark:text-slate-300">ID & AML</p>
-                        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">ID Type: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.id_type)}</span></p>
-                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">ID No: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.id_number)}</span></p>
-                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">ID Issued: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.id_issued_date)}</span></p>
-                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">ID Expiry: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.id_expiry)}</span></p>
-                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Veriff Decision: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.veriff_decision)}</span></p>
-                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Veriff Checked: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.veriff_checked_at)}</span></p>
-                        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">AML Result: <span className="font-semibold text-slate-900 dark:text-white">{displayText(formData.sender_aml_result)}</span></p>
-                    </div>
-                </div>
-            </div>
 
             <form onSubmit={handleSubmit} className="card-glass p-8 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
@@ -1314,7 +1200,7 @@ export default function EditRemitterPage() {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Remitter ID</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Remitter Reference ID</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Tag className="w-5 h-5" /></span>
                             <input className="input-glass w-full" value={formData.sender_id} onChange={(e) => setFormData({ ...formData, sender_id: e.target.value })} />
@@ -1335,11 +1221,17 @@ export default function EditRemitterPage() {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Place of Birth</label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left"><Globe className="w-5 h-5" /></span>
-                            <input className="input-glass w-full" value={formData.place_of_birth} onChange={(e) => setFormData({ ...formData, place_of_birth: e.target.value })} />
-                        </div>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Country of Birth</label>
+                        <select
+                            className="input-glass w-full py-3 px-4 pr-10 appearance-none cursor-pointer text-sm"
+                            value={formData.place_of_birth}
+                            onChange={(e) => setFormData({ ...formData, place_of_birth: e.target.value })}
+                        >
+                            <option value="">Select Country of Birth</option>
+                            {countries.map((c: any) => (
+                                <option key={c.id} value={c.name}>{c.name}</option>
+                            ))}
+                        </select>
                     </div>
                     <div>
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Telephone</label>
@@ -1402,7 +1294,19 @@ export default function EditRemitterPage() {
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">ID Type</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><CreditCard className="w-5 h-5" /></span>
-                            <input className="input-glass w-full" value={formData.id_type} onChange={(e) => setFormData({ ...formData, id_type: e.target.value })} />
+                            <select
+                                className="input-glass w-full pr-10 appearance-none cursor-pointer"
+                                value={formData.id_type}
+                                onChange={(e) => setFormData({ ...formData, id_type: e.target.value })}
+                            >
+                                <option value="">Select ID Type...</option>
+                                <option value="NIC">NIC</option>
+                                <option value="Passport">Passport</option>
+                                <option value="Driving License">Driving License</option>
+                                <option value="CNIC">CNIC</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
                         </div>
                     </div>
                     <div>
@@ -1437,13 +1341,7 @@ export default function EditRemitterPage() {
                             <option value="yes">Yes</option>
                         </select>
                     </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Use In</label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left"><Layers className="w-5 h-5" /></span>
-                            <input className="input-glass w-full" value={formData.use_in} onChange={(e) => setFormData({ ...formData, use_in: e.target.value })} />
-                        </div>
-                    </div>
+
                     <div>
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Remitter AML Result</label>
                         <div className="relative input-icon">
@@ -1491,17 +1389,7 @@ export default function EditRemitterPage() {
                             </div>
                         </div>
                     )}
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Re/screening Remitter</label>
-                        <input className="input-glass w-full" value={formData.rescreening_sender} onChange={(e) => setFormData({ ...formData, rescreening_sender: e.target.value })} />
-                    </div>
-                    <div className="md:col-span-2">
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Other Info</label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left"><FileText className="w-5 h-5" /></span>
-                            <textarea rows={3} className="input-glass w-full resize-none" value={formData.other_info} onChange={(e) => setFormData({ ...formData, other_info: e.target.value })} />
-                        </div>
-                    </div>
+
                 </div>
 
                 {/* Section 4: Documents */}
@@ -1536,93 +1424,7 @@ export default function EditRemitterPage() {
                 </div>
             </form>
 
-            {/* AML Screening History (Dilisense) */}
-            {sanctionReference && (
-                <div className="card-glass p-8 relative overflow-hidden mt-8">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-slate-100 dark:border-slate-700/50 pb-4">
-                        <div className="flex items-center space-x-3">
-                            <div className="p-2 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400">
-                                <ShieldCheck className="w-6 h-6" />
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Dilisense AML Screening History</h3>
-                                <p className="text-xs text-slate-500 dark:text-slate-400">Watchlist and PEP checks</p>
-                            </div>
-                        </div>
-                        {canPdf && (
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const isMobile = String(formData.registration_source || '').trim().toLowerCase() === 'mobile_app';
-                                    if (isMobile) {
-                                        setShowVeriffModal(true);
-                                    } else {
-                                        openReportsModal();
-                                    }
-                                }}
-                                className="inline-flex items-center justify-center space-x-2 px-4 py-2 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-400 font-semibold text-xs transition-all border border-teal-500/20 shadow-sm shadow-teal-500/5 hover:shadow-teal-500/10"
-                            >
-                                <FileText className="w-4 h-4" />
-                                <span>{String(formData.registration_source || '').trim().toLowerCase() === 'mobile_app' ? "Veriff Report" : "Dilisense Reports"}</span>
-                                <ExternalLink className="w-3.5 h-3.5" />
-                            </button>
-                        )}
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                        <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                            <span className="text-xs font-semibold text-slate-400 block mb-1">Screening Reference</span>
-                            <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{sanctionReference}</span>
-                        </div>
-                        <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                            <span className="text-xs font-semibold text-slate-400 block mb-1">Checked At</span>
-                            <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                                {formatDateTime(sanctionCheckedAt)}
-                            </span>
-                        </div>
-                        <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                            <span className="text-xs font-semibold text-slate-400 block mb-1">Total Hits</span>
-                            <div>
-                                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${sanctionScore > 0 ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'}`}>
-                                    {sanctionScore} {sanctionScore > 0 ? 'HITS DETECTED' : 'CLEAR'}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {sanctionRawPayload && (
-                        <div className="border border-slate-100 dark:border-slate-700/50 rounded-2xl overflow-hidden bg-slate-50/30 dark:bg-slate-900/10">
-                            <button
-                                type="button"
-                                onClick={() => setShowRawPayload(!showRawPayload)}
-                                className="w-full flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors text-left"
-                            >
-                                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Raw Dilisense Response Payload</span>
-                                <div className="flex items-center space-x-1.5 text-slate-400">
-                                    <span className="text-xs font-medium">{showRawPayload ? 'Collapse' : 'Expand'}</span>
-                                    {showRawPayload ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                                </div>
-                            </button>
-                            {showRawPayload && (
-                                <div className="p-4 border-t border-slate-100 dark:border-slate-700/50 bg-slate-950">
-                                    <pre className="text-xs font-mono text-emerald-400 overflow-x-auto max-h-80 p-2 leading-relaxed whitespace-pre-wrap select-all">
-                                        {(() => {
-                                            try {
-                                                const parsed = typeof sanctionRawPayload === 'string' ? JSON.parse(sanctionRawPayload) : sanctionRawPayload;
-                                                return JSON.stringify(parsed, null, 2);
-                                            } catch (e) {
-                                                return String(sanctionRawPayload);
-                                            }
-                                        })()}
-                                    </pre>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
-            )}
 
             {showVeriffModal && (
                 <VeriffReportsModal

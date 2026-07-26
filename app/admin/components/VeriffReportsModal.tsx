@@ -212,7 +212,7 @@ export default function VeriffReportsModal({
                 loading={deleteLoading}
             />
 
-            <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-md transition-all duration-300">
+            <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 transition-all duration-300">
                 <div className="w-full max-w-4xl rounded-3xl border border-slate-200/50 bg-white/95 p-6 shadow-2xl dark:border-slate-700/50 dark:bg-slate-900/95 backdrop-blur-lg transform transition-all duration-300 scale-100">
                     <div className="mb-6 flex items-start justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
                         <div>
