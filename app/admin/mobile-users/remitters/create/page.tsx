@@ -489,7 +489,7 @@ export default function CreateMobileUserRemitterPage() {
                                 <FormInput label="Date of Birth" name="date_of_birth" type="date" required Icon={Calendar} />
                                 <FormInput label="Place of Birth" name="place_of_birth" placeholder="City, Country" Icon={MapPin} />
                                 <FormSelect label="Occupation" name="occupation" Icon={Briefcase} options={occupationOptions} required />
-                        <FormInput label="Telephone" name="telephone" placeholder="Phone number" required Icon={Phone} />
+                        <FormInput label="Mobile number" name="telephone" placeholder="Mobile number" required Icon={Phone} />
                     </div>
                 </div>
 

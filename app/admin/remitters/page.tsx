@@ -683,7 +683,7 @@ export default function RemittersPage() {
         { key: 'active', label: 'Active' },
         { key: 'dob', label: 'Date Of Birth' },
         { key: 'place_of_birth', label: 'Country of Birth' },
-        { key: 'telephone', label: 'Telephone' },
+        { key: 'telephone', label: 'Mobile number' },
         { key: 'postcode', label: 'Postcode' },
         { key: 'address_1', label: 'Address 1' },
         { key: 'address_2', label: 'Address 2' },

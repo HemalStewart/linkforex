@@ -921,9 +921,9 @@ export default function CreateRemitterPage() {
                         <FormInput label="Country of Birth" name="place_of_birth" placeholder="Country" Icon={MapPin} />
                         <FormSelect label="Occupation" name="occupation" Icon={Briefcase} options={occupationOptions} required />
                         <FormInput
-                            label="Telephone"
+                            label="Mobile number"
                             name="telephone"
-                            placeholder="Phone number"
+                            placeholder="Mobile number"
                             required
                             Icon={Phone}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, telephone: e.target.value }))}

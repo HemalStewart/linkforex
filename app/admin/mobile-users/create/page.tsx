@@ -545,7 +545,7 @@ export default function CreateRemitterPage() {
                                         <FormInput label="Place of Birth" name="place_of_birth" placeholder="City, Country" />
                                         <FormSelect label="Occupation *" name="occupation" options={occupations} defaultValue={occupations[0]} />
 
-                                <FormInput label="Telephone *" name="telephone" placeholder="Phone number" required />
+                                <FormInput label="Mobile number *" name="telephone" placeholder="Mobile number" required />
                             </div>
 
                             <div className="border-t border-slate-100 dark:border-slate-800 pt-6">

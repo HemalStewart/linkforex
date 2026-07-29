@@ -237,7 +237,7 @@ export default function CreateUserPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Mobile No</label>
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Mobile number</label>
             <div className="relative input-icon">
               <span className="input-icon-left">
                 <Phone className="w-5 h-5" />
@@ -245,7 +245,7 @@ export default function CreateUserPage() {
               <input
                 type="tel"
                 className="input-glass w-full"
-                placeholder="Phone number"
+                placeholder="Mobile number"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               />

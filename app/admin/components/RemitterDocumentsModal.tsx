@@ -97,6 +97,20 @@ const formatDocUrl = (
     return resolveUploadsUrl(`remitters/${remitterFolder}/${categoryFolder}/${cleanFileName}`);
 };
 
+const isPdfFile = (fileName?: string, fileUrl?: string, previewUrl?: string): boolean => {
+    const fn = (fileName || '').toLowerCase();
+    const url = (fileUrl || '').toLowerCase();
+    const prev = (previewUrl || '').toLowerCase();
+    return (
+        fn.endsWith('.pdf') ||
+        url.endsWith('.pdf') ||
+        url.includes('.pdf?') ||
+        prev.endsWith('.pdf') ||
+        prev.includes('.pdf?') ||
+        prev.includes('application/pdf')
+    );
+};
+
 export default function RemitterDocumentsModal({
     isOpen,
     onClose,
@@ -265,6 +279,16 @@ export default function RemitterDocumentsModal({
             void fetchRemitterDetails();
         }
     }, [isOpen, remitterId]);
+
+    useEffect(() => {
+        if (previewDoc && isPdfFile(previewDoc.fileName, previewDoc.fileUrl, previewDoc.previewUrl)) {
+            const targetUrl = previewDoc.previewUrl || formatDocUrl(previewDoc.fileUrl, previewDoc.docType, remitterName, remitterId);
+            if (targetUrl) {
+                window.open(targetUrl, '_blank', 'noopener,noreferrer');
+            }
+            setPreviewDoc(null);
+        }
+    }, [previewDoc, remitterName, remitterId]);
 
     const handleUploadSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -603,13 +627,24 @@ export default function RemitterDocumentsModal({
                                         </div>
 
                                         <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                                            <button
-                                                type="button"
-                                                onClick={() => setPreviewDoc(doc)}
-                                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-teal-500 hover:bg-teal-600 text-white shadow-sm transition-all"
-                                            >
-                                                <Eye className="w-4 h-4" /> View Document
-                                            </button>
+                                            {isPdfFile(doc.fileName, doc.fileUrl, doc.previewUrl) ? (
+                                                <a
+                                                    href={getResolvedDocSrc(doc)}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-teal-500 hover:bg-teal-600 text-white shadow-sm transition-all"
+                                                >
+                                                    <ExternalLink className="w-4 h-4" /> View Document
+                                                </a>
+                                            ) : (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setPreviewDoc(doc)}
+                                                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-teal-500 hover:bg-teal-600 text-white shadow-sm transition-all"
+                                                >
+                                                    <Eye className="w-4 h-4" /> View Document
+                                                </button>
+                                            )}
 
                                             <button
                                                 type="button"
@@ -656,7 +691,8 @@ export default function RemitterDocumentsModal({
 
                         {/* Document Content Display */}
                         <div className="min-h-[350px] max-h-[65vh] overflow-auto flex items-center justify-center bg-slate-950 rounded-2xl p-4 border border-slate-800">
-                            {previewDoc.fileName.match(/\.(png|jpe?g|gif|webp|svg)$/i) || previewDoc.previewUrl?.startsWith('blob:') || previewDoc.previewUrl?.startsWith('data:image') ? (
+                            {!isPdfFile(previewDoc.fileName, previewDoc.fileUrl, previewDoc.previewUrl) &&
+                            (previewDoc.fileName.match(/\.(png|jpe?g|gif|webp|svg)$/i) || previewDoc.previewUrl?.startsWith('data:image') || (previewDoc.previewUrl?.startsWith('blob:') && !isPdfFile(previewDoc.fileName, previewDoc.fileUrl, previewDoc.previewUrl))) ? (
                                 <img
                                     src={getResolvedDocSrc(previewDoc)}
                                     alt={previewDoc.fileName}
