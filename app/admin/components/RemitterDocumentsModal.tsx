@@ -45,6 +45,12 @@ const CATEGORY_SUBFOLDERS: Record<string, string> = {
     other_doc: 'other_documents',
 };
 
+const extractCanonicalId = (id?: string | number | null): string => {
+    const s = String(id || '').trim();
+    if (!s) return '0';
+    return s.split('.')[0];
+};
+
 const buildRemitterSubfolderPath = (
     docType: string,
     fileName: string,
@@ -56,7 +62,7 @@ const buildRemitterSubfolderPath = (
         .toLowerCase()
         .replace(/[^a-z0-9_-]/g, '_')
         .replace(/_+/g, '_');
-    const safeId = String(remitterId || '0');
+    const safeId = extractCanonicalId(remitterId);
     const remitterFolder = `${safeName}_${safeId}`;
     const categoryFolder = CATEGORY_SUBFOLDERS[docType] || 'other_documents';
     const cleanFileName = fileName.replace(/^\/+/, '').split('/').pop() || fileName;
@@ -81,6 +87,7 @@ const formatDocUrl = (
     p = p.replace(/^\/+/, '').replace(/^uploads\//, '');
 
     if (p.startsWith('remitters/')) {
+        p = p.replace(/(remitters\/[a-z0-9_-]+_\d+)\.[a-zA-Z0-9_-]+(\/.*)/, '$1$2');
         return resolveUploadsUrl(p);
     }
 
@@ -90,7 +97,7 @@ const formatDocUrl = (
         .toLowerCase()
         .replace(/[^a-z0-9_-]/g, '_')
         .replace(/_+/g, '_');
-    const safeId = String(remitterId || '0');
+    const safeId = extractCanonicalId(remitterId);
     const remitterFolder = `${safeName}_${safeId}`;
     const cleanFileName = p.split('/').pop() || p;
 
@@ -133,16 +140,50 @@ export default function RemitterDocumentsModal({
     const [selectedDocType, setSelectedDocType] = useState('id_copy');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-    const getStorageKey = (id: string | number) => `remitter_vault_${id}`;
-    const getDeletedKey = (id: string | number) => `remitter_vault_deleted_${id}`;
+    const getStorageKey = (id: string | number) => `remitter_vault_${extractCanonicalId(id)}`;
+    const getDeletedKey = (id: string | number) => `remitter_vault_deleted_${extractCanonicalId(id)}`;
 
     const loadLocalVault = (id: string | number): DocumentRecord[] => {
         try {
-            const raw = localStorage.getItem(getStorageKey(id));
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed)) return parsed;
+            const canonical = extractCanonicalId(id);
+            const rawKey = `remitter_vault_${id}`;
+            const canonicalKey = getStorageKey(canonical);
+
+            let docs: DocumentRecord[] = [];
+
+            const canonicalVal = localStorage.getItem(canonicalKey);
+            if (canonicalVal) {
+                try {
+                    const parsed = JSON.parse(canonicalVal);
+                    if (Array.isArray(parsed)) docs = parsed;
+                } catch (e) {}
             }
+
+            if (rawKey !== canonicalKey) {
+                const rawVal = localStorage.getItem(rawKey);
+                if (rawVal) {
+                    try {
+                        const rawDocs = JSON.parse(rawVal);
+                        if (Array.isArray(rawDocs)) {
+                            rawDocs.forEach((rd) => {
+                                if (!docs.some((d) => d.id === rd.id || d.fileName === rd.fileName)) {
+                                    docs.push(rd);
+                                }
+                            });
+                        }
+                    } catch (e) {}
+                }
+            }
+
+            docs = docs.map((d) => {
+                if (d.fileUrl && d.fileUrl.includes('.')) {
+                    const fixedUrl = d.fileUrl.replace(/(remitters\/[a-z0-9_-]+_\d+)\.[a-zA-Z0-9_-]+(\/.*)/, '$1$2');
+                    return { ...d, fileUrl: fixedUrl };
+                }
+                return d;
+            });
+
+            return docs;
         } catch (e) {
             console.error('Failed to parse local vault:', e);
         }
@@ -159,11 +200,28 @@ export default function RemitterDocumentsModal({
 
     const loadDeletedVault = (id: string | number): string[] => {
         try {
-            const raw = localStorage.getItem(getDeletedKey(id));
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed)) return parsed;
+            const canonical = extractCanonicalId(id);
+            const rawKey = `remitter_vault_deleted_${id}`;
+            const canonicalKey = getDeletedKey(canonical);
+
+            let list: string[] = [];
+            const cVal = localStorage.getItem(canonicalKey);
+            if (cVal) {
+                try {
+                    const parsed = JSON.parse(cVal);
+                    if (Array.isArray(parsed)) list = parsed;
+                } catch (e) {}
             }
+            if (rawKey !== canonicalKey) {
+                const rVal = localStorage.getItem(rawKey);
+                if (rVal) {
+                    try {
+                        const rList = JSON.parse(rVal);
+                        if (Array.isArray(rList)) list = Array.from(new Set([...list, ...rList]));
+                    } catch (e) {}
+                }
+            }
+            return list;
         } catch (e) {
             console.error('Failed to parse deleted vault:', e);
         }
@@ -258,9 +316,10 @@ export default function RemitterDocumentsModal({
             }
 
             const rName = data?.sender_name || remitterName || 'remitter';
-            const storedDocs = loadLocalVault(remitterId);
-            const mergedDocs = seedVaultFromData(data, storedDocs, rName, remitterId);
-            saveLocalVault(remitterId, mergedDocs);
+            const activeId = data?.id ? String(data.id) : extractCanonicalId(remitterId);
+            const storedDocs = loadLocalVault(activeId);
+            const mergedDocs = seedVaultFromData(data, storedDocs, rName, activeId);
+            saveLocalVault(activeId, mergedDocs);
             setDocuments(mergedDocs);
         } catch (e) {
             console.error('Error fetching remitter documents:', e);
@@ -299,11 +358,14 @@ export default function RemitterDocumentsModal({
 
         setUploading(true);
         try {
+            const rName = remitterData?.sender_name || remitterName || 'remitter';
+            const activeId = remitterData?.id ? String(remitterData.id) : extractCanonicalId(remitterId);
+
             const formData = new FormData();
             formData.append(selectedDocType, selectedFile);
             formData.append('doc_type', CATEGORY_SUBFOLDERS[selectedDocType] || 'id_copy');
-            formData.append('remitter_name', remitterName);
-            formData.append('remitter_id', String(remitterId));
+            formData.append('remitter_name', rName);
+            formData.append('remitter_id', activeId);
 
             const updateUrl = withActingUserParam(`${ENDPOINTS.REMITTERS.DETAIL(remitterId)}/update`, currentUser);
             const res = await fetch(updateUrl, {
@@ -319,8 +381,7 @@ export default function RemitterDocumentsModal({
                 }
             }
 
-            const rName = remitterData?.sender_name || remitterName || 'remitter';
-            const subfolderPath = buildRemitterSubfolderPath(selectedDocType, selectedFile.name, rName, remitterId);
+            const subfolderPath = buildRemitterSubfolderPath(selectedDocType, selectedFile.name, rName, activeId);
 
             const docConfig = DOC_TYPES.find((d) => d.key === selectedDocType);
             const docLabel = docConfig ? docConfig.label : 'Document';
@@ -345,7 +406,7 @@ export default function RemitterDocumentsModal({
             };
 
             const updatedDocs = [newDoc, ...documents];
-            saveLocalVault(remitterId, updatedDocs);
+            saveLocalVault(activeId, updatedDocs);
             setDocuments(updatedDocs);
 
             showToast('Success', `${docLabel} saved to ${subfolderPath}`, 'success');
@@ -361,18 +422,19 @@ export default function RemitterDocumentsModal({
     };
 
     const handleDeleteDoc = async (docId: string) => {
+        const activeId = remitterData?.id ? String(remitterData.id) : extractCanonicalId(remitterId);
         const targetDoc = documents.find((d) => d.id === docId);
         const filtered = documents.filter((d) => d.id !== docId);
 
-        saveLocalVault(remitterId, filtered);
+        saveLocalVault(activeId, filtered);
         setDocuments(filtered);
 
         if (targetDoc) {
-            const currentDeleted = loadDeletedVault(remitterId);
+            const currentDeleted = loadDeletedVault(activeId);
             const toAdd = [targetDoc.fileUrl, targetDoc.fileName, targetDoc.id];
             if (targetDoc.previewUrl) toAdd.push(targetDoc.previewUrl);
             const updatedDeleted = Array.from(new Set([...currentDeleted, ...toAdd]));
-            saveDeletedVault(remitterId, updatedDeleted);
+            saveDeletedVault(activeId, updatedDeleted);
 
             if (remitterId) {
                 try {
@@ -409,11 +471,13 @@ export default function RemitterDocumentsModal({
     const remitterFolderName = useMemo(() => {
         const rName = remitterData?.sender_name || remitterName || 'remitter';
         const safeName = String(rName).trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_').replace(/_+/g, '_');
-        return `remitters/${safeName}_${remitterId}/`;
+        const activeId = remitterData?.id ? String(remitterData.id) : extractCanonicalId(remitterId);
+        return `remitters/${safeName}_${activeId}/`;
     }, [remitterData, remitterName, remitterId]);
 
     const getResolvedDocSrc = (doc: DocumentRecord) => {
-        return doc.previewUrl || formatDocUrl(doc.fileUrl, doc.docType, remitterName, remitterId);
+        const activeId = remitterData?.id ? String(remitterData.id) : extractCanonicalId(remitterId);
+        return doc.previewUrl || formatDocUrl(doc.fileUrl, doc.docType, remitterName, activeId);
     };
 
     return (
