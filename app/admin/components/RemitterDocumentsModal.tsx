@@ -8,6 +8,7 @@ import { ENDPOINTS } from '@/app/lib/api';
 import { resolveUploadsUrl } from '@/app/lib/uploads';
 import { formatDateTime } from '@/app/lib/dateUtils';
 import { showToast } from '@/app/lib/toast';
+import { usePagePermissions } from '@/app/lib/permissions';
 
 interface RemitterDocumentsModalProps {
     isOpen: boolean;
@@ -149,6 +150,10 @@ export default function RemitterDocumentsModal({
     onUpdated,
 }: RemitterDocumentsModalProps) {
     const currentUser = useMemo(() => getCurrentAdminUser(), []);
+    const { canUploadReports, canDeleteReports, canDeleteComplianceReport, canDelete, canAdd } = usePagePermissions('REMITTERS');
+    const allowUpload = canUploadReports ?? canAdd;
+    const allowDelete = canDeleteReports ?? canDeleteComplianceReport ?? canDelete;
+    
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
     const [remitterData, setRemitterData] = useState<any>(null);
@@ -595,7 +600,7 @@ export default function RemitterDocumentsModal({
                         </div>
 
                         <div className="flex items-center gap-2">
-                            {!showUploadForm && (
+                            {allowUpload && !showUploadForm && (
                                 <button
                                     type="button"
                                     onClick={() => setShowUploadForm(true)}
@@ -616,7 +621,7 @@ export default function RemitterDocumentsModal({
                     </div>
 
                     {/* Upload Form Box */}
-                    {showUploadForm && (
+                    {allowUpload && showUploadForm && (
                         <form onSubmit={handleUploadSubmit} className="p-5 rounded-2xl bg-teal-50/70 dark:bg-slate-800/70 border border-teal-200/80 dark:border-slate-700 space-y-4 shadow-sm">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -791,14 +796,16 @@ export default function RemitterDocumentsModal({
                                                 </button>
                                             )}
 
-                                            <button
-                                                type="button"
-                                                onClick={() => handleDeleteDoc(doc.id)}
-                                                className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all"
-                                                title="Remove from history"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
+                                            {allowDelete && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleDeleteDoc(doc.id)}
+                                                    className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all"
+                                                    title="Remove from history"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 );

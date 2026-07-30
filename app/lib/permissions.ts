@@ -71,7 +71,7 @@ export const ADMIN_PAGES_CONFIG: AdminCategoryInfo[] = [
         category: 'Operations',
         pages: [
             { name: 'Transfers', section: 'TRANSFERS', operations: ['VIEW', 'CREATE', 'EDIT', 'APPROVE', 'CANCEL', 'PDF', 'EXPORT', 'PRINT', 'SIGN', ...AUDIT_OPS] },
-            { name: 'Remitters', section: 'REMITTERS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'PDF', 'EXPORT', 'MANUALLY_PASSED', 'RE_SCREENING', 'DILISENSE_SCREENING', 'DELETE_COMPLIANCE_REPORT', 'BATCH_SCREENING', ...AUDIT_OPS] },
+            { name: 'Remitters', section: 'REMITTERS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'PDF', 'EXPORT', 'MANUALLY_PASSED', 'RE_SCREENING', 'DILISENSE_SCREENING', 'DELETE_COMPLIANCE_REPORT', 'DELETE_REPORTS', 'UPLOAD_REPORTS', 'BATCH_SCREENING', ...AUDIT_OPS] },
             { name: 'Receivers', section: 'RECEIVERS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'PDF', 'EXPORT', 'MANUALLY_PASSED', 'RE_SCREENING', 'DILISENSE_SCREENING', 'DELETE_COMPLIANCE_REPORT', ...AUDIT_OPS] },
             { name: 'Branch Access Flags', section: 'BRANCH_ACCESS_REQUESTS', operations: ['VIEW', 'APPROVE', 'CANCEL', ...AUDIT_OPS] },
             { name: 'Support', section: 'SUPPORT', operations: ['VIEW', 'EDIT', 'DELETE', ...AUDIT_OPS] },
@@ -234,6 +234,8 @@ export function usePagePermissions(section: string) {
         canReScreening: false,
         canDilisenseScreening: false,
         canDeleteComplianceReport: false,
+        canDeleteReports: false,
+        canUploadReports: false,
         canBatchScreening: false,
         canMultiBranch: false,
     });
@@ -251,7 +253,8 @@ export function usePagePermissions(section: string) {
             const hasSyncSources = checkPermission(section, 'SYNC_SOURCES');
             const hasReScreening = checkPermission(section, 'RE_SCREENING') || checkPermission(section, 'DILISENSE_SCREENING');
             const hasDilisenseScreening = checkPermission(section, 'DILISENSE_SCREENING') || checkPermission(section, 'RE_SCREENING');
-            const hasDeleteComplianceReport = checkPermission(section, 'DELETE_COMPLIANCE_REPORT');
+            const hasDeleteComplianceReport = checkPermission(section, 'DELETE_COMPLIANCE_REPORT') || checkPermission(section, 'DELETE_REPORTS');
+            const hasUploadReports = checkPermission(section, 'UPLOAD_REPORTS') || checkPermission(section, 'UPLOAD_REPORT');
             const hasBatchScreening = checkPermission(section, 'BATCH_SCREENING');
             const hasMultiBranch = checkPermission(section, 'MULTI_BRANCH');
 
@@ -307,6 +310,8 @@ export function usePagePermissions(section: string) {
                 canReScreening: hasReScreening,
                 canDilisenseScreening: hasDilisenseScreening,
                 canDeleteComplianceReport: hasDeleteComplianceReport,
+                canDeleteReports: hasDeleteComplianceReport,
+                canUploadReports: isOpConfigured('UPLOAD_REPORTS') ? hasUploadReports : (hasUploadReports || hasCreate),
                 canBatchScreening: hasBatchScreening,
                 canMultiBranch: hasMultiBranch,
             });
