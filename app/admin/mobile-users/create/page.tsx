@@ -575,15 +575,9 @@ export default function CreateRemitterPage() {
                                 <FormInput label="ID Expiry Date *" name="id_expire_date" type="date" />
 
                                 <div className="pt-8 md:col-span-2">
-                                    <div className="flex flex-wrap gap-6 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
-                                        <div className="flex items-center space-x-2">
-                                            <input type="checkbox" id="id_verified" name="id_verified" className="w-5 h-5 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
-                                            <label htmlFor="id_verified" className="text-sm font-bold text-slate-700 dark:text-slate-300">ID Verified</label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <input type="checkbox" id="proof_of_funds" name="proof_of_funds" className="w-5 h-5 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
-                                            <label htmlFor="proof_of_funds" className="text-sm font-bold text-slate-700 dark:text-slate-300">Proof of Funds</label>
-                                        </div>
+                                    <div className="flex items-center space-x-2">
+                                        <input type="checkbox" id="id_verified" name="id_verified" className="w-5 h-5 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
+                                        <label htmlFor="id_verified" className="text-sm font-bold text-slate-700 dark:text-slate-300">ID Verified</label>
                                     </div>
                                 </div>
                             </div>

@@ -691,7 +691,6 @@ export default function RemittersPage() {
         { key: 'country', label: 'Country' },
         { key: 'occupation', label: 'Occupation' },
         { key: 'id_verified', label: 'ID Verified' },
-        { key: 'proof_of_funds', label: 'Proof Of Funds' },
         { key: 'id_type', label: 'ID Type' },
         { key: 'id_no', label: 'ID No' },
         { key: 'id_expire_date', label: 'ID Expire Date' },
@@ -1339,7 +1338,6 @@ export default function RemittersPage() {
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.country || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.occupation || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{yesNo(row.id_verified)}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{yesNo(row.proof_of_funds)}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.id_type || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.id_no || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.id_expire_date || '-'}</td>
@@ -1531,16 +1529,6 @@ export default function RemittersPage() {
                                                 : 'bg-slate-100 text-slate-700 dark:bg-slate-700/40 dark:text-slate-300'
                                         }`}>
                                             {String(viewOverviewRemitter.id_verified || '').toLowerCase() === 'yes' ? 'Yes' : 'No'}
-                                        </span>
-                                    </div>
-                                    <div className="mt-2 flex items-center justify-between gap-2">
-                                        <span className="text-sm text-slate-600 dark:text-slate-300">Proof Of Funds</span>
-                                        <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${
-                                            String(viewOverviewRemitter.proof_of_funds || '').toLowerCase() === 'yes'
-                                                ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300'
-                                                : 'bg-slate-100 text-slate-700 dark:bg-slate-700/40 dark:text-slate-300'
-                                        }`}>
-                                            {String(viewOverviewRemitter.proof_of_funds || '').toLowerCase() === 'yes' ? 'Yes' : 'No'}
                                         </span>
                                     </div>
                                     <div className="mt-2 flex items-center justify-between gap-2">
