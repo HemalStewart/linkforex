@@ -396,6 +396,16 @@ export default function CreateRemitterPage() {
         }));
     }, [countries]);
 
+    const countryOfBirthOptions = React.useMemo<SelectOption[]>(() => {
+        return [
+            { value: '', label: 'Select Country of Birth' },
+            ...countries.map((c: any) => ({
+                value: c.name,
+                label: c.name,
+            })),
+        ];
+    }, [countries]);
+
     const occupationOptions = React.useMemo<SelectOption[]>(() => {
         return occupations.map((o: any) => ({
             value: o.name,
@@ -677,9 +687,6 @@ export default function CreateRemitterPage() {
         if (selectedIdType.toLowerCase() === 'passport' && isUkCountry(countryValue) && !isValidUkPassportNumber(idNumber)) {
             return 'UK passport number must be exactly 9 digits.';
         }
-        if (!(idCopy instanceof File) || idCopy.size === 0) {
-            return 'ID Copy is required.';
-        }
 
         return null;
     };
@@ -918,7 +925,7 @@ export default function CreateRemitterPage() {
                             Icon={Calendar}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, date_of_birth: e.target.value }))}
                         />
-                        <FormInput label="Country of Birth" name="place_of_birth" placeholder="Country" Icon={MapPin} />
+                        <FormSelect label="Country of Birth" name="place_of_birth" Icon={Globe} options={countryOfBirthOptions} />
                         <FormSelect label="Occupation" name="occupation" Icon={Briefcase} options={occupationOptions} required />
                         <FormInput
                             label="Mobile number"
@@ -1094,90 +1101,13 @@ export default function CreateRemitterPage() {
 
                     <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4 ml-1">Documents</h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <FormFileUpload label="ID Copy" name="passport_copy" compact required />
+                        <FormFileUpload label="ID Copy" name="passport_copy" compact />
                         <FormFileUpload label="Proof of Address" name="proof_of_address_doc" compact />
                         <FormFileUpload label="Source of Income" name="work_related_docs" compact />
                         <FormFileUpload label="AML Doc" name="sender_details_aml_screening_doc" compact />
                     </div>
                 </div>
 
-                <div className="mb-8 border border-slate-200/70 dark:border-slate-700/70 rounded-2xl p-5 bg-white/60 dark:bg-slate-900/40">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                        <div>
-                            <h4 className="text-sm font-bold text-slate-900 dark:text-white">Verification Status</h4>
-                            <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">
-                                Verification starts after saving because a remitter reference ID is required.
-                            </p>
-                        </div>
-                        {createdRemitterVeriff?.verification_state ? (
-                            <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold ${verificationBadgeClass(createdRemitterVeriff.verification_state)}`}>
-                                {verificationLabel(createdRemitterVeriff.verification_state)}
-                            </span>
-                        ) : null}
-                    </div>
-
-                    {!createdRemitterId ? (
-                        <p className="text-xs text-slate-500 dark:text-slate-300 mt-4">
-                            Save remitter to enable `Start Verification` and `Sync Result`.
-                        </p>
-                    ) : (
-                        <div className="mt-4 space-y-3">
-                            <div className="text-xs text-slate-600 dark:text-slate-300 flex flex-wrap items-center gap-4">
-                                <span>Remitter Reference ID: <span className="font-semibold text-slate-800 dark:text-slate-200">{createdRemitterId}</span></span>
-                                <span>ID Expiry: <span className="font-semibold text-slate-800 dark:text-slate-200">{createdRemitterVeriff?.id_expiry || '-'}</span></span>
-                                <span>Last Check: <span className="font-semibold text-slate-800 dark:text-slate-200">{createdRemitterVeriff?.veriff_checked_at || '-'}</span></span>
-                            </div>
-                            {createdRemitterVeriff?.id_expired ? (
-                                <p className="text-xs font-semibold text-red-600 dark:text-red-300">ID is expired. Re-verification and updated ID are required before transfer.</p>
-                            ) : null}
-                            {createdRemitterVeriff?.branch_veriff_enabled === false ? (
-                                <p className="text-xs font-semibold text-amber-600 dark:text-amber-300">Branch verification is currently disabled by backend flag.</p>
-                            ) : null}
-                            <div className="flex flex-wrap gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => void refreshVerificationStatus()}
-                                    disabled={veriffActionLoading}
-                                    className="px-3 py-2 rounded-full text-xs font-bold glass-effect text-slate-700 dark:text-slate-200 disabled:opacity-40"
-                                >
-                                    <RefreshCcw className={`inline-block w-3 h-3 mr-1 ${veriffActionLoading ? 'animate-spin' : ''}`} />
-                                    Refresh Status
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => triggerVeriffAction('start')}
-                                    disabled={veriffActionLoading || createdRemitterVeriff?.branch_veriff_enabled === false || (createdRemitterVeriff?.verification_state === 'verified' && !createdRemitterVeriff?.id_expired)}
-                                    className="px-3 py-2 rounded-full text-xs font-bold glass-effect text-slate-700 dark:text-slate-200 disabled:opacity-40"
-                                >
-                                    {veriffActionLoading ? 'Working...' : 'Start Verification'}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => triggerVeriffAction('sync')}
-                                    disabled={veriffActionLoading || createdRemitterVeriff?.branch_veriff_enabled === false}
-                                    className="px-3 py-2 rounded-full text-xs font-bold glass-effect text-slate-700 dark:text-slate-200 disabled:opacity-40"
-                                >
-                                    Sync Result
-                                </button>
-                                {createdRemitterVeriff?.veriff_url ? (
-                                    <button
-                                        type="button"
-                                        onClick={() => window.open(createdRemitterVeriff.veriff_url, '_blank', 'noopener,noreferrer')}
-                                        className="px-3 py-2 rounded-full text-xs font-bold glass-effect text-slate-700 dark:text-slate-200"
-                                    >
-                                        Open Verification Link
-                                    </button>
-                                ) : null}
-                                <Link
-                                    href={`/admin/remitters/${createdRemitterId}`}
-                                    className="px-3 py-2 rounded-full text-xs font-bold glass-effect text-slate-700 dark:text-slate-200"
-                                >
-                                    Open Remitter Details
-                                </Link>
-                            </div>
-                        </div>
-                    )}
-                </div>
 
                 <div className="flex justify-end space-x-4 pt-8 mt-8 border-t border-slate-100 dark:border-slate-700/50">
                     <Link
