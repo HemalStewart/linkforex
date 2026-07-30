@@ -1165,6 +1165,15 @@ export default function RemittersPage() {
                     <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">Manage remitter profiles for branch and mobile app</p>
                 </div>
                 <div className="flex items-center gap-3">
+                    <button
+                        type="button"
+                        onClick={() => void fetchRemitters()}
+                        disabled={loading}
+                        className="btn-primary flex items-center space-x-2 rounded-full px-6 py-2.5"
+                    >
+                        <RefreshCcw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                        <span>Refresh</span>
+                    </button>
                     {canAdd && (
                         <Link href="/admin/remitters/create" className="btn-primary flex items-center space-x-2 rounded-full px-6 py-2.5">
                             <UserPlus className="w-5 h-5" />
