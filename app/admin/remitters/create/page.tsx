@@ -25,6 +25,9 @@ type DuplicateMatch = {
     id: number;
     name: string;
     sender_id?: string;
+    phone?: string;
+    email?: string;
+    id_number?: string;
     branch?: string;
     status?: string;
     score?: number;
@@ -76,7 +79,7 @@ const isLondonBranchOption = (option: { value: string; label: string }): boolean
 
 // --- HELPER COMPONENTS (Reused) ---
 
-function FormInput({ label, name, type = 'text', placeholder, disabled, step, defaultValue, required, Icon, value, onChange }: any) {
+function FormInput({ label, name, type = 'text', placeholder, disabled, step, defaultValue, required, Icon, value, onChange, warning, error }: any) {
     return (
         <div className="w-full">
             <label htmlFor={name} className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
@@ -98,10 +101,22 @@ function FormInput({ label, name, type = 'text', placeholder, disabled, step, de
                     value={value}
                     onChange={onChange}
                     required={required}
-                    className={`input-glass w-full py-3 ${Icon ? '' : 'pl-4'} pr-4 text-sm focus:scale-[1.01] transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed`}
+                    className={`input-glass w-full py-3 ${Icon ? '' : 'pl-4'} pr-4 text-sm focus:scale-[1.01] transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed ${
+                        error ? '!border-red-500 focus:!ring-red-500 bg-red-50/20' : warning ? '!border-amber-500 focus:!ring-amber-500 bg-amber-50/40 dark:bg-amber-950/20' : ''
+                    }`}
                     placeholder={placeholder}
                 />
             </div>
+            {error && (
+                <p className="mt-1.5 text-xs font-bold text-red-600 dark:text-red-400 flex items-center gap-1 ml-1 animate-fade-in">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {error}
+                </p>
+            )}
+            {!error && warning && (
+                <p className="mt-1.5 text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1 ml-1 animate-fade-in">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {warning}
+                </p>
+            )}
         </div>
     );
 }
@@ -304,10 +319,12 @@ export default function CreateRemitterPage() {
     const [duplicateChecking, setDuplicateChecking] = useState(false);
     const [possibleDuplicates, setPossibleDuplicates] = useState<DuplicateMatch[]>([]);
     const [duplicateFormSignals, setDuplicateFormSignals] = useState({
+        sender_id: '',
         sender_name: '',
         company_name: '',
         date_of_birth: '',
         telephone: '',
+        email: '',
         id_no: '',
         postcode: '',
         address_1: '',
@@ -437,26 +454,27 @@ export default function CreateRemitterPage() {
     }, [branches, currentUser, isPrivilegedUser, scopedBranchCode, canMultiBranch]);
 
     const hasMinimumDuplicateSignals = React.useCallback((signals: typeof duplicateFormSignals): boolean => {
-        const rawName = signals.sender_name;
-        const name = rawName.trim();
-        const idNo = signals.id_no.trim();
+        const senderId = (signals.sender_id || '').trim();
+        const name = (signals.sender_name || '').trim();
+        const idNo = (signals.id_no || '').trim();
+        const email = (signals.email || '').trim();
         const phoneDigits = (signals.telephone || '').replace(/\D+/g, '');
-        const hasNameContext = Boolean(name && (signals.date_of_birth || signals.postcode || signals.address_1));
-        return Boolean(idNo || phoneDigits.length >= 7 || hasNameContext);
+        const hasNameContext = Boolean(name && (signals.date_of_birth || signals.postcode || signals.address_1 || name.length >= 3));
+        return Boolean(senderId || idNo || phoneDigits.length >= 6 || (email.length >= 4 && email.includes('@')) || hasNameContext);
     }, []);
 
     const buildDuplicateQuery = React.useCallback((signals: typeof duplicateFormSignals): string => {
         const params = new URLSearchParams();
-        const resolvedName = signals.sender_name.trim();
-
-        if (resolvedName) params.set('sender_name', resolvedName);
-        if (signals.date_of_birth.trim()) params.set('dob', signals.date_of_birth.trim());
-        if (signals.telephone.trim()) params.set('phone', signals.telephone.trim());
-        if (signals.id_no.trim()) params.set('id_no', signals.id_no.trim());
-        if (signals.postcode.trim()) params.set('postcode', signals.postcode.trim());
-        if (signals.address_1.trim()) params.set('address_1', signals.address_1.trim());
-        if (signals.city.trim()) params.set('city', signals.city.trim());
-        if (signals.country.trim()) params.set('country', signals.country.trim());
+        if (signals.sender_id?.trim()) params.set('sender_id', signals.sender_id.trim());
+        if (signals.sender_name?.trim()) params.set('sender_name', signals.sender_name.trim());
+        if (signals.email?.trim()) params.set('email', signals.email.trim());
+        if (signals.date_of_birth?.trim()) params.set('dob', signals.date_of_birth.trim());
+        if (signals.telephone?.trim()) params.set('phone', signals.telephone.trim());
+        if (signals.id_no?.trim()) params.set('id_no', signals.id_no.trim());
+        if (signals.postcode?.trim()) params.set('postcode', signals.postcode.trim());
+        if (signals.address_1?.trim()) params.set('address_1', signals.address_1.trim());
+        if (signals.city?.trim()) params.set('city', signals.city.trim());
+        if (signals.country?.trim()) params.set('country', signals.country.trim());
 
         return params.toString();
     }, []);
@@ -499,6 +517,43 @@ export default function CreateRemitterPage() {
 
         return () => window.clearTimeout(timer);
     }, [duplicateFormSignals, fetchPotentialMatches, hasMinimumDuplicateSignals]);
+
+    const fieldWarnings = React.useMemo(() => {
+        const warnings: Record<string, string> = {};
+        if (possibleDuplicates.length === 0) return warnings;
+
+        const typedSenderId = (duplicateFormSignals.sender_id || '').trim().toLowerCase();
+        const typedName = (duplicateFormSignals.sender_name || '').trim().toLowerCase();
+        const typedPhone = (duplicateFormSignals.telephone || '').replace(/\D+/g, '');
+        const typedEmail = (duplicateFormSignals.email || '').trim().toLowerCase();
+        const typedIdNo = (duplicateFormSignals.id_no || '').trim().toLowerCase();
+
+        for (const match of possibleDuplicates) {
+            const matchSenderId = (match.sender_id || '').trim().toLowerCase();
+            const matchName = (match.name || '').trim().toLowerCase();
+            const matchPhone = (match.phone || '').replace(/\D+/g, '');
+            const matchEmail = (match.email || '').trim().toLowerCase();
+            const matchIdNo = (match.id_number || '').trim().toLowerCase();
+
+            if (typedSenderId && matchSenderId && typedSenderId === matchSenderId && !warnings.sender_id) {
+                warnings.sender_id = `Already existing Reference ID (${match.sender_id})`;
+            }
+            if (typedName && matchName && typedName === matchName && !warnings.sender_name) {
+                warnings.sender_name = `Already existing Remitter Name (${match.name})`;
+            }
+            if (typedPhone && matchPhone && typedPhone === matchPhone && !warnings.telephone) {
+                warnings.telephone = `Already existing Mobile Number (${match.phone})`;
+            }
+            if (typedEmail && matchEmail && typedEmail === matchEmail && !warnings.email) {
+                warnings.email = `Already existing Email Address (${match.email})`;
+            }
+            if (typedIdNo && matchIdNo && typedIdNo === matchIdNo && !warnings.id_no) {
+                warnings.id_no = `Already existing ID Number (${match.id_number})`;
+            }
+        }
+
+        return warnings;
+    }, [possibleDuplicates, duplicateFormSignals]);
 
     const createRemitter = React.useCallback(async (
         payload: any,
@@ -910,13 +965,22 @@ export default function CreateRemitterPage() {
                         Personal Details
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormInput label="Remitter Reference ID" name="sender_id" placeholder="Enter Remitter Reference ID" required Icon={CreditCard} />
+                        <FormInput
+                            label="Remitter Reference ID"
+                            name="sender_id"
+                            placeholder="Enter Remitter Reference ID"
+                            required
+                            Icon={CreditCard}
+                            warning={fieldWarnings.sender_id}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, sender_id: e.target.value }))}
+                        />
                         <FormInput
                             label="Full Name"
                             name="sender_name"
                             placeholder="Full Name"
                             required
                             Icon={User}
+                            warning={fieldWarnings.sender_name}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, sender_name: e.target.value }))}
                         />
                         <FormInput
@@ -935,6 +999,7 @@ export default function CreateRemitterPage() {
                             placeholder="Mobile number"
                             required
                             Icon={Phone}
+                            warning={fieldWarnings.telephone}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, telephone: e.target.value }))}
                         />
                         <FormInput
@@ -943,44 +1008,69 @@ export default function CreateRemitterPage() {
                             type="email"
                             placeholder="Email address"
                             Icon={FileText}
+                            warning={fieldWarnings.email}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, email: e.target.value }))}
                         />
                     </div>
                 </div>
 
                 {(duplicateChecking || possibleDuplicates.length > 0) && (
                     <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
-                        <div className={`rounded-2xl border px-4 py-4 ${possibleDuplicates.length > 0 ? 'border-amber-300/70 bg-amber-50/70 dark:border-amber-500/40 dark:bg-amber-500/10' : 'border-slate-200 bg-slate-50/70 dark:border-slate-700 dark:bg-slate-800/40'}`}>
+                        <div className={`rounded-2xl border p-5 transition-all ${possibleDuplicates.length > 0 ? 'border-amber-300 bg-amber-50/90 dark:border-amber-500/40 dark:bg-amber-950/30' : 'border-slate-200 bg-slate-50/70 dark:border-slate-700 dark:bg-slate-800/40'}`}>
                             <div className="flex items-start gap-3">
-                                <AlertCircle className={`mt-0.5 h-4 w-4 ${possibleDuplicates.length > 0 ? 'text-amber-600' : 'text-slate-500'}`} />
+                                <AlertCircle className={`mt-0.5 h-5 w-5 shrink-0 ${possibleDuplicates.length > 0 ? 'text-amber-600 dark:text-amber-400 animate-pulse' : 'text-slate-500'}`} />
                                 <div className="w-full">
-                                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                                        {duplicateChecking ? 'Checking for possible duplicates...' : `Possible match found (${possibleDuplicates.length})`}
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-base font-extrabold text-slate-900 dark:text-slate-100">
+                                            {duplicateChecking ? 'Checking for existing remitter records...' : `⚠️ Existing Remitter Record Found (${possibleDuplicates.length})`}
+                                        </p>
+                                    </div>
+                                    <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 font-medium">
+                                        {duplicateChecking ? 'Searching system database for matching profiles...' : 'A remitter matching your entered information already exists in the system. Review existing record(s) below before saving.'}
                                     </p>
+
                                     {!duplicateChecking && possibleDuplicates.length > 0 && (
-                                        <div className="mt-3 space-y-2">
-                                            {possibleDuplicates.slice(0, 3).map((match) => (
-                                                <div key={`dup-${match.id}`} className="rounded-xl border border-amber-200/60 bg-white/70 px-3 py-2 text-xs text-slate-700 dark:border-amber-500/30 dark:bg-slate-900/40 dark:text-slate-300">
-                                                    <div className="font-semibold">
-                                                        {match.name} {match.sender_id ? `(${match.sender_id})` : ''}
-                                                    </div>
-                                                    <div className="mt-1">
-                                                        Branch: {match.branch || '-'} · Score: {match.score ?? 0}
-                                                    </div>
-                                                    <div className="mt-1 flex flex-wrap items-center gap-2">
-                                                        <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${verificationBadgeClass(match.verification_state)}`}>
-                                                            {verificationLabel(match.verification_state)}
-                                                        </span>
-                                                        {match.id_expired ? (
-                                                            <span className="inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300">
-                                                                ID Expired
-                                                            </span>
-                                                        ) : null}
-                                                    </div>
-                                                    {Array.isArray(match.reasons) && match.reasons.length > 0 && (
-                                                        <div className="mt-1 text-amber-700 dark:text-amber-300">
-                                                            {match.reasons.join(', ')}
+                                        <div className="mt-4 space-y-3">
+                                            {possibleDuplicates.slice(0, 5).map((match) => (
+                                                <div key={`dup-${match.id}`} className="rounded-xl border border-amber-200/80 bg-white/95 dark:border-amber-700/40 dark:bg-slate-900/90 p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                                    <div className="space-y-1">
+                                                        <div className="flex flex-wrap items-center gap-2">
+                                                            <span className="font-bold text-sm text-slate-900 dark:text-white">{match.name}</span>
+                                                            {match.sender_id && <span className="text-xs font-mono bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-slate-600 dark:text-slate-300">ID: {match.sender_id}</span>}
                                                         </div>
-                                                    )}
+                                                        <div className="text-xs text-slate-600 dark:text-slate-300 flex flex-wrap gap-x-4 gap-y-1">
+                                                            {match.phone && <span><strong>Phone:</strong> {match.phone}</span>}
+                                                            {match.email && <span><strong>Email:</strong> {match.email}</span>}
+                                                            {match.id_number && <span><strong>ID No:</strong> {match.id_number}</span>}
+                                                            {match.branch && <span><strong>Branch:</strong> {match.branch}</span>}
+                                                        </div>
+                                                        <div className="flex flex-wrap items-center gap-2 pt-1">
+                                                            <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${verificationBadgeClass(match.verification_state)}`}>
+                                                                {verificationLabel(match.verification_state)}
+                                                            </span>
+                                                            {match.id_expired && (
+                                                                <span className="inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300">
+                                                                    ID Expired
+                                                                </span>
+                                                            )}
+                                                            {Array.isArray(match.reasons) && match.reasons.map((r, i) => (
+                                                                <span key={i} className="inline-flex rounded-md px-2 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">
+                                                                    {r}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                    <div className="shrink-0 flex items-center gap-2">
+                                                        <a
+                                                            href={`/admin/remitters/${match.id}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="px-3 py-1.5 rounded-lg text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 dark:text-teal-300 dark:bg-teal-950/50 dark:hover:bg-teal-900/50 border border-teal-200 dark:border-teal-800 transition-colors inline-flex items-center gap-1.5"
+                                                        >
+                                                            <Eye className="w-3.5 h-3.5" />
+                                                            View Existing Remitter
+                                                        </a>
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>
@@ -1089,6 +1179,7 @@ export default function CreateRemitterPage() {
                             name="id_no"
                             required
                             Icon={FileText}
+                            warning={fieldWarnings.id_no}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, id_no: e.target.value }))}
                         />
                         <FormInput
