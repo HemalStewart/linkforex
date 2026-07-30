@@ -1497,85 +1497,48 @@ export default function RemittersPage() {
                             </div>
                         </div>
 
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                                {/* Identity */}
-                                <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                                    <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Identity</p>
-                                    <p className="mt-2 text-sm font-semibold text-slate-900 dark:text-white">Remitter Reference ID: {viewOverviewRemitter.sender_id || '-'}</p>
-                                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">DOB: {viewOverviewRemitter.dob || '-'}</p>
-                                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Country of Birth: {viewOverviewRemitter.place_of_birth || '-'}</p>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Identity & Contact */}
+                            <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4 space-y-2">
+                                <p className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Identity & Contact</p>
+                                <div>
+                                    <p className="text-xs text-slate-400">Remitter Reference ID</p>
+                                    <p className="text-sm font-bold text-slate-900 dark:text-white">{viewOverviewRemitter.sender_id || '-'}</p>
                                 </div>
-
-                                {/* Branch */}
-                                <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                                    <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Branch</p>
-                                    <p className="mt-2 text-sm font-semibold text-slate-900 dark:text-white">
-                                        {viewOverviewRemitter.branch_name || '-'}
-                                    </p>
-                                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Occupation: {viewOverviewRemitter.occupation || '-'}</p>
+                                <div>
+                                    <p className="text-xs text-slate-400">Date of Birth</p>
+                                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{viewOverviewRemitter.dob || '-'}</p>
                                 </div>
-
-                                {/* Compliance */}
-                                <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                                    <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Compliance</p>
-                                    <div className="mt-2 flex items-center justify-between gap-2">
-                                        <span className="text-sm text-slate-600 dark:text-slate-300">ID Verified</span>
-                                        <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${String(viewOverviewRemitter.id_verified || '').toLowerCase() === 'yes'
-                                                ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300'
-                                                : 'bg-slate-100 text-slate-700 dark:bg-slate-700/40 dark:text-slate-300'
-                                            }`}>
-                                            {String(viewOverviewRemitter.id_verified || '').toLowerCase() === 'yes' ? 'Yes' : 'No'}
-                                        </span>
+                                <div>
+                                    <p className="text-xs text-slate-400">Country of Birth</p>
+                                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{viewOverviewRemitter.place_of_birth || '-'}</p>
+                                </div>
+                                {viewOverviewRemitter.telephone && (
+                                    <div>
+                                        <p className="text-xs text-slate-400">Mobile Number</p>
+                                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{viewOverviewRemitter.telephone}</p>
                                     </div>
-                                    <div className="mt-2 flex items-center justify-between gap-2">
-                                         <span className="text-sm text-slate-600 dark:text-slate-300">AML Verification Result</span>
-                                         {(() => {
-                                             const rawVal = resolveAmlStatus(viewOverviewRemitter);
-                                             const s = String(rawVal || '').trim().toLowerCase();
-
-                                             const isPass = ['pass', 'passed', 'clear', 'approved', 'verified', 'manually passed', 'clean', 'no_match', 'no match', 'ok'].includes(s) || s.includes('pass') || s.includes('clear');
-                                             const isRefer = ['refer', 'referred', 'review', 'under_review'].includes(s) || s.includes('refer') || s.includes('review');
-                                             const isHit = ['hit', 'fail', 'failed', 'match', 'matches', 'rejected', 'expired'].includes(s) || s.includes('hit') || s.includes('fail');
-
-                                             let badgeText = 'PENDING';
-                                             let badgeClass = 'bg-amber-500 text-white font-extrabold px-2.5 py-0.5 text-xs rounded-lg shadow-sm';
-
-                                             if (isPass) {
-                                                 badgeText = '✓ PASS';
-                                                 badgeClass = 'bg-emerald-500 text-white font-extrabold px-2.5 py-0.5 text-xs rounded-lg shadow-sm';
-                                             } else if (isRefer) {
-                                                 badgeText = s.includes('refer') ? 'REFER' : 'REVIEW';
-                                                 badgeClass = 'bg-amber-500 text-white font-extrabold px-2.5 py-0.5 text-xs rounded-lg shadow-sm';
-                                             } else if (isHit) {
-                                                 badgeText = '⚠ HIT';
-                                                 badgeClass = 'bg-rose-600 text-white font-extrabold px-2.5 py-0.5 text-xs rounded-lg shadow-sm';
-                                             }
-
-                                             return (
-                                                 <span className={`inline-flex items-center justify-center ${badgeClass}`}>
-                                                     {badgeText}
-                                                 </span>
-                                             );
-                                         })()}
-                                    </div>
-                                    {viewOverviewRemitter.id_expired ? (
-                                        <p className="mt-2 text-xs font-semibold text-red-600 dark:text-red-300">ID expired: transfer will be blocked until re-verified.</p>
-                                    ) : null}
-                                </div>
-
-
+                                )}
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {/* Address */}
-                                <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                                    <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Address</p>
-                                    <p className="mt-2 text-sm text-slate-700 dark:text-slate-200">{viewOverviewRemitter.address_1 || '-'}</p>
+                            {/* Branch & Address */}
+                            <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4 space-y-2">
+                                <p className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Branch & Address</p>
+                                <div>
+                                    <p className="text-xs text-slate-400">Branch</p>
+                                    <p className="text-sm font-bold text-slate-900 dark:text-white">{viewOverviewRemitter.branch_name || '-'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-slate-400">Occupation</p>
+                                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{viewOverviewRemitter.occupation || '-'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-slate-400">Address</p>
+                                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{viewOverviewRemitter.address_1 || '-'}</p>
                                     {viewOverviewRemitter.address_2 && viewOverviewRemitter.address_2 !== '-' && (
-                                        <p className="text-sm text-slate-700 dark:text-slate-200">{viewOverviewRemitter.address_2}</p>
+                                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{viewOverviewRemitter.address_2}</p>
                                     )}
-                                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                                         {[viewOverviewRemitter.city, viewOverviewRemitter.county, viewOverviewRemitter.country]
                                             .map((part) => String(part || '').trim())
                                             .filter((part) => part && part !== '-')
@@ -1584,16 +1547,70 @@ export default function RemittersPage() {
                                         {viewOverviewRemitter.postcode && String(viewOverviewRemitter.postcode).trim() ? ` ${String(viewOverviewRemitter.postcode).trim()}` : ''}
                                     </p>
                                 </div>
+                            </div>
 
-                                {/* ID & AML */}
-                                <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                                    <p className="text-xs font-bold text-slate-500 dark:text-slate-300">ID & AML</p>
-                                    <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">ID Type: <span className="font-semibold text-slate-900 dark:text-white">{viewOverviewRemitter.id_type || '-'}</span></p>
-                                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">ID No: <span className="font-semibold text-slate-900 dark:text-white">{viewOverviewRemitter.id_no || '-'}</span></p>
-                                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">ID Expiry: <span className="font-semibold text-slate-900 dark:text-white">{viewOverviewRemitter.id_expire_date || '-'}</span></p>
-                                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Veriff Decision: <span className="font-semibold text-slate-900 dark:text-white">{viewOverviewRemitter.veriff_decision || '-'}</span></p>
-                                    <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">AML Result: <span className="font-semibold text-slate-900 dark:text-white">{viewOverviewRemitter.sender_aml_result || '-'}</span></p>
+                            {/* ID & Compliance */}
+                            <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4 space-y-2">
+                                <p className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">ID & Compliance</p>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <p className="text-xs text-slate-400">ID Type</p>
+                                        <p className="text-sm font-bold text-slate-900 dark:text-white">{viewOverviewRemitter.id_type || '-'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-slate-400">ID Number</p>
+                                        <p className="text-sm font-bold text-slate-900 dark:text-white">{viewOverviewRemitter.id_no || '-'}</p>
+                                    </div>
                                 </div>
+                                {viewOverviewRemitter.id_expire_date && (
+                                    <div>
+                                        <p className="text-xs text-slate-400">ID Expiry Date</p>
+                                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{viewOverviewRemitter.id_expire_date}</p>
+                                    </div>
+                                )}
+                                <div className="pt-1 flex items-center justify-between gap-2 border-t border-slate-200/50 dark:border-slate-800">
+                                    <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">ID Verified</span>
+                                    <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${String(viewOverviewRemitter.id_verified || '').toLowerCase() === 'yes'
+                                            ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300'
+                                            : 'bg-slate-100 text-slate-700 dark:bg-slate-700/40 dark:text-slate-300'
+                                        }`}>
+                                        {String(viewOverviewRemitter.id_verified || '').toLowerCase() === 'yes' ? 'Yes' : 'No'}
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between gap-2">
+                                    <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">AML Verification Result</span>
+                                    {(() => {
+                                        const rawVal = resolveAmlStatus(viewOverviewRemitter);
+                                        const s = String(rawVal || '').trim().toLowerCase();
+
+                                        const isPass = ['pass', 'passed', 'clear', 'approved', 'verified', 'manually passed', 'clean', 'no_match', 'no match', 'ok'].includes(s) || s.includes('pass') || s.includes('clear');
+                                        const isRefer = ['refer', 'referred', 'review', 'under_review'].includes(s) || s.includes('refer') || s.includes('review');
+                                        const isHit = ['hit', 'fail', 'failed', 'match', 'matches', 'rejected', 'expired'].includes(s) || s.includes('hit') || s.includes('fail');
+
+                                        let badgeText = 'PENDING';
+                                        let badgeClass = 'bg-amber-500 text-white font-extrabold px-2.5 py-0.5 text-xs rounded-lg shadow-sm';
+
+                                        if (isPass) {
+                                            badgeText = '✓ PASS';
+                                            badgeClass = 'bg-emerald-500 text-white font-extrabold px-2.5 py-0.5 text-xs rounded-lg shadow-sm';
+                                        } else if (isRefer) {
+                                            badgeText = s.includes('refer') ? 'REFER' : 'REVIEW';
+                                            badgeClass = 'bg-amber-500 text-white font-extrabold px-2.5 py-0.5 text-xs rounded-lg shadow-sm';
+                                        } else if (isHit) {
+                                            badgeText = '⚠ HIT';
+                                            badgeClass = 'bg-rose-600 text-white font-extrabold px-2.5 py-0.5 text-xs rounded-lg shadow-sm';
+                                        }
+
+                                        return (
+                                            <span className={`inline-flex items-center justify-center ${badgeClass}`}>
+                                                {badgeText}
+                                            </span>
+                                        );
+                                    })()}
+                                </div>
+                                {viewOverviewRemitter.id_expired ? (
+                                    <p className="mt-1 text-xs font-semibold text-red-600 dark:text-red-300">ID expired: transfer blocked.</p>
+                                ) : null}
                             </div>
                         </div>
 
