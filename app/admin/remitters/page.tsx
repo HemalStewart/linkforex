@@ -1710,9 +1710,6 @@ export default function RemittersPage() {
                                         );
                                     })()}
                                 </div>
-                                {viewOverviewRemitter.id_expired ? (
-                                    <p className="mt-1 text-xs font-semibold text-red-600 dark:text-red-300">ID expired: transfer blocked.</p>
-                                ) : null}
                             </div>
                         </div>
 
