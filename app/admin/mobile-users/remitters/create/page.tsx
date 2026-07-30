@@ -95,7 +95,7 @@ function FormSelect({ label, name, options, defaultValue, Icon, required, value,
                     onChange={onChange}
                     required={required}
                     disabled={disabled}
-                    className={`input-glass w-full py-3 ${Icon ? '' : 'pl-4'} pr-10 appearance-none cursor-pointer text-sm disabled:opacity-60 disabled:cursor-not-allowed`}
+                    className={`input-glass w-full py-3 ${Icon ? '' : 'pl-4'} cursor-pointer text-sm disabled:opacity-60 disabled:cursor-not-allowed`}
                 >
                     {options.map((opt: SelectOption, index: number) => {
                         const optionValue = typeof opt === 'string' ? opt : opt.value;
@@ -105,9 +105,6 @@ function FormSelect({ label, name, options, defaultValue, Icon, required, value,
                         );
                     })}
                 </select>
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                </div>
             </div>
         </div>
     );

@@ -1202,7 +1202,7 @@ export default function RemittersPage() {
                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Mobile Status</label>
                         <div className="relative input-icon">
                             <select
-                                className="input-glass w-full appearance-none pr-10 text-sm"
+                                className="input-glass w-full text-sm"
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value)}
                             >
@@ -1211,14 +1211,13 @@ export default function RemittersPage() {
                                 <option value="inactive">Inactive</option>
                                 <option value="suspended">Suspended</option>
                             </select>
-                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-500 dark:text-slate-200 pointer-events-none" />
                         </div>
                     </div>
                     <div>
                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Source</label>
                         <div className="relative input-icon">
                             <select
-                                className="input-glass w-full appearance-none pr-10 text-sm"
+                                className="input-glass w-full text-sm"
                                 value={sourceFilter}
                                 onChange={(e) => setSourceFilter(e.target.value)}
                             >
@@ -1226,14 +1225,13 @@ export default function RemittersPage() {
                                 <option value="branch">Web</option>
                                 <option value="mobile_app">Mobile App</option>
                             </select>
-                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-500 dark:text-slate-200 pointer-events-none" />
                         </div>
                     </div>
                     <div>
                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Branch</label>
                         <div className="relative input-icon">
                             <select
-                                className="input-glass w-full appearance-none pr-10 text-sm"
+                                className="input-glass w-full text-sm"
                                 value={branchFilter}
                                 onChange={(e) => setBranchFilter(e.target.value)}
                             >
@@ -1244,7 +1242,6 @@ export default function RemittersPage() {
                                     </option>
                                 ))}
                             </select>
-                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-500 dark:text-slate-200 pointer-events-none" />
                         </div>
                     </div>
                 </div>

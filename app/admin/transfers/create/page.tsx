@@ -1611,7 +1611,7 @@ export default function CreateTransferPage() {
                             <select
                                 value={formData.toBranch}
                                 onChange={(event) => setFormData((prev) => ({ ...prev, toBranch: event.target.value }))}
-                                className="input-glass w-full pr-10 appearance-none"
+                                className="input-glass w-full cursor-pointer"
                             >
                                 <option value="">NONE</option>
                                 {branchOptions.map((branch) => (
@@ -1620,7 +1620,6 @@ export default function CreateTransferPage() {
                                     </option>
                                 ))}
                             </select>
-                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-500 dark:text-slate-200 pointer-events-none" />
                         </div>
                     </div>
 
@@ -1661,7 +1660,7 @@ export default function CreateTransferPage() {
                             <select
                                 value={formData.payoutCurrency}
                                 onChange={(event) => applyRateByCurrency(event.target.value)}
-                                className="input-glass w-full pr-10 appearance-none"
+                                className="input-glass w-full cursor-pointer"
                             >
                                 <option value="">Select payout currency</option>
                                 {currencies.map((currency) => (
@@ -1670,7 +1669,6 @@ export default function CreateTransferPage() {
                                     </option>
                                 ))}
                             </select>
-                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-500 dark:text-slate-200 pointer-events-none" />
                         </div>
                     </div>
 
@@ -2188,7 +2186,6 @@ export default function CreateTransferPage() {
                                 </option>
                             ))}
                         </select>
-                        <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-500 dark:text-slate-200 pointer-events-none" />
                     </div>
                     {receiverBranchAccessIssue.blocked && (
                         <div className="mt-3 rounded-2xl border border-amber-200/70 bg-amber-50/80 dark:border-amber-800/60 dark:bg-amber-900/20 px-4 py-3">
@@ -2308,7 +2305,6 @@ export default function CreateTransferPage() {
                                     </option>
                                 ))}
                             </select>
-                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-500 dark:text-slate-200 pointer-events-none" />
                         </div>
                     </div>
 
@@ -2377,7 +2373,7 @@ export default function CreateTransferPage() {
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Building2 className="w-5 h-5" /></span>
                             <select
-                                className="input-glass w-full pr-10 appearance-none"
+                                className="input-glass w-full cursor-pointer"
                                 value={formData.receiverBranchCode}
                                 onChange={(event) => setFormData((prev) => ({ ...prev, receiverBranchCode: event.target.value }))}
                             >
@@ -2391,7 +2387,6 @@ export default function CreateTransferPage() {
                                     </option>
                                 ))}
                             </select>
-                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-500 dark:text-slate-200 pointer-events-none" />
                         </div>
                     </div>
 

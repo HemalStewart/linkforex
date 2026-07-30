@@ -196,7 +196,7 @@ export default function CreateRolePage() {
                                 <Shield className="w-5 h-5" />
                             </span>
                             <select
-                                className="input-glass w-full pr-10 appearance-none cursor-pointer text-slate-700 dark:text-slate-200 font-semibold"
+                                className="input-glass w-full cursor-pointer text-slate-700 dark:text-slate-200 font-semibold"
                                 value={formData.copy_from_role_id}
                                 onChange={(e) => setFormData({ ...formData, copy_from_role_id: e.target.value })}
                             >
@@ -207,7 +207,6 @@ export default function CreateRolePage() {
                                     </option>
                                 ))}
                             </select>
-                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
                         </div>
                     </div>
 

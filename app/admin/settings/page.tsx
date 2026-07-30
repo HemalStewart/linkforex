@@ -9,7 +9,6 @@ import {
     Loader2,
     Save,
     Settings,
-    ChevronDown,
 } from 'lucide-react';
 import { usePagePermissions } from '@/app/lib/permissions';
 
@@ -166,13 +165,12 @@ export default function SettingsPage() {
                             <select
                                 value={generalSettings.enableDilisenseScreening}
                                 onChange={(e) => setGeneralSettings(prev => ({ ...prev, enableDilisenseScreening: e.target.value }))}
-                                className="input-glass w-full pr-10 appearance-none cursor-pointer text-sm py-2.5 text-slate-900 dark:text-white"
+                                className="input-glass w-full cursor-pointer text-sm py-2.5 text-slate-900 dark:text-white"
                                 disabled={!canEdit}
                             >
                                 <option value="yes" className="dark:bg-slate-800 dark:text-white bg-white text-slate-900">Enabled</option>
                                 <option value="no" className="dark:bg-slate-800 dark:text-white bg-white text-slate-900">Disabled</option>
                             </select>
-                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none" />
                         </div>
                         <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">Enable or disable Dilisense AML name & sanction screening across the system.</p>
                     </div>
@@ -183,13 +181,12 @@ export default function SettingsPage() {
                             <select
                                 value={generalSettings.enableWebDilisenseScreening}
                                 onChange={(e) => setGeneralSettings(prev => ({ ...prev, enableWebDilisenseScreening: e.target.value }))}
-                                className="input-glass w-full pr-10 appearance-none cursor-pointer text-sm py-2.5 text-slate-900 dark:text-white"
+                                className="input-glass w-full cursor-pointer text-sm py-2.5 text-slate-900 dark:text-white"
                                 disabled={!canEdit}
                             >
                                 <option value="yes" className="dark:bg-slate-800 dark:text-white bg-white text-slate-900">Enabled</option>
                                 <option value="no" className="dark:bg-slate-800 dark:text-white bg-white text-slate-900">Disabled</option>
                             </select>
-                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none" />
                         </div>
                         <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">Enable or disable automatic Dilisense AML screening when creating or updating remitter records via web admin.</p>
                     </div>
@@ -200,7 +197,7 @@ export default function SettingsPage() {
                             <select
                                 value={generalSettings.defaultBranch}
                                 onChange={(e) => setGeneralSettings(prev => ({ ...prev, defaultBranch: e.target.value }))}
-                                className="input-glass w-full pr-10 appearance-none cursor-pointer text-sm py-2.5 text-slate-900 dark:text-white"
+                                className="input-glass w-full cursor-pointer text-sm py-2.5 text-slate-900 dark:text-white"
                                 disabled={!canEdit}
                             >
                                 <option value="" className="dark:bg-slate-800 dark:text-white bg-white text-slate-900">Select a Branch</option>
@@ -213,7 +210,6 @@ export default function SettingsPage() {
                                     );
                                 })}
                             </select>
-                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none" />
                         </div>
                         <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">Newly registered mobile app users will be assigned to this branch by default.</p>
                     </div>

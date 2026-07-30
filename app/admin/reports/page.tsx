@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { BarChart3, FileCheck, Map, Users, FileText, Download, Calendar, Mail, Clock, Plus, RefreshCw, TrendingUp, DollarSign, ChevronDown } from 'lucide-react';
+import { BarChart3, FileCheck, Map, Users, FileText, Download, Calendar, Mail, Clock, Plus, RefreshCw, TrendingUp, DollarSign } from 'lucide-react';
 import { ENDPOINTS } from '@/app/lib/api';
 
 type SummaryResponse = {
@@ -238,7 +238,6 @@ export default function ReportsPage() {
                                     <option value="quarter">This Quarter</option>
                                     <option value="year">This Year</option>
                                 </select>
-                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-300 pointer-events-none" />
                             </div>
                         </div>
                         <div className="space-y-2">
@@ -247,13 +246,12 @@ export default function ReportsPage() {
                                 <span className="input-icon-left pointer-events-none">
                                     <FileText className="w-4 h-4" />
                                 </span>
-                                <select className="input-glass w-full pl-10 pr-10 appearance-none cursor-pointer text-slate-700 dark:text-slate-200 hover:bg-white/80 dark:hover:bg-slate-800/60 transition-colors">
+                                <select className="input-glass w-full pl-10 cursor-pointer text-slate-700 dark:text-slate-200 hover:bg-white/80 dark:hover:bg-slate-800/60 transition-colors">
                                     <option>PDF Document</option>
                                     <option>Excel Spreadsheet</option>
                                     <option>CSV File</option>
                                     <option>JSON Data</option>
                                 </select>
-                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-300 pointer-events-none" />
                             </div>
                         </div>
                         <div className="space-y-2">
@@ -262,12 +260,11 @@ export default function ReportsPage() {
                                 <span className="input-icon-left pointer-events-none">
                                     <Mail className="w-4 h-4" />
                                 </span>
-                                <select className="input-glass w-full pl-10 pr-10 appearance-none cursor-pointer text-slate-700 dark:text-slate-200 hover:bg-white/80 dark:hover:bg-slate-800/60 transition-colors">
+                                <select className="input-glass w-full pl-10 cursor-pointer text-slate-700 dark:text-slate-200 hover:bg-white/80 dark:hover:bg-slate-800/60 transition-colors">
                                     <option>Download Now</option>
                                     <option>Email to Me</option>
                                     <option>Schedule Recurring</option>
                                 </select>
-                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-300 pointer-events-none" />
                             </div>
                         </div>
                     </div>

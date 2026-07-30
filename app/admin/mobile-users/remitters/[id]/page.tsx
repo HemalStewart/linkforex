@@ -881,13 +881,12 @@ export default function EditRemitterPage() {
                             <select
                                 value={formData.status}
                                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                                className="input-glass w-full py-3 pr-10 appearance-none cursor-pointer"
+                                className="input-glass w-full py-3 cursor-pointer"
                             >
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
                                 <option value="suspended">Suspended</option>
                             </select>
-                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-300 pointer-events-none" />
                         </div>
                     </div>
 
@@ -950,7 +949,7 @@ export default function EditRemitterPage() {
                                 value={formData.kyc_status}
                                 disabled={(initialKycStatus !== 'pending' && initialKycStatus !== 'verified') || !enableKycOverride}
                                 onChange={(e) => setFormData({ ...formData, kyc_status: e.target.value })}
-                                className="input-glass w-full py-3 pr-10 appearance-none disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+                                className="input-glass w-full py-3 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                             >
                                 {initialKycStatus === 'pending' ? (
                                     <>
@@ -970,7 +969,6 @@ export default function EditRemitterPage() {
                                     </>
                                 )}
                             </select>
-                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-300 pointer-events-none" />
                         </div>
 
                         {formData.kyc_status !== initialKycStatus && (

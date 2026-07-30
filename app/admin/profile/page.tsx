@@ -24,7 +24,6 @@ import {
     User,
     Eye,
     EyeOff,
-    ChevronDown,
 } from 'lucide-react';
 
 type StoredUser = {
@@ -912,11 +911,11 @@ export default function ProfilePage() {
                                     <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                                         Default Rows Per Page ({uiSettings.rowsPerPage})
                                     </label>
-                                    <div className="relative">
+                                    <div>
                                         <select
                                             value={uiSettings.rowsPerPage ?? 10}
                                             onChange={(e) => updateRowsPerPageSetting(e.target.value)}
-                                            className="input-glass w-full pr-10 appearance-none cursor-pointer text-sm py-2.5"
+                                            className="input-glass w-full cursor-pointer text-sm py-2.5"
                                         >
                                             <option value={5} className="dark:bg-slate-800 dark:text-white bg-white text-slate-900">5</option>
                                             <option value={10} className="dark:bg-slate-800 dark:text-white bg-white text-slate-900">10</option>
@@ -926,7 +925,6 @@ export default function ProfilePage() {
                                             <option value={500} className="dark:bg-slate-800 dark:text-white bg-white text-slate-900">500</option>
                                             <option value={1000} className="dark:bg-slate-800 dark:text-white bg-white text-slate-900">1000</option>
                                         </select>
-                                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none" />
                                     </div>
                                 </div>
                             </div>

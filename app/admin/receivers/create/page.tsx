@@ -323,7 +323,7 @@ export default function CreateReceiverPage() {
                                 required
                                 value={formData.customer_id}
                                 onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
-                                className="input-glass w-full pr-10 appearance-none cursor-pointer"
+                                className="input-glass w-full cursor-pointer"
                             >
                                 <option value="">Select a Remitter...</option>
                                 {remitters.map((remitter) => (
@@ -332,7 +332,6 @@ export default function CreateReceiverPage() {
                                     </option>
                                 ))}
                             </select>
-                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
                         </div>
                         <p className="text-xs text-slate-400 mt-2 ml-1">Select the person sending money to this receiver.</p>
                     </div>

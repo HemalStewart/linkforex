@@ -154,13 +154,12 @@ function SelectField({
                 <span className="input-icon-left">{icon}</span>
                 <select
                     required={required}
-                    className="input-glass w-full cursor-pointer appearance-none pr-10"
+                    className="input-glass w-full cursor-pointer"
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
                 >
                     {children}
                 </select>
-                <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-200">⌄</span>
             </div>
         </div>
     );

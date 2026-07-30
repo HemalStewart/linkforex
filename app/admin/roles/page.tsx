@@ -428,7 +428,7 @@ export default function RolesPage() {
                                 <Shield className="w-4 h-4" />
                             </span>
                             <select
-                                className="input-glass w-full pr-10 appearance-none cursor-pointer text-sm"
+                                className="input-glass w-full cursor-pointer text-sm"
                                 value={systemDefinedFilter}
                                 onChange={(e) => setSystemDefinedFilter(e.target.value)}
                             >
@@ -436,7 +436,6 @@ export default function RolesPage() {
                                 <option value="yes">Yes</option>
                                 <option value="no">No</option>
                             </select>
-                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
                         </div>
                     </div>
                 </div>

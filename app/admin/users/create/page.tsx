@@ -464,7 +464,6 @@ export default function CreateUserPage() {
                     <option key={r.id} value={r.id}>{r.name}</option>
                 ))}
               </select>
-              <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
             </div>
           </div>
 
@@ -477,7 +476,7 @@ export default function CreateUserPage() {
               <select
                 required
                 disabled={!isPrivilegedUser && !canMultiBranch}
-                className="input-glass w-full pr-10 appearance-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                className="input-glass w-full cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                 value={formData.branch}
                 onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
               >
@@ -488,7 +487,6 @@ export default function CreateUserPage() {
                     </option>
                 ))}
               </select>
-              <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
             </div>
           </div>
 
@@ -499,7 +497,7 @@ export default function CreateUserPage() {
                 <Shield className="w-5 h-5" />
               </span>
               <select
-                className="input-glass w-full pr-10 appearance-none cursor-pointer"
+                className="input-glass w-full cursor-pointer"
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                 required
@@ -507,7 +505,6 @@ export default function CreateUserPage() {
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
               </select>
-              <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
             </div>
           </div>
 
@@ -518,7 +515,7 @@ export default function CreateUserPage() {
                 <Lock className="w-5 h-5" />
               </span>
               <select
-                className="input-glass w-full pr-10 appearance-none cursor-pointer"
+                className="input-glass w-full cursor-pointer"
                 value={formData.twofaStatus}
                 onChange={(e) => setFormData({ ...formData, twofaStatus: e.target.value })}
                 required
@@ -526,7 +523,6 @@ export default function CreateUserPage() {
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
               </select>
-              <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
             </div>
           </div>
         </div>

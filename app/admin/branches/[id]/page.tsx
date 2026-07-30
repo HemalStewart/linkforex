@@ -173,13 +173,12 @@ function SelectField({
                 <select
                     required={required}
                     disabled={disabled}
-                    className="input-glass w-full cursor-pointer appearance-none pr-10 disabled:cursor-not-allowed disabled:opacity-70"
+                    className="input-glass w-full cursor-pointer disabled:cursor-not-allowed disabled:opacity-70"
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
                 >
                     {children}
                 </select>
-                <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-200">⌄</span>
             </div>
         </div>
     );

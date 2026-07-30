@@ -365,7 +365,6 @@ export default function CreateBranchCurrencyRatePage() {
                                     );
                                 })}
                             </select>
-                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-500 dark:text-slate-200 pointer-events-none" />
                         </div>
                         <label className="mt-3 inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
                             <input
@@ -391,7 +390,7 @@ export default function CreateBranchCurrencyRatePage() {
                                 required
                                 value={formData.currencyCode}
                                 onChange={(event) => setFormData((prev) => ({ ...prev, currencyCode: event.target.value }))}
-                                className="input-glass w-full pr-10 appearance-none"
+                                className="input-glass w-full cursor-pointer"
                             >
                                 <option value="">Select currency</option>
                                 {currencies.map((currency) => (
@@ -400,7 +399,6 @@ export default function CreateBranchCurrencyRatePage() {
                                     </option>
                                 ))}
                             </select>
-                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-500 dark:text-slate-200 pointer-events-none" />
                         </div>
                     </div>
 

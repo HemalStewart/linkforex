@@ -1215,7 +1215,6 @@ export default function EditRemitterPage() {
                                     );
                                 })}
                             </select>
-                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
                         </div>
                     </div>
                     <div>
@@ -1242,7 +1241,7 @@ export default function EditRemitterPage() {
                     <div>
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Country of Birth</label>
                         <select
-                            className="input-glass w-full py-3 px-4 pr-10 appearance-none cursor-pointer text-sm"
+                            className="input-glass w-full py-3 px-4 cursor-pointer text-sm"
                             value={formData.place_of_birth}
                             onChange={(e) => setFormData({ ...formData, place_of_birth: e.target.value })}
                         >
@@ -1290,7 +1289,7 @@ export default function EditRemitterPage() {
                     <div>
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Country</label>
                         <select
-                            className="input-glass w-full py-3 px-4 pr-10 appearance-none cursor-pointer text-sm"
+                            className="input-glass w-full py-3 px-4 cursor-pointer text-sm"
                             value={formData.country}
                             onChange={(e) => setFormData({ ...formData, country: e.target.value })}
                         >
@@ -1306,7 +1305,7 @@ export default function EditRemitterPage() {
                             <span className="input-icon-left"><Briefcase className="w-5 h-5" /></span>
                             <select
                                 required
-                                className="input-glass w-full pr-10 appearance-none cursor-pointer"
+                                className="input-glass w-full cursor-pointer"
                                 value={formData.occupation}
                                 onChange={(e) => setFormData({ ...formData, occupation: e.target.value })}
                             >
@@ -1315,7 +1314,6 @@ export default function EditRemitterPage() {
                                     <option key={o.id} value={o.name}>{o.name}</option>
                                 ))}
                             </select>
-                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
                         </div>
                     </div>
                     <div>
@@ -1323,7 +1321,7 @@ export default function EditRemitterPage() {
                         <div className="relative input-icon">
                             <span className="input-icon-left"><CreditCard className="w-5 h-5" /></span>
                             <select
-                                className="input-glass w-full pr-10 appearance-none cursor-pointer"
+                                className="input-glass w-full cursor-pointer"
                                 value={formData.id_type}
                                 onChange={(e) => setFormData({ ...formData, id_type: e.target.value })}
                             >
@@ -1334,7 +1332,6 @@ export default function EditRemitterPage() {
                                 <option value="CNIC">CNIC</option>
                                 <option value="Other">Other</option>
                             </select>
-                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
                         </div>
                     </div>
                     <div>

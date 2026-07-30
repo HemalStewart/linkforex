@@ -1021,7 +1021,7 @@ export default function EditReceiverPage() {
                                 required
                                 value={formData.customer_id}
                                 onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
-                                className="input-glass w-full pl-12 appearance-none cursor-pointer"
+                                className="input-glass w-full pl-12 cursor-pointer"
                             >
                                 <option value="">Select a Remitter...</option>
                                 {remitters.map((remitter) => (
@@ -1030,7 +1030,6 @@ export default function EditReceiverPage() {
                                     </option>
                                 ))}
                             </select>
-                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
                         </div>
                     </div>
 
