@@ -179,7 +179,7 @@ export default function RemitterDocumentsModal({
                 try {
                     const parsed = JSON.parse(canonicalVal);
                     if (Array.isArray(parsed)) docs = parsed;
-                } catch (e) {}
+                } catch (e) { }
             }
 
             if (rawKey !== canonicalKey) {
@@ -194,7 +194,7 @@ export default function RemitterDocumentsModal({
                                 }
                             });
                         }
-                    } catch (e) {}
+                    } catch (e) { }
                 }
             }
 
@@ -233,7 +233,7 @@ export default function RemitterDocumentsModal({
                 try {
                     const parsed = JSON.parse(cVal);
                     if (Array.isArray(parsed)) list = parsed;
-                } catch (e) {}
+                } catch (e) { }
             }
             if (rawKey !== canonicalKey) {
                 const rVal = localStorage.getItem(rawKey);
@@ -241,7 +241,7 @@ export default function RemitterDocumentsModal({
                     try {
                         const rList = JSON.parse(rVal);
                         if (Array.isArray(rList)) list = Array.from(new Set([...list, ...rList]));
-                    } catch (e) {}
+                    } catch (e) { }
                 }
             }
             return list;
@@ -289,7 +289,7 @@ export default function RemitterDocumentsModal({
                         if (Array.isArray(parsed)) {
                             urlsToProcess = parsed.map((s) => String(s).trim());
                         }
-                    } catch (e) {}
+                    } catch (e) { }
                 }
                 if (urlsToProcess.length === 0 && trimmed.includes(',')) {
                     urlsToProcess = trimmed.split(',').map((s) => s.trim());
@@ -494,7 +494,7 @@ export default function RemitterDocumentsModal({
             saveLocalVault(activeId, updatedDocs);
             setDocuments(updatedDocs);
 
-            showToast('Success', `${docLabel} saved to ${subfolderPath}`, 'success');
+            showToast('Success', `${docLabel} uploaded successfully`, 'success');
             setSelectedFile(null);
             setShowUploadForm(false);
             if (onUpdated) onUpdated();
@@ -588,9 +588,8 @@ export default function RemitterDocumentsModal({
                                         {documents.length} Files
                                     </span>
                                 </div>
-                                <p className="text-xs font-semibold text-teal-600 dark:text-teal-400 mt-0.5 flex items-center gap-1 font-mono">
-                                    <Folder className="w-3.5 h-3.5" />
-                                    {remitterFolderName}
+                                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
+                                    Manage document records for {remitterName || remitterData?.sender_name || 'remitter'}
                                 </p>
                             </div>
                         </div>
@@ -619,17 +618,14 @@ export default function RemitterDocumentsModal({
                         <form onSubmit={handleUploadSubmit} className="p-5 rounded-2xl bg-teal-50/70 dark:bg-slate-800/70 border border-teal-200/80 dark:border-slate-700 space-y-4 shadow-sm">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                    <Upload className="w-4 h-4 text-teal-600" /> Upload & Save Document to Category Folder
+                                    <Upload className="w-4 h-4 text-teal-600" /> Upload & Save Document
                                 </h3>
-                                <span className="text-xs font-mono font-medium text-teal-700 dark:text-teal-300">
-                                    {remitterFolderName}{CATEGORY_SUBFOLDERS[selectedDocType]}/
-                                </span>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                                        Document Category & Subfolder
+                                        Document Category
                                     </label>
                                     <select
                                         value={selectedDocType}
@@ -638,7 +634,7 @@ export default function RemitterDocumentsModal({
                                     >
                                         {DOC_TYPES.map((doc) => (
                                             <option key={doc.key} value={doc.key}>
-                                                {doc.label} ({doc.subfolder}/)
+                                                {doc.label}
                                             </option>
                                         ))}
                                     </select>
@@ -675,7 +671,7 @@ export default function RemitterDocumentsModal({
                                         </>
                                     ) : (
                                         <>
-                                            <Upload className="w-4 h-4" /> Save to Folder
+                                            <Upload className="w-4 h-4" /> Upload and Save
                                         </>
                                     )}
                                 </button>
@@ -688,11 +684,10 @@ export default function RemitterDocumentsModal({
                         <button
                             type="button"
                             onClick={() => setActiveFilter('all')}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                                activeFilter === 'all'
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${activeFilter === 'all'
                                     ? 'bg-teal-500 text-white shadow-sm'
                                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300'
-                            }`}
+                                }`}
                         >
                             All Documents ({documents.length})
                         </button>
@@ -703,11 +698,10 @@ export default function RemitterDocumentsModal({
                                     key={type.key}
                                     type="button"
                                     onClick={() => setActiveFilter(type.key)}
-                                    className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                                        activeFilter === type.key
+                                    className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${activeFilter === type.key
                                             ? 'bg-teal-500 text-white shadow-sm'
                                             : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300'
-                                    }`}
+                                        }`}
                                 >
                                     {type.label} ({count})
                                 </button>
@@ -759,10 +753,6 @@ export default function RemitterDocumentsModal({
                                                         </span>
                                                     )}
                                                 </div>
-
-                                                <p className="text-[11px] font-mono text-slate-400 truncate mt-0.5" title={doc.fileUrl}>
-                                                    📁 {doc.fileUrl}
-                                                </p>
 
                                                 <div className="flex items-center gap-4 text-xs font-medium text-slate-400 mt-1 flex-wrap">
                                                     <span className="flex items-center gap-1">
@@ -845,7 +835,7 @@ export default function RemitterDocumentsModal({
                         {/* Document Content Display */}
                         <div className="min-h-[350px] max-h-[65vh] overflow-auto flex items-center justify-center bg-slate-950 rounded-2xl p-4 border border-slate-800">
                             {!isPdfFile(previewDoc.fileName, previewDoc.fileUrl, previewDoc.previewUrl) &&
-                            (previewDoc.fileName.match(/\.(png|jpe?g|gif|webp|svg)$/i) || previewDoc.previewUrl?.startsWith('data:image') || (previewDoc.previewUrl?.startsWith('blob:') && !isPdfFile(previewDoc.fileName, previewDoc.fileUrl, previewDoc.previewUrl))) ? (
+                                (previewDoc.fileName.match(/\.(png|jpe?g|gif|webp|svg)$/i) || previewDoc.previewUrl?.startsWith('data:image') || (previewDoc.previewUrl?.startsWith('blob:') && !isPdfFile(previewDoc.fileName, previewDoc.fileUrl, previewDoc.previewUrl))) ? (
                                 <img
                                     src={getResolvedDocSrc(previewDoc)}
                                     alt={previewDoc.fileName}
@@ -861,10 +851,7 @@ export default function RemitterDocumentsModal({
                         </div>
 
                         {/* Modal Footer Controls */}
-                        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
-                            <span className="text-xs text-slate-400 font-mono truncate max-w-xs" title={previewDoc.fileUrl}>
-                                📁 {previewDoc.fileUrl}
-                            </span>
+                        <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
                             <div className="flex items-center gap-2">
                                 <a
                                     href={getResolvedDocSrc(previewDoc)}
