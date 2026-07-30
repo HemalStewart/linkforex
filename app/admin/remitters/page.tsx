@@ -26,38 +26,39 @@ const csvEscape = (value: unknown): string => {
 const resolveAmlStatus = (r: any): string => {
     if (!r) return 'pending';
 
-    // 1. Explicit sender_aml_result / dilisense_result / sanction_result if populated and valid
-    const amlRes = String(r.sender_aml_result || r.aml_result || r.aml_status || r.dilisense_result || r.sanction_result || r.verdict || '').trim().toLowerCase();
-    if (amlRes && amlRes !== '-' && amlRes !== 'pending' && amlRes !== 'not_started' && amlRes !== 'null' && amlRes !== 'undefined') {
-        return amlRes;
-    }
-
-    // 2. Sanction status from backend engine
+    // 1. Sanction status from backend engine first
     const sancStatus = String(r.sanction_status || '').trim().toLowerCase();
     if (sancStatus && sancStatus !== '-' && sancStatus !== 'pending' && sancStatus !== 'not_started') {
-        if (sancStatus === 'clear') return 'pass';
-        if (sancStatus === 'review' || sancStatus === 'refer') return 'refer';
+        if (sancStatus === 'review' || sancStatus === 'refer' || sancStatus === 'hits') return 'refer';
         if (sancStatus === 'hit' || sancStatus === 'fail') return 'hit';
+        if (sancStatus === 'clear' || sancStatus === 'passed' || sancStatus === 'pass') return 'pass';
         return sancStatus;
     }
 
-    // 3. Sanction score rules
+    // 2. Explicit sender_aml_result / dilisense_result
+    const amlRes = String(r.sender_aml_result || r.aml_result || r.aml_status || r.dilisense_result || r.sanction_result || r.verdict || '').trim().toLowerCase();
+    if (amlRes && amlRes !== '-' && amlRes !== 'pending' && amlRes !== 'not_started' && amlRes !== 'null' && amlRes !== 'undefined') {
+        if (amlRes === 'review' || amlRes === 'refer' || amlRes === 'referred' || amlRes === 'under_review') return 'refer';
+        if (amlRes === 'hit' || amlRes === 'fail' || amlRes === 'failed') return 'hit';
+        if (amlRes === 'passed' || amlRes === 'pass' || amlRes === 'clear' || amlRes === 'manually passed') return 'pass';
+        return amlRes;
+    }
+
+    // 3. Sanction score rules (hits > 0)
     if (r.sanction_score !== undefined && r.sanction_score !== null && r.sanction_score !== '') {
         const score = Number(r.sanction_score);
-        if (!isNaN(score)) {
-            if (score >= 80) return 'hit';
-            if (score >= 55) return 'refer';
-            if (r.sanction_checked_at || r.sanction_reference) return 'pass';
+        if (!isNaN(score) && score > 0) {
+            return score >= 80 ? 'hit' : 'refer';
         }
     }
 
     // 4. Verification flags
-    if (String(r.sanction_list_verified || '').toLowerCase() === 'yes' || String(r.id_verified || '').toLowerCase() === 'yes' || String(r.verification_state || '').toLowerCase() === 'verified') {
+    if (String(r.sanction_list_verified || '').toLowerCase() === 'yes' || String(r.verification_state || '').toLowerCase() === 'verified') {
         return 'pass';
     }
 
     // 5. Screening document or timestamp present
-    if (r.sender_details_aml_screening_doc || r.sender_aml_doc || r.sanction_checked_at || r.sanction_reference) {
+    if ((r.sender_details_aml_screening_doc || r.sender_aml_doc || r.sanction_checked_at || r.sanction_reference) && !r.sanction_score) {
         return 'pass';
     }
 

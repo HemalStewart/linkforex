@@ -307,15 +307,36 @@ export default function EditRemitterPage() {
             }
 
             const data = await res.json();
+            const loadedAmlResult = (() => {
+                const sancStatus = String(data.sanction_status || '').trim().toLowerCase();
+                if (sancStatus === 'review' || sancStatus === 'refer' || sancStatus === 'hit') {
+                    return normalizeAmlResult(sancStatus);
+                }
+                if (data.sanction_score !== undefined && data.sanction_score !== null && Number(data.sanction_score) > 0) {
+                    return Number(data.sanction_score) >= 80 ? 'hit' : 'review';
+                }
+
+                const resVal = data.sender_aml_result || data.aml_result || data.aml_status || data.dilisense_result || data.sanction_result || data.verdict;
+                if (resVal && resVal !== '-' && resVal !== 'pending') {
+                    return normalizeAmlResult(resVal);
+                }
+                if ((data.sender_details_aml_screening_doc || data.sanction_checked_at || data.sanction_reference) && !data.sanction_score) {
+                    return 'passed';
+                }
+                return normalizeAmlResult(resVal);
+            })();
+
             setFormData({
-                company: data.company || data.company_name || '',
+                id: data.id,
+                name: data.name || data.sender_name || '',
+                sender_name: data.sender_name || data.name || '',
+                company: data.company || data.company_name || 'Link Forex Ltd',
                 company_name: data.company_name || '',
                 company_type: data.company_type || '',
                 company_reg_no: data.company_reg_no || '',
                 branch: data.branch || '',
                 sender_id: data.sender_id || '',
-                sender_name: data.sender_name || data.name || '',
-                status: data.status || 'active',
+                status: (data.status || 'inactive').toLowerCase() === 'active' ? 'active' : 'inactive',
                 dob: data.dob || '',
                 place_of_birth: data.place_of_birth || '',
                 phone: data.phone || '',
@@ -339,16 +360,7 @@ export default function EditRemitterPage() {
                 other_doc: data.other_doc || '',
                 work_related_docs: data.work_related_docs || '',
                 sender_details_aml_screening_doc: data.sender_details_aml_screening_doc || '',
-                sender_aml_result: (() => {
-                    const res = data.sender_aml_result || data.aml_result || data.aml_status || data.dilisense_result || data.sanction_result || data.verdict;
-                    if (res && res !== '-' && res !== 'pending') {
-                        return normalizeAmlResult(res);
-                    }
-                    if (data.sender_details_aml_screening_doc || data.sanction_checked_at || data.sanction_reference || String(data.id_verified).toLowerCase() === 'yes' || data.verification_state === 'verified') {
-                        return 'passed';
-                    }
-                    return normalizeAmlResult(res);
-                })(),
+                sender_aml_result: loadedAmlResult,
                 aml_status_change_reason: data.aml_status_change_reason || '',
                 rescreening_sender: data.rescreening_sender || '',
                 veriff_status: data.veriff_status || '',
@@ -366,7 +378,7 @@ export default function EditRemitterPage() {
                 updated_by: data.updated_by || '',
                 updated_at: data.updated_at || ''
             });
-            setInitialAmlStatus(normalizeAmlResult(data.sender_aml_result));
+            setInitialAmlStatus(loadedAmlResult);
             setSanctionReference(data.sanction_reference ?? '');
             setSanctionCheckedAt(data.sanction_checked_at ?? '');
             setSanctionRawPayload(data.sanction_raw_payload ?? '');
