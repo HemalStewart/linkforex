@@ -383,25 +383,23 @@ export default function PermissionGroupsPage() {
     };
 
     const renderCategoryCard = (cat: typeof ADMIN_PAGES_CONFIG[number]) => {
+        const ALLOWED_MATRIX_OPS = ['VIEW', 'CREATE', 'EDIT', 'DELETE'];
         const uniqueOps = new Set<string>();
         cat.pages.forEach(page => {
             page.operations.forEach(op => {
-                if (!['VIEW_CREATED_BY', 'VIEW_CREATED_AT', 'VIEW_UPDATED_BY', 'VIEW_UPDATED_AT'].includes(op)) {
+                if (ALLOWED_MATRIX_OPS.includes(op)) {
                     uniqueOps.add(op);
                 }
             });
         });
 
-        const STANDARD_ORDER = ['VIEW', 'CREATE', 'ADD', 'EDIT', 'DELETE'];
+        const STANDARD_ORDER = ['VIEW', 'CREATE', 'EDIT', 'DELETE'];
         const displayOps = Array.from(uniqueOps).sort((a, b) => {
             const idxA = STANDARD_ORDER.indexOf(a);
             const idxB = STANDARD_ORDER.indexOf(b);
-            if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-            if (idxA !== -1) return -1;
-            if (idxB !== -1) return 1;
-            return a.localeCompare(b);
+            return idxA - idxB;
         });
-        const tableMinWidthClass = displayOps.length > 3 ? 'min-w-[900px]' : 'min-w-full';
+        const tableMinWidthClass = displayOps.length > 3 ? 'min-w-[700px]' : 'min-w-full';
 
         return (
             <div key={cat.category} className="card-glass overflow-hidden shadow-lg border border-white/20 dark:border-white/10 rounded-2xl flex flex-col h-full">
