@@ -1156,9 +1156,8 @@ export default function RemittersPage() {
                                 onChange={(e) => setSourceFilter(e.target.value)}
                             >
                                 <option value="all">All</option>
-                                <option value="branch">Branch</option>
+                                <option value="branch">Web</option>
                                 <option value="mobile_app">Mobile App</option>
-                                <option value="web">Web</option>
                             </select>
                             <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-500 dark:text-slate-200 pointer-events-none" />
                         </div>
@@ -1482,11 +1481,10 @@ export default function RemittersPage() {
                                 >
                                     <FolderOpen className="w-4 h-4" /> Documents
                                 </button>
-                                <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ${
-                                    String(viewOverviewRemitter.active || '').toLowerCase() === 'active'
+                                <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ${String(viewOverviewRemitter.active || '').toLowerCase() === 'active'
                                         ? 'bg-teal-500/15 text-teal-600 dark:text-teal-300'
                                         : 'bg-slate-500/15 text-slate-600 dark:text-slate-300'
-                                }`}>
+                                    }`}>
                                     {viewOverviewRemitter.active || 'Inactive'}
                                 </span>
                                 <button
@@ -1523,25 +1521,23 @@ export default function RemittersPage() {
                                     <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Compliance</p>
                                     <div className="mt-2 flex items-center justify-between gap-2">
                                         <span className="text-sm text-slate-600 dark:text-slate-300">ID Verified</span>
-                                        <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${
-                                            String(viewOverviewRemitter.id_verified || '').toLowerCase() === 'yes'
+                                        <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${String(viewOverviewRemitter.id_verified || '').toLowerCase() === 'yes'
                                                 ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300'
                                                 : 'bg-slate-100 text-slate-700 dark:bg-slate-700/40 dark:text-slate-300'
-                                        }`}>
+                                            }`}>
                                             {String(viewOverviewRemitter.id_verified || '').toLowerCase() === 'yes' ? 'Yes' : 'No'}
                                         </span>
                                     </div>
                                     <div className="mt-2 flex items-center justify-between gap-2">
                                         <span className="text-sm text-slate-600 dark:text-slate-300">Verification</span>
-                                        <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${
-                                            viewOverviewRemitter.verification_state === 'verified'
+                                        <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${viewOverviewRemitter.verification_state === 'verified'
                                                 ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300'
                                                 : viewOverviewRemitter.verification_state === 'pending'
                                                     ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
                                                     : viewOverviewRemitter.verification_state === 'rejected'
                                                         ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300'
                                                         : 'bg-slate-100 text-slate-700 dark:bg-slate-700/40 dark:text-slate-300'
-                                        }`}>
+                                            }`}>
                                             {String(viewOverviewRemitter.verification_state || 'not_started').replaceAll('_', ' ')}
                                         </span>
                                     </div>
