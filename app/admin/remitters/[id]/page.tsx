@@ -1208,11 +1208,14 @@ export default function EditRemitterPage() {
                                 onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
                             >
                                 <option value="">Select Branch...</option>
-                                {branches.map((b: any) => (
-                                    <option key={b.id} value={b.code || b.name}>
-                                        {b.name} ({b.code})
-                                    </option>
-                                ))}
+                                {branches.map((b: any) => {
+                                    const displayName = String(b.name || b.branch_name || b.code || '').replace(/\s*\([^)]*\)\s*$/, '').trim();
+                                    return (
+                                        <option key={b.id} value={b.code || b.name}>
+                                            {displayName}
+                                        </option>
+                                    );
+                                })}
                             </select>
                             <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none rotate-90" />
                         </div>

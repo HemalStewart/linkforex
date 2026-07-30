@@ -64,8 +64,10 @@ const isSenderBranch = (branch: any): boolean => {
 const branchOptionValue = (branch: any): string =>
     String(branch?.code || branch?.transaction_prefix || branch?.name || branch?.id || '').trim();
 
-const branchOptionLabel = (branch: any, fallback: string): string =>
-    String(branch?.name || branch?.branch_name || branch?.code || branch?.transaction_prefix || fallback).trim();
+const branchOptionLabel = (branch: any, fallback: string): string => {
+    const rawName = String(branch?.name || branch?.branch_name || branch?.code || branch?.transaction_prefix || fallback).trim();
+    return rawName.replace(/\s*\([^)]*\)\s*$/, '').trim();
+};
 
 const isLondonBranchOption = (option: { value: string; label: string }): boolean => {
     const combined = `${option.value} ${option.label}`.toLowerCase();

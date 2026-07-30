@@ -183,11 +183,14 @@ export default function SettingsPage() {
                                 disabled={!canEdit}
                             >
                                 <option value="" className="dark:bg-slate-800 dark:text-white bg-white text-slate-900">Select a Branch</option>
-                                {branches.map((b) => (
-                                    <option key={b.id} value={b.code} className="dark:bg-slate-800 dark:text-white bg-white text-slate-900">
-                                        {b.name} ({b.code})
-                                    </option>
-                                ))}
+                                {branches.map((b: any) => {
+                                    const displayName = String(b.name || b.branch_name || b.code || '').replace(/\s*\([^)]*\)\s*$/, '').trim();
+                                    return (
+                                        <option key={b.id} value={b.code} className="dark:bg-slate-800 dark:text-white bg-white text-slate-900">
+                                            {displayName}
+                                        </option>
+                                    );
+                                })}
                             </select>
                             <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-200 pointer-events-none" />
                         </div>
