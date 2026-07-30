@@ -64,6 +64,24 @@ const resolveAmlStatus = (r: any): string => {
     return 'pending';
 };
 
+const resolveIdStatus = (r: any): 'Verified' | 'Pending' | 'Expired' => {
+    if (!r) return 'Pending';
+    const isExpired = Boolean(r.id_expired) || 
+                      String(r.id_expired || '').toLowerCase() === 'yes' || 
+                      String(r.id_status || '').toLowerCase() === 'expired';
+
+    if (isExpired) return 'Expired';
+
+    const isVerified = String(r.id_verified || '').toLowerCase() === 'yes' ||
+                       String(r.id_verified || '').toLowerCase() === 'verified' ||
+                       r.id_verified === true ||
+                       String(r.id_status || '').toLowerCase() === 'verified';
+
+    if (isVerified) return 'Verified';
+
+    return 'Pending';
+};
+
 export default function RemittersPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('REMITTERS');
     const { canAdd, canEdit, canDelete, canPdf, canExport, canReScreening, canDilisenseScreening, canDeleteComplianceReport, canBatchScreening } = usePagePermissions('REMITTERS');
@@ -366,6 +384,7 @@ export default function RemittersPage() {
                 country: r.country || '-',
                 occupation: r.occupation || '-',
                 id_verified: r.id_verified || 'no',
+                id_status: resolveIdStatus(r),
                 proof_of_funds: r.proof_of_funds || 'no',
                 id_type: r.id_type || '-',
                 id_no: r.id_number || '-',
@@ -739,12 +758,11 @@ export default function RemittersPage() {
         { key: 'city', label: 'City' },
         { key: 'country', label: 'Country' },
         { key: 'occupation', label: 'Occupation' },
-        { key: 'id_verified', label: 'ID Verified' },
+        { key: 'id_status', label: 'ID Status' },
         { key: 'id_type', label: 'ID Type' },
         { key: 'id_no', label: 'ID No' },
         { key: 'id_expire_date', label: 'ID Expire Date' },
         { key: 'verification_state', label: 'AML Verifications' },
-        { key: 'id_expired', label: 'ID Expired' },
         ...(showCreatedBy ? [{ key: 'entered_user', label: 'Created By' }] : []),
         ...(showCreatedAt ? [{ key: 'entered_date', label: 'Created At' }] : []),
         ...(showUpdatedBy ? [{ key: 'modified_user', label: 'Updated By' }] : []),
@@ -1395,7 +1413,30 @@ export default function RemittersPage() {
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.city || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.country || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.occupation || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{yesNo(row.id_verified)}</td>
+                                        <td className="px-4 py-4 text-sm">
+                                            {(() => {
+                                                const st = resolveIdStatus(row);
+                                                if (st === 'Expired') {
+                                                    return (
+                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">
+                                                            Expired
+                                                        </span>
+                                                    );
+                                                }
+                                                if (st === 'Verified') {
+                                                    return (
+                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+                                                            Verified
+                                                        </span>
+                                                    );
+                                                }
+                                                return (
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                                                        Pending
+                                                    </span>
+                                                );
+                                            })()}
+                                        </td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.id_type || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.id_no || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.id_expire_date || '-'}</td>
@@ -1428,9 +1469,6 @@ export default function RemittersPage() {
                                                     </span>
                                                 );
                                             })()}
-                                        </td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
-                                            {row.id_expired ? 'Yes' : 'No'}
                                         </td>
                                         {showCreatedBy && (
                                             <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
@@ -1628,13 +1666,17 @@ export default function RemittersPage() {
                                     </div>
                                 )}
                                 <div className="pt-1 flex items-center justify-between gap-2 border-t border-slate-200/50 dark:border-slate-800">
-                                    <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">ID Verified</span>
-                                    <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${String(viewOverviewRemitter.id_verified || '').toLowerCase() === 'yes'
-                                            ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300'
-                                            : 'bg-slate-100 text-slate-700 dark:bg-slate-700/40 dark:text-slate-300'
-                                        }`}>
-                                        {String(viewOverviewRemitter.id_verified || '').toLowerCase() === 'yes' ? 'Yes' : 'No'}
-                                    </span>
+                                    <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">ID Status</span>
+                                    {(() => {
+                                        const st = resolveIdStatus(viewOverviewRemitter);
+                                        if (st === 'Expired') {
+                                            return <span className="rounded-full px-2.5 py-0.5 text-xs font-bold bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">Expired</span>;
+                                        }
+                                        if (st === 'Verified') {
+                                            return <span className="rounded-full px-2.5 py-0.5 text-xs font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">Verified</span>;
+                                        }
+                                        return <span className="rounded-full px-2.5 py-0.5 text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">Pending</span>;
+                                    })()}
                                 </div>
                                 <div className="flex items-center justify-between gap-2">
                                     <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">AML Verification Result</span>

@@ -1343,10 +1343,30 @@ export default function EditRemitterPage() {
                         <input type="date" className="input-glass w-full" value={formData.id_expiry || ''} onChange={(e) => setFormData({ ...formData, id_expiry: e.target.value })} />
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">ID Verified</label>
-                        <select className="input-glass w-full" value={formData.id_verified} onChange={(e) => setFormData({ ...formData, id_verified: e.target.value })}>
-                            <option value="no">No</option>
-                            <option value="yes">Yes</option>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">ID Status</label>
+                        <select
+                            className="input-glass w-full"
+                            value={
+                                Boolean(formData.id_expired) || String(formData.id_status || '').toLowerCase() === 'expired'
+                                    ? 'expired'
+                                    : String(formData.id_verified || '').toLowerCase() === 'yes' || String(formData.id_verified || '').toLowerCase() === 'verified'
+                                        ? 'verified'
+                                        : 'pending'
+                            }
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                if (val === 'expired') {
+                                    setFormData({ ...formData, id_status: 'expired', id_expired: true, id_verified: 'no' });
+                                } else if (val === 'verified') {
+                                    setFormData({ ...formData, id_status: 'verified', id_expired: false, id_verified: 'yes' });
+                                } else {
+                                    setFormData({ ...formData, id_status: 'pending', id_expired: false, id_verified: 'no' });
+                                }
+                            }}
+                        >
+                            <option value="verified">Verified</option>
+                            <option value="pending">Pending</option>
+                            <option value="expired">Expired</option>
                         </select>
                     </div>
 
