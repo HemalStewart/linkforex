@@ -91,6 +91,10 @@ const formatDocUrl = (
         return resolveUploadsUrl(p);
     }
 
+    if (p.startsWith('aml-reports/')) {
+        return resolveUploadsUrl(`uploads/${p}`);
+    }
+
     const categoryFolder = (docType && CATEGORY_SUBFOLDERS[docType]) || 'id_copy';
     const safeName = String(remitterName || 'remitter')
         .trim()
@@ -102,6 +106,25 @@ const formatDocUrl = (
     const cleanFileName = p.split('/').pop() || p;
 
     return resolveUploadsUrl(`remitters/${remitterFolder}/${categoryFolder}/${cleanFileName}`);
+};
+
+const parseDateMs = (d?: string | number | null, fileName?: string): number => {
+    let str = String(d || '').trim();
+
+    const fn = String(fileName || str).trim();
+    const match = fn.match(/DILISENSE-(?:BENE-)?(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/i);
+    if (match) {
+        const [, year, month, day, hour, min, sec] = match;
+        const fnMs = new Date(`${year}-${month}-${day}T${hour}:${min}:${sec}`).getTime();
+        if (!isNaN(fnMs) && fnMs > 0) return fnMs;
+    }
+
+    if (!str) return 0;
+    if (str.includes(' ') && !str.includes('T')) {
+        str = str.replace(' ', 'T');
+    }
+    const ms = new Date(str).getTime();
+    return isNaN(ms) ? 0 : ms;
 };
 
 const isPdfFile = (fileName?: string, fileUrl?: string, previewUrl?: string): boolean => {
@@ -236,13 +259,25 @@ export default function RemitterDocumentsModal({
         }
     };
 
-    const seedVaultFromData = (data: any, existingVault: DocumentRecord[], rName: string, rId: string | number): DocumentRecord[] => {
+    const seedVaultFromData = (
+        data: any,
+        dilisenseReports: any[],
+        existingVault: DocumentRecord[],
+        rName: string,
+        rId: string | number
+    ): DocumentRecord[] => {
         const newVault = [...existingVault];
         const now = data?.created_at || new Date().toISOString();
         const userName = data?.created_by || 'System Admin';
         const deletedList = loadDeletedVault(rId);
 
-        const checkAndAdd = (rawVal: any, typeKey: string, label: string) => {
+        const checkAndAdd = (
+            rawVal: any,
+            typeKey: string,
+            label: string,
+            customUploadedAt?: string,
+            customUploadedBy?: string
+        ) => {
             if (!rawVal) return;
 
             let urlsToProcess: string[] = [];
@@ -275,24 +310,64 @@ export default function RemitterDocumentsModal({
                     );
 
                     if (!isDeleted) {
-                        const exists = newVault.some((d) => d.fileUrl === url || d.fileUrl.endsWith(fileName) || d.fileName === fileName);
+                        const existingIndex = newVault.findIndex(
+                            (d) => d.fileUrl === url || d.fileUrl.endsWith(fileName) || d.fileName === fileName
+                        );
 
-                        if (!exists) {
-                            const subfolderPath = buildRemitterSubfolderPath(typeKey, fileName, rName, rId);
+                        const subfolderPath = buildRemitterSubfolderPath(typeKey, fileName, rName, rId);
+                        const isDirectPath =
+                            url.startsWith('http') ||
+                            url.startsWith('uploads/') ||
+                            url.startsWith('remitters/') ||
+                            url.startsWith('aml-reports/') ||
+                            url.includes('aml-reports');
+                        const targetFileUrl = isDirectPath ? url : subfolderPath;
+
+                        if (existingIndex >= 0) {
+                            const existing = newVault[existingIndex];
+                            if (customUploadedAt) {
+                                const newTime = parseDateMs(customUploadedAt, fileName);
+                                const oldTime = parseDateMs(existing.uploadedAt, existing.fileName);
+                                if (newTime > 0 && (oldTime === 0 || newTime >= oldTime)) {
+                                    newVault[existingIndex] = {
+                                        ...existing,
+                                        uploadedAt: customUploadedAt,
+                                        uploadedBy: customUploadedBy || existing.uploadedBy || userName,
+                                        docTypeLabel: label || existing.docTypeLabel,
+                                        fileUrl: targetFileUrl,
+                                    };
+                                }
+                            }
+                        } else {
                             newVault.push({
                                 id: `init_${typeKey}_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
                                 docType: typeKey,
                                 docTypeLabel: label,
                                 fileName: fileName,
-                                fileUrl: url.startsWith('http') || url.startsWith('uploads/') || url.startsWith('remitters/') ? url : subfolderPath,
-                                uploadedAt: now,
-                                uploadedBy: userName,
+                                fileUrl: targetFileUrl,
+                                uploadedAt: customUploadedAt || now,
+                                uploadedBy: customUploadedBy || userName,
                             });
                         }
                     }
                 }
             });
         };
+
+        if (Array.isArray(dilisenseReports)) {
+            dilisenseReports.forEach((rep) => {
+                if (rep && rep.pdf_path) {
+                    const refLabel = rep.reference ? `AML Report (${rep.reference})` : 'AML Screening Report';
+                    checkAndAdd(
+                        rep.pdf_path,
+                        'sender_details_aml_screening_doc',
+                        refLabel,
+                        rep.created_at,
+                        rep.created_by
+                    );
+                }
+            });
+        }
 
         checkAndAdd(data?.id_copy, 'id_copy', 'ID Copy');
         checkAndAdd(data?.passport_copy, 'id_copy', 'ID Copy (Passport)');
@@ -308,17 +383,27 @@ export default function RemitterDocumentsModal({
         if (!remitterId) return;
         setLoading(true);
         try {
-            const res = await fetch(withActingUserParam(ENDPOINTS.REMITTERS.DETAIL(remitterId), currentUser));
+            const [remitterRes, reportsRes] = await Promise.all([
+                fetch(withActingUserParam(ENDPOINTS.REMITTERS.DETAIL(remitterId), currentUser)).catch(() => null),
+                fetch(withActingUserParam(ENDPOINTS.REMITTERS.DILISENSE_REPORTS_LIST(remitterId), currentUser)).catch(() => null),
+            ]);
+
             let data = null;
-            if (res.ok) {
-                data = await res.json();
+            if (remitterRes && remitterRes.ok) {
+                data = await remitterRes.json().catch(() => null);
                 setRemitterData(data);
+            }
+
+            let dilisenseReports: any[] = [];
+            if (reportsRes && reportsRes.ok) {
+                const repData = await reportsRes.json().catch(() => []);
+                if (Array.isArray(repData)) dilisenseReports = repData;
             }
 
             const rName = data?.sender_name || remitterName || 'remitter';
             const activeId = data?.id ? String(data.id) : extractCanonicalId(remitterId);
             const storedDocs = loadLocalVault(activeId);
-            const mergedDocs = seedVaultFromData(data, storedDocs, rName, activeId);
+            const mergedDocs = seedVaultFromData(data, dilisenseReports, storedDocs, rName, activeId);
             saveLocalVault(activeId, mergedDocs);
             setDocuments(mergedDocs);
         } catch (e) {
@@ -465,7 +550,11 @@ export default function RemitterDocumentsModal({
             ? documents
             : documents.filter((d) => d.docType === activeFilter);
 
-        return [...list].sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime());
+        return [...list].sort((a, b) => {
+            const timeDiff = parseDateMs(b.uploadedAt, b.fileName) - parseDateMs(a.uploadedAt, a.fileName);
+            if (timeDiff !== 0) return timeDiff;
+            return b.fileName.localeCompare(a.fileName);
+        });
     }, [documents, activeFilter]);
 
     const remitterFolderName = useMemo(() => {
