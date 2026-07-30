@@ -595,14 +595,16 @@ export default function RemitterDocumentsModal({
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <button
-                                type="button"
-                                onClick={() => setShowUploadForm(!showUploadForm)}
-                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold bg-teal-500 hover:bg-teal-600 text-white shadow-md shadow-teal-500/20 transition-all"
-                            >
-                                <Plus className="w-4 h-4" />
-                                {showUploadForm ? 'Cancel Upload' : 'Add Document'}
-                            </button>
+                            {!showUploadForm && (
+                                <button
+                                    type="button"
+                                    onClick={() => setShowUploadForm(true)}
+                                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold bg-teal-500 hover:bg-teal-600 text-white shadow-md shadow-teal-500/20 transition-all"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    Add Document
+                                </button>
+                            )}
 
                             <button
                                 onClick={onClose}
