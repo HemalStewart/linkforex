@@ -30,7 +30,7 @@ export default function CreateReceiverPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const returnUrl = searchParams.get('returnUrl');
-    const preselectedCustomerId = searchParams.get('customer_id') || '';
+    const targetRemitterId = searchParams.get('customer_id') || searchParams.get('remitter_id') || searchParams.get('sender_id') || searchParams.get('id') || '';
     const [loading, setLoading] = useState(false);
     const [remitters, setRemitters] = useState<RemitterOption[]>([]);
     const [banks, setBanks] = useState<any[]>([]);
@@ -51,7 +51,7 @@ export default function CreateReceiverPage() {
     const [relationships, setRelationships] = useState<string[]>(['Family']);
 
     const [formData, setFormData] = useState({
-        customer_id: preselectedCustomerId,
+        customer_id: targetRemitterId,
         name: '',
         country: countries[0],
         address: '',
@@ -103,7 +103,7 @@ export default function CreateReceiverPage() {
                 const res = await fetch(ENDPOINTS.REMITTERS.LIST);
                 if (res.ok) {
                     const data = await res.json();
-                    setRemitters(data);
+                    setRemitters(data || []);
                 }
             } catch (error) {
                 console.error('Failed to fetch remitters:', error);
@@ -111,6 +111,19 @@ export default function CreateReceiverPage() {
         };
         fetchRemitters();
     }, []);
+
+    useEffect(() => {
+        if (!targetRemitterId || remitters.length === 0) return;
+        const targetStr = String(targetRemitterId).trim().toLowerCase();
+        const match = remitters.find((r: any) =>
+            String(r.id).toLowerCase() === targetStr ||
+            String(r.sender_id || '').toLowerCase() === targetStr ||
+            String(r.name || r.sender_name || '').toLowerCase() === targetStr
+        );
+        if (match) {
+            setFormData((prev) => ({ ...prev, customer_id: String(match.id) }));
+        }
+    }, [targetRemitterId, remitters]);
 
     useEffect(() => {
         const fetchCountries = async () => {

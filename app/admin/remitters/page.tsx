@@ -166,6 +166,55 @@ export default function RemittersPage() {
         isSubmitting: false,
     });
 
+    const [overviewReceivers, setOverviewReceivers] = useState<any[]>([]);
+    const [loadingOverviewReceivers, setLoadingOverviewReceivers] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (!viewOverviewRemitter) {
+            setOverviewReceivers([]);
+            return;
+        }
+
+        let isMounted = true;
+        setLoadingOverviewReceivers(true);
+
+        const fetchReceiversForOverview = async () => {
+            try {
+                const res = await fetch(withActingUserParam(ENDPOINTS.BENEFICIARIES.LIST, currentUser));
+                if (res.ok) {
+                    const all = await res.json();
+                    if (Array.isArray(all) && isMounted) {
+                        const rId = String(viewOverviewRemitter.id || '');
+                        const sId = String(viewOverviewRemitter.sender_id || '');
+                        const rName = String(viewOverviewRemitter.sender_name || viewOverviewRemitter.name || '').trim().toLowerCase();
+
+                        const matched = all.filter((b: any) => {
+                            const bCustId = String(b.customer_id || b.remitter_id || '');
+                            const bRemitterName = String(b.remitter_name || b.customer_name || '').trim().toLowerCase();
+                            return (
+                                (rId && bCustId === rId) ||
+                                (sId && bCustId === sId) ||
+                                (rName && bRemitterName && bRemitterName === rName)
+                            );
+                        });
+
+                        setOverviewReceivers(matched);
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to fetch receivers for remitter overview:', err);
+            } finally {
+                if (isMounted) setLoadingOverviewReceivers(false);
+            }
+        };
+
+        fetchReceiversForOverview();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [viewOverviewRemitter, currentUser]);
+
     const fetchDefaultFuzzySearch = async () => {
         try {
             const res = await fetch(ENDPOINTS.DILISENSE_SOURCES.GET_FUZZY);
@@ -1240,6 +1289,7 @@ export default function RemittersPage() {
                                     <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Documents"><FolderOpen className="w-4 h-4 mx-auto text-slate-400" /></th>
                                     {canEdit && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                     {canPdf && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="AML PDF"><FileText className="w-4 h-4 mx-auto text-slate-400" /></th>}
+                                    <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Add Receiver"><UserPlus className="w-4 h-4 mx-auto text-slate-400" /></th>
                                     {columns.map((col) => (
                                         <th key={col.key} className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                             <button onClick={() => toggleSort(col.key)} className="flex items-center gap-1">
@@ -1314,6 +1364,15 @@ export default function RemittersPage() {
                                                 </button>
                                             </td>
                                         )}
+                                        <td className="px-2 py-4 text-center">
+                                            <Link
+                                                href={`/admin/receivers/create?customer_id=${encodeURIComponent(row.id)}&sender_id=${encodeURIComponent(row.sender_id || '')}`}
+                                                className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
+                                                title="Add Receiver"
+                                            >
+                                                <UserPlus className="w-5 h-5" />
+                                            </Link>
+                                        </td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
                                             <div className="flex items-center gap-2">
                                                 <span>{row.branch_name || '-'}</span>
@@ -1613,6 +1672,50 @@ export default function RemittersPage() {
                                 ) : null}
                             </div>
                         </div>
+
+                        {overviewReceivers.length > 0 && (
+                            <div className="mt-4 rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4 space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <Users className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                                        <h3 className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                            Receivers
+                                        </h3>
+                                    </div>
+                                    <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-teal-500/15 text-teal-700 dark:text-teal-300">
+                                        {overviewReceivers.length} {overviewReceivers.length === 1 ? 'Receiver' : 'Receivers'}
+                                    </span>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                    {overviewReceivers.map((receiver: any, idx: number) => (
+                                        <div key={receiver.id || idx} className="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 shadow-xs flex flex-col justify-between">
+                                            <div>
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <p className="text-sm font-bold text-slate-900 dark:text-white truncate" title={receiver.name || `${receiver.first_name || ''} ${receiver.last_name || ''}`}>
+                                                        {receiver.name || [receiver.first_name, receiver.last_name].filter(Boolean).join(' ') || 'Receiver'}
+                                                    </p>
+                                                    {(receiver.relationship || receiver.relationship_to_sender) && (
+                                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 shrink-0">
+                                                            {receiver.relationship || receiver.relationship_to_sender}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                                    {[receiver.country, receiver.city].filter(Boolean).join(', ') || '-'}
+                                                </p>
+                                            </div>
+                                            {(receiver.bank_name || receiver.account_number || receiver.mobile_number) && (
+                                                <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-700/60 text-xs text-slate-600 dark:text-slate-300 flex items-center justify-between gap-2">
+                                                    <span className="font-medium truncate">{receiver.bank_name || 'Account'}</span>
+                                                    <span className="font-mono text-slate-400 shrink-0">{receiver.account_number || receiver.mobile_number}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         <div className="mt-6 flex justify-end">
                             <button
