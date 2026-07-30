@@ -1529,31 +1529,42 @@ export default function RemittersPage() {
                                         </span>
                                     </div>
                                     <div className="mt-2 flex items-center justify-between gap-2">
-                                        <span className="text-sm text-slate-600 dark:text-slate-300">Verification</span>
-                                        <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${viewOverviewRemitter.verification_state === 'verified'
-                                                ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300'
-                                                : viewOverviewRemitter.verification_state === 'pending'
-                                                    ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
-                                                    : viewOverviewRemitter.verification_state === 'rejected'
-                                                        ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300'
-                                                        : 'bg-slate-100 text-slate-700 dark:bg-slate-700/40 dark:text-slate-300'
-                                            }`}>
-                                            {String(viewOverviewRemitter.verification_state || 'not_started').replaceAll('_', ' ')}
-                                        </span>
+                                         <span className="text-sm text-slate-600 dark:text-slate-300">AML Verification Result</span>
+                                         {(() => {
+                                             const rawVal = resolveAmlStatus(viewOverviewRemitter);
+                                             const s = String(rawVal || '').trim().toLowerCase();
+
+                                             const isPass = ['pass', 'passed', 'clear', 'approved', 'verified', 'manually passed', 'clean', 'no_match', 'no match', 'ok'].includes(s) || s.includes('pass') || s.includes('clear');
+                                             const isRefer = ['refer', 'referred', 'review', 'under_review'].includes(s) || s.includes('refer') || s.includes('review');
+                                             const isHit = ['hit', 'fail', 'failed', 'match', 'matches', 'rejected', 'expired'].includes(s) || s.includes('hit') || s.includes('fail');
+
+                                             let badgeText = 'PENDING';
+                                             let badgeClass = 'bg-amber-500 text-white font-extrabold px-2.5 py-0.5 text-xs rounded-lg shadow-sm';
+
+                                             if (isPass) {
+                                                 badgeText = '✓ PASS';
+                                                 badgeClass = 'bg-emerald-500 text-white font-extrabold px-2.5 py-0.5 text-xs rounded-lg shadow-sm';
+                                             } else if (isRefer) {
+                                                 badgeText = s.includes('refer') ? 'REFER' : 'REVIEW';
+                                                 badgeClass = 'bg-amber-500 text-white font-extrabold px-2.5 py-0.5 text-xs rounded-lg shadow-sm';
+                                             } else if (isHit) {
+                                                 badgeText = '⚠ HIT';
+                                                 badgeClass = 'bg-rose-600 text-white font-extrabold px-2.5 py-0.5 text-xs rounded-lg shadow-sm';
+                                             }
+
+                                             return (
+                                                 <span className={`inline-flex items-center justify-center ${badgeClass}`}>
+                                                     {badgeText}
+                                                 </span>
+                                             );
+                                         })()}
                                     </div>
                                     {viewOverviewRemitter.id_expired ? (
                                         <p className="mt-2 text-xs font-semibold text-red-600 dark:text-red-300">ID expired: transfer will be blocked until re-verified.</p>
                                     ) : null}
                                 </div>
 
-                                {/* Audit */}
-                                <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-                                    <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Audit</p>
-                                    <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Created By: <span className="font-semibold text-slate-900 dark:text-white">{viewOverviewRemitter.entered_user || '-'}</span></p>
-                                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">Created At: {formatDateTime(viewOverviewRemitter.entered_date)}</p>
-                                    <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Updated By: <span className="font-semibold text-slate-900 dark:text-white">{viewOverviewRemitter.modified_user || '-'}</span></p>
-                                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">Updated At: {formatDateTime(viewOverviewRemitter.modified_date)}</p>
-                                </div>
+
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
