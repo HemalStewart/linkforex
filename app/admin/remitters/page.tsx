@@ -28,7 +28,7 @@ const resolveAmlStatus = (r: any): string => {
 
     // 1. Sanction status from backend engine first
     const sancStatus = String(r.sanction_status || '').trim().toLowerCase();
-    if (sancStatus && sancStatus !== '-' && sancStatus !== 'pending' && sancStatus !== 'not_started') {
+    if (sancStatus && sancStatus !== '-' && sancStatus !== 'pending' && sancStatus !== 'not_started' && sancStatus !== 'null' && sancStatus !== 'undefined') {
         if (sancStatus === 'review' || sancStatus === 'refer' || sancStatus === 'hits') return 'refer';
         if (sancStatus === 'hit' || sancStatus === 'fail') return 'hit';
         if (sancStatus === 'clear' || sancStatus === 'passed' || sancStatus === 'pass') return 'pass';
@@ -50,16 +50,6 @@ const resolveAmlStatus = (r: any): string => {
         if (!isNaN(score) && score > 0) {
             return score >= 80 ? 'hit' : 'refer';
         }
-    }
-
-    // 4. Verification flags
-    if (String(r.sanction_list_verified || '').toLowerCase() === 'yes' || String(r.verification_state || '').toLowerCase() === 'verified') {
-        return 'pass';
-    }
-
-    // 5. Screening document or timestamp present
-    if ((r.sender_details_aml_screening_doc || r.sender_aml_doc || r.sanction_checked_at || r.sanction_reference) && !r.sanction_score) {
-        return 'pass';
     }
 
     return 'pending';

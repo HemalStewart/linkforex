@@ -309,7 +309,7 @@ export default function EditRemitterPage() {
             const data = await res.json();
             const loadedAmlResult = (() => {
                 const sancStatus = String(data.sanction_status || '').trim().toLowerCase();
-                if (sancStatus === 'review' || sancStatus === 'refer' || sancStatus === 'hit') {
+                if (sancStatus && sancStatus !== '-' && sancStatus !== 'pending' && sancStatus !== 'null' && sancStatus !== 'undefined') {
                     return normalizeAmlResult(sancStatus);
                 }
                 if (data.sanction_score !== undefined && data.sanction_score !== null && Number(data.sanction_score) > 0) {
@@ -317,13 +317,11 @@ export default function EditRemitterPage() {
                 }
 
                 const resVal = data.sender_aml_result || data.aml_result || data.aml_status || data.dilisense_result || data.sanction_result || data.verdict;
-                if (resVal && resVal !== '-' && resVal !== 'pending') {
+                if (resVal && resVal !== '-' && resVal !== 'pending' && resVal !== 'null' && resVal !== 'undefined') {
                     return normalizeAmlResult(resVal);
                 }
-                if ((data.sender_details_aml_screening_doc || data.sanction_checked_at || data.sanction_reference) && !data.sanction_score) {
-                    return 'passed';
-                }
-                return normalizeAmlResult(resVal);
+
+                return 'pending';
             })();
 
             setFormData({

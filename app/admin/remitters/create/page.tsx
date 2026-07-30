@@ -409,10 +409,13 @@ export default function CreateRemitterPage() {
     }, [countries]);
 
     const occupationOptions = React.useMemo<SelectOption[]>(() => {
-        return occupations.map((o: any) => ({
-            value: o.name,
-            label: o.name,
-        }));
+        return [
+            { value: '', label: 'Select Occupation' },
+            ...occupations.map((o: any) => ({
+                value: o.name,
+                label: o.name,
+            })),
+        ];
     }, [occupations]);
 
     const branchOptions = React.useMemo<SelectOption[]>(() => {
