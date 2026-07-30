@@ -169,11 +169,11 @@ export default function PermissionGroupsPage() {
     }, []);
 
     const initializeMissingPermissions = useCallback(async (allRows: PermissionGroupRow[], allRoles: RoleOption[]) => {
-        const missing: Array<{ role: RoleOption; section: string; operation: string }> = [];
+        const missing: Array<{ role: RoleOption; section: string; operation: string; active: 'yes' | 'no'; systemDefined: 'yes' | 'no' }> = [];
 
         for (const role of allRoles) {
             const roleNameLower = role.name.toLowerCase();
-            if (roleNameLower.includes('admin') || roleNameLower.includes('super')) continue;
+            const isAdmin = roleNameLower.includes('admin') || roleNameLower.includes('super');
 
             for (const cat of ADMIN_PAGES_CONFIG) {
                 for (const page of cat.pages) {
@@ -184,7 +184,13 @@ export default function PermissionGroupsPage() {
                             row.operation === op
                         );
                         if (!exists) {
-                            missing.push({ role, section: page.section, operation: op });
+                            missing.push({
+                                role,
+                                section: page.section,
+                                operation: op,
+                                active: isAdmin ? 'yes' : 'no',
+                                systemDefined: isAdmin ? 'yes' : 'no',
+                            });
                         }
                     }
                 }
@@ -204,8 +210,8 @@ export default function PermissionGroupsPage() {
                         role_name: item.role.name,
                         page_section: item.section,
                         operation: item.operation,
-                        system_defined: 'no',
-                        active: 'no',
+                        system_defined: item.systemDefined,
+                        active: item.active,
                         created_by: 'System',
                         updated_by: 'System'
                     })
