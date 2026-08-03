@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
@@ -9,6 +10,7 @@ import { openPdfReport } from '@/app/lib/openPdfReport';
 import { ArrowLeft, User, Building, CreditCard, Save, Loader2, ChevronRight, Search, MapPin, Phone, ShieldCheck, Landmark, ChevronDown, ChevronUp, FileText, ExternalLink, X, RefreshCcw, Trash2, Download, FolderOpen } from 'lucide-react';
 import { resolveUploadsUrl } from '@/app/lib/uploads';
 import ConfirmModal from '../../components/ConfirmModal';
+import Modal from '../../components/Modal';
 import RemitterSelect from '../../components/RemitterSelect';
 import ReceiverDocumentsModal from '../../components/ReceiverDocumentsModal';
 import { showToast, queueToast } from '@/app/lib/toast';
@@ -623,9 +625,10 @@ export default function EditReceiverPage() {
                 loading={deleteLoading}
             />
 
-            {reportsModal.isOpen ? (
+            {reportsModal.isOpen && typeof window !== 'undefined' && createPortal(
                 <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 transition-all duration-300">
-                    <div className="w-full max-w-4xl rounded-3xl border border-slate-200/50 bg-white/95 p-6 shadow-2xl dark:border-slate-700/50 dark:bg-slate-900/95 backdrop-blur-lg transform transition-all duration-300 scale-100">
+                    <div className="fixed inset-0" onClick={() => setReportsModal((prev) => ({ ...prev, isOpen: false }))}></div>
+                    <div className="relative z-10 w-full max-w-4xl rounded-3xl border border-slate-200/50 bg-white p-6 shadow-2xl dark:border-slate-700/50 dark:bg-slate-900 transform transition-all duration-300 scale-100">
                         <div className="mb-6 flex items-start justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
                             <div>
                                 <h2 className="text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
@@ -755,12 +758,14 @@ export default function EditReceiverPage() {
                             </div>
                         )}
                     </div>
-                </div>
-            ) : null}
+                </div>,
+                document.body
+            )}
 
-            {showRescreenConfirm && (
+            {showRescreenConfirm && typeof window !== 'undefined' && createPortal(
                 <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 transition-all duration-300">
-                    <div className="w-full max-w-md rounded-3xl border border-slate-200/50 bg-white/95 p-6 shadow-2xl dark:border-slate-700/50 dark:bg-slate-900/95 backdrop-blur-lg transform scale-100 transition-all duration-300">
+                    <div className="fixed inset-0" onClick={() => setShowRescreenConfirm(false)}></div>
+                    <div className="relative z-10 w-full max-w-md rounded-3xl border border-slate-200/50 bg-white p-6 shadow-2xl dark:border-slate-700/50 dark:bg-slate-900 transform scale-100 transition-all duration-300">
                         <div className="mb-4 text-center">
                             <ShieldCheck className="mx-auto h-12 w-12 text-teal-500 mb-3" />
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">Confirm Rescreening</h3>
@@ -799,12 +804,14 @@ export default function EditReceiverPage() {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
-            {rescreenParams.isOpen && (
+            {rescreenParams.isOpen && typeof window !== 'undefined' && createPortal(
                 <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 transition-all duration-300">
-                    <div className="w-full max-w-lg rounded-3xl border border-slate-200/50 bg-white/95 p-6 shadow-2xl dark:border-slate-700/50 dark:bg-slate-900/95 backdrop-blur-lg">
+                    <div className="fixed inset-0" onClick={() => setRescreenParams(prev => ({ ...prev, isOpen: false }))}></div>
+                    <div className="relative z-10 w-full max-w-lg rounded-3xl border border-slate-200/50 bg-white p-6 shadow-2xl dark:border-slate-700/50 dark:bg-slate-900">
                         <div className="mb-4 flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                             <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Rescreening Parameters</h3>
                             <button
@@ -988,7 +995,8 @@ export default function EditReceiverPage() {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
 
