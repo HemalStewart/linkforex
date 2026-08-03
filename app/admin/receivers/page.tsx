@@ -800,10 +800,16 @@ export default function ReceiversPage() {
                                             </td>
                                             {showCreatedBy && (
                                                 <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
-                                                    {(receiver as any).created_by
-                                                        ? ((receiver as any).created_by === 'mobile_app' ? 'mobile user' : (receiver as any).created_by)
-                                                        : (normalize(receiver.registration_source) === 'mobile_app' ? 'mobile user' : 'admin')
-                                                    }
+                                                    {(() => {
+                                                        const val = (receiver as any).created_by;
+                                                        if (!val || val === '-') {
+                                                            return normalize(receiver.registration_source) === 'mobile_app' ? 'mobile user' : 'Admin';
+                                                        }
+                                                        const s = String(val).trim();
+                                                        if (s.toLowerCase() === 'admin') return 'Admin';
+                                                        if (s.toLowerCase() === 'mobile_app') return 'mobile user';
+                                                        return s;
+                                                    })()}
                                                 </td>
                                             )}
                                             {showCreatedAt && (
@@ -813,10 +819,16 @@ export default function ReceiversPage() {
                                             )}
                                             {showUpdatedBy && (
                                                 <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
-                                                    {(receiver as any).updated_by
-                                                        ? ((receiver as any).updated_by === 'mobile_app' ? 'mobile user' : (receiver as any).updated_by)
-                                                        : (normalize(receiver.registration_source) === 'mobile_app' ? 'mobile user' : '—')
-                                                    }
+                                                    {(() => {
+                                                        const val = (receiver as any).updated_by;
+                                                        if (!val || val === '-') {
+                                                            return normalize(receiver.registration_source) === 'mobile_app' ? 'mobile user' : '—';
+                                                        }
+                                                        const s = String(val).trim();
+                                                        if (s.toLowerCase() === 'admin') return 'Admin';
+                                                        if (s.toLowerCase() === 'mobile_app') return 'mobile user';
+                                                        return s;
+                                                    })()}
                                                 </td>
                                             )}
                                             {showUpdatedAt && <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatDateTime((receiver as any).updated_at)}</td>}

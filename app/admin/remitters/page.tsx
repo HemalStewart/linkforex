@@ -1480,19 +1480,31 @@ export default function RemittersPage() {
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.country || '-'}</td>
                                         {showCreatedBy && (
                                             <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
-                                                {row.created_by && row.created_by !== '-'
-                                                    ? (row.created_by === 'mobile_app' ? 'mobile user' : row.created_by)
-                                                    : (String(row.registration_source || '').trim().toLowerCase() === 'mobile_app' ? 'mobile user' : 'admin')
-                                                }
+                                                {(() => {
+                                                    const val = row.created_by;
+                                                    if (!val || val === '-') {
+                                                        return String(row.registration_source || '').trim().toLowerCase() === 'mobile_app' ? 'mobile user' : 'Admin';
+                                                    }
+                                                    const s = String(val).trim();
+                                                    if (s.toLowerCase() === 'admin') return 'Admin';
+                                                    if (s.toLowerCase() === 'mobile_app') return 'mobile user';
+                                                    return s;
+                                                })()}
                                             </td>
                                         )}
                                         {showCreatedAt && <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatDateTime(row.entered_date)}</td>}
                                         {showUpdatedBy && (
                                             <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
-                                                {row.updated_by && row.updated_by !== '-'
-                                                    ? (row.updated_by === 'mobile_app' ? 'mobile user' : row.updated_by)
-                                                    : (String(row.registration_source || '').trim().toLowerCase() === 'mobile_app' ? 'mobile user' : '—')
-                                                }
+                                                {(() => {
+                                                    const val = row.updated_by;
+                                                    if (!val || val === '-') {
+                                                        return String(row.registration_source || '').trim().toLowerCase() === 'mobile_app' ? 'mobile user' : '—';
+                                                    }
+                                                    const s = String(val).trim();
+                                                    if (s.toLowerCase() === 'admin') return 'Admin';
+                                                    if (s.toLowerCase() === 'mobile_app') return 'mobile user';
+                                                    return s;
+                                                })()}
                                             </td>
                                         )}
                                         {showUpdatedAt && <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatDateTime(row.modified_date)}</td>}
