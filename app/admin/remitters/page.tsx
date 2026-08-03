@@ -751,8 +751,13 @@ export default function RemittersPage() {
         { key: 'branch_name', label: 'Branch' },
         { key: 'sender_id', label: 'Reference ID' },
         { key: 'sender_name', label: 'Remitter Name' },
-        { key: 'active', label: 'Mobile Status' },
         { key: 'dob', label: 'Date Of Birth' },
+        { key: 'id_status', label: 'ID Status' },
+        { key: 'id_type', label: 'ID Type' },
+        { key: 'id_no', label: 'ID No' },
+        { key: 'id_expire_date', label: 'ID Expire Date' },
+        { key: 'verification_state', label: 'AML Verifications' },
+        { key: 'active', label: 'Mobile Status' },
         { key: 'place_of_birth', label: 'Country of Birth' },
         { key: 'telephone', label: 'Mobile number' },
         { key: 'postcode', label: 'Postcode' },
@@ -760,11 +765,6 @@ export default function RemittersPage() {
         { key: 'city', label: 'City' },
         { key: 'country', label: 'Country' },
         { key: 'occupation', label: 'Occupation' },
-        { key: 'id_status', label: 'ID Status' },
-        { key: 'id_type', label: 'ID Type' },
-        { key: 'id_no', label: 'ID No' },
-        { key: 'id_expire_date', label: 'ID Expire Date' },
-        { key: 'verification_state', label: 'AML Verifications' },
         ...(showCreatedBy ? [{ key: 'entered_user', label: 'Created By' }] : []),
         ...(showCreatedAt ? [{ key: 'entered_date', label: 'Created At' }] : []),
         ...(showUpdatedBy ? [{ key: 'modified_user', label: 'Updated By' }] : []),
@@ -1414,15 +1414,7 @@ export default function RemittersPage() {
                                         </td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.sender_id || '-'}</td>
                                         <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{row.sender_name || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.active || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.dob || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.place_of_birth || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.telephone || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.postcode || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.address_1 || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.city || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.country || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.occupation || '-'}</td>
                                         <td className="px-4 py-4 text-sm">
                                             {(() => {
                                                 const st = resolveIdStatus(row);
@@ -1480,6 +1472,14 @@ export default function RemittersPage() {
                                                 );
                                             })()}
                                         </td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.active || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.place_of_birth || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.telephone || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.postcode || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.address_1 || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.city || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.country || '-'}</td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.occupation || '-'}</td>
                                         {showCreatedBy && (
                                             <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
                                                 {row.created_by && row.created_by !== '-'
