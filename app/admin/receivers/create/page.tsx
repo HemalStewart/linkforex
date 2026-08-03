@@ -48,7 +48,7 @@ export default function CreateReceiverPage() {
         other: 'bank',
         cash: 'cash_pickup'
     };
-    const idTypes = ['Passport', 'CNIC', 'Driving license', 'Other'];
+    const idTypes = ['Passport', 'CNIC', 'National ID', 'Driving license', 'Other'];
     const [relationships, setRelationships] = useState<string[]>(['Family']);
 
     const [formData, setFormData] = useState({
@@ -360,6 +360,22 @@ export default function CreateReceiverPage() {
                             </div>
                         </div>
 
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Address</label>
+                            <div className="relative input-icon">
+                                <span className="input-icon-left">
+                                    <MapPin className="w-5 h-5" />
+                                </span>
+                                <input
+                                    type="text"
+                                    value={formData.address}
+                                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                    className="input-glass w-full"
+                                    placeholder="Street address"
+                                />
+                            </div>
+                        </div>
+
                         <div>
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Country</label>
                             <select
@@ -389,22 +405,6 @@ export default function CreateReceiverPage() {
                             </div>
                         </div>
 
-                        <div className="md:col-span-2">
-                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Address</label>
-                            <div className="relative input-icon">
-                                <span className="input-icon-left">
-                                    <MapPin className="w-5 h-5" />
-                                </span>
-                                <input
-                                    type="text"
-                                    value={formData.address}
-                                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                    className="input-glass w-full"
-                                    placeholder="Street address"
-                                />
-                            </div>
-                        </div>
-
                         <div>
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Date Of Birth</label>
                             <input
@@ -417,12 +417,16 @@ export default function CreateReceiverPage() {
 
                         <div>
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Place Of Birth</label>
-                            <input
-                                type="text"
+                            <select
+                                className="input-glass w-full"
                                 value={formData.place_of_birth}
                                 onChange={(e) => setFormData({ ...formData, place_of_birth: e.target.value })}
-                                className="input-glass w-full"
-                            />
+                            >
+                                <option value="">Select Place Of Birth...</option>
+                                {countries.map((country) => (
+                                    <option key={country} value={country}>{country}</option>
+                                ))}
+                            </select>
                         </div>
 
                         <div>
