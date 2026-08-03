@@ -264,7 +264,7 @@ export default function CreateReceiverPage() {
                     ? `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}newReceiverId=${encodeURIComponent(newReceiverId)}`
                     : '/admin/receivers';
 
-            queueToast('Success', 'Receiver created successfully', 'success');
+                queueToast('Success', 'Receiver created successfully', 'success');
                 router.push(redirectUrl);
             } else {
                 showToast('Error', 'Failed to create receiver', 'danger');
@@ -314,7 +314,7 @@ export default function CreateReceiverPage() {
                 <div className="space-y-8">
                     {/* Search/Select Remitter */}
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Linked Remitter <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Remitter <span className="text-red-500">*</span></label>
                         <div className="relative input-icon">
                             <span className="input-icon-left">
                                 <Search className="w-5 h-5" />

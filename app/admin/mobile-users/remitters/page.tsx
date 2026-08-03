@@ -206,12 +206,6 @@ export default function RemittersPage() {
                             <span>Export CSV</span>
                         </button>
                     )}
-                    {canAdd && (
-                        <Link href="/admin/mobile-profiles/create" className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 rounded-full px-6">
-                            <UserPlus className="w-5 h-5" />
-                            <span>Add Profile</span>
-                        </Link>
-                    )}
                 </div>
             </div>
 
