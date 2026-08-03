@@ -1134,7 +1134,7 @@ export default function EditReceiverPage() {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Status</label>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Mobile Status</label>
                             <select
                                 className="input-glass w-full"
                                 value={formData.status}

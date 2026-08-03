@@ -702,7 +702,7 @@ export default function ReceiversPage() {
                                     </th>
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('status')} className="flex items-center gap-2">
-                                            Status <SortIndicator active={sortKey === 'status'} dir={sortDir} />
+                                            Mobile Status <SortIndicator active={sortKey === 'status'} dir={sortDir} />
                                         </button>
                                     </th>
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
