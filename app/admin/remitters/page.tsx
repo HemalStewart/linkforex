@@ -764,7 +764,6 @@ export default function RemittersPage() {
         { key: 'address_1', label: 'Address 1' },
         { key: 'city', label: 'City' },
         { key: 'country', label: 'Country' },
-        { key: 'occupation', label: 'Occupation' },
         ...(showCreatedBy ? [{ key: 'entered_user', label: 'Created By' }] : []),
         ...(showCreatedAt ? [{ key: 'entered_date', label: 'Created At' }] : []),
         ...(showUpdatedBy ? [{ key: 'modified_user', label: 'Updated By' }] : []),
@@ -1479,7 +1478,6 @@ export default function RemittersPage() {
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.address_1 || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.city || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.country || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.occupation || '-'}</td>
                                         {showCreatedBy && (
                                             <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
                                                 {row.created_by && row.created_by !== '-'
