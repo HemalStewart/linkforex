@@ -24,6 +24,7 @@ export default function SettingsPage() {
         defaultBranch: '',
         enableDilisenseScreening: 'yes',
         enableWebDilisenseScreening: 'yes',
+        enableWebReceiverDilisenseScreening: 'yes',
     });
     const [uiSettings, setUiSettings] = useState<UiSettings>({
         tableFontSizePx: 14,
@@ -68,6 +69,7 @@ export default function SettingsPage() {
                         defaultBranch: (data && typeof data.default_branch === 'string') ? data.default_branch.trim() : '',
                         enableDilisenseScreening: (data && typeof data.enable_sanction_screening === 'string') ? (data.enable_sanction_screening.toLowerCase() === 'no' ? 'no' : 'yes') : 'yes',
                         enableWebDilisenseScreening: (data && typeof data.enable_web_sanction_screening === 'string') ? (data.enable_web_sanction_screening.toLowerCase() === 'no' ? 'no' : 'yes') : 'yes',
+                        enableWebReceiverDilisenseScreening: (data && typeof data.enable_web_receiver_sanction_screening === 'string') ? (data.enable_web_receiver_sanction_screening.toLowerCase() === 'no' ? 'no' : 'yes') : 'yes',
                     });
                     return;
                 }
@@ -80,6 +82,7 @@ export default function SettingsPage() {
                 defaultBranch: '',
                 enableDilisenseScreening: 'yes',
                 enableWebDilisenseScreening: 'yes',
+                enableWebReceiverDilisenseScreening: 'yes',
             });
         };
 
@@ -103,6 +106,7 @@ export default function SettingsPage() {
                     default_branch: generalSettings.defaultBranch.trim(),
                     enable_sanction_screening: generalSettings.enableDilisenseScreening,
                     enable_web_sanction_screening: generalSettings.enableWebDilisenseScreening,
+                    enable_web_receiver_sanction_screening: generalSettings.enableWebReceiverDilisenseScreening,
                 }),
             });
             if (!res.ok) {
@@ -176,7 +180,7 @@ export default function SettingsPage() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Enable Auto Dilisense Screening for Web Users</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Enable Auto Dilisense Screening for Web Remitters</label>
                         <div className="relative">
                             <select
                                 value={generalSettings.enableWebDilisenseScreening}
@@ -189,6 +193,22 @@ export default function SettingsPage() {
                             </select>
                         </div>
                         <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">Enable or disable automatic Dilisense AML screening when creating or updating remitter records via web admin.</p>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Enable Auto Dilisense Screening for Web Receivers</label>
+                        <div className="relative">
+                            <select
+                                value={generalSettings.enableWebReceiverDilisenseScreening}
+                                onChange={(e) => setGeneralSettings(prev => ({ ...prev, enableWebReceiverDilisenseScreening: e.target.value }))}
+                                className="input-glass w-full cursor-pointer text-sm py-2.5 text-slate-900 dark:text-white"
+                                disabled={!canEdit}
+                            >
+                                <option value="yes" className="dark:bg-slate-800 dark:text-white bg-white text-slate-900">Enabled</option>
+                                <option value="no" className="dark:bg-slate-800 dark:text-white bg-white text-slate-900">Disabled</option>
+                            </select>
+                        </div>
+                        <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">Enable or disable automatic Dilisense AML screening when creating or updating receiver records via web admin.</p>
                     </div>
 
                     <div>
