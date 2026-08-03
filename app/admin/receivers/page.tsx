@@ -103,13 +103,28 @@ const getRemitterObj = (receiver: Receiver, map: Record<string, any>) => {
     return null;
 };
 
-const getRemitterBranch = (receiver: Receiver, map: Record<string, any>): string => {
+const getRemitterBranch = (receiver: Receiver, map: Record<string, any>, branchesMap: Record<string, string> = {}): string => {
     const r = getRemitterObj(receiver, map);
+    let rawBranch = '';
     if (r) {
-        const branch = r.branch_name || r.branch || r.remitter_branch || r.branch_code;
-        if (branch && branch !== '-') return String(branch);
+        if (r.branch && typeof r.branch === 'object') {
+            const bName = r.branch.name || r.branch.branch_name;
+            if (bName) return String(bName);
+        }
+        rawBranch = String(r.branch_name || r.branch || r.remitter_branch || r.branch_code || '').trim();
     }
-    return asString(receiver.remitter_branch || receiver.remitter_branch_name || receiver.customer_branch) || '-';
+    if (!rawBranch) {
+        rawBranch = String(receiver.remitter_branch || receiver.remitter_branch_name || receiver.customer_branch || '').trim();
+    }
+
+    if (!rawBranch || rawBranch === '-') return '-';
+
+    const resolvedName = branchesMap[rawBranch] || branchesMap[rawBranch.toLowerCase()] || branchesMap[rawBranch.toUpperCase()];
+    if (resolvedName) {
+        return resolvedName;
+    }
+
+    return rawBranch;
 };
 
 const getRemitterRefId = (receiver: Receiver, map: Record<string, any>): string => {
@@ -228,6 +243,7 @@ export default function ReceiversPage() {
 
     const [receivers, setReceivers] = useState<Receiver[]>([]);
     const [remittersMap, setRemittersMap] = useState<Record<string, any>>({});
+    const [branchesMap, setBranchesMap] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(true);
     const [updatingId, setUpdatingId] = useState<string | number | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -310,9 +326,10 @@ export default function ReceiversPage() {
     const fetchReceivers = async () => {
         setLoading(true);
         try {
-            const [res, remittersRes] = await Promise.all([
+            const [res, remittersRes, branchesRes] = await Promise.all([
                 fetch(ENDPOINTS.BENEFICIARIES.LIST),
                 fetch(ENDPOINTS.REMITTERS.LIST).catch(() => null),
+                fetch(ENDPOINTS.BRANCHES.LIST).catch(() => null),
             ]);
 
             const map: Record<string, any> = {};
@@ -328,6 +345,32 @@ export default function ReceiversPage() {
                 }
             }
             setRemittersMap(map);
+
+            const bMap: Record<string, string> = {};
+            if (branchesRes && branchesRes.ok) {
+                const branchesData = await branchesRes.json().catch(() => []);
+                if (Array.isArray(branchesData)) {
+                    branchesData.forEach((b: any) => {
+                        const name = String(b.name || b.branch_name || '').trim();
+                        if (name) {
+                            if (b.id !== undefined && b.id !== null) bMap[String(b.id)] = name;
+                            if (b.code) {
+                                bMap[String(b.code).trim().toLowerCase()] = name;
+                                bMap[String(b.code).trim().toUpperCase()] = name;
+                            }
+                            if (b.branch_code) {
+                                bMap[String(b.branch_code).trim().toLowerCase()] = name;
+                                bMap[String(b.branch_code).trim().toUpperCase()] = name;
+                            }
+                            if (b.transaction_prefix) {
+                                bMap[String(b.transaction_prefix).trim().toLowerCase()] = name;
+                                bMap[String(b.transaction_prefix).trim().toUpperCase()] = name;
+                            }
+                        }
+                    });
+                }
+            }
+            setBranchesMap(bMap);
 
             if (res.ok) {
                 const data = (await res.json()) as Receiver[];
@@ -565,7 +608,7 @@ export default function ReceiversPage() {
         if (!term) return receivers;
         return receivers.filter((receiver) => {
             const text = [
-                getRemitterBranch(receiver, remittersMap),
+                getRemitterBranch(receiver, remittersMap, branchesMap),
                 getRemitterRefId(receiver, remittersMap),
                 getRemitterName(receiver, remittersMap),
                 receiver.name,
@@ -584,14 +627,14 @@ export default function ReceiversPage() {
                 .join(' ');
             return text.includes(term);
         });
-    }, [receivers, searchQuery, remittersMap]);
+    }, [receivers, searchQuery, remittersMap, branchesMap]);
 
     const sortedReceivers = useMemo(() => {
         const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
         const valueFor = (receiver: Receiver): string => {
             switch (sortKey) {
                 case 'remitterBranch':
-                    return getRemitterBranch(receiver, remittersMap);
+                    return getRemitterBranch(receiver, remittersMap, branchesMap);
                 case 'remitterRefId':
                     return getRemitterRefId(receiver, remittersMap);
                 case 'remitter':
@@ -633,7 +676,7 @@ export default function ReceiversPage() {
             const result = collator.compare(valueFor(a), valueFor(b));
             return sortDir === 'asc' ? result : -result;
         });
-    }, [filteredReceivers, sortKey, sortDir, remittersMap]);
+    }, [filteredReceivers, sortKey, sortDir, remittersMap, branchesMap]);
 
     const total = sortedReceivers.length;
     const totalPages = Math.max(1, Math.ceil(total / rowsPerPage));
@@ -670,7 +713,7 @@ export default function ReceiversPage() {
                 .map((col) => {
                     let value = row[col.key];
                     if (col.key === 'remitter_branch') {
-                        value = getRemitterBranch(row, remittersMap);
+                        value = getRemitterBranch(row, remittersMap, branchesMap);
                     } else if (col.key === 'remitter_ref_id') {
                         value = getRemitterRefId(row, remittersMap);
                     } else if (col.key === 'remitter_name') {
@@ -897,7 +940,7 @@ export default function ReceiversPage() {
                                             )}
                                             {/* Remitter Branch */}
                                             <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
-                                                {getRemitterBranch(receiver, remittersMap)}
+                                                {getRemitterBranch(receiver, remittersMap, branchesMap)}
                                             </td>
                                             {/* Remitter Ref ID */}
                                             <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 font-mono">
