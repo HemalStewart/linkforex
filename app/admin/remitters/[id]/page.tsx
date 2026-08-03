@@ -1218,7 +1218,7 @@ export default function EditRemitterPage() {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Remitter Reference ID</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Reference ID</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Tag className="w-5 h-5" /></span>
                             <input className="input-glass w-full" value={formData.sender_id} onChange={(e) => setFormData({ ...formData, sender_id: e.target.value })} />

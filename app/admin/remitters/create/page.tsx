@@ -966,9 +966,9 @@ export default function CreateRemitterPage() {
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormInput
-                            label="Remitter Reference ID"
+                            label="Reference ID"
                             name="sender_id"
-                            placeholder="Enter Remitter Reference ID"
+                            placeholder="Enter Reference ID"
                             required
                             Icon={CreditCard}
                             warning={fieldWarnings.sender_id}

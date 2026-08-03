@@ -737,15 +737,14 @@ export default function RemittersPage() {
 
     const columns = [
         { key: 'branch_name', label: 'Branch' },
-        { key: 'sender_id', label: 'Remitter Reference ID' },
+        { key: 'sender_id', label: 'Reference ID' },
         { key: 'sender_name', label: 'Remitter Name' },
-        { key: 'active', label: 'Active' },
+        { key: 'active', label: 'Mobile Status' },
         { key: 'dob', label: 'Date Of Birth' },
         { key: 'place_of_birth', label: 'Country of Birth' },
         { key: 'telephone', label: 'Mobile number' },
         { key: 'postcode', label: 'Postcode' },
         { key: 'address_1', label: 'Address 1' },
-        { key: 'address_2', label: 'Address 2' },
         { key: 'city', label: 'City' },
         { key: 'country', label: 'Country' },
         { key: 'occupation', label: 'Occupation' },
@@ -1236,11 +1235,14 @@ export default function RemittersPage() {
                                 onChange={(e) => setBranchFilter(e.target.value)}
                             >
                                 <option value="all">All</option>
-                                {branches.map((b: any) => (
-                                    <option key={b.id || b.code} value={b.code || b.name}>
-                                        {b.name && b.code && b.name !== b.code ? `${b.name} (${b.code})` : (b.name || b.code)}
-                                    </option>
-                                ))}
+                                {branches.map((b: any) => {
+                                    const displayName = String(b.name || b.branch_name || b.code || '').replace(/\s*\([^)]*\)\s*$/, '').trim();
+                                    return (
+                                        <option key={b.id || b.code} value={b.code || b.name}>
+                                            {displayName}
+                                        </option>
+                                    );
+                                })}
                             </select>
                         </div>
                     </div>
@@ -1406,7 +1408,6 @@ export default function RemittersPage() {
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.telephone || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.postcode || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.address_1 || '-'}</td>
-                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.address_2 || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.city || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.country || '-'}</td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.occupation || '-'}</td>
@@ -1596,7 +1597,7 @@ export default function RemittersPage() {
                             <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4 space-y-2">
                                 <p className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Identity & Contact</p>
                                 <div>
-                                    <p className="text-xs text-slate-400">Remitter Reference ID</p>
+                                    <p className="text-xs text-slate-400">Reference ID</p>
                                     <p className="text-sm font-bold text-slate-900 dark:text-white">{viewOverviewRemitter.sender_id || '-'}</p>
                                 </div>
                                 <div>
