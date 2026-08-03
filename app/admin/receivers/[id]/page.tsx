@@ -9,6 +9,7 @@ import { openPdfReport } from '@/app/lib/openPdfReport';
 import { ArrowLeft, User, Building, CreditCard, Save, Loader2, ChevronRight, Search, MapPin, Phone, ShieldCheck, Landmark, ChevronDown, ChevronUp, FileText, ExternalLink, X, RefreshCcw, Trash2, Download } from 'lucide-react';
 import { resolveUploadsUrl } from '@/app/lib/uploads';
 import ConfirmModal from '../../components/ConfirmModal';
+import RemitterSelect from '../../components/RemitterSelect';
 import { showToast, queueToast } from '@/app/lib/toast';
 import { formatDateTime } from '@/app/lib/dateUtils';
 import { usePagePermissions, checkPermission } from '@/app/lib/permissions';
@@ -1014,23 +1015,14 @@ export default function EditReceiverPage() {
                 <div className="space-y-8">
                     {/* Search/Select Remitter */}
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Remitter <span className="text-red-500">*</span></label>
-                        <div className="relative">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                            <select
-                                required
-                                value={formData.customer_id}
-                                onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
-                                className="input-glass w-full pl-12 cursor-pointer"
-                            >
-                                <option value="">Select a Remitter...</option>
-                                {remitters.map((remitter) => (
-                                    <option key={remitter.id} value={remitter.id}>
-                                        {remitter.name}{remitter.phone ? ` (${remitter.phone})` : ''}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                        <RemitterSelect
+                            label="Remitter"
+                            required
+                            remitters={remitters}
+                            value={formData.customer_id}
+                            onChange={(id) => setFormData({ ...formData, customer_id: id })}
+                            placeholder="Type name, Reference ID, or phone to search..."
+                        />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ENDPOINTS } from '@/app/lib/api';
 import { ArrowLeft, User, Building, CreditCard, Save, Loader2, ChevronRight, Search, MapPin, Phone, ShieldCheck, Landmark } from 'lucide-react';
 import ConfirmModal from '../../components/ConfirmModal';
+import RemitterSelect from '../../components/RemitterSelect';
 import { showToast, queueToast } from '@/app/lib/toast';
 
 type RemitterOption = {
@@ -314,25 +315,14 @@ export default function CreateReceiverPage() {
                 <div className="space-y-8">
                     {/* Search/Select Remitter */}
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Remitter <span className="text-red-500">*</span></label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left">
-                                <Search className="w-5 h-5" />
-                            </span>
-                            <select
-                                required
-                                value={formData.customer_id}
-                                onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
-                                className="input-glass w-full cursor-pointer"
-                            >
-                                <option value="">Select a Remitter...</option>
-                                {remitters.map((remitter) => (
-                                    <option key={remitter.id} value={remitter.id}>
-                                        {remitter.name}{remitter.phone ? ` (${remitter.phone})` : ''}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                        <RemitterSelect
+                            label="Remitter"
+                            required
+                            remitters={remitters}
+                            value={formData.customer_id}
+                            onChange={(id) => setFormData({ ...formData, customer_id: id })}
+                            placeholder="Type name, Reference ID, or phone to search..."
+                        />
                         <p className="text-xs text-slate-400 mt-2 ml-1">Select the person sending money to this receiver.</p>
                     </div>
 
