@@ -1210,236 +1210,272 @@ export default function EditRemitterPage() {
 
 
 
-            <form onSubmit={handleSubmit} className="card-glass p-8 relative overflow-hidden">
+            <form onSubmit={handleSubmit} className="card-glass p-8 relative overflow-hidden space-y-8">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Branch</label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left"><Building className="w-5 h-5" /></span>
+                {/* Section 1: Account Setup */}
+                <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
+                        <Building className="w-5 h-5 mr-2 text-teal-500" />
+                        Account Setup
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Branch</label>
+                            <div className="relative input-icon">
+                                <span className="input-icon-left"><Building className="w-5 h-5" /></span>
+                                <select
+                                    required
+                                    disabled={!isPrivilegedUser && !canMultiBranch}
+                                    className="input-glass w-full pr-10 appearance-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                                    value={formData.branch}
+                                    onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
+                                >
+                                    <option value="">Select Branch...</option>
+                                    {branches.map((b: any) => {
+                                        const displayName = String(b.name || b.branch_name || b.code || '').replace(/\s*\([^)]*\)\s*$/, '').trim();
+                                        return (
+                                            <option key={b.id} value={b.code || b.name}>
+                                                {displayName}
+                                            </option>
+                                        );
+                                    })}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Section 2: Personal Details */}
+                <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
+                        <User className="w-5 h-5 mr-2 text-teal-500" />
+                        Personal Details
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Reference ID</label>
+                            <div className="relative input-icon">
+                                <span className="input-icon-left"><Tag className="w-5 h-5" /></span>
+                                <input className="input-glass w-full" value={formData.sender_id} onChange={(e) => setFormData({ ...formData, sender_id: e.target.value })} />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Remitter Name</label>
+                            <div className="relative input-icon">
+                                <span className="input-icon-left"><User className="w-5 h-5" /></span>
+                                <input className="input-glass w-full" value={formData.sender_name} onChange={(e) => setFormData({ ...formData, sender_name: e.target.value })} />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Date Of Birth</label>
+                            <div className="relative input-icon">
+                                <span className="input-icon-left"><Calendar className="w-5 h-5" /></span>
+                                <input type="date" className="input-glass w-full" value={formData.dob || ''} onChange={(e) => setFormData({ ...formData, dob: e.target.value })} />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Country of Birth</label>
                             <select
-                                required
-                                disabled={!isPrivilegedUser && !canMultiBranch}
-                                className="input-glass w-full pr-10 appearance-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-                                value={formData.branch}
-                                onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
+                                className="input-glass w-full py-3 px-4 cursor-pointer text-sm"
+                                value={formData.place_of_birth}
+                                onChange={(e) => setFormData({ ...formData, place_of_birth: e.target.value })}
                             >
-                                <option value="">Select Branch...</option>
-                                {branches.map((b: any) => {
-                                    const displayName = String(b.name || b.branch_name || b.code || '').replace(/\s*\([^)]*\)\s*$/, '').trim();
-                                    return (
-                                        <option key={b.id} value={b.code || b.name}>
-                                            {displayName}
-                                        </option>
-                                    );
-                                })}
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Reference ID</label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left"><Tag className="w-5 h-5" /></span>
-                            <input className="input-glass w-full" value={formData.sender_id} onChange={(e) => setFormData({ ...formData, sender_id: e.target.value })} />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Remitter Name</label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left"><User className="w-5 h-5" /></span>
-                            <input className="input-glass w-full" value={formData.sender_name} onChange={(e) => setFormData({ ...formData, sender_name: e.target.value })} />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Date Of Birth</label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left"><Calendar className="w-5 h-5" /></span>
-                            <input type="date" className="input-glass w-full" value={formData.dob || ''} onChange={(e) => setFormData({ ...formData, dob: e.target.value })} />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Country of Birth</label>
-                        <select
-                            className="input-glass w-full py-3 px-4 cursor-pointer text-sm"
-                            value={formData.place_of_birth}
-                            onChange={(e) => setFormData({ ...formData, place_of_birth: e.target.value })}
-                        >
-                            <option value="">Select Country of Birth</option>
-                            {countries.map((c: any) => (
-                                <option key={c.id} value={c.name}>{c.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Mobile number</label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left"><Phone className="w-5 h-5" /></span>
-                            <input className="input-glass w-full" placeholder="Mobile number" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
-                        </div>
-                    </div>
-                    <div>
-                        <PostcodeLookup
-                            label="Postcode"
-                            name="postcode"
-                            value={formData.postcode || ''}
-                            onChange={(val) => setFormData((prev: any) => ({ ...prev, postcode: val }))}
-                            onAddressSelect={(addr: AddressData) => {
-                                setFormData((prev: any) => ({
-                                    ...prev,
-                                    address_1: addr.address_1 || prev.address_1,
-                                    city: addr.city || prev.city,
-                                    country: addr.country || prev.country,
-                                }));
-                            }}
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Address 1</label>
-                        <input className="input-glass w-full" value={formData.address_1} onChange={(e) => setFormData({ ...formData, address_1: e.target.value })} />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Address 2</label>
-                        <input className="input-glass w-full" value={formData.address_2} onChange={(e) => setFormData({ ...formData, address_2: e.target.value })} />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">City</label>
-                        <input className="input-glass w-full" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Country</label>
-                        <select
-                            className="input-glass w-full py-3 px-4 cursor-pointer text-sm"
-                            value={formData.country}
-                            onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                        >
-                            <option value="">Select Country</option>
-                            {countries.map((c: any) => (
-                                <option key={c.id} value={c.name}>{c.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Occupation</label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left"><Briefcase className="w-5 h-5" /></span>
-                            <select
-                                required
-                                className="input-glass w-full cursor-pointer"
-                                value={formData.occupation}
-                                onChange={(e) => setFormData({ ...formData, occupation: e.target.value })}
-                            >
-                                <option value="">Select Occupation...</option>
-                                {occupations.map((o: any) => (
-                                    <option key={o.id} value={o.name}>{o.name}</option>
+                                <option value="">Select Country of Birth</option>
+                                {countries.map((c: any) => (
+                                    <option key={c.id} value={c.name}>{c.name}</option>
                                 ))}
                             </select>
                         </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">ID Type</label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left"><CreditCard className="w-5 h-5" /></span>
-                            <select
-                                className="input-glass w-full cursor-pointer"
-                                value={formData.id_type}
-                                onChange={(e) => setFormData({ ...formData, id_type: e.target.value })}
-                            >
-                                <option value="">Select ID Type...</option>
-                                <option value="NIC">NIC</option>
-                                <option value="Passport">Passport</option>
-                                <option value="Driving License">Driving License</option>
-                                <option value="CNIC">CNIC</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">ID No</label>
-                        <input className="input-glass w-full" value={formData.id_number} onChange={(e) => setFormData({ ...formData, id_number: e.target.value })} />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">ID Issued Date</label>
-                        <input
-                            type="date"
-                            className="input-glass w-full"
-                            value={formData.id_issued_date || ''}
-                            required={idTypeNeedsIssuedDate(formData.id_type)}
-                            onChange={(e) => setFormData({ ...formData, id_issued_date: e.target.value })}
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">ID Expire Date</label>
-                        <input
-                            type="date"
-                            className="input-glass w-full"
-                            value={formData.id_expiry || ''}
-                            onChange={(e) => {
-                                const newExpiry = e.target.value;
-                                const computed = computeIdStatusFromExpiry(newExpiry);
-                                setFormData((prev: any) => ({
-                                    ...prev,
-                                    id_expiry: newExpiry,
-                                    ...computed,
-                                }));
-                            }}
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Remitter AML Result</label>
-                        <div className="relative input-icon">
-                            <span className="input-icon-left"><Shield className="w-5 h-5" /></span>
-                            <select
-                                className={`input-glass w-full font-semibold transition-colors duration-200 ${formData.sender_aml_result === 'passed' || formData.sender_aml_result === 'manually passed' || formData.sender_aml_result === 'clear' ? 'text-emerald-600 dark:text-emerald-400' :
-                                    formData.sender_aml_result === 'review' ? 'text-amber-600 dark:text-amber-400' :
-                                        formData.sender_aml_result === 'hit' ? 'text-rose-600 dark:text-rose-400' :
-                                            'text-slate-600 dark:text-slate-400'
-                                    }`}
-                                value={formData.sender_aml_result}
-                                disabled={!canManuallyPassed}
-                                onChange={(e) => setFormData({ ...formData, sender_aml_result: e.target.value })}
-                            >
-                                <option value="pending" className="text-slate-700 dark:text-slate-200">Pending</option>
-                                <option value="passed" className="text-emerald-700 dark:text-emerald-400">Pass</option>
-                                <option value="manually passed" className="text-emerald-700 dark:text-emerald-400">Manually Passed</option>
-                                <option value="review" className="text-amber-700 dark:text-amber-400">Review</option>
-                                <option value="hit" className="text-rose-700 dark:text-rose-400">Hit</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    {formData.sender_aml_result !== initialAmlStatus && (
-                        <div className="md:col-span-2">
-                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
-                                Reason for AML Status Change <span className="text-red-500">*</span>
-                            </label>
-                            <textarea
-                                className="input-glass w-full p-3 h-24 resize-none"
-                                placeholder="Enter the reason why you are manually changing the AML status"
-                                value={formData.aml_status_change_reason}
-                                required
-                                onChange={(e) => setFormData({ ...formData, aml_status_change_reason: e.target.value })}
-                            />
-                        </div>
-                    )}
-
-                    {formData.sender_aml_result === initialAmlStatus && formData.aml_status_change_reason && (
-                        <div className="md:col-span-2">
-                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
-                                Previous AML Status Change Reason
-                            </label>
-                            <div className="input-glass w-full p-3 bg-slate-50/40 dark:bg-slate-900/30 text-slate-600 dark:text-slate-300 h-24 overflow-y-auto">
-                                {formData.aml_status_change_reason}
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Occupation</label>
+                            <div className="relative input-icon">
+                                <span className="input-icon-left"><Briefcase className="w-5 h-5" /></span>
+                                <select
+                                    required
+                                    className="input-glass w-full cursor-pointer"
+                                    value={formData.occupation}
+                                    onChange={(e) => setFormData({ ...formData, occupation: e.target.value })}
+                                >
+                                    <option value="">Select Occupation...</option>
+                                    {occupations.map((o: any) => (
+                                        <option key={o.id} value={o.name}>{o.name}</option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
-                    )}
-
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Mobile number</label>
+                            <div className="relative input-icon">
+                                <span className="input-icon-left"><Phone className="w-5 h-5" /></span>
+                                <input className="input-glass w-full" placeholder="Mobile number" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Section 4: Documents */}
-                <div className="border-t border-slate-100 dark:border-slate-800 pt-6 mt-6">
-                    <div className="flex items-center justify-between">
+                {/* Section 3: Address Details */}
+                <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
+                        <MapPin className="w-5 h-5 mr-2 text-teal-500" />
+                        Address Details
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <PostcodeLookup
+                                label="Postcode"
+                                name="postcode"
+                                value={formData.postcode || ''}
+                                onChange={(val) => setFormData((prev: any) => ({ ...prev, postcode: val }))}
+                                onAddressSelect={(addr: AddressData) => {
+                                    setFormData((prev: any) => ({
+                                        ...prev,
+                                        address_1: addr.address_1 || prev.address_1,
+                                        city: addr.city || prev.city,
+                                        country: addr.country || prev.country,
+                                    }));
+                                }}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Country</label>
+                            <select
+                                className="input-glass w-full py-3 px-4 cursor-pointer text-sm"
+                                value={formData.country}
+                                onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                            >
+                                <option value="">Select Country</option>
+                                {countries.map((c: any) => (
+                                    <option key={c.id} value={c.name}>{c.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Address 1</label>
+                            <input className="input-glass w-full" value={formData.address_1} onChange={(e) => setFormData({ ...formData, address_1: e.target.value })} />
+                        </div>
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Address 2</label>
+                            <input className="input-glass w-full" value={formData.address_2} onChange={(e) => setFormData({ ...formData, address_2: e.target.value })} />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">City</label>
+                            <input className="input-glass w-full" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Section 4: Identity Verification */}
+                <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
+                        <Shield className="w-5 h-5 mr-2 text-teal-500" />
+                        Identity Verification
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">ID Type</label>
+                            <div className="relative input-icon">
+                                <span className="input-icon-left"><CreditCard className="w-5 h-5" /></span>
+                                <select
+                                    className="input-glass w-full cursor-pointer"
+                                    value={formData.id_type}
+                                    onChange={(e) => setFormData({ ...formData, id_type: e.target.value })}
+                                >
+                                    <option value="">Select ID Type...</option>
+                                    <option value="NIC">NIC</option>
+                                    <option value="Passport">Passport</option>
+                                    <option value="Driving License">Driving License</option>
+                                    <option value="CNIC">CNIC</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">ID No</label>
+                            <input className="input-glass w-full" value={formData.id_number} onChange={(e) => setFormData({ ...formData, id_number: e.target.value })} />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">ID Issued Date</label>
+                            <input
+                                type="date"
+                                className="input-glass w-full"
+                                value={formData.id_issued_date || ''}
+                                required={idTypeNeedsIssuedDate(formData.id_type)}
+                                onChange={(e) => setFormData({ ...formData, id_issued_date: e.target.value })}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">ID Expire Date</label>
+                            <input
+                                type="date"
+                                className="input-glass w-full"
+                                value={formData.id_expiry || ''}
+                                onChange={(e) => {
+                                    const newExpiry = e.target.value;
+                                    const computed = computeIdStatusFromExpiry(newExpiry);
+                                    setFormData((prev: any) => ({
+                                        ...prev,
+                                        id_expiry: newExpiry,
+                                        ...computed,
+                                    }));
+                                }}
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Remitter AML Result</label>
+                            <div className="relative input-icon">
+                                <span className="input-icon-left"><Shield className="w-5 h-5" /></span>
+                                <select
+                                    className={`input-glass w-full font-semibold transition-colors duration-200 ${formData.sender_aml_result === 'passed' || formData.sender_aml_result === 'manually passed' || formData.sender_aml_result === 'clear' ? 'text-emerald-600 dark:text-emerald-400' :
+                                        formData.sender_aml_result === 'review' ? 'text-amber-600 dark:text-amber-400' :
+                                            formData.sender_aml_result === 'hit' ? 'text-rose-600 dark:text-rose-400' :
+                                                'text-slate-600 dark:text-slate-400'
+                                        }`}
+                                    value={formData.sender_aml_result}
+                                    disabled={!canManuallyPassed}
+                                    onChange={(e) => setFormData({ ...formData, sender_aml_result: e.target.value })}
+                                >
+                                    <option value="pending" className="text-slate-700 dark:text-slate-200">Pending</option>
+                                    <option value="passed" className="text-emerald-700 dark:text-emerald-400">Pass</option>
+                                    <option value="manually passed" className="text-emerald-700 dark:text-emerald-400">Manually Passed</option>
+                                    <option value="review" className="text-amber-700 dark:text-amber-400">Review</option>
+                                    <option value="hit" className="text-rose-700 dark:text-rose-400">Hit</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {formData.sender_aml_result !== initialAmlStatus && (
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
+                                    Reason for AML Status Change <span className="text-red-500">*</span>
+                                </label>
+                                <textarea
+                                    className="input-glass w-full p-3 h-24 resize-none"
+                                    placeholder="Enter the reason why you are manually changing the AML status"
+                                    value={formData.aml_status_change_reason}
+                                    required
+                                    onChange={(e) => setFormData({ ...formData, aml_status_change_reason: e.target.value })}
+                                />
+                            </div>
+                        )}
+
+                        {formData.sender_aml_result === initialAmlStatus && formData.aml_status_change_reason && (
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">
+                                    Previous AML Status Change Reason
+                                </label>
+                                <div className="input-glass w-full p-3 bg-slate-50/40 dark:bg-slate-900/30 text-slate-600 dark:text-slate-300 h-24 overflow-y-auto">
+                                    {formData.aml_status_change_reason}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Section 5: Documents */}
+                <div className="mb-8">
+                    <div className="flex items-center justify-between mb-6">
                         <div>
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
                                 <FileText className="w-5 h-5 mr-2 text-teal-500" />
@@ -1459,10 +1495,11 @@ export default function EditRemitterPage() {
                     </div>
                 </div>
 
-                <div className="flex justify-end space-x-4 pt-8 mt-6 border-t border-slate-100 dark:border-slate-700/50">
+                {/* Action Buttons */}
+                <div className="flex justify-end space-x-4 pt-8 mt-8 border-t border-slate-100 dark:border-slate-700/50">
                     <Link
                         href="/admin/remitters"
-                        className="px-6 py-3 rounded-full glass-effect text-slate-600 dark:text-slate-300 font-bold text-sm transition-colors"
+                        className="px-6 py-3 rounded-2xl bg-white/50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-sm transition-colors border border-slate-200 dark:border-slate-600"
                     >
                         Cancel
                     </Link>
