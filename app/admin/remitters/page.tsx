@@ -55,8 +55,19 @@ const resolveAmlStatus = (r: any): string => {
     return 'pending';
 };
 
-const resolveIdStatus = (r: any): 'Verified' | 'Pending' | 'Expired' => {
+const resolveIdStatus = (r: any): 'Valid' | 'Pending' | 'Expired' => {
     if (!r) return 'Pending';
+
+    if (r.id_expiry && String(r.id_expiry).trim()) {
+        const exp = new Date(r.id_expiry);
+        if (!isNaN(exp.getTime())) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (exp < today) return 'Expired';
+            return 'Valid';
+        }
+    }
+
     const isExpired = Boolean(r.id_expired) || 
                       String(r.id_expired || '').toLowerCase() === 'yes' || 
                       String(r.id_status || '').toLowerCase() === 'expired';
@@ -66,9 +77,10 @@ const resolveIdStatus = (r: any): 'Verified' | 'Pending' | 'Expired' => {
     const isVerified = String(r.id_verified || '').toLowerCase() === 'yes' ||
                        String(r.id_verified || '').toLowerCase() === 'verified' ||
                        r.id_verified === true ||
-                       String(r.id_status || '').toLowerCase() === 'verified';
+                       String(r.id_status || '').toLowerCase() === 'verified' ||
+                       String(r.id_status || '').toLowerCase() === 'valid';
 
-    if (isVerified) return 'Verified';
+    if (isVerified) return 'Valid';
 
     return 'Pending';
 };
@@ -1421,10 +1433,10 @@ export default function RemittersPage() {
                                                         </span>
                                                     );
                                                 }
-                                                if (st === 'Verified') {
+                                                if (st === 'Valid') {
                                                     return (
                                                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-                                                            Verified
+                                                            Valid
                                                         </span>
                                                     );
                                                 }
@@ -1670,8 +1682,8 @@ export default function RemittersPage() {
                                         if (st === 'Expired') {
                                             return <span className="rounded-full px-2.5 py-0.5 text-xs font-bold bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">Expired</span>;
                                         }
-                                        if (st === 'Verified') {
-                                            return <span className="rounded-full px-2.5 py-0.5 text-xs font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">Verified</span>;
+                                        if (st === 'Valid') {
+                                            return <span className="rounded-full px-2.5 py-0.5 text-xs font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">Valid</span>;
                                         }
                                         return <span className="rounded-full px-2.5 py-0.5 text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">Pending</span>;
                                     })()}

@@ -109,6 +109,23 @@ export default function EditRemitterPage() {
         fetchDilisenseSetting();
     }, []);
 
+    const computeIdStatusFromExpiry = (expiryDateStr: string) => {
+        if (!expiryDateStr || !expiryDateStr.trim()) {
+            return { id_status: 'verified', id_expired: false, id_verified: 'yes' };
+        }
+        const expiry = new Date(expiryDateStr);
+        if (isNaN(expiry.getTime())) {
+            return { id_status: 'verified', id_expired: false, id_verified: 'yes' };
+        }
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const isExpired = expiry < today;
+        if (isExpired) {
+            return { id_status: 'expired', id_expired: true, id_verified: 'no' };
+        }
+        return { id_status: 'verified', id_expired: false, id_verified: 'yes' };
+    };
+
     useEffect(() => {
         const fetchBranches = async () => {
             try {
@@ -345,7 +362,6 @@ export default function EditRemitterPage() {
                 county: data.county || '',
                 country: data.country || '',
                 occupation: data.occupation || '',
-                id_verified: data.id_verified || 'no',
                 proof_of_funds: data.proof_of_funds || 'no',
                 id_type: data.id_type || '',
                 id_number: data.id_number || '',
@@ -369,7 +385,9 @@ export default function EditRemitterPage() {
                 veriff_pep_sanction_match: data.veriff_pep_sanction_match || '',
                 registration_source: data.registration_source || '',
                 verification_state: data.verification_state || 'not_started',
-                id_expired: Boolean(data.id_expired),
+                id_status: computeIdStatusFromExpiry(data.id_expiry || '').id_status,
+                id_expired: computeIdStatusFromExpiry(data.id_expiry || '').id_expired,
+                id_verified: computeIdStatusFromExpiry(data.id_expiry || '').id_verified,
                 branch_veriff_enabled: Boolean(data.branch_veriff_enabled),
                 created_by: data.created_by || '',
                 created_at: data.created_at || '',
@@ -423,8 +441,10 @@ export default function EditRemitterPage() {
         setSubmitting(true);
 
         const payload = new FormData();
+        const computedIdStatus = computeIdStatusFromExpiry(formData.id_expiry || '');
         const basePayload = {
             ...formData,
+            ...computedIdStatus,
             branch: isPrivilegedUser ? formData.branch : (scopedBranchCode || formData.branch),
             name: formData.sender_name,
             sender_name: formData.sender_name,
@@ -1350,34 +1370,20 @@ export default function EditRemitterPage() {
                     </div>
                     <div>
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">ID Expire Date</label>
-                        <input type="date" className="input-glass w-full" value={formData.id_expiry || ''} onChange={(e) => setFormData({ ...formData, id_expiry: e.target.value })} />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">ID Status</label>
-                        <select
+                        <input
+                            type="date"
                             className="input-glass w-full"
-                            value={
-                                Boolean(formData.id_expired) || String(formData.id_status || '').toLowerCase() === 'expired'
-                                    ? 'expired'
-                                    : String(formData.id_verified || '').toLowerCase() === 'yes' || String(formData.id_verified || '').toLowerCase() === 'verified'
-                                        ? 'verified'
-                                        : 'pending'
-                            }
+                            value={formData.id_expiry || ''}
                             onChange={(e) => {
-                                const val = e.target.value;
-                                if (val === 'expired') {
-                                    setFormData({ ...formData, id_status: 'expired', id_expired: true, id_verified: 'no' });
-                                } else if (val === 'verified') {
-                                    setFormData({ ...formData, id_status: 'verified', id_expired: false, id_verified: 'yes' });
-                                } else {
-                                    setFormData({ ...formData, id_status: 'pending', id_expired: false, id_verified: 'no' });
-                                }
+                                const newExpiry = e.target.value;
+                                const computed = computeIdStatusFromExpiry(newExpiry);
+                                setFormData((prev: any) => ({
+                                    ...prev,
+                                    id_expiry: newExpiry,
+                                    ...computed,
+                                }));
                             }}
-                        >
-                            <option value="verified">Verified</option>
-                            <option value="pending">Pending</option>
-                            <option value="expired">Expired</option>
-                        </select>
+                        />
                     </div>
 
                     <div>
