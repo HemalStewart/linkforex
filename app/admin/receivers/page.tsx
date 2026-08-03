@@ -40,7 +40,22 @@ type Receiver = {
     [key: string]: unknown;
 };
 
-type ColumnKey = 'remitter' | 'name' | 'bank' | 'account' | 'country' | 'status' | 'amlStatus' | 'source' | 'veriffStatus' | 'createdAt';
+type ColumnKey =
+    | 'remitterBranch'
+    | 'remitterRefId'
+    | 'remitter'
+    | 'name'
+    | 'address'
+    | 'city'
+    | 'country'
+    | 'dob'
+    | 'mobileNumber'
+    | 'bank'
+    | 'account'
+    | 'status'
+    | 'amlStatus'
+    | 'source'
+    | 'createdAt';
 
 const asString = (value: unknown): string => {
     if (value === null || value === undefined) return '';
@@ -67,6 +82,52 @@ const statusBadgeClass = (value: unknown): string => {
         return 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300';
     }
     return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+};
+
+const getRemitterObj = (receiver: Receiver, map: Record<string, any>) => {
+    if (receiver.remitter && typeof receiver.remitter === 'object') {
+        return receiver.remitter as any;
+    }
+    if (receiver.customer_id && map[String(receiver.customer_id)]) {
+        return map[String(receiver.customer_id)];
+    }
+    if (receiver.remitter_id && map[String(receiver.remitter_id)]) {
+        return map[String(receiver.remitter_id)];
+    }
+    if (receiver.remitter_name && map[String(receiver.remitter_name).toLowerCase().trim()]) {
+        return map[String(receiver.remitter_name).toLowerCase().trim()];
+    }
+    if (receiver.customer_name && map[String(receiver.customer_name).toLowerCase().trim()]) {
+        return map[String(receiver.customer_name).toLowerCase().trim()];
+    }
+    return null;
+};
+
+const getRemitterBranch = (receiver: Receiver, map: Record<string, any>): string => {
+    const r = getRemitterObj(receiver, map);
+    if (r) {
+        const branch = r.branch_name || r.branch || r.remitter_branch || r.branch_code;
+        if (branch && branch !== '-') return String(branch);
+    }
+    return asString(receiver.remitter_branch || receiver.remitter_branch_name || receiver.customer_branch) || '-';
+};
+
+const getRemitterRefId = (receiver: Receiver, map: Record<string, any>): string => {
+    const r = getRemitterObj(receiver, map);
+    if (r) {
+        const refId = r.sender_id || r.ref_id || r.id_number || r.id_no || r.remitter_ref_id || r.customer_ref_id;
+        if (refId && refId !== '-') return String(refId);
+    }
+    return asString(receiver.remitter_ref_id || receiver.remitter_id_number || receiver.customer_ref_id) || '-';
+};
+
+const getRemitterName = (receiver: Receiver, map: Record<string, any>): string => {
+    const r = getRemitterObj(receiver, map);
+    if (r) {
+        const name = r.sender_name || r.name;
+        if (name && name !== '-') return String(name);
+    }
+    return asString(receiver.remitter_name || receiver.customer_name) || '-';
 };
 
 export default function ReceiversPage() {
@@ -166,6 +227,7 @@ export default function ReceiversPage() {
     };
 
     const [receivers, setReceivers] = useState<Receiver[]>([]);
+    const [remittersMap, setRemittersMap] = useState<Record<string, any>>({});
     const [loading, setLoading] = useState(true);
     const [updatingId, setUpdatingId] = useState<string | number | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -248,7 +310,25 @@ export default function ReceiversPage() {
     const fetchReceivers = async () => {
         setLoading(true);
         try {
-            const res = await fetch(ENDPOINTS.BENEFICIARIES.LIST);
+            const [res, remittersRes] = await Promise.all([
+                fetch(ENDPOINTS.BENEFICIARIES.LIST),
+                fetch(ENDPOINTS.REMITTERS.LIST).catch(() => null),
+            ]);
+
+            const map: Record<string, any> = {};
+            if (remittersRes && remittersRes.ok) {
+                const remittersData = await remittersRes.json().catch(() => []);
+                if (Array.isArray(remittersData)) {
+                    remittersData.forEach((r) => {
+                        if (r.id !== undefined && r.id !== null) map[String(r.id)] = r;
+                        if (r.sender_id) map[String(r.sender_id)] = r;
+                        if (r.name) map[String(r.name).toLowerCase().trim()] = r;
+                        if (r.sender_name) map[String(r.sender_name).toLowerCase().trim()] = r;
+                    });
+                }
+            }
+            setRemittersMap(map);
+
             if (res.ok) {
                 const data = (await res.json()) as Receiver[];
                 setReceivers(Array.isArray(data) ? data : []);
@@ -485,44 +565,59 @@ export default function ReceiversPage() {
         if (!term) return receivers;
         return receivers.filter((receiver) => {
             const text = [
-                receiver.remitter_name,
+                getRemitterBranch(receiver, remittersMap),
+                getRemitterRefId(receiver, remittersMap),
+                getRemitterName(receiver, remittersMap),
                 receiver.name,
+                receiver.address,
+                receiver.city,
+                receiver.country,
+                receiver.date_of_birth || receiver.dob,
+                receiver.mobile_number || receiver.phone_number || receiver.mobile,
                 receiver.bank_name,
                 receiver.account_number,
                 receiver.iban,
-                receiver.country,
                 receiver.status,
                 receiver.registration_source,
-                receiver.veriff_status,
             ]
                 .map((v) => asString(v).toLowerCase())
                 .join(' ');
             return text.includes(term);
         });
-    }, [receivers, searchQuery]);
+    }, [receivers, searchQuery, remittersMap]);
 
     const sortedReceivers = useMemo(() => {
         const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
         const valueFor = (receiver: Receiver): string => {
             switch (sortKey) {
+                case 'remitterBranch':
+                    return getRemitterBranch(receiver, remittersMap);
+                case 'remitterRefId':
+                    return getRemitterRefId(receiver, remittersMap);
                 case 'remitter':
-                    return asString(receiver.remitter_name);
+                    return getRemitterName(receiver, remittersMap);
                 case 'name':
                     return asString(receiver.name);
+                case 'address':
+                    return asString(receiver.address);
+                case 'city':
+                    return asString(receiver.city);
+                case 'country':
+                    return asString(receiver.country);
+                case 'dob':
+                    return asString(receiver.date_of_birth || receiver.dob);
+                case 'mobileNumber':
+                    return asString(receiver.mobile_number || receiver.phone_number || receiver.mobile);
                 case 'bank':
                     return asString(receiver.bank_name);
                 case 'account':
                     return asString(receiver.account_number || receiver.iban);
-                case 'country':
-                    return asString(receiver.country);
                 case 'status':
                     return asString(receiver.status);
                 case 'amlStatus':
                     return asString(receiver.aml_status);
                 case 'source':
                     return asString(receiver.registration_source);
-                case 'veriffStatus':
-                    return asString(receiver.veriff_status);
                 case 'createdAt':
                 default:
                     return asString(receiver.created_at);
@@ -538,7 +633,7 @@ export default function ReceiversPage() {
             const result = collator.compare(valueFor(a), valueFor(b));
             return sortDir === 'asc' ? result : -result;
         });
-    }, [filteredReceivers, sortKey, sortDir]);
+    }, [filteredReceivers, sortKey, sortDir, remittersMap]);
 
     const total = sortedReceivers.length;
     const totalPages = Math.max(1, Math.ceil(total / rowsPerPage));
@@ -549,15 +644,20 @@ export default function ReceiversPage() {
 
     const handleExportCsv = () => {
         const exportCols = [
+            { key: 'remitter_branch', label: 'Remitter Branch' },
+            { key: 'remitter_ref_id', label: 'Remitter Ref ID' },
             { key: 'remitter_name', label: 'Remitter Name' },
             { key: 'name', label: 'Receiver Name' },
+            { key: 'address', label: 'Address' },
+            { key: 'city', label: 'City' },
+            { key: 'country', label: 'Country' },
+            { key: 'date_of_birth', label: 'DOB' },
+            { key: 'mobile_number', label: 'Mobile Number' },
             { key: 'bank_name', label: 'Bank Name' },
             { key: 'account_number', label: 'Account / IBAN' },
-            { key: 'country', label: 'Country' },
-            { key: 'status', label: 'Status' },
-            { key: 'aml_status', label: 'AML Status' },
+            { key: 'status', label: 'Mobile Status' },
+            { key: 'aml_status', label: 'AML Result' },
             { key: 'registration_source', label: 'Source' },
-            { key: 'veriff_status', label: 'Veriff Status' },
             ...(showCreatedBy ? [{ key: 'created_by', label: 'Created By' }] : []),
             ...(showCreatedAt ? [{ key: 'created_at', label: 'Created At' }] : []),
             ...(showUpdatedBy ? [{ key: 'updated_by', label: 'Updated By' }] : []),
@@ -569,7 +669,17 @@ export default function ReceiversPage() {
             exportCols
                 .map((col) => {
                     let value = row[col.key];
-                    if (col.key === 'account_number') {
+                    if (col.key === 'remitter_branch') {
+                        value = getRemitterBranch(row, remittersMap);
+                    } else if (col.key === 'remitter_ref_id') {
+                        value = getRemitterRefId(row, remittersMap);
+                    } else if (col.key === 'remitter_name') {
+                        value = getRemitterName(row, remittersMap);
+                    } else if (col.key === 'date_of_birth') {
+                        value = row.date_of_birth || row.dob || '';
+                    } else if (col.key === 'mobile_number') {
+                        value = row.mobile_number || row.phone_number || row.mobile || '';
+                    } else if (col.key === 'account_number') {
                         value = row.account_number || row.iban || '';
                     } else if (col.key === 'registration_source') {
                         value = normalize(row.registration_source) === 'mobile_app' ? 'Mobile App' : 'Web';
@@ -579,7 +689,7 @@ export default function ReceiversPage() {
                             : (normalize(row.registration_source) === 'mobile_app' ? 'mobile user' : 'admin');
                     } else if (col.key === 'created_at' || col.key === 'updated_at') {
                         value = value ? formatDateTime(String(value)) : '';
-                    } else if (col.key === 'status' || col.key === 'aml_status' || col.key === 'veriff_status') {
+                    } else if (col.key === 'status' || col.key === 'aml_status') {
                         value = formatStatus(value);
                     }
                     return csvEscape(value === null || value === undefined ? '' : String(value));
@@ -676,13 +786,48 @@ export default function ReceiversPage() {
                                     {canEdit && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Edit"><Edit2 className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                     {canPdf && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="AML PDF"><FileText className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                        <button onClick={() => toggleSort('remitterBranch')} className="flex items-center gap-2">
+                                            Remitter Branch <SortIndicator active={sortKey === 'remitterBranch'} dir={sortDir} />
+                                        </button>
+                                    </th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                        <button onClick={() => toggleSort('remitterRefId')} className="flex items-center gap-2">
+                                            Remitter Ref ID <SortIndicator active={sortKey === 'remitterRefId'} dir={sortDir} />
+                                        </button>
+                                    </th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('remitter')} className="flex items-center gap-2">
-                                            Remitter <SortIndicator active={sortKey === 'remitter'} dir={sortDir} />
+                                            Remitter Name <SortIndicator active={sortKey === 'remitter'} dir={sortDir} />
                                         </button>
                                     </th>
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('name')} className="flex items-center gap-2">
-                                            Name <SortIndicator active={sortKey === 'name'} dir={sortDir} />
+                                            Receiver Name <SortIndicator active={sortKey === 'name'} dir={sortDir} />
+                                        </button>
+                                    </th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                        <button onClick={() => toggleSort('address')} className="flex items-center gap-2">
+                                            Address <SortIndicator active={sortKey === 'address'} dir={sortDir} />
+                                        </button>
+                                    </th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                        <button onClick={() => toggleSort('city')} className="flex items-center gap-2">
+                                            City <SortIndicator active={sortKey === 'city'} dir={sortDir} />
+                                        </button>
+                                    </th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                        <button onClick={() => toggleSort('country')} className="flex items-center gap-2">
+                                            Country <SortIndicator active={sortKey === 'country'} dir={sortDir} />
+                                        </button>
+                                    </th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                        <button onClick={() => toggleSort('dob')} className="flex items-center gap-2">
+                                            DOB <SortIndicator active={sortKey === 'dob'} dir={sortDir} />
+                                        </button>
+                                    </th>
+                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                        <button onClick={() => toggleSort('mobileNumber')} className="flex items-center gap-2">
+                                            Mobile Number <SortIndicator active={sortKey === 'mobileNumber'} dir={sortDir} />
                                         </button>
                                     </th>
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
@@ -696,28 +841,18 @@ export default function ReceiversPage() {
                                         </button>
                                     </th>
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
-                                        <button onClick={() => toggleSort('country')} className="flex items-center gap-2">
-                                            Country <SortIndicator active={sortKey === 'country'} dir={sortDir} />
-                                        </button>
-                                    </th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('status')} className="flex items-center gap-2">
                                             Mobile Status <SortIndicator active={sortKey === 'status'} dir={sortDir} />
                                         </button>
                                     </th>
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('amlStatus')} className="flex items-center gap-2">
-                                            AML Status <SortIndicator active={sortKey === 'amlStatus'} dir={sortDir} />
+                                            AML Result <SortIndicator active={sortKey === 'amlStatus'} dir={sortDir} />
                                         </button>
                                     </th>
                                     <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                         <button onClick={() => toggleSort('source')} className="flex items-center gap-2">
                                             Source <SortIndicator active={sortKey === 'source'} dir={sortDir} />
-                                        </button>
-                                    </th>
-                                    <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
-                                        <button onClick={() => toggleSort('veriffStatus')} className="flex items-center gap-2">
-                                            Veriff <SortIndicator active={sortKey === 'veriffStatus'} dir={sortDir} />
                                         </button>
                                     </th>
                                     {showCreatedBy && <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">Created By</th>}
@@ -760,42 +895,69 @@ export default function ReceiversPage() {
                                                     </button>
                                                 </td>
                                             )}
-                                            <td className="px-4 py-4 text-sm font-semibold text-slate-900 dark:text-white">
-                                                {asString(receiver.remitter_name) || '-'}
+                                            {/* Remitter Branch */}
+                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
+                                                {getRemitterBranch(receiver, remittersMap)}
                                             </td>
+                                            {/* Remitter Ref ID */}
+                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 font-mono">
+                                                {getRemitterRefId(receiver, remittersMap)}
+                                            </td>
+                                            {/* Remitter Name */}
+                                            <td className="px-4 py-4 text-sm font-semibold text-slate-900 dark:text-white">
+                                                {getRemitterName(receiver, remittersMap)}
+                                            </td>
+                                            {/* Receiver Name */}
                                             <td className="px-4 py-4 text-sm font-semibold text-slate-900 dark:text-white">
                                                 {asString(receiver.name) || '-'}
                                             </td>
+                                            {/* Address */}
+                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
+                                                {asString(receiver.address) || '-'}
+                                            </td>
+                                            {/* City */}
+                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
+                                                {asString(receiver.city) || '-'}
+                                            </td>
+                                            {/* Country */}
+                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
+                                                {asString(receiver.country) || '-'}
+                                            </td>
+                                            {/* DOB */}
+                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                                                {asString(receiver.date_of_birth || receiver.dob) || '-'}
+                                            </td>
+                                            {/* Mobile Number */}
+                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 font-mono">
+                                                {asString(receiver.mobile_number || receiver.phone_number || receiver.mobile) || '-'}
+                                            </td>
+                                            {/* Bank */}
                                             <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
                                                 <div className="inline-flex items-center gap-2">
                                                     <Building2 className="w-4 h-4 text-slate-400" />
                                                     <span>{asString(receiver.bank_name) || '-'}</span>
                                                 </div>
                                             </td>
+                                            {/* Account / IBAN */}
                                             <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 font-mono">
                                                 {asString(receiver.account_number || receiver.iban) || '-'}
                                             </td>
-                                            <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
-                                                {asString(receiver.country) || '-'}
-                                            </td>
+                                            {/* Mobile Status */}
                                             <td className="px-4 py-4">
                                                 <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold ${statusBadgeClass(receiver.status)}`}>
                                                     {formatStatus(receiver.status)}
                                                 </span>
                                             </td>
+                                            {/* AML Result */}
                                             <td className="px-4 py-4">
                                                 <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold border ${getAmlBadgeClass(String(receiver.aml_status || 'pending'))}`}>
                                                     {formatStatus(receiver.aml_status || 'pending')}
                                                 </span>
                                             </td>
+                                            {/* Source */}
                                             <td className="px-4 py-4">
                                                 <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold border ${getSourceBadgeClass(String(receiver.registration_source || 'web'))}`}>
                                                     {normalize(receiver.registration_source) === 'mobile_app' ? 'Mobile App' : 'Web'}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-4">
-                                                <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold border ${getVeriffBadgeClass(String(receiver.veriff_status || 'not_applicable'))}`}>
-                                                    {formatStatus(receiver.veriff_status || 'N/A')}
                                                 </span>
                                             </td>
                                             {showCreatedBy && (
