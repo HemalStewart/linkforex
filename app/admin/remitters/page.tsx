@@ -1609,6 +1609,10 @@ export default function RemittersPage() {
                             <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4 space-y-2">
                                 <p className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Identity & Contact</p>
                                 <div>
+                                    <p className="text-xs text-slate-400">Branch</p>
+                                    <p className="text-sm font-bold text-slate-900 dark:text-white">{viewOverviewRemitter.branch_name || '-'}</p>
+                                </div>
+                                <div>
                                     <p className="text-xs text-slate-400">Reference ID</p>
                                     <p className="text-sm font-bold text-slate-900 dark:text-white">{viewOverviewRemitter.sender_id || '-'}</p>
                                 </div>
@@ -1620,25 +1624,23 @@ export default function RemittersPage() {
                                     <p className="text-xs text-slate-400">Country of Birth</p>
                                     <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{viewOverviewRemitter.place_of_birth || '-'}</p>
                                 </div>
-                                {viewOverviewRemitter.telephone && (
-                                    <div>
-                                        <p className="text-xs text-slate-400">Mobile Number</p>
-                                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{viewOverviewRemitter.telephone}</p>
-                                    </div>
-                                )}
                             </div>
 
-                            {/* Branch & Address */}
+                            {/* Address & Contact */}
                             <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4 space-y-2">
-                                <p className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Branch & Address</p>
+                                <p className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Address & Contact</p>
                                 <div>
-                                    <p className="text-xs text-slate-400">Branch</p>
-                                    <p className="text-sm font-bold text-slate-900 dark:text-white">{viewOverviewRemitter.branch_name || '-'}</p>
+                                    <p className="text-xs text-slate-400">Mobile Number</p>
+                                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                        {viewOverviewRemitter.telephone && viewOverviewRemitter.telephone !== '-' ? viewOverviewRemitter.telephone : (viewOverviewRemitter.phone || '-')}
+                                    </p>
                                 </div>
-                                <div>
-                                    <p className="text-xs text-slate-400">Occupation</p>
-                                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{viewOverviewRemitter.occupation || '-'}</p>
-                                </div>
+                                {viewOverviewRemitter.email && viewOverviewRemitter.email !== '-' && (
+                                    <div>
+                                        <p className="text-xs text-slate-400">Email</p>
+                                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{viewOverviewRemitter.email}</p>
+                                    </div>
+                                )}
                                 <div>
                                     <p className="text-xs text-slate-400">Address</p>
                                     <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{viewOverviewRemitter.address_1 || '-'}</p>
