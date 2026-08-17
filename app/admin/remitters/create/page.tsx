@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import {
     branchMatchesAdminScope,
-    getAdminBranchCode,
     getCurrentAdminUser,
     isPrivilegedAdminUser,
     withActingUserParam,
@@ -306,10 +305,11 @@ export default function CreateRemitterPage() {
     const returnUrl = searchParams.get('returnUrl');
     const currentUser = React.useMemo(() => getCurrentAdminUser(), []);
     const isPrivilegedUser = React.useMemo(() => isPrivilegedAdminUser(currentUser), [currentUser]);
-    const scopedBranchCode = React.useMemo(() => getAdminBranchCode(currentUser), [currentUser]);
     const { canMultiBranch } = usePagePermissions('BRANCHES');
 
     const [branches, setBranches] = useState<any[]>([]);
+    const [branchesLoaded, setBranchesLoaded] = useState(false);
+    const [selectedBranch, setSelectedBranch] = useState('');
     const [idType, setIdType] = useState('Passport');
     const [country, setCountry] = useState('United Kingdom');
     const [postcode, setPostcode] = useState('');
@@ -370,6 +370,8 @@ export default function CreateRemitterPage() {
                 }
             } catch (e) {
                 console.error("Failed to fetch branches", e);
+            } finally {
+                setBranchesLoaded(true);
             }
         };
         const fetchCountries = async () => {
@@ -433,10 +435,12 @@ export default function CreateRemitterPage() {
     }, [occupations]);
 
     const branchOptions = React.useMemo<SelectOption[]>(() => {
-        const source = branches.length > 0 ? branches : (scopedBranchCode ? [{ code: scopedBranchCode, name: scopedBranchCode }] : []);
+        if (!branchesLoaded) return [];
+
+        const source = branches;
         const scoped = (isPrivilegedUser || canMultiBranch) ? source : source.filter((branch) => branchMatchesAdminScope(branch, currentUser));
         const senderBranches = scoped.filter(isSenderBranch);
-        const filtered = branches.length > 0 ? senderBranches : scoped;
+        const filtered = senderBranches;
         const seen = new Set<string>();
         const options = filtered
             .map((branch) => {
@@ -450,8 +454,25 @@ export default function CreateRemitterPage() {
                 return true;
             });
         const sorted = [...options].sort((a, b) => Number(isLondonBranchOption(b)) - Number(isLondonBranchOption(a)));
-        return sorted.length > 0 ? sorted : [{ value: 'London - Link Forex Ltd', label: 'London - Link Forex Ltd' }];
-    }, [branches, currentUser, isPrivilegedUser, scopedBranchCode, canMultiBranch]);
+        return sorted;
+    }, [branches, branchesLoaded, currentUser, isPrivilegedUser, canMultiBranch]);
+
+    React.useEffect(() => {
+        if (branchOptions.length === 0) return;
+
+        setSelectedBranch((current) => {
+            if (current && branchOptions.some((option) => (typeof option === 'string' ? option : option.value) === current)) {
+                return current;
+            }
+
+            const preferred = branchOptions.find((option) => {
+                const normalized = typeof option === 'string' ? { value: option, label: option } : option;
+                return isLondonBranchOption(normalized);
+            }) ?? branchOptions[0];
+
+            return typeof preferred === 'string' ? preferred : preferred.value;
+        });
+    }, [branchOptions]);
 
     const hasMinimumDuplicateSignals = React.useCallback((signals: typeof duplicateFormSignals): boolean => {
         const senderId = (signals.sender_id || '').trim();
@@ -957,8 +978,9 @@ export default function CreateRemitterPage() {
                                 Icon={Building}
                                 options={branchOptions}
                                 required
-                                disabled={!isPrivilegedUser && !canMultiBranch}
-                                defaultValue={typeof branchOptions[0] === 'string' ? branchOptions[0] : branchOptions[0]?.value}
+                                disabled={!branchesLoaded || (!isPrivilegedUser && !canMultiBranch)}
+                                value={selectedBranch}
+                                onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setSelectedBranch(event.target.value)}
                             />
                         </div>
                     </div>
