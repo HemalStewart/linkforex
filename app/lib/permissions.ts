@@ -72,8 +72,8 @@ export const ADMIN_PAGES_CONFIG: AdminCategoryInfo[] = [
         category: 'Operations',
         pages: [
             { name: 'Transfers', section: 'TRANSFERS', operations: ['VIEW', 'CREATE', 'EDIT', 'APPROVE', 'CANCEL', 'PDF', 'EXPORT', 'PRINT', 'SIGN', ...AUDIT_OPS] },
-            { name: 'Remitters', section: 'REMITTERS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'PDF', 'EXPORT', 'MANUALLY_PASSED', 'RE_SCREENING', 'DILISENSE_SCREENING', 'DELETE_COMPLIANCE_REPORT', 'DELETE_REPORTS', 'UPLOAD_REPORTS', 'BATCH_SCREENING', ...AUDIT_OPS] },
-            { name: 'Receivers', section: 'RECEIVERS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'PDF', 'EXPORT', 'MANUALLY_PASSED', 'RE_SCREENING', 'DILISENSE_SCREENING', 'DELETE_COMPLIANCE_REPORT', ...AUDIT_OPS] },
+            { name: 'Remitters', section: 'REMITTERS', operations: ['VIEW', 'EDIT', 'DELETE', 'PDF', 'MANUALLY_PASSED', 'RE_SCREENING', 'DILISENSE_SCREENING', 'DELETE_COMPLIANCE_REPORT', 'DELETE_REPORTS', 'UPLOAD_REPORTS', 'BATCH_SCREENING', ...AUDIT_OPS] },
+            { name: 'Receivers', section: 'RECEIVERS', operations: ['VIEW', 'EDIT', 'DELETE', 'PDF', 'MANUALLY_PASSED', 'RE_SCREENING', 'DILISENSE_SCREENING', 'DELETE_COMPLIANCE_REPORT', ...AUDIT_OPS] },
             { name: 'Branch Access Flags', section: 'BRANCH_ACCESS_REQUESTS', operations: ['VIEW', 'APPROVE', 'CANCEL', ...AUDIT_OPS] },
             { name: 'Support', section: 'SUPPORT', operations: ['VIEW', 'EDIT', 'DELETE', ...AUDIT_OPS] },
             { name: 'Branch Rates', section: 'BRANCH_CURRENCY_RATES', operations: ['VIEW', 'CREATE', ...AUDIT_OPS] }
