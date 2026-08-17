@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import {
     branchMatchesAdminScope,
+    getAdminBranchCode,
     getCurrentAdminUser,
     isPrivilegedAdminUser,
     withActingUserParam,
@@ -305,11 +306,13 @@ export default function CreateRemitterPage() {
     const returnUrl = searchParams.get('returnUrl');
     const currentUser = React.useMemo(() => getCurrentAdminUser(), []);
     const isPrivilegedUser = React.useMemo(() => isPrivilegedAdminUser(currentUser), [currentUser]);
-    const { canMultiBranch } = usePagePermissions('BRANCHES');
+    const { canMultiBranch } = usePagePermissions('REMITTERS');
+    const scopedBranchCode = React.useMemo(() => getAdminBranchCode(currentUser), [currentUser]);
 
     const [branches, setBranches] = useState<any[]>([]);
     const [branchesLoaded, setBranchesLoaded] = useState(false);
     const [selectedBranch, setSelectedBranch] = useState('');
+    const [lastSenderId, setLastSenderId] = useState<string | null>(null);
     const [idType, setIdType] = useState('Passport');
     const [country, setCountry] = useState('United Kingdom');
     const [postcode, setPostcode] = useState('');
@@ -474,6 +477,42 @@ export default function CreateRemitterPage() {
             return typeof preferred === 'string' ? preferred : preferred.value;
         });
     }, [branchOptions]);
+
+    React.useEffect(() => {
+        if (!canMultiBranch && scopedBranchCode) {
+            setSelectedBranch(scopedBranchCode);
+        }
+    }, [canMultiBranch, scopedBranchCode]);
+
+    const senderIdBranch = canMultiBranch ? selectedBranch : scopedBranchCode;
+
+    React.useEffect(() => {
+        if (!senderIdBranch) {
+            setLastSenderId(null);
+            return;
+        }
+
+        const controller = new AbortController();
+        const loadLastSenderId = async () => {
+            try {
+                const query = new URLSearchParams({ branch: senderIdBranch });
+                const response = await fetch(
+                    withActingUserParam(`${ENDPOINTS.REMITTERS.LAST_SENDER_ID}?${query.toString()}`, currentUser),
+                    { signal: controller.signal },
+                );
+                if (!response.ok) return;
+                const data = await response.json();
+                setLastSenderId(data?.last_sender_id ? String(data.last_sender_id) : null);
+            } catch (error) {
+                if ((error as Error).name !== 'AbortError') {
+                    console.error('Failed to load the last remitter reference ID', error);
+                }
+            }
+        };
+
+        void loadLastSenderId();
+        return () => controller.abort();
+    }, [currentUser, senderIdBranch]);
 
     const hasMinimumDuplicateSignals = React.useCallback((signals: typeof duplicateFormSignals): boolean => {
         const senderId = (signals.sender_id || '').trim();
@@ -821,6 +860,7 @@ export default function CreateRemitterPage() {
 
             // Individual Fields
             date_of_birth: data.date_of_birth,
+            gender: data.gender,
             place_of_birth: data.place_of_birth,
             occupation: data.occupation,
 
@@ -965,27 +1005,28 @@ export default function CreateRemitterPage() {
             <form onSubmit={handleSubmit} className="card-glass p-8 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
-                {/* Section 1: Branch setup */}
-                <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
-                        <Users className="w-5 h-5 mr-2 text-teal-500" />
-                        Account Setup
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div>
-                            <FormSelect
-                                label="Branch"
-                                name="branch_id"
-                                Icon={Building}
-                                options={branchOptions}
-                                required
-                                disabled={!branchesLoaded || (!isPrivilegedUser && !canMultiBranch)}
-                                value={selectedBranch}
-                                onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setSelectedBranch(event.target.value)}
-                            />
+                {canMultiBranch && (
+                    <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
+                            <Users className="w-5 h-5 mr-2 text-teal-500" />
+                            Account Setup
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div>
+                                <FormSelect
+                                    label="Branch"
+                                    name="branch_id"
+                                    Icon={Building}
+                                    options={branchOptions}
+                                    required
+                                    disabled={!branchesLoaded}
+                                    value={selectedBranch}
+                                    onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setSelectedBranch(event.target.value)}
+                                />
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
 
                 {/* Section 2: Personal Details */}
                 <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
@@ -994,15 +1035,20 @@ export default function CreateRemitterPage() {
                         Personal Details
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormInput
-                            label="Reference ID"
-                            name="sender_id"
-                            placeholder="Enter Reference ID"
-                            required
-                            Icon={CreditCard}
-                            warning={fieldWarnings.sender_id}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, sender_id: e.target.value }))}
-                        />
+                        <div>
+                            <FormInput
+                                label="Reference ID"
+                                name="sender_id"
+                                placeholder="Enter Reference ID"
+                                required
+                                Icon={CreditCard}
+                                warning={fieldWarnings.sender_id}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, sender_id: e.target.value }))}
+                            />
+                            <p className="mt-1.5 ml-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+                                Last saved Reference ID: <span className="font-semibold text-slate-700 dark:text-slate-200">{lastSenderId || 'None'}</span>
+                            </p>
+                        </div>
                         <FormInput
                             label="Full Name"
                             name="sender_name"
@@ -1019,6 +1065,18 @@ export default function CreateRemitterPage() {
                             required
                             Icon={Calendar}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuplicateFormSignals((prev) => ({ ...prev, date_of_birth: e.target.value }))}
+                        />
+                        <FormSelect
+                            label="Gender"
+                            name="gender"
+                            Icon={User}
+                            options={[
+                                { value: '', label: 'Select Gender' },
+                                { value: 'Male', label: 'Male' },
+                                { value: 'Female', label: 'Female' },
+                                { value: 'Other', label: 'Other' },
+                                { value: 'Prefer not to say', label: 'Prefer not to say' },
+                            ]}
                         />
                         <FormSelect label="Country of Birth" name="place_of_birth" Icon={Globe} options={countryOfBirthOptions} />
                         <FormSelect label="Occupation" name="occupation" Icon={Briefcase} options={occupationOptions} required />

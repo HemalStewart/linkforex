@@ -77,8 +77,7 @@ export default function EditRemitterPage() {
     const currentUser = React.useMemo(() => getCurrentAdminUser(), []);
     const isPrivilegedUser = React.useMemo(() => isPrivilegedAdminUser(currentUser), [currentUser]);
     const scopedBranchCode = React.useMemo(() => getAdminBranchCode(currentUser), [currentUser]);
-    const { canManuallyPassed, canPdf, canReScreening, canDilisenseScreening, canDeleteComplianceReport } = usePagePermissions('REMITTERS');
-    const { canMultiBranch } = usePagePermissions('BRANCHES');
+    const { canManuallyPassed, canPdf, canReScreening, canDilisenseScreening, canDeleteComplianceReport, canMultiBranch } = usePagePermissions('REMITTERS');
 
     const [loading, setLoading] = useState(true);
     const [notFound, setNotFound] = useState(false);
@@ -157,6 +156,7 @@ export default function EditRemitterPage() {
         sender_name: '',
         status: 'active',
         dob: '',
+        gender: '',
         place_of_birth: '',
         phone: '',
         postcode: '',
@@ -353,6 +353,7 @@ export default function EditRemitterPage() {
                 sender_id: data.sender_id || '',
                 status: (data.status || 'inactive').toLowerCase() === 'active' ? 'active' : 'inactive',
                 dob: data.dob || '',
+                gender: data.gender || '',
                 place_of_birth: data.place_of_birth || '',
                 phone: data.phone || '',
                 postcode: data.postcode || '',
@@ -445,7 +446,7 @@ export default function EditRemitterPage() {
         const basePayload = {
             ...formData,
             ...computedIdStatus,
-            branch: isPrivilegedUser ? formData.branch : (scopedBranchCode || formData.branch),
+            branch: (isPrivilegedUser || canMultiBranch) ? formData.branch : (scopedBranchCode || formData.branch),
             name: formData.sender_name,
             sender_name: formData.sender_name,
             active: formData.status === 'active' ? 'Active' : 'Inactive'
@@ -1227,7 +1228,8 @@ export default function EditRemitterPage() {
             <form onSubmit={handleSubmit} className="card-glass p-8 relative overflow-hidden space-y-8">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
-                {/* Section 1: Account Setup */}
+                {/* Branch selection is only available to staff with cross-branch remitter access. */}
+                {canMultiBranch && (
                 <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center">
                         <Building className="w-5 h-5 mr-2 text-teal-500" />
@@ -1240,8 +1242,7 @@ export default function EditRemitterPage() {
                                 <span className="input-icon-left"><Building className="w-5 h-5" /></span>
                                 <select
                                     required
-                                    disabled={!isPrivilegedUser && !canMultiBranch}
-                                    className="input-glass w-full pr-10 appearance-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                                    className="input-glass w-full pr-10 appearance-none cursor-pointer"
                                     value={formData.branch}
                                     onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
                                 >
@@ -1259,6 +1260,7 @@ export default function EditRemitterPage() {
                         </div>
                     </div>
                 </div>
+                )}
 
                 {/* Section 2: Personal Details */}
                 <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
@@ -1287,6 +1289,20 @@ export default function EditRemitterPage() {
                                 <span className="input-icon-left"><Calendar className="w-5 h-5" /></span>
                                 <input type="date" className="input-glass w-full" value={formData.dob || ''} onChange={(e) => setFormData({ ...formData, dob: e.target.value })} />
                             </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Gender</label>
+                            <select
+                                className="input-glass w-full py-3 px-4 cursor-pointer text-sm"
+                                value={formData.gender || ''}
+                                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                            >
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                                <option value="Prefer not to say">Prefer not to say</option>
+                            </select>
                         </div>
                         <div>
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Country of Birth</label>

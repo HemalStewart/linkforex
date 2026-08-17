@@ -72,7 +72,7 @@ export const ADMIN_PAGES_CONFIG: AdminCategoryInfo[] = [
         category: 'Operations',
         pages: [
             { name: 'Transfers', section: 'TRANSFERS', operations: ['VIEW', 'CREATE', 'EDIT', 'APPROVE', 'CANCEL', 'PDF', 'EXPORT', 'PRINT', 'SIGN', ...AUDIT_OPS] },
-            { name: 'Remitters', section: 'REMITTERS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'PDF', 'MANUALLY_PASSED', 'RE_SCREENING', 'DILISENSE_SCREENING', 'DELETE_COMPLIANCE_REPORT', 'DELETE_REPORTS', 'UPLOAD_REPORTS', 'BATCH_SCREENING', ...AUDIT_OPS] },
+            { name: 'Remitters', section: 'REMITTERS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'PDF', 'MULTI_BRANCH', 'MANUALLY_PASSED', 'RE_SCREENING', 'DILISENSE_SCREENING', 'DELETE_COMPLIANCE_REPORT', 'DELETE_REPORTS', 'UPLOAD_REPORTS', 'BATCH_SCREENING', ...AUDIT_OPS] },
             { name: 'Receivers', section: 'RECEIVERS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'PDF', 'MANUALLY_PASSED', 'RE_SCREENING', 'DILISENSE_SCREENING', 'DELETE_COMPLIANCE_REPORT', ...AUDIT_OPS] },
             { name: 'Branch Access Flags', section: 'BRANCH_ACCESS_REQUESTS', operations: ['VIEW', 'APPROVE', 'CANCEL', ...AUDIT_OPS] },
             { name: 'Support', section: 'SUPPORT', operations: ['VIEW', 'EDIT', 'DELETE', ...AUDIT_OPS] },
@@ -82,7 +82,7 @@ export const ADMIN_PAGES_CONFIG: AdminCategoryInfo[] = [
     {
         category: 'Master Data',
         pages: [
-            { name: 'Branches', section: 'BRANCHES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'MULTI_BRANCH', ...AUDIT_OPS] },
+            { name: 'Branches', section: 'BRANCHES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
             { name: 'Transaction Settings', section: 'TRANSACTION_SETTINGS', operations: ['VIEW', 'EDIT'] },
             { name: 'Integration Usage', section: 'API_TOKENS', operations: ['VIEW', 'EDIT'] },
             { name: 'Dilisense Sources', section: 'DILISENSE_SOURCES', operations: ['VIEW', 'EDIT', 'DELETE', 'EDIT_FUZZY_SEARCH', 'SYNC_SOURCES', ...AUDIT_OPS] },

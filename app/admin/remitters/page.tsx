@@ -18,11 +18,6 @@ import { useAuditColumns, usePagePermissions, checkPermission } from '@/app/lib/
 
 type SortDir = 'asc' | 'desc';
 
-const csvEscape = (value: unknown): string => {
-    const text = String(value ?? '').replace(/"/g, '""');
-    return `"${text}"`;
-};
-
 const resolveAmlStatus = (r: any): string => {
     if (!r) return 'pending';
 
@@ -55,7 +50,7 @@ const resolveAmlStatus = (r: any): string => {
     return 'pending';
 };
 
-const resolveIdStatus = (r: any): 'Valid' | 'Pending' | 'Expired' => {
+const resolveIdStatus = (r: any): 'Valid ID' | 'Pending' | 'ID Expired' => {
     if (!r) return 'Pending';
 
     if (r.id_expiry && String(r.id_expiry).trim()) {
@@ -63,8 +58,8 @@ const resolveIdStatus = (r: any): 'Valid' | 'Pending' | 'Expired' => {
         if (!isNaN(exp.getTime())) {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            if (exp < today) return 'Expired';
-            return 'Valid';
+            if (exp < today) return 'ID Expired';
+            return 'Valid ID';
         }
     }
 
@@ -72,7 +67,7 @@ const resolveIdStatus = (r: any): 'Valid' | 'Pending' | 'Expired' => {
                       String(r.id_expired || '').toLowerCase() === 'yes' || 
                       String(r.id_status || '').toLowerCase() === 'expired';
 
-    if (isExpired) return 'Expired';
+    if (isExpired) return 'ID Expired';
 
     const isVerified = String(r.id_verified || '').toLowerCase() === 'yes' ||
                        String(r.id_verified || '').toLowerCase() === 'verified' ||
@@ -80,7 +75,7 @@ const resolveIdStatus = (r: any): 'Valid' | 'Pending' | 'Expired' => {
                        String(r.id_status || '').toLowerCase() === 'verified' ||
                        String(r.id_status || '').toLowerCase() === 'valid';
 
-    if (isVerified) return 'Valid';
+    if (isVerified) return 'Valid ID';
 
     return 'Pending';
 };
@@ -100,7 +95,7 @@ const isQuotaLimitError = (data: any): boolean => {
 
 export default function RemittersPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('REMITTERS');
-    const { canAdd, canEdit, canDelete, canPdf, canExport, canReScreening, canDilisenseScreening, canDeleteComplianceReport, canBatchScreening } = usePagePermissions('REMITTERS');
+    const { canAdd, canEdit, canDelete, canPdf, canReScreening, canDilisenseScreening, canDeleteComplianceReport, canBatchScreening, canMultiBranch } = usePagePermissions('REMITTERS');
     const currentUser = useMemo(() => getCurrentAdminUser(), []);
     const [selectedRemitter, setSelectedRemitter] = useState<any | null>(null);
     const [viewOverviewRemitter, setViewOverviewRemitter] = useState<any | null>(null);
@@ -495,31 +490,6 @@ export default function RemittersPage() {
     const startIndex = total === 0 ? 0 : (currentPage - 1) * rowsPerPage;
     const endIndex = Math.min(startIndex + rowsPerPage, total);
     const pagedRows = sortedRows.slice(startIndex, endIndex);
-
-    const handleExportCsv = () => {
-        const exportColumns = columns.filter((column) => !['id_copy', 'other_doc', 'work_related_doc', 'sender_aml_doc'].includes(column.key));
-        const header = exportColumns.map((column) => csvEscape(column.label)).join(',');
-        const body = sortedRows.map((row) => (
-            exportColumns
-                .map((column) => {
-                    const value = row[column.key];
-                    if (typeof value === 'number') return csvEscape(value.toString());
-                    return csvEscape(value === null || value === undefined ? '' : String(value));
-                })
-                .join(',')
-        ));
-
-        const csv = [header, ...body].join('\n');
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const anchor = document.createElement('a');
-        anchor.href = url;
-        anchor.download = `remitters_${new Date().toISOString().slice(0, 10)}.csv`;
-        document.body.appendChild(anchor);
-        anchor.click();
-        document.body.removeChild(anchor);
-        URL.revokeObjectURL(url);
-    };
 
     useEffect(() => {
         if (page !== currentPage) {
@@ -1250,6 +1220,7 @@ export default function RemittersPage() {
                             </select>
                         </div>
                     </div>
+                    {canMultiBranch && (
                     <div>
                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Branch</label>
                         <div className="relative input-icon">
@@ -1270,6 +1241,7 @@ export default function RemittersPage() {
                             </select>
                         </div>
                     </div>
+                    )}
                 </div>
             </div>
 
@@ -1430,17 +1402,17 @@ export default function RemittersPage() {
                                         <td className="px-4 py-4 text-sm">
                                             {(() => {
                                                 const st = resolveIdStatus(row);
-                                                if (st === 'Expired') {
+                                                if (st === 'ID Expired') {
                                                     return (
                                                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">
-                                                            Expired
+                                                            ID Expired
                                                         </span>
                                                     );
                                                 }
-                                                if (st === 'Valid') {
+                                                if (st === 'Valid ID') {
                                                     return (
                                                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-                                                            Valid
+                                                            Valid ID
                                                         </span>
                                                     );
                                                 }
@@ -1704,11 +1676,11 @@ export default function RemittersPage() {
                                     <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">ID Status</span>
                                     {(() => {
                                         const st = resolveIdStatus(viewOverviewRemitter);
-                                        if (st === 'Expired') {
-                                            return <span className="rounded-full px-2.5 py-0.5 text-xs font-bold bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">Expired</span>;
+                                        if (st === 'ID Expired') {
+                                            return <span className="rounded-full px-2.5 py-0.5 text-xs font-bold bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">ID Expired</span>;
                                         }
-                                        if (st === 'Valid') {
-                                            return <span className="rounded-full px-2.5 py-0.5 text-xs font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">Valid</span>;
+                                        if (st === 'Valid ID') {
+                                            return <span className="rounded-full px-2.5 py-0.5 text-xs font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">Valid ID</span>;
                                         }
                                         return <span className="rounded-full px-2.5 py-0.5 text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">Pending</span>;
                                     })()}

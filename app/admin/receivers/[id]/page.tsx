@@ -29,6 +29,11 @@ const normalizeCountryLabel = (value: string) => {
     }
 };
 
+const isDilisenseQuotaError = (response: Response, data: any): boolean =>
+    response.status === 429
+    || String(data?.error ?? data?.code ?? '').toLowerCase() === 'quota_limit_reached'
+    || String(data?.error ?? data?.code ?? '').toLowerCase() === 'limit_exceeded';
+
 export default function EditReceiverPage() {
     const router = useRouter();
     const params = useParams();
@@ -531,8 +536,10 @@ export default function EditReceiverPage() {
                 setReportsModal((prev) => ({ ...prev, generating: false }));
                 setConfirmModal({
                     isOpen: true,
-                    title: 'Check Failed',
-                    message: data?.message || 'Failed to run Dilisense check.',
+                    title: isDilisenseQuotaError(res, data) ? 'Dilisense quota reached' : 'Check Failed',
+                    message: data?.message || (isDilisenseQuotaError(res, data)
+                        ? 'The Dilisense screening quota has been reached. Please renew or increase the provider allowance before retrying.'
+                        : 'Failed to run Dilisense check.'),
                     type: 'danger',
                     isAlert: true,
                     shouldRedirect: false,
@@ -976,8 +983,10 @@ export default function EditReceiverPage() {
                                             setRescreenParams(prev => ({ ...prev, isSubmitting: false }));
                                             setConfirmModal({
                                                 isOpen: true,
-                                                title: 'Check Failed',
-                                                message: data?.message || 'Failed to run Dilisense check.',
+                                                title: isDilisenseQuotaError(res, data) ? 'Dilisense quota reached' : 'Check Failed',
+                                                message: data?.message || (isDilisenseQuotaError(res, data)
+                                                    ? 'The Dilisense screening quota has been reached. Please renew or increase the provider allowance before retrying.'
+                                                    : 'Failed to run Dilisense check.'),
                                                 type: 'danger',
                                                 isAlert: true,
                                                 shouldRedirect: false,
