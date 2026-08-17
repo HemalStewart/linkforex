@@ -256,6 +256,7 @@ export default function CreateMobileUserRemitterPage() {
     const [loading, setLoading] = useState(false);
     const [postcode, setPostcode] = useState('');
     const [address1, setAddress1] = useState('');
+    const [address2, setAddress2] = useState('');
     const [city, setCity] = useState('');
     const [county, setCounty] = useState('');
     const [country, setCountry] = useState('United Kingdom');
@@ -506,6 +507,7 @@ export default function CreateMobileUserRemitterPage() {
                                 onChange={(val) => setPostcode(val)}
                                 onAddressSelect={(addr: AddressData) => {
                                     if (addr.address_1) setAddress1(addr.address_1);
+                                    if (addr.address_2) setAddress2(addr.address_2);
                                     if (addr.city) setCity(addr.city);
                                     if (addr.county) setCounty(addr.county);
                                     if (addr.country) setCountry(addr.country);
@@ -532,7 +534,14 @@ export default function CreateMobileUserRemitterPage() {
                             />
                         </div>
                         <div className="md:col-span-2">
-                            <FormInput label="Address Line 2" name="address_2" placeholder="Locality / Area" Icon={MapPin} />
+                            <FormInput
+                                label="Address Line 2"
+                                name="address_2"
+                                value={address2}
+                                onChange={(e: any) => setAddress2(e.target.value)}
+                                placeholder="Locality / Area"
+                                Icon={MapPin}
+                            />
                         </div>
                         <FormInput
                             label="City"

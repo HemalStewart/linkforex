@@ -9,6 +9,22 @@ export interface AddressData {
     city: string;
     county?: string;
     country: string;
+    postcode?: string;
+}
+
+interface PostcodeProviderAddress {
+    line1?: string;
+    dependent_locality?: string;
+    post_town?: string;
+    postcode?: string;
+}
+
+interface PostcodeProviderResponse {
+    status?: string;
+    message?: string;
+    postcode?: string;
+    count?: number;
+    addresses?: PostcodeProviderAddress[];
 }
 
 interface PostcodeLookupProps {
@@ -50,9 +66,9 @@ export default function PostcodeLookup({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const performLookup = async (queryPostcode: string, autoApply = false) => {
-        const clean = queryPostcode.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-        if (clean.length < 4) {
+    const performLookup = async (queryPostcode: string) => {
+        const clean = queryPostcode.trim();
+        if (clean.length < 3) {
             setSuggestions([]);
             setStatusMsg(null);
             return;
@@ -61,80 +77,35 @@ export default function PostcodeLookup({
         setLoading(true);
         setStatusMsg(null);
         try {
-            const res = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(clean)}`);
+            const res = await fetch(`/api/postcode-lookup?postcode=${encodeURIComponent(clean)}`, {
+                cache: 'no-store',
+            });
+            const data: PostcodeProviderResponse = await res.json();
+
             if (res.ok) {
-                const data = await res.json();
-                if (data.status === 200 && data.result) {
-                    const r = data.result;
-                    const ward = r.admin_ward || r.parish || '';
-                    const district = r.admin_district || r.region || '';
-                    const region = r.region || r.admin_county || '';
+                const list: AddressData[] = (data.addresses || [])
+                    .filter((item) => Boolean(item.line1))
+                    .map((item) => ({
+                        address_1: item.line1 || '',
+                        address_2: item.dependent_locality || '',
+                        city: item.post_town || '',
+                        country: 'United Kingdom',
+                        postcode: item.postcode || data.postcode || clean.toUpperCase(),
+                    }));
 
-                    let countryName = 'United Kingdom';
-                    if (r.country && !['England', 'Scotland', 'Wales', 'Northern Ireland'].includes(r.country)) {
-                        countryName = r.country;
-                    }
-
-                    const cityVal = district || region || 'London';
-                    const countyVal = r.admin_county || district || region;
-
-                    const list: AddressData[] = [];
-                    if (ward && district && ward !== district) {
-                        list.push({
-                            address_1: `${ward}, ${district}`,
-                            city: cityVal,
-                            county: countyVal,
-                            country: countryName,
-                        });
-                        list.push({
-                            address_1: ward,
-                            city: cityVal,
-                            county: countyVal,
-                            country: countryName,
-                        });
-                    } else if (ward) {
-                        list.push({
-                            address_1: ward,
-                            city: cityVal,
-                            county: countyVal,
-                            country: countryName,
-                        });
-                    }
-                    if (district) {
-                        list.push({
-                            address_1: district,
-                            city: cityVal,
-                            county: countyVal,
-                            country: countryName,
-                        });
-                    }
-
-                    if (list.length === 0) {
-                        list.push({
-                            address_1: r.postcode,
-                            city: cityVal,
-                            county: countyVal,
-                            country: countryName,
-                        });
-                    }
-
+                if (data.status === 'success' && list.length > 0) {
                     setSuggestions(list);
                     setShowDropdown(true);
-                    setStatusMsg(`Found address for ${r.postcode}`);
-
-                    if (autoApply && list.length > 0) {
-                        onAddressSelect(list[0]);
-                        if (r.postcode && r.postcode !== value) {
-                            onChange(r.postcode);
-                        }
-                    }
+                    setStatusMsg(`${list.length} address${list.length === 1 ? '' : 'es'} found for ${data.postcode || clean.toUpperCase()}. Select one to fill the form.`);
                 } else {
                     setSuggestions([]);
-                    setStatusMsg('No matching UK postcode found.');
+                    setShowDropdown(false);
+                    setStatusMsg(data.message || 'No address found for this postcode.');
                 }
             } else {
                 setSuggestions([]);
-                setStatusMsg('Postcode lookup not found.');
+                setShowDropdown(false);
+                setStatusMsg(data.message || 'Postcode lookup is temporarily unavailable.');
             }
         } catch (e) {
             console.error('Postcode lookup error:', e);
@@ -149,16 +120,19 @@ export default function PostcodeLookup({
         const clean = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
         if (clean.length >= 5 && clean.length <= 8) {
             const timer = setTimeout(() => {
-                performLookup(value, true);
+                performLookup(value);
             }, 500);
             return () => clearTimeout(timer);
         }
     }, [value]);
 
     const handleSelect = (addr: AddressData) => {
+        if (addr.postcode && addr.postcode !== value) {
+            onChange(addr.postcode);
+        }
         onAddressSelect(addr);
         setShowDropdown(false);
-        setStatusMsg(`Applied: ${addr.address_1}, ${addr.city}`);
+        setStatusMsg(`Applied: ${addr.address_1}${addr.address_2 ? `, ${addr.address_2}` : ''}${addr.city ? `, ${addr.city}` : ''}`);
     };
 
     return (
@@ -185,7 +159,7 @@ export default function PostcodeLookup({
                 />
                 <button
                     type="button"
-                    onClick={() => performLookup(value, true)}
+                    onClick={() => performLookup(value)}
                     disabled={loading || !value.trim()}
                     className="absolute right-2 px-3 py-1.5 bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white font-medium text-xs rounded-lg shadow-sm flex items-center gap-1 transition-all disabled:opacity-50 cursor-pointer"
                 >
@@ -210,7 +184,7 @@ export default function PostcodeLookup({
                 <div className="absolute z-50 left-0 right-0 mt-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl overflow-hidden backdrop-blur-lg">
                     <div className="px-3 py-2 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center justify-between">
                         <span>Select Suggested Address</span>
-                        <span className="text-[10px] text-teal-500 font-normal">postcodes.io</span>
+                        <span className="text-[10px] text-teal-500 font-normal">UK address lookup</span>
                     </div>
                     <div className="max-h-48 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
                         {suggestions.map((item, idx) => (
@@ -226,7 +200,7 @@ export default function PostcodeLookup({
                                         {item.address_1}
                                     </div>
                                     <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                                        {item.city}{item.county ? `, ${item.county}` : ''}, {item.country}
+                                        {[item.address_2, item.city, item.postcode, item.country].filter(Boolean).join(', ')}
                                     </div>
                                 </div>
                                 <span className="text-xs text-teal-600 dark:text-teal-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">

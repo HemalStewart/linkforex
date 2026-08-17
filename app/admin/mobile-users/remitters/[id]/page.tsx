@@ -1158,7 +1158,9 @@ export default function EditRemitterPage() {
                                 setFormData((prev: any) => ({
                                     ...prev,
                                     address_1: addr.address_1 || prev.address_1,
+                                    address_2: addr.address_2 || prev.address_2,
                                     city: addr.city || prev.city,
+                                    county: addr.county || prev.county,
                                     country: addr.country || prev.country,
                                 }));
                             }}
