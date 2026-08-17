@@ -85,6 +85,19 @@ const resolveIdStatus = (r: any): 'Valid' | 'Pending' | 'Expired' => {
     return 'Pending';
 };
 
+const screeningErrorMessage = (data: any, fallback: string): string => {
+    const message = data?.message ?? data?.messages?.error ?? data?.messages?.message;
+    return typeof message === 'string' && message.trim() !== '' ? message : fallback;
+};
+
+const isQuotaLimitError = (data: any): boolean => {
+    const error = String(data?.error ?? data?.code ?? '').toLowerCase();
+    const message = screeningErrorMessage(data, '').toLowerCase();
+    return error === 'quota_limit_reached'
+        || error === 'limit_exceeded'
+        || /\b(quota|token limit|provider credits|credit limit)\b/.test(message);
+};
+
 export default function RemittersPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('REMITTERS');
     const { canAdd, canEdit, canDelete, canPdf, canExport, canReScreening, canDilisenseScreening, canDeleteComplianceReport, canBatchScreening } = usePagePermissions('REMITTERS');
@@ -305,8 +318,8 @@ export default function RemittersPage() {
             } else {
                 setConfirmModal({
                     isOpen: true,
-                    title: 'Batch Screening Failed',
-                    message: data?.message || 'Failed to process batch screening.',
+                    title: isQuotaLimitError(data) ? 'Quota Limit Reached' : 'Batch Screening Failed',
+                    message: screeningErrorMessage(data, 'Failed to process batch screening.'),
                     type: 'danger',
                     isAlert: true,
                 });
@@ -611,8 +624,8 @@ export default function RemittersPage() {
                 setReportsModal((prev) => ({ ...prev, generating: false }));
                 setConfirmModal({
                     isOpen: true,
-                    title: 'Check Failed',
-                    message: data?.message || 'Failed to run Dilisense check.',
+                    title: isQuotaLimitError(data) ? 'Quota Limit Reached' : 'Check Failed',
+                    message: screeningErrorMessage(data, 'Failed to run Dilisense check.'),
                     type: 'danger',
                     isAlert: true,
                 });
@@ -1135,8 +1148,8 @@ export default function RemittersPage() {
                                             setRescreenParams(prev => ({ ...prev, isSubmitting: false }));
                                             setConfirmModal({
                                                 isOpen: true,
-                                                title: 'Check Failed',
-                                                message: data?.message || 'Failed to run Dilisense check.',
+                                                title: isQuotaLimitError(data) ? 'Quota Limit Reached' : 'Check Failed',
+                                                message: screeningErrorMessage(data, 'Failed to run Dilisense check.'),
                                                 type: 'danger',
                                                 isAlert: true,
                                             });
