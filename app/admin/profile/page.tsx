@@ -397,12 +397,27 @@ export default function ProfilePage() {
         setProfilePhotoUploading(true);
 
         try {
-            const formData = new FormData();
-            formData.append('profile_photo', photoFile);
-            const res = await fetch(ENDPOINTS.USERS.PROFILE_PHOTO(storedUser.id), {
+            const createUploadPayload = (legacyMethodOverride = false) => {
+                const formData = new FormData();
+                if (legacyMethodOverride) {
+                    formData.append('_method', 'PUT');
+                }
+                formData.append('profile_photo', photoFile);
+                return formData;
+            };
+
+            let res = await fetch(ENDPOINTS.USERS.PROFILE_PHOTO(storedUser.id), {
                 method: 'POST',
-                body: formData,
+                body: createUploadPayload(),
             });
+
+            // Keep the live panel compatible until the backend route is deployed.
+            if (res.status === 404 || res.status === 405) {
+                res = await fetch(ENDPOINTS.USERS.DETAIL(storedUser.id), {
+                    method: 'POST',
+                    body: createUploadPayload(true),
+                });
+            }
 
             const data = await res.json().catch(() => ({}));
             if (!res.ok) {
