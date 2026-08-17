@@ -268,7 +268,22 @@ export default function CreateReceiverPage() {
                 queueToast('Success', 'Receiver created successfully', 'success');
                 router.push(redirectUrl);
             } else {
-                showToast('Error', 'Failed to create receiver', 'danger');
+                const errData = await res.json().catch(() => ({}));
+                let message = 'Failed to create receiver';
+                if (errData?.messages) {
+                    message = typeof errData.messages === 'object' ? Object.values(errData.messages).join(', ') : String(errData.messages);
+                } else if (errData?.message) {
+                    message = String(errData.message);
+                }
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Validation Error',
+                    message,
+                    type: 'warning',
+                    isAlert: true,
+                    shouldRedirect: false,
+                    redirectUrl: '/admin/receivers'
+                });
             }
         } catch (error) {
             console.error('Failed to submit:', error);

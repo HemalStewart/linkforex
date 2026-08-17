@@ -393,7 +393,21 @@ export default function EditReceiverPage() {
                 queueToast('Success', 'Receiver updated successfully', 'success');
                 router.push('/admin/receivers');
             } else {
-                showToast('Error', 'Failed to update receiver', 'danger');
+                const errData = await res.json().catch(() => ({}));
+                let message = 'Failed to update receiver';
+                if (errData?.messages) {
+                    message = typeof errData.messages === 'object' ? Object.values(errData.messages).join(', ') : String(errData.messages);
+                } else if (errData?.message) {
+                    message = String(errData.message);
+                }
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Validation Error',
+                    message,
+                    type: 'warning',
+                    isAlert: true,
+                    shouldRedirect: false
+                });
             }
         } catch (error) {
             console.error('Failed to submit:', error);

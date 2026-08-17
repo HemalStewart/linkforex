@@ -593,13 +593,19 @@ export default function CreateRemitterPage() {
         }
 
         if (!res.ok) {
-            const errData = await res.json();
+            const errData = await res.json().catch(() => ({}));
             console.error('Error creating remitter:', errData);
+            let message = 'Failed to create remitter';
+            if (errData?.messages) {
+                message = typeof errData.messages === 'object' ? Object.values(errData.messages).join(', ') : String(errData.messages);
+            } else if (errData?.message) {
+                message = String(errData.message);
+            }
             setConfirmModal({
                 isOpen: true,
-                title: 'Error',
-                message: 'Failed to create remitter: ' + (JSON.stringify(errData.messages || errData.message || errData) || res.statusText),
-                type: 'danger',
+                title: 'Validation Error',
+                message,
+                type: 'warning',
                 isAlert: true,
                 shouldRedirect: false,
                 redirectUrl: ''

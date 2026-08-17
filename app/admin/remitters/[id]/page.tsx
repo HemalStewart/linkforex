@@ -477,7 +477,21 @@ export default function EditRemitterPage() {
                 queueToast('Success', 'Remitter updated successfully', 'success');
                 router.push('/admin/remitters');
             } else {
-                showToast('Error', 'Failed to update remitter', 'danger');
+                const errData = await res.json().catch(() => ({}));
+                let message = 'Failed to update remitter';
+                if (errData?.messages) {
+                    message = typeof errData.messages === 'object' ? Object.values(errData.messages).join(', ') : String(errData.messages);
+                } else if (errData?.message) {
+                    message = String(errData.message);
+                }
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Validation Error',
+                    message,
+                    type: 'warning',
+                    isAlert: true,
+                    shouldRedirect: false,
+                });
             }
         } catch (error) {
             console.error(error);
