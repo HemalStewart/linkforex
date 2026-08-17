@@ -64,7 +64,8 @@ export const ADMIN_PAGES_CONFIG: AdminCategoryInfo[] = [
     {
         category: 'Dashboard',
         pages: [
-            { name: 'Dashboard', section: 'DASHBOARD', operations: ['VIEW'] }
+            { name: 'Dashboard', section: 'DASHBOARD', operations: ['VIEW'] },
+            { name: 'KYC Review Metrics', section: 'KYC_REVIEWS', operations: ['VIEW'] }
         ]
     },
     {
@@ -156,12 +157,7 @@ export const checkPermission = (section: string, operation: string): boolean => 
         if (r !== roleName) return false;
         if (a !== 'yes') return false;
 
-        const targetOp = operation.toUpperCase();
-        const rowOp = o.toUpperCase();
-        if (rowOp !== targetOp) {
-            const isCreateAddMatch = (targetOp === 'CREATE' && rowOp === 'ADD') || (targetOp === 'ADD' && rowOp === 'CREATE');
-            if (!isCreateAddMatch) return false;
-        }
+        if (o !== operation.toUpperCase()) return false;
 
         const targetSec = section.toUpperCase().trim();
         const rowSec = s.toUpperCase().trim();

@@ -398,10 +398,9 @@ export default function ProfilePage() {
 
         try {
             const formData = new FormData();
-            formData.append('_method', 'PUT'); // Spoof PUT
             formData.append('profile_photo', photoFile);
-            const res = await fetch(ENDPOINTS.USERS.DETAIL(storedUser.id), {
-                method: 'POST', // Spoofed to PUT
+            const res = await fetch(ENDPOINTS.USERS.PROFILE_PHOTO(storedUser.id), {
+                method: 'POST',
                 body: formData,
             });
 

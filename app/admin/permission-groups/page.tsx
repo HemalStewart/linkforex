@@ -30,8 +30,6 @@ type RoleOption = {
     name: string;
 };
 
-const OPERATION_OPTIONS = ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'APPROVE', 'CANCEL', 'PDF', 'EXPORT', 'PRINT', 'SIGN'];
-
 const normalizeDate = (value?: string | null) => {
     if (!value) return '';
     return value.includes('T') ? value : value.replace(' ', 'T');
@@ -271,9 +269,7 @@ export default function PermissionGroupsPage() {
 
             const rowOp = String(r.operation || '').trim().toUpperCase();
             const targetOp = String(op || '').trim().toUpperCase();
-            if (rowOp === targetOp) return true;
-
-            return (targetOp === 'CREATE' && rowOp === 'ADD') || (targetOp === 'ADD' && rowOp === 'CREATE');
+            return rowOp === targetOp;
         });
         return {
             active: match ? normalizeYesNo(match.active) === 'yes' : false,
@@ -322,7 +318,7 @@ export default function PermissionGroupsPage() {
                         role_id: roleObj?.id,
                         role_name: selectedRole,
                         page_section: section,
-                        operation: op === 'CREATE' ? 'ADD' : op,
+                        operation: op,
                         system_defined: 'no',
                         active: nextActive,
                         created_by: currentUserName || 'Admin',
@@ -483,52 +479,7 @@ export default function PermissionGroupsPage() {
             if (!canonicalPage) return false;
             if (sec !== canonicalPage.section.toUpperCase()) return false;
 
-            if (sec === 'PROFILE' || sec === 'MY_PROFILE') {
-                return !['DELETE', 'ADD', 'APPROVE', 'CANCEL', 'VIEW_CREATED_AT', 'VIEW_CREATED_BY', 'VIEW_UPDATED_AT', 'VIEW_UPDATED_BY'].includes(op);
-            }
-            if (sec === 'REPORTS' || sec === 'DASHBOARD') {
-                return op === 'VIEW';
-            }
-            if (sec === 'KYC_REVIEWS') {
-                return ['VIEW', 'EXPORT'].includes(op);
-            }
-            if (sec === 'BRANCH_ACCESS_REQUESTS') {
-                return !['CREATE', 'EDIT', 'DELETE', 'ADD'].includes(op);
-            }
-            if (sec === 'SUPPORT') {
-                return !['CREATE', 'ADD', 'APPROVE', 'CANCEL'].includes(op);
-            }
-            if (sec === 'BRANCH_CURRENCY_RATES') {
-                return !['EDIT', 'DELETE', 'CANCEL', 'APPROVE', 'ADD'].includes(op);
-            }
-            if (sec === 'BRANCHES') {
-                return !['ADD', 'APPROVE', 'CANCEL'].includes(op);
-            }
-            if (sec === 'TRANSACTION_SETTINGS') {
-                return ['VIEW', 'EDIT'].includes(op);
-            }
-            if (['API_TOKENS', 'SETTINGS'].includes(sec)) {
-                return ['VIEW', 'EDIT'].includes(op);
-            }
-            if (['PERMISSION_GROUPS', 'SYSGROUPS_PERMISSION'].includes(sec)) {
-                return ['VIEW', 'EDIT', 'VIEW_CREATED_BY', 'VIEW_CREATED_AT', 'VIEW_UPDATED_BY', 'VIEW_UPDATED_AT'].includes(op);
-            }
-            if (['AUDIT_LOGS', 'SYSUSERS_LOG', 'SYSRECORD_LOGS', 'LOGS'].includes(sec)) {
-                return ['VIEW', 'EXPORT', 'VIEW_CREATED_BY', 'VIEW_CREATED_AT', 'VIEW_UPDATED_BY', 'VIEW_UPDATED_AT'].includes(op);
-            }
-            if (['MOBILE_OVERVIEW', 'OVERVIEW'].includes(sec)) {
-                return op === 'VIEW';
-            }
-            if (['MOBILE_FLOW_SETTINGS'].includes(sec)) {
-                return ['VIEW', 'EDIT'].includes(op);
-            }
-            if (['MOBILE_DIGITAL_RATES'].includes(sec)) {
-                return !['CREATE', 'EDIT', 'DELETE', 'ADD', 'APPROVE', 'CANCEL'].includes(op);
-            }
-            if (['DILISENSE_SOURCES', 'COUNTRIES', 'BANKS', 'RELATIONSHIPS', 'PURPOSES', 'ROLES', 'SYSGROUPS', 'SYSTEM_USERS', 'SYSUSERS', 'MOBILE_PROFILES'].includes(sec)) {
-                return !['ADD', 'APPROVE', 'CANCEL'].includes(op);
-            }
-            return true;
+            return canonicalPage.operations.includes(op);
         });
         if (!searchQuery.trim()) return baseRows;
         const term = searchQuery.trim().toLowerCase();
@@ -830,7 +781,7 @@ export default function PermissionGroupsPage() {
                     role_id: role?.id,
                     role_name: roleName,
                     page_section: pageSection,
-                    operation: operation === 'CREATE' ? 'ADD' : operation,
+                    operation,
                     system_defined: 'no',
                     active: createForm.active,
                     created_by: currentUserName || 'Admin',

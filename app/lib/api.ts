@@ -77,6 +77,7 @@ export const ENDPOINTS = {
     USERS: {
         LIST: `${API_BASE_URL}/users`,
         DETAIL: (id: string | number) => `${API_BASE_URL}/users/${id}`,
+        PROFILE_PHOTO: (id: string | number) => `${API_BASE_URL}/users/${id}/profile-photo`,
     },
     CURRENCIES: {
         LIST: `${API_BASE_URL}/currencies`,
