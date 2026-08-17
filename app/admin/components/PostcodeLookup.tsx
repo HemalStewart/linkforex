@@ -54,6 +54,10 @@ export default function PostcodeLookup({
     const [statusMsg, setStatusMsg] = useState<string | null>(null);
     const [showDropdown, setShowDropdown] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
+    const lookupSeq = useRef(0);
+    // Auto lookup must follow real keystrokes only, never a programmatic value
+    // change such as loading an existing record or applying a selected address.
+    const userTyped = useRef(false);
 
     // Close dropdown on click outside
     useEffect(() => {
@@ -66,7 +70,10 @@ export default function PostcodeLookup({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const performLookup = async (queryPostcode: string) => {
+    // Auto lookups run while the user is still typing, so they stay silent
+    // unless addresses are actually found. Only an explicit Lookup click
+    // reports "not found" or provider errors.
+    const performLookup = async (queryPostcode: string, manual = true) => {
         const clean = queryPostcode.trim();
         if (clean.length < 3) {
             setSuggestions([]);
@@ -74,8 +81,22 @@ export default function PostcodeLookup({
             return;
         }
 
-        setLoading(true);
-        setStatusMsg(null);
+        // Ignore a response that a newer keystroke has already superseded.
+        const requestId = ++lookupSeq.current;
+        const isCurrent = () => requestId === lookupSeq.current;
+        // Nothing found, or the provider failed: say so on an explicit click,
+        // stay silent while the user is still typing.
+        const reportFailure = (msg: string) => {
+            if (!isCurrent()) return;
+            setSuggestions([]);
+            setShowDropdown(false);
+            setStatusMsg(manual ? msg : null);
+        };
+
+        if (manual) {
+            setLoading(true);
+            setStatusMsg(null);
+        }
         try {
             const res = await fetch(`/api/postcode-lookup?postcode=${encodeURIComponent(clean)}`, {
                 cache: 'no-store',
@@ -94,42 +115,53 @@ export default function PostcodeLookup({
                     }));
 
                 if (data.status === 'success' && list.length > 0) {
+                    if (!isCurrent()) return;
                     setSuggestions(list);
                     setShowDropdown(true);
                     setStatusMsg(`${list.length} address${list.length === 1 ? '' : 'es'} found for ${data.postcode || clean.toUpperCase()}. Select one to fill the form.`);
                 } else {
-                    setSuggestions([]);
-                    setShowDropdown(false);
-                    setStatusMsg(data.message || 'No address found for this postcode.');
+                    reportFailure(data.message || 'No address found for this postcode.');
                 }
             } else {
-                setSuggestions([]);
-                setShowDropdown(false);
-                setStatusMsg(data.message || 'Postcode lookup is temporarily unavailable.');
+                reportFailure(data.message || 'Postcode lookup is temporarily unavailable.');
             }
         } catch (e) {
             console.error('Postcode lookup error:', e);
-            setStatusMsg('Lookup error.');
+            reportFailure('Lookup error.');
         } finally {
-            setLoading(false);
+            // Always released: a superseded manual lookup must not leave the
+            // button stuck in its disabled spinner state.
+            if (manual) setLoading(false);
         }
     };
 
     // Auto lookup debounced when typing postcode
     useEffect(() => {
+        if (!userTyped.current) return;
+
         const clean = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
         if (clean.length >= 5 && clean.length <= 8) {
             const timer = setTimeout(() => {
-                performLookup(value);
+                performLookup(value, false);
             }, 500);
             return () => clearTimeout(timer);
         }
+
+        // Out of postcode range again: drop any message left from a previous match.
+        lookupSeq.current++;
+        setSuggestions([]);
+        setShowDropdown(false);
+        setStatusMsg(null);
     }, [value]);
 
     const handleSelect = (addr: AddressData) => {
+        // The normalised postcode is written back to the form; that must not
+        // re-open the dropdown the user just picked from.
+        userTyped.current = false;
         if (addr.postcode && addr.postcode !== value) {
             onChange(addr.postcode);
         }
+        lookupSeq.current++;
         onAddressSelect(addr);
         setShowDropdown(false);
         setStatusMsg(`Applied: ${addr.address_1}${addr.address_2 ? `, ${addr.address_2}` : ''}${addr.city ? `, ${addr.city}` : ''}`);
@@ -152,6 +184,7 @@ export default function PostcodeLookup({
                     value={value}
                     required={required}
                     onChange={(e) => {
+                        userTyped.current = true;
                         onChange(e.target.value);
                     }}
                     placeholder={placeholder}

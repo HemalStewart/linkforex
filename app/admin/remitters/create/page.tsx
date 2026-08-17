@@ -320,7 +320,6 @@ export default function CreateRemitterPage() {
     const [address2, setAddress2] = useState('');
     const [city, setCity] = useState('');
     const [loading, setLoading] = useState(false);
-    const [duplicateChecking, setDuplicateChecking] = useState(false);
     const [possibleDuplicates, setPossibleDuplicates] = useState<DuplicateMatch[]>([]);
     const [duplicateFormSignals, setDuplicateFormSignals] = useState({
         sender_id: '',
@@ -563,16 +562,15 @@ export default function CreateRemitterPage() {
             return;
         }
 
+        // The lookup runs silently while typing. Only a confirmed match is
+        // surfaced, so the form stays quiet until there is something to report.
         const timer = window.setTimeout(async () => {
-            setDuplicateChecking(true);
             try {
                 const matches = await fetchPotentialMatches(duplicateFormSignals);
                 setPossibleDuplicates(matches);
             } catch (error) {
                 console.error('Failed to check potential duplicate remitters', error);
                 setPossibleDuplicates([]);
-            } finally {
-                setDuplicateChecking(false);
             }
         }, 450);
 
@@ -1101,22 +1099,22 @@ export default function CreateRemitterPage() {
                     </div>
                 </div>
 
-                {(duplicateChecking || possibleDuplicates.length > 0) && (
+                {possibleDuplicates.length > 0 && (
                     <div className="mb-8 border-b border-slate-100 dark:border-slate-700/50 pb-8">
-                        <div className={`rounded-2xl border p-5 transition-all ${possibleDuplicates.length > 0 ? 'border-amber-300 bg-amber-50/90 dark:border-amber-500/40 dark:bg-amber-950/30' : 'border-slate-200 bg-slate-50/70 dark:border-slate-700 dark:bg-slate-800/40'}`}>
+                        <div className="rounded-2xl border p-5 transition-all border-amber-300 bg-amber-50/90 dark:border-amber-500/40 dark:bg-amber-950/30">
                             <div className="flex items-start gap-3">
-                                <AlertCircle className={`mt-0.5 h-5 w-5 shrink-0 ${possibleDuplicates.length > 0 ? 'text-amber-600 dark:text-amber-400 animate-pulse' : 'text-slate-500'}`} />
+                                <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
                                 <div className="w-full">
                                     <div className="flex items-center justify-between">
                                         <p className="text-base font-extrabold text-slate-900 dark:text-slate-100">
-                                            {duplicateChecking ? 'Checking for existing remitter records...' : `⚠️ Existing Remitter Record Found (${possibleDuplicates.length})`}
+                                            {`⚠️ Existing Remitter Record Found (${possibleDuplicates.length})`}
                                         </p>
                                     </div>
                                     <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 font-medium">
-                                        {duplicateChecking ? 'Searching system database for matching profiles...' : 'A remitter matching your entered information already exists in the system. Review existing record(s) below before saving.'}
+                                        A remitter matching your entered information already exists in the system. Review existing record(s) below before saving.
                                     </p>
 
-                                    {!duplicateChecking && possibleDuplicates.length > 0 && (
+                                    {possibleDuplicates.length > 0 && (
                                         <div className="mt-4 space-y-3">
                                             {possibleDuplicates.slice(0, 5).map((match) => (
                                                 <div key={`dup-${match.id}`} className="rounded-xl border border-amber-200/80 bg-white/95 dark:border-amber-700/40 dark:bg-slate-900/90 p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
