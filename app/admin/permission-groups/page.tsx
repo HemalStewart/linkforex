@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRowsPerPage } from '@/app/lib/uiPreferences';
-import { PlusCircle, Search, Key, Save, X, Shield, Lock, AlertCircle, Info, RefreshCw } from 'lucide-react';
+import { Search, Key, Shield, Info, RefreshCw } from 'lucide-react';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../components/ConfirmModal';
@@ -96,14 +96,6 @@ export default function PermissionGroupsPage() {
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useRowsPerPage(10);
-    const [showCreateForm, setShowCreateForm] = useState(false);
-    const [creating, setCreating] = useState(false);
-    const [createForm, setCreateForm] = useState({
-        role_name: '',
-        page_section: '',
-        operation: 'VIEW',
-        active: 'yes' as 'yes' | 'no'
-    });
     const [currentUserName, setCurrentUserName] = useState('');
     const [savingId, setSavingId] = useState<number | null>(null);
     const [pendingToggle, setPendingToggle] = useState<{
@@ -118,12 +110,10 @@ export default function PermissionGroupsPage() {
         isAlert: false
     });
 
-    const hasInitializedRef = useRef(false);
-    const hasSetDefaultRoleRef = useRef(false);
+    const hasSetDefaultRoleRef = React.useRef(false);
 
     const fetchRows = useCallback(async () => {
         setLoading(true);
-        hasInitializedRef.current = false;
         try {
             const res = await fetch(`${ENDPOINTS.PERMISSION_GROUPS.LIST}?t=${Date.now()}`, { cache: 'no-store' });
             if (res.ok) {
@@ -165,74 +155,6 @@ export default function PermissionGroupsPage() {
         const parsed = getStoredUser<{ username?: string; name?: string; email?: string }>();
         setCurrentUserName(parsed?.username || parsed?.name || parsed?.email || '');
     }, []);
-
-    const initializeMissingPermissions = useCallback(async (allRows: PermissionGroupRow[], allRoles: RoleOption[]) => {
-        const missing: Array<{ role: RoleOption; section: string; operation: string; active: 'yes' | 'no'; systemDefined: 'yes' | 'no' }> = [];
-
-        for (const role of allRoles) {
-            const roleNameLower = role.name.toLowerCase();
-            const isAdmin = roleNameLower.includes('admin') || roleNameLower.includes('super');
-
-            for (const cat of ADMIN_PAGES_CONFIG) {
-                for (const page of cat.pages) {
-                    for (const op of page.operations) {
-                        const exists = allRows.some(row =>
-                            row.role_name === role.name &&
-                            row.page_section === page.section &&
-                            row.operation === op
-                        );
-                        if (!exists) {
-                            missing.push({
-                                role,
-                                section: page.section,
-                                operation: op,
-                                active: isAdmin ? 'yes' : 'no',
-                                systemDefined: isAdmin ? 'yes' : 'no',
-                            });
-                        }
-                    }
-                }
-            }
-        }
-
-        if (missing.length === 0) return;
-
-        let createdAny = false;
-        for (const item of missing) {
-            try {
-                const res = await fetch(ENDPOINTS.PERMISSION_GROUPS.LIST, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        role_id: item.role.id,
-                        role_name: item.role.name,
-                        page_section: item.section,
-                        operation: item.operation,
-                        system_defined: item.systemDefined,
-                        active: item.active,
-                        created_by: 'System',
-                        updated_by: 'System'
-                    })
-                });
-                if (res.ok) {
-                    createdAny = true;
-                }
-            } catch (e) {
-                console.error('Failed to auto-create permission:', e);
-            }
-        }
-
-        if (createdAny) {
-            await fetchRows();
-        }
-    }, [fetchRows]);
-
-    useEffect(() => {
-        if (!loading && roles.length > 0 && rows.length > 0 && !hasInitializedRef.current) {
-            hasInitializedRef.current = true;
-            initializeMissingPermissions(rows, roles);
-        }
-    }, [rows, roles, loading, initializeMissingPermissions]);
 
     // Set default selected role and role filter to the logged-in user's role on load
     useEffect(() => {
@@ -666,170 +588,6 @@ export default function PermissionGroupsPage() {
 
     const sortIndicator = (key: string) => {
         return <SortIndicator active={sortKey === key} dir={sortDir} className="text-slate-400 dark:text-slate-300" />;
-    };
-
-    const badgeClass = (value: string) =>
-        normalizeYesNo(value) === 'yes'
-            ? 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border border-teal-500/30'
-            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700';
-
-    const submitCreatePermission = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        if (creating) return;
-
-        const roleName = createForm.role_name.trim();
-        const pageSection = createForm.page_section.trim().toUpperCase();
-        const operation = createForm.operation.trim().toUpperCase();
-
-        if (!roleName || !pageSection || !operation) {
-            setConfirmModal({
-                isOpen: true,
-                title: 'Missing Fields',
-                message: 'Role, page section, and operation are required.',
-                type: 'warning',
-                isAlert: true
-            });
-            return;
-        }
-
-        const existingPermission = rows.find((row) =>
-            row.role_name === roleName &&
-            (row.page_section || '').trim().toUpperCase() === pageSection &&
-            (row.operation || '').trim().toUpperCase() === operation
-        );
-
-        if (existingPermission) {
-            const existingActive = normalizeYesNo(existingPermission.active);
-            if (existingActive === createForm.active) {
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Already Exists',
-                    message: `This role permission already exists and is already ${existingActive}.`,
-                    type: 'warning',
-                    isAlert: true
-                });
-                return;
-            }
-
-            setCreating(true);
-            try {
-                const updateResponse = await fetch(ENDPOINTS.PERMISSION_GROUPS.DETAIL(existingPermission.id), {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        role_name: existingPermission.role_name,
-                        page_section: existingPermission.page_section,
-                        operation: existingPermission.operation,
-                        system_defined: existingPermission.system_defined,
-                        active: createForm.active,
-                        updated_by: currentUserName || 'Admin'
-                    })
-                });
-
-                if (!updateResponse.ok) {
-                    let message = 'Failed to update existing role permission.';
-                    try {
-                        const errorPayload = await updateResponse.json();
-                        if (errorPayload?.messages) {
-                            message = Object.values(errorPayload.messages).join(', ');
-                        } else if (errorPayload?.message) {
-                            message = String(errorPayload.message);
-                        }
-                    } catch (_error) {
-                        // ignore parsing errors
-                    }
-                    throw new Error(message);
-                }
-
-                await fetchRows();
-                setShowCreateForm(false);
-                setCreateForm({
-                    role_name: '',
-                    page_section: '',
-                    operation: 'VIEW',
-                    active: 'yes'
-                });
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Updated',
-                    message: `Existing role permission updated to ${createForm.active}.`,
-                    type: 'success',
-                    isAlert: true
-                });
-            } catch (error) {
-                setConfirmModal({
-                    isOpen: true,
-                    title: 'Error',
-                    message: error instanceof Error ? error.message : 'Failed to update existing role permission.',
-                    type: 'danger',
-                    isAlert: true
-                });
-            } finally {
-                setCreating(false);
-            }
-            return;
-        }
-
-        const role = roles.find((item) => item.name === roleName);
-        setCreating(true);
-
-        try {
-            const response = await fetch(ENDPOINTS.PERMISSION_GROUPS.LIST, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    role_id: role?.id,
-                    role_name: roleName,
-                    page_section: pageSection,
-                    operation,
-                    system_defined: 'no',
-                    active: createForm.active,
-                    created_by: currentUserName || 'Admin',
-                    updated_by: currentUserName || 'Admin'
-                })
-            });
-
-            if (!response.ok) {
-                let message = 'Failed to create role permission.';
-                try {
-                    const errorPayload = await response.json();
-                    if (errorPayload?.messages) {
-                        message = Object.values(errorPayload.messages).join(', ');
-                    } else if (errorPayload?.message) {
-                        message = String(errorPayload.message);
-                    }
-                } catch (_e) {
-                    // ignore json parse errors
-                }
-                throw new Error(message);
-            }
-
-            await fetchRows();
-            setShowCreateForm(false);
-            setCreateForm({
-                role_name: '',
-                page_section: '',
-                operation: 'VIEW',
-                active: 'yes'
-            });
-            setConfirmModal({
-                isOpen: true,
-                title: 'Created',
-                message: 'Role permission added successfully.',
-                type: 'success',
-                isAlert: true
-            });
-        } catch (error) {
-            setConfirmModal({
-                isOpen: true,
-                title: 'Error',
-                message: error instanceof Error ? error.message : 'Failed to create role permission.',
-                type: 'danger',
-                isAlert: true
-            });
-        } finally {
-            setCreating(false);
-        }
     };
 
     const promptToggle = (row: PermissionGroupRow, nextActive: 'yes' | 'no') => {
