@@ -681,7 +681,7 @@ export default function CreateRemitterPage() {
         if (normalized === 'verified') return 'Already Verified';
         if (normalized === 'pending') return 'Pending';
         if (normalized === 'rejected') return 'Rejected';
-        if (normalized === 'expired') return 'Expired ID';
+        if (normalized === 'expired') return 'ID Expired';
         return 'Not Verified';
     };
 
@@ -1133,7 +1133,7 @@ export default function CreateRemitterPage() {
                                                             <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${verificationBadgeClass(match.verification_state)}`}>
                                                                 {verificationLabel(match.verification_state)}
                                                             </span>
-                                                            {match.id_expired && (
+                                                            {match.id_expired && (match.verification_state || '').toLowerCase() !== 'expired' && (
                                                                 <span className="inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300">
                                                                     ID Expired
                                                                 </span>
