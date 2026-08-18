@@ -88,9 +88,14 @@ export default function CreateUserPage() {
     const [confirmPasswordErrorState, setConfirmPasswordErrorState] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [creating, setCreating] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // A second click would create nothing and report a duplicate as a
+        // failure, so the first request is allowed to finish on its own.
+        if (creating) return;
 
         const passwordError = validatePassword(formData.password);
         if (passwordError) {
@@ -142,6 +147,8 @@ export default function CreateUserPage() {
             }
             if (signatureClear) payload.append('signature_clear', '1');
 
+            setCreating(true);
+
             const res = await fetch(ENDPOINTS.USERS.LIST, {
                 method: 'POST',
                 body: payload,
@@ -165,6 +172,7 @@ export default function CreateUserPage() {
                     }
                 }
 
+                setCreating(false);
                 showToast('Error', 'Failed to create user: ' + errMsg, 'danger');
                 return;
             }
@@ -173,6 +181,7 @@ export default function CreateUserPage() {
             router.push('/admin/users');
         } catch (e) {
             console.error(e);
+            setCreating(false);
             showToast('Error', 'An error occurred.', 'danger');
         }
     };
@@ -536,10 +545,11 @@ export default function CreateUserPage() {
                     </Link>
                     <button
                         type="submit"
-            className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40"
+                        disabled={creating}
+            className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 disabled:opacity-60 disabled:cursor-not-allowed"
                     >
             <Save className="w-4 h-4" />
-                        <span>Create User</span>
+                        <span>{creating ? 'Creating User...' : 'Create User'}</span>
                     </button>
                 </div>
             </form>
