@@ -17,6 +17,17 @@ const stripActingUser = (url: string): string => {
     }
 };
 
+const filenameFor = (url: string): string => {
+    try {
+        const parsed = new URL(url, window.location.origin);
+        const parts = parsed.pathname.split('/').filter(Boolean);
+        const reportId = parts[parts.length - 2] || 'report';
+        return `aml-report-${reportId}.pdf`;
+    } catch {
+        return 'aml-report.pdf';
+    }
+};
+
 const extractErrorMessage = async (response: Response): Promise<string> => {
     try {
         const data = await response.clone().json();
@@ -68,7 +79,17 @@ export const openPdfReport = async (
         if (reportWindow) {
             reportWindow.location.replace(blobUrl);
         } else {
-            window.open(blobUrl, '_blank', 'noopener,noreferrer');
+            // The popup blocker refused the tab, and a second window.open would be
+            // refused too because the click gesture has already ended. An anchor
+            // is not blocked, so the report still reaches the user.
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.download = filenameFor(url);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
         }
 
         window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
