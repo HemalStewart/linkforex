@@ -639,7 +639,30 @@ export default function CreateRemitterPage() {
         });
 
         if (res.status === 409) {
-            const duplicateData = await res.json() as { message?: string; matches?: DuplicateMatch[] };
+            const duplicateData = await res.json() as {
+                error?: string; message?: string; matches?: DuplicateMatch[];
+                origin_branch?: string; matched_field?: string; request_created?: boolean;
+            };
+
+            // The customer already exists at another branch. A second record must not
+            // be created; that branch is asked to release the original instead, so
+            // this is reported as an outcome rather than something to override.
+            if (duplicateData.error === 'cross_branch_duplicate') {
+                setConfirmModal({
+                    isOpen: true,
+                    title: 'Approval Required From Another Branch',
+                    message: (duplicateData.message || 'This customer is already registered at another branch.')
+                        + (duplicateData.request_created
+                            ? ' An approval request has been sent to that branch.'
+                            : ' An approval request for this customer is already awaiting review.'),
+                    type: 'warning',
+                    isAlert: true,
+                    shouldRedirect: false,
+                    redirectUrl: ''
+                });
+                return { blockedByDuplicate: true };
+            }
+
             const matches = Array.isArray(duplicateData.matches) ? duplicateData.matches : [];
             setPossibleDuplicates(matches);
             setDuplicateModal({
