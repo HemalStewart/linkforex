@@ -98,7 +98,8 @@ const ADMIN_ROUTE_NAMES: Record<string, string> = {
     '/admin/branch-currency-rates': 'Branch Currency Rates',
     '/admin/branches': 'Branches',
     '/admin/transaction-settings': 'Transaction Settings',
-    '/admin/api-tokens': 'Integration Usage',
+    '/admin/api-tokens': 'Screening Usage',
+    '/admin/screening-usage-settings': 'Screening Usage Setting',
     '/admin/dilisense-sources': 'Dilisense Sources',
     '/admin/reports': 'Reports',
     '/admin/mobile-users/control/overview': 'Mobile Overview',
@@ -1184,7 +1185,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             children: [
                 { name: 'Branches', href: '/admin/branches', icon: <Building2 className="w-4 h-4" />, sections: ['BRANCH', 'BRANCHES'] },
                 { name: 'Transaction Settings', href: '/admin/transaction-settings', icon: <SlidersHorizontal className="w-4 h-4" />, sections: ['TRANSACTION_SETTINGS'] },
-                { name: 'Integration Usage', href: '/admin/api-tokens', icon: <Gauge className="w-4 h-4" />, sections: ['API_TOKENS'] },
+                { name: 'Screening Usage', href: '/admin/api-tokens', icon: <Gauge className="w-4 h-4" />, sections: ['API_TOKENS'] },
+                { name: 'Screening Usage Setting', href: '/admin/screening-usage-settings', icon: <Gauge className="w-4 h-4" />, sections: ['API_TOKENS'] },
                 { name: 'Dilisense Sources', href: '/admin/dilisense-sources', icon: <Database className="w-4 h-4" />, sections: ['DILISENSE_SOURCES'] },
             ]
         },

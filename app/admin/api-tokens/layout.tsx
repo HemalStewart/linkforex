@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: 'Integration Usage',
+    title: 'Screening Usage',
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {

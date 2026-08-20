@@ -449,7 +449,9 @@ export default function EditRemitterPage() {
             branch: (isPrivilegedUser || canMultiBranch) ? formData.branch : (scopedBranchCode || formData.branch),
             name: formData.sender_name,
             sender_name: formData.sender_name,
-            active: formData.status === 'active' ? 'Active' : 'Inactive'
+            // Mobile status is chosen on the form. It only falls back to the
+            // account status for records saved before the field existed.
+            active: formData.active || (formData.status === 'active' ? 'active' : 'inactive'),
         };
 
         Object.entries(basePayload).forEach(([key, value]) => {
@@ -1303,6 +1305,23 @@ export default function EditRemitterPage() {
                                 <option value="Other">Other</option>
                                 <option value="Prefer not to say">Prefer not to say</option>
                             </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Mobile Status</label>
+                            <select
+                                className="input-glass w-full py-3 px-4 cursor-pointer text-sm"
+                                value={formData.active || ''}
+                                onChange={(e) => setFormData({ ...formData, active: e.target.value })}
+                            >
+                                <option value="">Select Mobile Status</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="suspended">Suspended</option>
+                            </select>
+                            <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400 ml-1">
+                                Setting this to Inactive releases the mobile number and ID, so they can be
+                                registered against a new remitter.
+                            </p>
                         </div>
                         <div>
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Country of Birth</label>

@@ -321,6 +321,8 @@ export default function CreateRemitterPage() {
     const [city, setCity] = useState('');
     const [loading, setLoading] = useState(false);
     const [possibleDuplicates, setPossibleDuplicates] = useState<DuplicateMatch[]>([]);
+    const [viewRemitter, setViewRemitter] = useState<DuplicateMatch | null>(null);
+    const [accessRequestBusy, setAccessRequestBusy] = useState<number | null>(null);
     const [duplicateFormSignals, setDuplicateFormSignals] = useState({
         sender_id: '',
         sender_name: '',
@@ -699,6 +701,32 @@ export default function CreateRemitterPage() {
         return { createdId: result.id, createdRouteKey: result.route_key || (result.id != null ? String(result.id) : undefined) };
     }, [currentUser]);
 
+    // Access to another branch's customer is only ever requested here, by the
+    // user pressing the button - never as a side effect of saving.
+    const requestBranchPermission = async (match: DuplicateMatch) => {
+        setAccessRequestBusy(match.id);
+        try {
+            const res = await fetch(
+                withActingUserParam(`${ENDPOINTS.REMITTERS.LIST}/${match.id}/request-branch-access`, currentUser),
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ branch: selectedBranch || '' }),
+                }
+            );
+            const body = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                showToast('Error', body?.messages?.error || body?.message || 'Could not send the approval request.', 'danger');
+                return;
+            }
+            showToast('Approval Requested', body?.message || 'An approval request has been sent.', 'success');
+        } catch {
+            showToast('Error', 'Could not send the approval request.', 'danger');
+        } finally {
+            setAccessRequestBusy(null);
+        }
+    };
+
     const verificationLabel = (state?: string) => {
         const normalized = (state || '').toLowerCase();
         if (normalized === 'verified') return 'Already Verified';
@@ -986,6 +1014,83 @@ export default function CreateRemitterPage() {
 
     return (
         <div className="max-w-7xl mx-auto pb-20 animate-fade-in-up">
+            {viewRemitter && (
+                <div
+                    className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4"
+                    onClick={() => setViewRemitter(null)}
+                >
+                    <div
+                        className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl overflow-hidden"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-start justify-between gap-4 px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+                            <div>
+                                <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">{viewRemitter.name}</h3>
+                                <p className="text-xs font-mono text-teal-600 dark:text-teal-400 mt-0.5">
+                                    {viewRemitter.sender_id || 'No Reference ID'}
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setViewRemitter(null)}
+                                className="rounded-lg p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                                aria-label="Close"
+                            >
+                                <Trash2 className="w-4 h-4 rotate-45" />
+                            </button>
+                        </div>
+
+                        <dl className="px-6 py-4 grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                            {[
+                                ['Branch', viewRemitter.branch],
+                                ['Mobile number', viewRemitter.phone],
+                                ['Email', viewRemitter.email],
+                                ['ID number', viewRemitter.id_number],
+                                ['ID expiry', viewRemitter.id_expiry],
+                                ['Account status', viewRemitter.status],
+                            ].map(([label, value]) => (
+                                <div key={String(label)}>
+                                    <dt className="text-[11px] uppercase tracking-wide text-slate-400 font-bold">{label}</dt>
+                                    <dd className="text-slate-800 dark:text-slate-100 font-semibold mt-0.5 break-words">
+                                        {value ? String(value) : '—'}
+                                    </dd>
+                                </div>
+                            ))}
+                        </dl>
+
+                        <div className="px-6 pb-4 flex flex-wrap gap-2">
+                            <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold ${verificationBadgeClass(viewRemitter.verification_state)}`}>
+                                {verificationLabel(viewRemitter.verification_state)}
+                            </span>
+                            {viewRemitter.same_branch === false && (
+                                <span className="inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">
+                                    Belongs to another branch
+                                </span>
+                            )}
+                        </div>
+
+                        <div className="px-6 py-3 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
+                            <a
+                                href={`/admin/remitters/${viewRemitter.id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-3 py-1.5 rounded-lg text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 dark:text-teal-300 dark:bg-teal-950/50 border border-teal-200 dark:border-teal-800 inline-flex items-center gap-1.5"
+                            >
+                                <FileText className="w-3.5 h-3.5" />
+                                Open Full Record
+                            </a>
+                            <button
+                                type="button"
+                                onClick={() => setViewRemitter(null)}
+                                className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 dark:text-slate-200 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <ConfirmModal
                 isOpen={confirmModal.isOpen}
                 onClose={handleModalClose}
@@ -1168,16 +1273,35 @@ export default function CreateRemitterPage() {
                                                             ))}
                                                         </div>
                                                     </div>
-                                                    <div className="shrink-0 flex items-center gap-2">
+                                                    <div className="shrink-0 flex flex-wrap items-center gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setViewRemitter(match)}
+                                                            className="px-3 py-1.5 rounded-lg text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 dark:text-teal-300 dark:bg-teal-950/50 dark:hover:bg-teal-900/50 border border-teal-200 dark:border-teal-800 transition-colors inline-flex items-center gap-1.5"
+                                                        >
+                                                            <Eye className="w-3.5 h-3.5" />
+                                                            View Remitter
+                                                        </button>
                                                         <a
                                                             href={`/admin/remitters/${match.id}`}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="px-3 py-1.5 rounded-lg text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 dark:text-teal-300 dark:bg-teal-950/50 dark:hover:bg-teal-900/50 border border-teal-200 dark:border-teal-800 transition-colors inline-flex items-center gap-1.5"
+                                                            className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 dark:text-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors inline-flex items-center gap-1.5"
                                                         >
-                                                            <Eye className="w-3.5 h-3.5" />
-                                                            View Existing Remitter
+                                                            <FileText className="w-3.5 h-3.5" />
+                                                            Edit Remitter
                                                         </a>
+                                                        {match.same_branch === false && (
+                                                            <button
+                                                                type="button"
+                                                                disabled={accessRequestBusy === match.id}
+                                                                onClick={() => requestBranchPermission(match)}
+                                                                className="px-3 py-1.5 rounded-lg text-xs font-bold text-amber-800 bg-amber-100 hover:bg-amber-200 dark:text-amber-200 dark:bg-amber-900/40 dark:hover:bg-amber-900/60 border border-amber-300 dark:border-amber-700 transition-colors inline-flex items-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed"
+                                                            >
+                                                                <Shield className="w-3.5 h-3.5" />
+                                                                {accessRequestBusy === match.id ? 'Requesting...' : 'Request Permission'}
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
                                             ))}

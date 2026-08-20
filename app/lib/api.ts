@@ -199,4 +199,8 @@ export const ENDPOINTS = {
     API_TOKEN_SETTINGS: {
         LIST: `${API_BASE_URL}/api-token-settings`,
     },
+    SCREENING_USAGE: {
+        LIST: `${API_BASE_URL}/screening-usage`,
+        QUOTA: `${API_BASE_URL}/screening-usage/quota`,
+    },
 };

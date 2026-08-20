@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUser } from '@/app/lib/authStorage';
+import ScreeningUsageTables from '@/app/admin/components/ScreeningUsageTables';
 import {
     BarChart3,
     CheckCircle2,
@@ -237,7 +238,7 @@ export default function ApiTokensPage() {
                 <div>
                     <h1 className="flex items-center gap-3 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
                         <BarChart3 className="h-8 w-8 text-teal-500" />
-                        Integration Usage
+                        Screening Usage
                     </h1>
                     <p className="mt-2 max-w-3xl font-medium text-slate-500 dark:text-slate-400">
                         Monitor successful Veriff and Dilisense calls and set application safeguards before their quotas are reached.
@@ -347,12 +348,14 @@ export default function ApiTokensPage() {
                             </>
                         ) : (
                             <p className="mt-5 rounded-xl border border-slate-200/70 bg-white/60 px-4 py-3 text-sm font-semibold text-slate-600 dark:border-white/10 dark:bg-slate-950/20 dark:text-slate-300">
-                                You have view-only access. Grant the <strong>Integration Usage: EDIT</strong> permission to change safeguards.
+                                You have view-only access. Grant the <strong>Screening Usage: EDIT</strong> permission to change safeguards.
                             </p>
                         )}
                     </section>
                 </form>
             )}
+
+            <ScreeningUsageTables />
         </div>
     );
 }
