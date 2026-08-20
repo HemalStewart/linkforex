@@ -54,13 +54,11 @@ function UsageTable({ title, rows }: { title: string; rows: UsageRow[] }) {
                                     {MONTH_NAMES[parseInt(r.month, 10)] || r.month}
                                 </td>
                                 <td className="py-2.5 pr-4 text-right tabular-nums font-semibold text-slate-800 dark:text-slate-100">
-                                    {r.allocated
-                                        ? (r.quota_limit ?? 0).toLocaleString()
-                                        : <span className="text-slate-400 font-normal">Not set</span>}
+                                    {r.effective_limit.toLocaleString()}
                                 </td>
                                 <td className="py-2.5 pr-4 text-right tabular-nums text-slate-800 dark:text-slate-100">{r.usage_count.toLocaleString()}</td>
-                                <td className={`py-2.5 pr-4 text-right tabular-nums font-bold ${r.remaining === 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                                    {r.remaining === null ? <span className="text-slate-400 font-normal">—</span> : r.remaining.toLocaleString()}
+                                <td className={`py-2.5 pr-4 text-right tabular-nums font-bold ${(r.remaining ?? 0) === 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                                    {(r.remaining ?? 0).toLocaleString()}
                                 </td>
                                 <td className="py-2.5 pr-4 text-slate-500 dark:text-slate-400 text-xs">{r.entered_user || '—'}</td>
                                 <td className="py-2.5 text-slate-500 dark:text-slate-400 text-xs">{r.entered_date || '—'}</td>
