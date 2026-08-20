@@ -85,7 +85,6 @@ export const ADMIN_PAGES_CONFIG: AdminCategoryInfo[] = [
             { name: 'Branches', section: 'BRANCHES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
             { name: 'Transaction Settings', section: 'TRANSACTION_SETTINGS', operations: ['VIEW', 'EDIT'] },
             { name: 'Screening Usage', section: 'API_TOKENS', operations: ['VIEW', 'EDIT'] },
-            { name: 'Screening Usage Setting', section: 'SCREENING_USAGE', operations: ['VIEW', 'EDIT'] },
             { name: 'Dilisense Sources', section: 'DILISENSE_SOURCES', operations: ['VIEW', 'EDIT', 'DELETE', 'EDIT_FUZZY_SEARCH', 'SYNC_SOURCES', ...AUDIT_OPS] },
             { name: 'Currencies', section: 'CURRENCIES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] }
         ]
