@@ -249,7 +249,11 @@ export default function CreateMobileUserRemitterPage() {
     const currentUser = React.useMemo(() => getCurrentAdminUser(), []);
     const isPrivilegedUser = React.useMemo(() => isPrivilegedAdminUser(currentUser), [currentUser]);
     const scopedBranchCode = React.useMemo(() => getAdminBranchCode(currentUser), [currentUser]);
-    const { canMultiBranch } = usePagePermissions('BRANCHES');
+    // MULTI_BRANCH is a Remitters permission; the legacy Branches grant is
+    // still honoured so this works either side of the catalogue migration.
+    const { canMultiBranch: canMultiBranchRemitters } = usePagePermissions('REMITTERS');
+    const { canMultiBranch: canMultiBranchLegacy } = usePagePermissions('BRANCHES');
+    const canMultiBranch = canMultiBranchRemitters || canMultiBranchLegacy;
 
     const [branches, setBranches] = useState<any[]>([]);
     const [occupations, setOccupations] = useState<any[]>([]);
