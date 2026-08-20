@@ -6,7 +6,7 @@ import { getStoredUser } from '@/app/lib/authStorage';
 import { isPrivilegedUser as getIsPrivilegedUser, useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 import ConfirmModal from '../components/ConfirmModal';
 import Badge from '../components/ui/Badge';
-import { CheckCircle2, XCircle, RefreshCcw, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, XCircle, RefreshCcw, AlertTriangle, Search } from 'lucide-react';
 import { formatDateTime } from '@/app/lib/dateUtils';
 
 type BranchAccessRow = {
@@ -34,6 +34,8 @@ export default function BranchAccessPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('BRANCH_ACCESS_REQUESTS');
     const { canApprove, canCancel } = usePagePermissions('BRANCH_ACCESS_REQUESTS');
     const [rows, setRows] = useState<BranchAccessRow[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState<number | null>(null);
     const [currentUser, setCurrentUser] = useState<{
@@ -45,6 +47,22 @@ export default function BranchAccessPage() {
         role?: string;
         system_defined?: string;
     } | null>(null);
+
+    // Search covers every column shown in the table, as on the other list pages.
+    const visibleRows = useMemo(() => {
+        const term = searchQuery.trim().toLowerCase();
+        return rows.filter((row) => {
+            if (statusFilter !== 'all' && String(row.status || '').toLowerCase() !== statusFilter) {
+                return false;
+            }
+            if (!term) return true;
+            return [
+                row.sender_name, row.sender_id, row.origin_branch_name, row.origin_branch_code,
+                row.requested_branch_name, row.requested_branch_code, row.status,
+                row.requested_by_username, row.entered_user, row.modified_user, row.note,
+            ].some((v) => String(v ?? '').toLowerCase().includes(term));
+        });
+    }, [rows, searchQuery, statusFilter]);
 
     const [confirmModal, setConfirmModal] = useState({
         isOpen: false,
@@ -184,10 +202,12 @@ export default function BranchAccessPage() {
                     <p className="text-sm text-slate-500 dark:text-slate-300">Please login first.</p>
                 ) : loading ? (
                     <p className="text-sm text-slate-500 dark:text-slate-300">Loading requests...</p>
-                ) : rows.length === 0 ? (
+                ) : visibleRows.length === 0 ? (
                     <div className="rounded-2xl border border-slate-200/70 dark:border-slate-700/60 bg-slate-50/70 dark:bg-slate-900/40 px-4 py-6 text-sm text-slate-500 dark:text-slate-300 flex items-center gap-2">
                         <AlertTriangle className="w-4 h-4" />
-                        No pending cross-branch access requests.
+                        {rows.length === 0
+                            ? 'No cross-branch access requests yet.'
+                            : 'No requests match your search.'}
                     </div>
                 ) : (
                     <div className="table-scroll rounded-2xl border border-slate-200/70 dark:border-slate-700/60">
@@ -208,7 +228,7 @@ export default function BranchAccessPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100/70 dark:divide-slate-700/60">
-                                {rows.map((row) => (
+                                {visibleRows.map((row) => (
                                     <tr key={row.id} className="text-sm">
                                         <td className="px-4 py-3">
                                             <p className="font-semibold text-slate-900 dark:text-white">{row.sender_name || '-'}</p>
