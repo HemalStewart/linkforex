@@ -616,6 +616,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="grid gap-6 lg:grid-cols-7">
+                {canViewTransfers && (
                 <div className="card-glass p-6 lg:col-span-4">
                     <div className="mb-5">
                         <h2 className="text-xl font-extrabold text-gradient-blue tracking-tight">Flow Overview ({rangeTitle})</h2>
@@ -643,7 +644,9 @@ export default function DashboardPage() {
                         </ResponsiveContainer>
                     </div>
                 </div>
+                )}
 
+                {canViewTransfers && (
                 <div className="card-glass overflow-hidden lg:col-span-3">
                     <div className="border-b border-white/20 p-6 dark:border-slate-700/50">
                         <h2 className="text-xl font-extrabold text-gradient-blue tracking-tight">Recent Activity</h2>
@@ -668,9 +671,11 @@ export default function DashboardPage() {
                         )}
                     </div>
                 </div>
+                )}
             </div>
 
             <div className="grid gap-6 lg:grid-cols-7">
+                {canViewTransfers && (
                 <div className="card-glass p-6 lg:col-span-3">
                     <h2 className="text-xl font-extrabold text-gradient-blue tracking-tight">Status Breakdown</h2>
                     <div className="relative h-[300px] min-h-[300px] w-full">
@@ -699,7 +704,9 @@ export default function DashboardPage() {
                         ))}
                     </div>
                 </div>
+                )}
 
+                {canViewTransfers && (
                 <div className="card-glass p-6 lg:col-span-4">
                     <div className="mb-5">
                         <h2 className="text-xl font-extrabold text-gradient-blue tracking-tight">Pipeline Trend</h2>
@@ -719,9 +726,11 @@ export default function DashboardPage() {
                         </ResponsiveContainer>
                     </div>
                 </div>
+                )}
             </div>
 
             <div className="grid gap-6 xl:grid-cols-5">
+                {canViewTransfers && (
                 <div className="card-glass p-6 xl:col-span-2">
                     <h2 className="flex items-center gap-2 text-xl font-extrabold text-gradient-blue tracking-tight"><Building2 className="h-5 w-5" /> Branch Breakdown</h2>
                     <div className="h-[290px] min-h-[290px]">
@@ -738,7 +747,9 @@ export default function DashboardPage() {
                         ) : <EmptyChart />}
                     </div>
                 </div>
+                )}
 
+                {canViewTransfers && (
                 <div className="card-glass p-6 xl:col-span-2">
                     <h2 className="flex items-center gap-2 text-xl font-extrabold text-gradient-blue tracking-tight"><Globe2 className="h-5 w-5" /> Payout Mix</h2>
                     <div className="h-[290px] min-h-[290px]">
@@ -755,7 +766,9 @@ export default function DashboardPage() {
                         ) : <EmptyChart />}
                     </div>
                 </div>
+                )}
 
+                {canViewRemitters && (
                 <div className="card-glass p-6 xl:col-span-1">
                     <h2 className="flex items-center gap-2 text-xl font-extrabold text-gradient-blue tracking-tight"><Users className="h-5 w-5" /> Customer Geography</h2>
                     <div className="mt-5 space-y-4">
@@ -765,9 +778,11 @@ export default function DashboardPage() {
                         {geographyBreakdown.length === 0 && !loading && <div className="py-10 text-center text-sm text-slate-500">No geography data available.</div>}
                     </div>
                 </div>
+                )}
             </div>
 
             <div className="grid gap-6 xl:grid-cols-3">
+                {canViewTransfers && (
                 <div className={`card-glass p-6 ${canViewKyc ? '' : 'xl:col-span-3'}`}>
                     <h2 className="text-xl font-extrabold text-gradient-blue tracking-tight">Weekday Activity</h2>
                     <div className="h-[260px] min-h-[260px]">
@@ -782,6 +797,7 @@ export default function DashboardPage() {
                         </ResponsiveContainer>
                     </div>
                 </div>
+                )}
 
                 {canViewKyc && (
                     <div className="card-glass p-6 xl:col-span-2">
