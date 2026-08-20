@@ -15,9 +15,7 @@ import ConfirmModal from '../../components/ConfirmModal';
 import PostcodeLookup, { AddressData } from '@/app/admin/components/PostcodeLookup';
 import { showToast, queueToast } from '@/app/lib/toast';
 import {
-    User, Calendar, MapPin, Briefcase, Phone, Building, CreditCard,
-    Globe, FileText, Upload, Trash2, Plus, ArrowLeft,
-    CheckCircle, Shield, Layers, Save, Users, AlertCircle, RefreshCcw, Eye
+    User, Calendar, MapPin, Briefcase, Phone, Building, CreditCard, Globe, FileText, Upload, Trash2, Plus, ArrowLeft, CheckCircle, Shield, Layers, Save, Users, AlertCircle, RefreshCcw, Eye, X
 } from 'lucide-react';
 import { usePagePermissions } from '@/app/lib/permissions';
 
@@ -1036,7 +1034,7 @@ export default function CreateRemitterPage() {
                                 className="rounded-lg p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-slate-200"
                                 aria-label="Close"
                             >
-                                <Trash2 className="w-4 h-4 rotate-45" />
+                                <X className="w-4 h-4" />
                             </button>
                         </div>
 

@@ -19,34 +19,7 @@ import VeriffReportsModal from '../../components/VeriffReportsModal';
 import RemitterDocumentsModal from '../../components/RemitterDocumentsModal';
 import { formatDateTime } from '@/app/lib/dateUtils';
 import {
-    ArrowLeft,
-    Save,
-    Trash2,
-    Building,
-    Tag,
-    User,
-    Calendar,
-    Phone,
-    MapPin,
-    Globe,
-    Briefcase,
-    CreditCard,
-    Shield,
-    Layers,
-    FileText,
-    RefreshCcw,
-    ExternalLink,
-    ChevronDown,
-    ChevronRight,
-    ChevronUp,
-    ShieldCheck,
-    X,
-    Loader2,
-    Download,
-    CheckCircle,
-    Eye,
-    Upload,
-    FolderOpen
+    ArrowLeft, Save, Trash2, Building, Tag, User, Calendar, Phone, MapPin, Globe, Briefcase, CreditCard, Shield, Layers, FileText, RefreshCcw, ExternalLink, ChevronDown, ChevronRight, ChevronUp, ShieldCheck, X, Loader2, Download, CheckCircle, Eye, Upload, FolderOpen, ToggleRight
 } from 'lucide-react';
 import { resolveUploadsUrl } from '@/app/lib/uploads';
 
@@ -1307,23 +1280,6 @@ export default function EditRemitterPage() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Mobile Status</label>
-                            <select
-                                className="input-glass w-full py-3 px-4 cursor-pointer text-sm"
-                                value={formData.active || ''}
-                                onChange={(e) => setFormData({ ...formData, active: e.target.value })}
-                            >
-                                <option value="">Select Mobile Status</option>
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
-                                <option value="suspended">Suspended</option>
-                            </select>
-                            <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400 ml-1">
-                                Setting this to Inactive releases the mobile number and ID, so they can be
-                                registered against a new remitter.
-                            </p>
-                        </div>
-                        <div>
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Country of Birth</label>
                             <select
                                 className="input-glass w-full py-3 px-4 cursor-pointer text-sm"
@@ -1543,6 +1499,31 @@ export default function EditRemitterPage() {
                         >
                             <FolderOpen className="w-4 h-4" /> Manage & View Documents
                         </button>
+                    </div>
+                </div>
+
+                {/* Section 6: Remitter Status */}
+                <div className="mb-8">
+                    <div className="mb-6">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center">
+                            <ToggleRight className="w-5 h-5 mr-2 text-teal-500" />
+                            Remitter Status
+                        </h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Status</label>
+                            <select
+                                className="input-glass w-full py-3 px-4 cursor-pointer text-sm"
+                                value={formData.active || ''}
+                                onChange={(e) => setFormData({ ...formData, active: e.target.value })}
+                            >
+                                <option value="">Select Status</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="suspended">Suspended</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
