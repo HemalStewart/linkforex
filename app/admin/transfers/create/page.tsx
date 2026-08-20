@@ -1556,8 +1556,8 @@ export default function CreateTransferPage() {
             <div className="card-glass p-4 md:p-5">
                 <div className="flex flex-wrap items-center gap-3">
                     {([
-                        { step: 1 as const, label: 'Sender' },
-                        { step: 2 as const, label: 'Beneficiary' },
+                        { step: 1 as const, label: 'Remitter' },
+                        { step: 2 as const, label: 'Receiver' },
                         { step: 3 as const, label: 'Details' },
                         { step: 4 as const, label: 'Confirm' },
                     ]).map((item) => {
