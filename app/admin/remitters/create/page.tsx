@@ -544,8 +544,16 @@ export default function CreateRemitterPage() {
             return [];
         }
 
-        const query = buildDuplicateQuery(signals);
+        let query = buildDuplicateQuery(signals);
         if (!query) return [];
+
+        // Whether a match counts as another branch's customer depends on the
+        // branch being registered into, not on whichever branch the signed-in
+        // user happens to belong to.
+        const targetBranch = canMultiBranch ? selectedBranch : scopedBranchCode;
+        if (targetBranch) {
+            query += `&branch=${encodeURIComponent(targetBranch)}`;
+        }
 
         const response = await fetch(withActingUserParam(`${ENDPOINTS.REMITTERS.POTENTIAL_MATCHES}?${query}`, currentUser));
         if (!response.ok) {
