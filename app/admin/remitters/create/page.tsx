@@ -554,7 +554,7 @@ export default function CreateRemitterPage() {
 
         const data = await response.json() as { matches?: DuplicateMatch[] };
         return Array.isArray(data.matches) ? data.matches : [];
-    }, [buildDuplicateQuery, currentUser, hasMinimumDuplicateSignals]);
+    }, [buildDuplicateQuery, currentUser, hasMinimumDuplicateSignals, canMultiBranch, selectedBranch, scopedBranchCode]);
 
     React.useEffect(() => {
         if (!hasMinimumDuplicateSignals(duplicateFormSignals)) {
