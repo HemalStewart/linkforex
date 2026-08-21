@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: 'Branch Access Flags',
+    title: 'Branch Access Requests',
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {
