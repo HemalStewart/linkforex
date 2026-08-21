@@ -12,6 +12,7 @@ import {
     withActingUserParam,
 } from '@/app/lib/adminUserScope';
 import ConfirmModal from '../../components/ConfirmModal';
+import RemitterOverviewModal from '@/app/admin/components/RemitterOverviewModal';
 import PostcodeLookup, { AddressData } from '@/app/admin/components/PostcodeLookup';
 import { showToast, queueToast } from '@/app/lib/toast';
 import {
@@ -319,8 +320,10 @@ export default function CreateRemitterPage() {
     const [city, setCity] = useState('');
     const [loading, setLoading] = useState(false);
     const [possibleDuplicates, setPossibleDuplicates] = useState<DuplicateMatch[]>([]);
-    const [viewRemitter, setViewRemitter] = useState<DuplicateMatch | null>(null);
+    const [viewRemitter, setViewRemitter] = useState<any | null>(null);
+    const [viewRemitterReceivers, setViewRemitterReceivers] = useState<any[]>([]);
     const [accessRequestBusy, setAccessRequestBusy] = useState<number | null>(null);
+    const [accessRequestModal, setAccessRequestModal] = useState<{ isOpen: boolean; match: DuplicateMatch | null }>({ isOpen: false, match: null });
     const [duplicateFormSignals, setDuplicateFormSignals] = useState({
         sender_id: '',
         sender_name: '',
@@ -707,6 +710,23 @@ export default function CreateRemitterPage() {
         return { createdId: result.id, createdRouteKey: result.route_key || (result.id != null ? String(result.id) : undefined) };
     }, [currentUser]);
 
+    // The match card carries a summary only, so the full customer and their
+    // receivers are loaded before the overview is shown.
+    const openRemitterOverview = async (match: DuplicateMatch) => {
+        setViewRemitter(match);
+        setViewRemitterReceivers([]);
+        try {
+            const [full, recs] = await Promise.all([
+                fetch(withActingUserParam(ENDPOINTS.REMITTERS.DETAIL(match.id), currentUser)).then(r => r.ok ? r.json() : null),
+                fetch(withActingUserParam(`${ENDPOINTS.BENEFICIARIES.LIST}?customer_id=${match.id}`, currentUser)).then(r => r.ok ? r.json() : []),
+            ]);
+            if (full) setViewRemitter(full?.data ?? full);
+            setViewRemitterReceivers(Array.isArray(recs) ? recs : (recs?.data ?? []));
+        } catch {
+            // the summary from the match card is still shown if the load fails
+        }
+    };
+
     // Access to another branch's customer is only ever requested here, by the
     // user pressing the button - never as a side effect of saving.
     const requestBranchPermission = async (match: DuplicateMatch) => {
@@ -1021,80 +1041,11 @@ export default function CreateRemitterPage() {
     return (
         <div className="max-w-7xl mx-auto pb-20 animate-fade-in-up">
             {viewRemitter && (
-                <div
-                    className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4"
-                    onClick={() => setViewRemitter(null)}
-                >
-                    <div
-                        className="w-full max-w-lg rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl overflow-hidden"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <div className="flex items-start justify-between gap-4 px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-                            <div>
-                                <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">{viewRemitter.name}</h3>
-                                <p className="text-xs font-mono text-teal-600 dark:text-teal-400 mt-0.5">
-                                    {viewRemitter.sender_id || 'No Reference ID'}
-                                </p>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => setViewRemitter(null)}
-                                className="rounded-lg p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-                                aria-label="Close"
-                            >
-                                <X className="w-4 h-4" />
-                            </button>
-                        </div>
-
-                        <dl className="px-6 py-4 grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
-                            {[
-                                ['Branch', viewRemitter.branch],
-                                ['Mobile number', viewRemitter.phone],
-                                ['Email', viewRemitter.email],
-                                ['ID number', viewRemitter.id_number],
-                                ['ID expiry', viewRemitter.id_expiry],
-                                ['Account status', viewRemitter.status],
-                            ].map(([label, value]) => (
-                                <div key={String(label)}>
-                                    <dt className="text-[11px] uppercase tracking-wide text-slate-400 font-bold">{label}</dt>
-                                    <dd className="text-slate-800 dark:text-slate-100 font-semibold mt-0.5 break-words">
-                                        {value ? String(value) : '—'}
-                                    </dd>
-                                </div>
-                            ))}
-                        </dl>
-
-                        <div className="px-6 pb-4 flex flex-wrap gap-2">
-                            <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold ${verificationBadgeClass(viewRemitter.verification_state)}`}>
-                                {verificationLabel(viewRemitter.verification_state)}
-                            </span>
-                            {viewRemitter.same_branch === false && (
-                                <span className="inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">
-                                    Belongs to another branch
-                                </span>
-                            )}
-                        </div>
-
-                        <div className="px-6 py-3 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
-                            <a
-                                href={`/admin/remitters/${viewRemitter.id}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="px-3 py-1.5 rounded-lg text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 dark:text-teal-300 dark:bg-teal-950/50 border border-teal-200 dark:border-teal-800 inline-flex items-center gap-1.5"
-                            >
-                                <FileText className="w-3.5 h-3.5" />
-                                Open Full Record
-                            </a>
-                            <button
-                                type="button"
-                                onClick={() => setViewRemitter(null)}
-                                className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 dark:text-slate-200 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
-                            >
-                                Close
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <RemitterOverviewModal
+                    remitter={viewRemitter}
+                    receivers={viewRemitterReceivers}
+                    onClose={() => setViewRemitter(null)}
+                />
             )}
 
             <ConfirmModal
@@ -1106,6 +1057,23 @@ export default function CreateRemitterPage() {
                 type={confirmModal.type as any}
                 isAlert={confirmModal.isAlert}
                 confirmText={confirmModal.shouldRedirect ? "Continue" : "OK"}
+            />
+            <ConfirmModal
+                isOpen={accessRequestModal.isOpen}
+                onClose={() => setAccessRequestModal({ isOpen: false, match: null })}
+                onConfirm={() => {
+                    const match = accessRequestModal.match;
+                    setAccessRequestModal({ isOpen: false, match: null });
+                    if (match) void requestBranchPermission(match);
+                }}
+                title="Request Permission"
+                message={accessRequestModal.match
+                    ? `${accessRequestModal.match.name} is registered at ${accessRequestModal.match.branch || 'another branch'}. Send an approval request to that branch so this branch can use the remitter?`
+                    : ''}
+                type="warning"
+                isAlert={false}
+                confirmText="Send Request"
+                cancelText="Cancel"
             />
             <ConfirmModal
                 isOpen={duplicateModal.isOpen}
@@ -1282,7 +1250,7 @@ export default function CreateRemitterPage() {
                                                     <div className="shrink-0 flex flex-wrap items-center gap-2">
                                                         <button
                                                             type="button"
-                                                            onClick={() => setViewRemitter(match)}
+                                                            onClick={() => void openRemitterOverview(match)}
                                                             className="px-3 py-1.5 rounded-lg text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 dark:text-teal-300 dark:bg-teal-950/50 dark:hover:bg-teal-900/50 border border-teal-200 dark:border-teal-800 transition-colors inline-flex items-center gap-1.5"
                                                         >
                                                             <Eye className="w-3.5 h-3.5" />
@@ -1301,7 +1269,7 @@ export default function CreateRemitterPage() {
                                                             <button
                                                                 type="button"
                                                                 disabled={accessRequestBusy === match.id}
-                                                                onClick={() => requestBranchPermission(match)}
+                                                                onClick={() => setAccessRequestModal({ isOpen: true, match })}
                                                                 className="px-3 py-1.5 rounded-lg text-xs font-bold text-amber-800 bg-amber-100 hover:bg-amber-200 dark:text-amber-200 dark:bg-amber-900/40 dark:hover:bg-amber-900/60 border border-amber-300 dark:border-amber-700 transition-colors inline-flex items-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed"
                                                             >
                                                                 <Shield className="w-3.5 h-3.5" />
