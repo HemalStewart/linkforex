@@ -4,13 +4,13 @@ import React, { useState } from 'react';
 import { ENDPOINTS } from '@/app/lib/api';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
-import { RefreshCw, PlusCircle, Edit2, Save, X, Info, Globe, Coins } from 'lucide-react';
+import { RefreshCw, PlusCircle, Edit2, Trash2, Save, X, Info, Globe, Coins } from 'lucide-react';
 import { formatDateTime } from '@/app/lib/dateUtils';
 import { useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 
 export default function CurrenciesPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('CURRENCIES');
-    const { canAdd, canEdit } = usePagePermissions('CURRENCIES');
+    const { canAdd, canEdit, canDelete } = usePagePermissions('CURRENCIES');
     const [currencies, setCurrencies] = useState<any[]>([]);
     const [countries, setCountries] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -34,6 +34,43 @@ export default function CurrenciesPage() {
         type: 'info' as 'info' | 'danger' | 'warning',
         isAlert: true
     });
+
+    // CURRENCIES -> DELETE was grantable with nothing on the page to use it.
+    const [currencyToDelete, setCurrencyToDelete] = useState<any | null>(null);
+
+    const promptDelete = (currency: any) => {
+        setCurrencyToDelete(currency);
+        setConfirmModal({
+            isOpen: true,
+            title: 'Delete Currency',
+            message: `Delete ${currency.name || currency.code || 'this currency'}? This cannot be undone.`,
+            type: 'danger',
+            isAlert: false,
+        });
+    };
+
+    const handleDeleteConfirmed = async () => {
+        const target = currencyToDelete;
+        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+        setCurrencyToDelete(null);
+        if (!target) return;
+
+        try {
+            const res = await fetch(ENDPOINTS.CURRENCIES.DETAIL(target.id), { method: 'DELETE' });
+            if (!res.ok) {
+                let message = 'Failed to delete currency.';
+                try {
+                    const body = await res.json();
+                    message = body?.messages?.error || body?.message || message;
+                } catch { /* keep the default */ }
+                setConfirmModal({ isOpen: true, title: 'Delete Failed', message, type: 'danger', isAlert: true });
+                return;
+            }
+            await fetchRates();
+        } catch {
+            setConfirmModal({ isOpen: true, title: 'Delete Failed', message: 'Failed to delete currency.', type: 'danger', isAlert: true });
+        }
+    };
 
     React.useEffect(() => {
         fetchRates();
@@ -178,6 +215,7 @@ export default function CurrenciesPage() {
                                     {showCreatedAt && <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Created At</th>}
                                     {showUpdatedBy && <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated By</th>}
                                     {showUpdatedAt && <th className="px-8 py-5 text-left text-xs font-bold text-slate-500 dark:text-slate-400">Updated At</th>}
+                                    {canDelete && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Delete"><Trash2 className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -231,6 +269,18 @@ export default function CurrenciesPage() {
                                         {showUpdatedAt && (
                                             <td className="px-8 py-5 text-sm text-slate-500 font-medium whitespace-nowrap">
                                                 {currency.updated_at ? formatDateTime(currency.updated_at) : '—'}
+                                            </td>
+                                        )}
+                                        {canDelete && (
+                                            <td className="px-2 py-4 text-center">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => promptDelete(currency)}
+                                                    className="p-2 rounded-xl text-slate-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-900/25 dark:hover:text-rose-400 transition-all"
+                                                    title="Delete"
+                                                >
+                                                    <Trash2 className="w-5 h-5" />
+                                                </button>
                                             </td>
                                         )}
                                     </tr>
@@ -347,12 +397,15 @@ export default function CurrenciesPage() {
             <ConfirmModal
                 isOpen={confirmModal.isOpen}
                 onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
-                onConfirm={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+                onConfirm={() => {
+                    if (confirmModal.isAlert) { setConfirmModal({ ...confirmModal, isOpen: false }); return; }
+                    handleDeleteConfirmed();
+                }}
                 title={confirmModal.title}
                 message={confirmModal.message}
                 type={confirmModal.type}
                 isAlert={confirmModal.isAlert}
-                confirmText="OK"
+                confirmText={confirmModal.isAlert ? 'OK' : 'Delete'}
             />
         </div>
     );
