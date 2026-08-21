@@ -55,6 +55,10 @@ export default function EditRemitterPage() {
     const [loading, setLoading] = useState(true);
     const [notFound, setNotFound] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    // Granted access lets a branch transact for a remitter it does not own.
+    // The owning branch stays the only one that can change the record.
+    const [sharedAccess, setSharedAccess] = useState(false);
+    const [ownerBranch, setOwnerBranch] = useState('');
     const [dilisenseEnabled, setDilisenseEnabled] = useState<boolean>(true);
     const [initialAmlStatus, setInitialAmlStatus] = useState<string>('pending');
     const [enableAmlOverride, setEnableAmlOverride] = useState<boolean>(false);
@@ -313,6 +317,9 @@ export default function EditRemitterPage() {
 
                 return 'pending';
             })();
+
+            setSharedAccess(Boolean(data.shared_access));
+            setOwnerBranch(String(data.branch_name || data.branch || ''));
 
             setFormData({
                 id: data.id,
@@ -1200,6 +1207,18 @@ export default function EditRemitterPage() {
 
 
 
+            {sharedAccess && (
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800/60 dark:bg-amber-900/25">
+                    <p className="text-sm font-bold text-amber-800 dark:text-amber-200">Shared remitter &mdash; read only</p>
+                    <p className="mt-1 text-xs leading-relaxed text-amber-700 dark:text-amber-300">
+                        {ownerBranch ? `This remitter is owned by ${ownerBranch}.` : 'This remitter is owned by another branch.'}{' '}
+                        Your branch has approved access to send transfers for them, but only the owning branch can change their details.
+                        Ask that branch to make any correction so every branch keeps the same record.
+                    </p>
+                </div>
+            )}
+
+            <fieldset disabled={sharedAccess} className={sharedAccess ? 'opacity-95' : ''}>
             <form onSubmit={handleSubmit} className="card-glass p-8 relative overflow-hidden space-y-8">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
@@ -1541,10 +1560,11 @@ export default function EditRemitterPage() {
                         className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40"
                     >
                         <Save className="w-4 h-4" />
-                        <span>{submitting ? 'Updating...' : 'Save'}</span>
+                        <span>{submitting ? 'Updating...' : (sharedAccess ? 'Owned by another branch' : 'Save')}</span>
                     </button>
                 </div>
             </form>
+            </fieldset>
 
 
 

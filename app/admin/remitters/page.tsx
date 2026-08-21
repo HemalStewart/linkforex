@@ -14,7 +14,7 @@ import { formatDateTime } from '@/app/lib/dateUtils';
 import { routeKeyOf } from '@/app/lib/routeKeys';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
-import { Search, UserPlus, Edit2, Info, Trash2, ChevronRight, Users, FileText, ShieldCheck, X, Loader2, RefreshCcw, Download, FolderOpen } from 'lucide-react';
+import { Search, UserPlus, Edit2, Eye, Info, Trash2, ChevronRight, Users, FileText, ShieldCheck, X, Loader2, RefreshCcw, Download, FolderOpen } from 'lucide-react';
 import { useAuditColumns, usePagePermissions, checkPermission } from '@/app/lib/permissions';
 
 type SortDir = 'asc' | 'desc';
@@ -1353,9 +1353,9 @@ export default function RemittersPage() {
                                                 <Link
                                                     href={`/admin/remitters/${encodeURIComponent(routeKeyOf(row))}`}
                                                     className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all inline-flex"
-                                                    title="Edit"
+                                                    title={row.shared_access ? 'View only - this remitter is owned by another branch' : 'Edit'}
                                                 >
-                                                    <Edit2 className="w-5 h-5" />
+                                                    {row.shared_access ? <Eye className="w-5 h-5" /> : <Edit2 className="w-5 h-5" />}
                                                 </Link>
                                             </td>
                                         )}
