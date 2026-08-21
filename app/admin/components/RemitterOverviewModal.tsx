@@ -50,8 +50,8 @@ const resolveIdStatus = (r: any): 'Valid ID' | 'Pending' | 'ID Expired' => {
         }
     }
 
-    const isExpired = Boolean(r.id_expired) || 
-                      String(r.id_expired || '').toLowerCase() === 'yes' || 
+    const isExpired = Boolean(r.id_expired) ||
+                      String(r.id_expired || '').toLowerCase() === 'yes' ||
                       String(r.id_status || '').toLowerCase() === 'expired';
 
     if (isExpired) return 'ID Expired';
