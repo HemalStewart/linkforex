@@ -409,9 +409,18 @@ export default function TransfersPage() {
             const mobileWallet = isMobileWalletTransfer(transfer, meta);
             const rawStatus = normalizeStatusKey(asString(transfer.status) || 'pending');
 
-            const toBranchCode = asString(transfer.branch_id);
-            const toBranch = branchByKey.get(toBranchCode) || asString(meta.branch_name) || toBranchCode || '-';
-            const fromBranch = asString(remitter?.branch) || asString(meta.from_branch) || '-';
+            // transfer.branch_id is the branch that SENT the money -- it is what
+            // branch scoping matches on. It was being shown as the destination,
+            // so both columns described the sending side and "To" named London.
+            const fromBranchCode = asString(transfer.branch_id) || asString(remitter?.branch);
+            const fromBranch = branchByKey.get(fromBranchCode) || asString(meta.from_branch) || fromBranchCode || '-';
+
+            // The receiving side of a remittance is where the beneficiary collects:
+            // their bank branch, falling back to their city and country.
+            const toBranch = asString(beneficiary?.branch_name)
+                || [asString(beneficiary?.city), asString(beneficiary?.country)].filter(Boolean).join(', ')
+                || asString(meta.branch_name)
+                || '-';
 
             const receivedAmount = asNumber(transfer.source_amount);
             const fcAmount = asNumber(transfer.dest_amount);
