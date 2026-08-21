@@ -144,8 +144,10 @@ export default function BranchAccessPage() {
         if (!currentUser) return;
         setLoading(true);
         try {
+            // Both tabs read from one fetch: the pending queue and the record of
+            // what was already decided, so every status has to come back.
             const params = new URLSearchParams();
-            params.set('status', 'pending');
+            params.set('status', 'all');
 
             if (!isPrivilegedUser) {
                 if (!userBranch) {
