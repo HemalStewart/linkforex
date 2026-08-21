@@ -214,8 +214,9 @@ export default function BranchAccessPage() {
                         <table className="min-w-full">
                             <thead className="bg-slate-50/80 dark:bg-slate-800/60">
                                 <tr className="text-left text-xs text-slate-500 dark:text-slate-300">
+                                    {canApprove && <th className="px-2 py-4 text-center text-xs font-bold text-emerald-600 dark:text-emerald-400" title="Approve"><CheckCircle2 className="w-4 h-4 mx-auto" /></th>}
+                                    {canCancel && <th className="px-2 py-4 text-center text-xs font-bold text-rose-600 dark:text-rose-400" title="Reject"><XCircle className="w-4 h-4 mx-auto" /></th>}
                                     <th className="px-4 py-3">Sender</th>
-                                    {canApprove && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Approve"><CheckCircle2 className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                     <th className="px-4 py-3">Previous Branch</th>
                                     <th className="px-4 py-3">Requested Branch</th>
                                     <th className="px-4 py-3">Status</th>
@@ -224,29 +225,41 @@ export default function BranchAccessPage() {
                                     {showCreatedAt && <th className="px-4 py-3">Created At</th>}
                                     {showUpdatedBy && <th className="px-4 py-3">Updated By</th>}
                                     {showUpdatedAt && <th className="px-4 py-3">Updated At</th>}
-                                    {canCancel && <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="Reject"><XCircle className="w-4 h-4 mx-auto text-slate-400" /></th>}
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100/70 dark:divide-slate-700/60">
                                 {visibleRows.map((row) => (
                                     <tr key={row.id} className="text-sm">
-                                        <td className="px-4 py-3">
-                                            <p className="font-semibold text-slate-900 dark:text-white">{row.sender_name || '-'}</p>
-                                            <p className="text-xs text-slate-500 dark:text-slate-300">{row.sender_id || '-'}</p>
-                                        </td>
                                         {canApprove && (
                                             <td className="px-2 py-4 text-center">
                                                 <button
                                                     type="button"
                                                     onClick={() => performReview(row.id, 'approve')}
                                                     disabled={submitting === row.id || row.can_review === false}
-                                                    className="p-2 rounded-xl hover:bg-white hover:shadow-md dark:hover:bg-slate-700 text-slate-400 hover:text-teal-600 transition-all disabled:opacity-35 disabled:cursor-not-allowed"
+                                                    className="p-2 rounded-xl text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 hover:shadow-md dark:text-emerald-400 dark:hover:bg-emerald-900/25 transition-all disabled:opacity-35 disabled:cursor-not-allowed"
                                                     title="Approve"
                                                 >
                                                     <CheckCircle2 className="w-5 h-5" />
                                                 </button>
                                             </td>
                                         )}
+                                        {canCancel && (
+                                            <td className="px-2 py-4 text-center">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => performReview(row.id, 'reject')}
+                                                    disabled={submitting === row.id || row.can_review === false}
+                                                    className="p-2 rounded-xl text-rose-600 hover:bg-rose-50 hover:text-rose-700 hover:shadow-md dark:text-rose-400 dark:hover:bg-rose-900/25 transition-all disabled:opacity-35 disabled:cursor-not-allowed"
+                                                    title="Reject"
+                                                >
+                                                    <XCircle className="w-5 h-5" />
+                                                </button>
+                                            </td>
+                                        )}
+                                        <td className="px-4 py-3">
+                                            <p className="font-semibold text-slate-900 dark:text-white">{row.sender_name || '-'}</p>
+                                            <p className="text-xs text-slate-500 dark:text-slate-300">{row.sender_id || '-'}</p>
+                                        </td>
                                         <td className="px-4 py-3 text-slate-700 dark:text-slate-200">{row.origin_branch_name || row.origin_branch_code}</td>
                                         <td className="px-4 py-3 text-slate-700 dark:text-slate-200">{row.requested_branch_name || row.requested_branch_code}</td>
                                         <td className="px-4 py-3">
@@ -270,19 +283,6 @@ export default function BranchAccessPage() {
                                         {showUpdatedAt && (
                                             <td className="px-4 py-3 text-slate-500 dark:text-slate-300 whitespace-nowrap">
                                                 {row.updated_at ? formatDateTime(row.updated_at) : '—'}
-                                            </td>
-                                        )}
-                                        {canCancel && (
-                                            <td className="px-2 py-4 text-center">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => performReview(row.id, 'reject')}
-                                                    disabled={submitting === row.id || row.can_review === false}
-                                                    className="p-2 rounded-xl hover:bg-red-50 hover:shadow-md dark:hover:bg-red-900/20 text-slate-400 hover:text-red-600 transition-all disabled:opacity-35 disabled:cursor-not-allowed"
-                                                    title="Reject"
-                                                >
-                                                    <XCircle className="w-5 h-5" />
-                                                </button>
                                             </td>
                                         )}
                                     </tr>
