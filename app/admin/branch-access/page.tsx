@@ -6,7 +6,8 @@ import { getStoredUser } from '@/app/lib/authStorage';
 import { isPrivilegedUser as getIsPrivilegedUser, useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 import ConfirmModal from '../components/ConfirmModal';
 import Badge from '../components/ui/Badge';
-import { CheckCircle2, XCircle, RefreshCcw, AlertTriangle, Search } from 'lucide-react';
+import { CheckCircle2, XCircle, RefreshCcw, AlertTriangle, Search, Info } from 'lucide-react';
+import RemitterOverviewModal from '@/app/admin/components/RemitterOverviewModal';
 import { formatDateTime } from '@/app/lib/dateUtils';
 
 type BranchAccessRow = {
@@ -36,6 +37,25 @@ export default function BranchAccessPage() {
     const [rows, setRows] = useState<BranchAccessRow[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+    const [overviewRemitter, setOverviewRemitter] = useState<any | null>(null);
+    const [overviewReceivers, setOverviewReceivers] = useState<any[]>([]);
+
+    // The row holds only the remitter's name and reference, so the customer and
+    // their receivers are loaded before the overview is shown.
+    const openOverview = async (row: BranchAccessRow) => {
+        setOverviewRemitter({ id: row.remitter_id, sender_name: row.sender_name, sender_id: row.sender_id });
+        setOverviewReceivers([]);
+        try {
+            const [full, recs] = await Promise.all([
+                fetch(ENDPOINTS.REMITTERS.DETAIL(row.remitter_id)).then(r => r.ok ? r.json() : null),
+                fetch(`${ENDPOINTS.BENEFICIARIES.LIST}?customer_id=${row.remitter_id}`).then(r => r.ok ? r.json() : []),
+            ]);
+            if (full) setOverviewRemitter(full?.data ?? full);
+            setOverviewReceivers(Array.isArray(recs) ? recs : (recs?.data ?? []));
+        } catch {
+            // the row summary is still shown if the load fails
+        }
+    };
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState<number | null>(null);
     const [currentUser, setCurrentUser] = useState<{
@@ -172,6 +192,14 @@ export default function BranchAccessPage() {
 
     return (
         <div className="max-w-7xl mx-auto pb-20 animate-fade-in-up space-y-6">
+            {overviewRemitter && (
+                <RemitterOverviewModal
+                    remitter={overviewRemitter}
+                    receivers={overviewReceivers}
+                    onClose={() => setOverviewRemitter(null)}
+                />
+            )}
+
             <ConfirmModal
                 isOpen={confirmModal.isOpen}
                 onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
@@ -249,8 +277,9 @@ export default function BranchAccessPage() {
                                 <tr className="text-left text-xs text-slate-500 dark:text-slate-300">
                                     {canApprove && <th className="px-2 py-4 text-center text-xs font-bold text-emerald-600 dark:text-emerald-400" title="Approve"><CheckCircle2 className="w-4 h-4 mx-auto" /></th>}
                                     {canCancel && <th className="px-2 py-4 text-center text-xs font-bold text-rose-600 dark:text-rose-400" title="Reject"><XCircle className="w-4 h-4 mx-auto" /></th>}
+                                    <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="View Overview"><Info className="w-4 h-4 mx-auto text-slate-400" /></th>
                                     <th className="px-4 py-3">Sender</th>
-                                    <th className="px-4 py-3">Previous Branch</th>
+                                    <th className="px-4 py-3">Branch</th>
                                     <th className="px-4 py-3">Requested Branch</th>
                                     <th className="px-4 py-3">Status</th>
                                     <th className="px-4 py-3">Requested By</th>
@@ -289,6 +318,16 @@ export default function BranchAccessPage() {
                                                 </button>
                                             </td>
                                         )}
+                                        <td className="px-2 py-4 text-center">
+                                            <button
+                                                type="button"
+                                                onClick={() => void openOverview(row)}
+                                                className="p-2 rounded-xl text-slate-400 hover:bg-white hover:text-teal-600 hover:shadow-md dark:hover:bg-slate-700 transition-all"
+                                                title="View Overview"
+                                            >
+                                                <Info className="w-5 h-5" />
+                                            </button>
+                                        </td>
                                         <td className="px-4 py-3">
                                             <p className="font-semibold text-slate-900 dark:text-white">{row.sender_name || '-'}</p>
                                             <p className="text-xs text-slate-500 dark:text-slate-300">{row.sender_id || '-'}</p>
