@@ -197,29 +197,40 @@ export default function BranchAccessPage() {
                 </button>
             </div>
 
-            <div className="card-glass p-6 md:p-8">
-                <div className="mb-5 grid grid-cols-1 lg:grid-cols-3 gap-3">
-                    <div className="relative input-icon lg:col-span-2">
-                        <span className="input-icon-left"><Search className="w-4 h-4" /></span>
-                        <input
-                            className="input-glass w-full text-sm"
-                            placeholder="Search all columns"
-                            value={searchQuery}
-                            onChange={(event) => setSearchQuery(event.target.value)}
-                        />
+            <div className="card-glass p-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Search</label>
+                        <div className="relative input-icon">
+                            <span className="input-icon-left"><Search className="w-4 h-4" /></span>
+                            <input
+                                type="text"
+                                placeholder="Search all columns"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="input-glass w-full text-sm"
+                            />
+                        </div>
                     </div>
-                    <select
-                        className="input-glass w-full text-sm"
-                        value={statusFilter}
-                        onChange={(event) => setStatusFilter(event.target.value as 'all' | 'pending' | 'approved' | 'rejected')}
-                    >
-                        <option value="all">All Statuses</option>
-                        <option value="pending">Pending</option>
-                        <option value="approved">Approved</option>
-                        <option value="rejected">Rejected</option>
-                    </select>
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Status</label>
+                        <div className="relative input-icon">
+                            <select
+                                className="input-glass w-full text-sm"
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value as 'all' | 'pending' | 'approved' | 'rejected')}
+                            >
+                                <option value="all">All</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
+            </div>
 
+            <div className="card-glass p-6 md:p-8">
                 {!currentUser ? (
                     <p className="text-sm text-slate-500 dark:text-slate-300">Please login first.</p>
                 ) : loading ? (
