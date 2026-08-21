@@ -89,6 +89,14 @@ const money = (amount: number, currency = 'GBP'): string => {
         + (symbol ? '' : ' ' + currency);
 };
 
+// `capitalize` would render pof as "Pof"; proof of funds is an acronym.
+// A breached limit is the most decision-relevant fact on this panel.
+const isOverLimit = (p?: ActivityPeriod | null): boolean =>
+    !!p && typeof p.limit === 'number' && p.limit > 0 && p.amount > p.limit;
+
+const statusLabel = (status: string): string =>
+    String(status || '-').replace(/_/g, ' ').replace(/\bpof\b/gi, 'PoF');
+
 const shortDate = (value: string): string => {
     if (!value) return '-';
     const d = new Date(String(value).replace(' ', 'T'));
@@ -361,23 +369,25 @@ export default function RemitterOverviewModal({ remitter, receivers = [], onClos
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                         <div className="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 shadow-xs">
                                             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Last 3 Months</p>
-                                            <p className="mt-1 text-lg font-extrabold text-slate-900 dark:text-white">
+                                            <p className={`mt-1 text-lg font-extrabold ${isOverLimit(activity.quarter) ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white'}`}>
                                                 {money(activity.quarter?.amount ?? 0, activity.currency)}
                                             </p>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                            <p className={`text-xs mt-0.5 ${isOverLimit(activity.quarter) ? 'font-semibold text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400'}`}>
                                                 {activity.quarter?.count ?? 0} {(activity.quarter?.count ?? 0) === 1 ? 'transaction' : 'transactions'}
                                                 {activity.quarter?.limit ? ` of ${money(activity.quarter.limit, activity.currency)} limit` : ''}
+                                                {isOverLimit(activity.quarter) ? ' \u2014 over limit' : ''}
                                             </p>
                                         </div>
 
                                         <div className="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 shadow-xs">
                                             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">This Year</p>
-                                            <p className="mt-1 text-lg font-extrabold text-slate-900 dark:text-white">
+                                            <p className={`mt-1 text-lg font-extrabold ${isOverLimit(activity.year) ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white'}`}>
                                                 {money(activity.year?.amount ?? 0, activity.currency)}
                                             </p>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                            <p className={`text-xs mt-0.5 ${isOverLimit(activity.year) ? 'font-semibold text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400'}`}>
                                                 {activity.year?.count ?? 0} {(activity.year?.count ?? 0) === 1 ? 'transaction' : 'transactions'}
                                                 {activity.year?.limit ? ` of ${money(activity.year.limit, activity.currency)} limit` : ''}
+                                                {isOverLimit(activity.year) ? ' \u2014 over limit' : ''}
                                             </p>
                                         </div>
 
@@ -412,7 +422,7 @@ export default function RemitterOverviewModal({ remitter, receivers = [], onClos
                                                                 <td className="px-3 py-2 text-right font-bold text-slate-900 dark:text-white whitespace-nowrap">{money(row.amount, row.currency)}</td>
                                                                 <td className="px-3 py-2">
                                                                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 capitalize">
-                                                                        {String(row.status || '-').replace(/_/g, ' ')}
+                                                                        {statusLabel(row.status)}
                                                                     </span>
                                                                 </td>
                                                             </tr>
