@@ -6,7 +6,7 @@ import { getStoredUser } from '@/app/lib/authStorage';
 import { isPrivilegedUser as getIsPrivilegedUser, useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 import ConfirmModal from '../components/ConfirmModal';
 import Badge from '../components/ui/Badge';
-import { CheckCircle2, XCircle, RefreshCcw, AlertTriangle, Search, Info } from 'lucide-react';
+import { CheckCircle2, XCircle, RefreshCcw, AlertTriangle, Search, Info, Clock, Archive } from 'lucide-react';
 import RemitterOverviewModal from '@/app/admin/components/RemitterOverviewModal';
 import { formatDateTime } from '@/app/lib/dateUtils';
 
@@ -37,6 +37,8 @@ export default function BranchAccessPage() {
     const [rows, setRows] = useState<BranchAccessRow[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+    // Open requests are the work; decided ones are the record of what happened.
+    const [activeTab, setActiveTab] = useState<'pending' | 'history'>('pending');
     const [overviewRemitter, setOverviewRemitter] = useState<any | null>(null);
     const [overviewReceivers, setOverviewReceivers] = useState<any[]>([]);
 
@@ -72,8 +74,13 @@ export default function BranchAccessPage() {
     const visibleRows = useMemo(() => {
         const term = searchQuery.trim().toLowerCase();
         return rows.filter((row) => {
-            if (statusFilter !== 'all' && String(row.status || '').toLowerCase() !== statusFilter) {
-                return false;
+            const rowStatus = String(row.status || '').toLowerCase();
+
+            if (activeTab === 'pending') {
+                if (rowStatus !== 'pending') return false;
+            } else {
+                if (rowStatus === 'pending') return false;
+                if (statusFilter !== 'all' && rowStatus !== statusFilter) return false;
             }
             if (!term) return true;
             return [
@@ -82,7 +89,17 @@ export default function BranchAccessPage() {
                 row.requested_by_username, row.entered_user, row.modified_user, row.note,
             ].some((v) => String(v ?? '').toLowerCase().includes(term));
         });
-    }, [rows, searchQuery, statusFilter]);
+    }, [rows, searchQuery, statusFilter, activeTab]);
+
+    const tabCounts = useMemo(() => {
+        let pending = 0;
+        let history = 0;
+        for (const row of rows) {
+            if (String(row.status || '').toLowerCase() === 'pending') pending += 1;
+            else history += 1;
+        }
+        return { pending, history };
+    }, [rows]);
 
     const [confirmModal, setConfirmModal] = useState({
         isOpen: false,
@@ -220,8 +237,8 @@ export default function BranchAccessPage() {
                 message={
                     reviewModal.row
                         ? (reviewModal.action === 'approve'
-                            ? `Approve ${reviewModal.row.sender_name || 'this sender'} for transfers from ${reviewModal.row.requested_branch_name || reviewModal.row.requested_branch_code || 'the requested branch'}?`
-                            : `Reject the request for ${reviewModal.row.sender_name || 'this sender'} to transfer from ${reviewModal.row.requested_branch_name || reviewModal.row.requested_branch_code || 'the requested branch'}?`)
+                            ? `Approve ${reviewModal.row.sender_name || 'this remitter'} for transfers from ${reviewModal.row.requested_branch_name || reviewModal.row.requested_branch_code || 'the requested branch'}?`
+                            : `Reject the request for ${reviewModal.row.sender_name || 'this remitter'} to transfer from ${reviewModal.row.requested_branch_name || reviewModal.row.requested_branch_code || 'the requested branch'}?`)
                         : ''
                 }
                 confirmText={reviewModal.action === 'approve' ? 'Approve' : 'Reject'}
@@ -242,7 +259,7 @@ export default function BranchAccessPage() {
             <div className="flex items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Branch Access Requests</h1>
-                    <p className="text-slate-500 dark:text-slate-300 mt-2">Approve or reject senders requesting transfer access from a different branch.</p>
+                    <p className="text-slate-500 dark:text-slate-300 mt-2">Approve or reject remitters requesting transfer access from a different branch.</p>
                 </div>
                 <button
                     type="button"
@@ -251,6 +268,40 @@ export default function BranchAccessPage() {
                 >
                     <RefreshCcw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
                     <span>Refresh</span>
+                </button>
+            </div>
+
+            {/* Tab Navigation */}
+            <div className="flex border-b border-slate-200/60 dark:border-slate-700/60 mb-2">
+                <button
+                    onClick={() => { setActiveTab('pending'); setStatusFilter('all'); }}
+                    className={`py-3 px-6 font-bold text-sm border-b-2 transition-all duration-300 flex items-center gap-2 ${activeTab === 'pending'
+                        ? 'border-teal-500 text-teal-600 dark:text-teal-400 font-extrabold'
+                        : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                        }`}
+                >
+                    <Clock className="w-4 h-4" />
+                    Pending Requests
+                    {tabCounts.pending > 0 && (
+                        <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/15 text-amber-700 dark:text-amber-300">
+                            {tabCounts.pending}
+                        </span>
+                    )}
+                </button>
+                <button
+                    onClick={() => { setActiveTab('history'); setStatusFilter('all'); }}
+                    className={`py-3 px-6 font-bold text-sm border-b-2 transition-all duration-300 flex items-center gap-2 ${activeTab === 'history'
+                        ? 'border-teal-500 text-teal-600 dark:text-teal-400 font-extrabold'
+                        : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                        }`}
+                >
+                    <Archive className="w-4 h-4" />
+                    Previous Requests
+                    {tabCounts.history > 0 && (
+                        <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-500/15 text-slate-600 dark:text-slate-300">
+                            {tabCounts.history}
+                        </span>
+                    )}
                 </button>
             </div>
 
@@ -269,21 +320,22 @@ export default function BranchAccessPage() {
                             />
                         </div>
                     </div>
-                    <div>
-                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Status</label>
-                        <div className="relative input-icon">
-                            <select
-                                className="input-glass w-full text-sm"
-                                value={statusFilter}
-                                onChange={(e) => setStatusFilter(e.target.value as 'all' | 'pending' | 'approved' | 'rejected')}
-                            >
-                                <option value="all">All</option>
-                                <option value="pending">Pending</option>
-                                <option value="approved">Approved</option>
-                                <option value="rejected">Rejected</option>
-                            </select>
+                    {activeTab === 'history' && (
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-2">Outcome</label>
+                            <div className="relative input-icon">
+                                <select
+                                    className="input-glass w-full text-sm"
+                                    value={statusFilter}
+                                    onChange={(e) => setStatusFilter(e.target.value as 'all' | 'pending' | 'approved' | 'rejected')}
+                                >
+                                    <option value="all">All</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
 
@@ -304,10 +356,10 @@ export default function BranchAccessPage() {
                         <table className="min-w-full">
                             <thead className="bg-slate-50/80 dark:bg-slate-800/60">
                                 <tr className="text-left text-xs text-slate-500 dark:text-slate-300">
-                                    {canApprove && <th className="px-2 py-4 text-center text-xs font-bold text-emerald-600 dark:text-emerald-400" title="Approve"><CheckCircle2 className="w-4 h-4 mx-auto" /></th>}
-                                    {canCancel && <th className="px-2 py-4 text-center text-xs font-bold text-rose-600 dark:text-rose-400" title="Reject"><XCircle className="w-4 h-4 mx-auto" /></th>}
+                                    {activeTab === 'pending' && canApprove && <th className="px-2 py-4 text-center text-xs font-bold text-emerald-600 dark:text-emerald-400" title="Approve"><CheckCircle2 className="w-4 h-4 mx-auto" /></th>}
+                                    {activeTab === 'pending' && canCancel && <th className="px-2 py-4 text-center text-xs font-bold text-rose-600 dark:text-rose-400" title="Reject"><XCircle className="w-4 h-4 mx-auto" /></th>}
                                     <th className="px-2 py-4 text-center text-xs font-bold text-slate-500 dark:text-slate-400" title="View Overview"><Info className="w-4 h-4 mx-auto text-slate-400" /></th>
-                                    <th className="px-4 py-3">Sender</th>
+                                    <th className="px-4 py-3">Remitter</th>
                                     <th className="px-4 py-3">Branch</th>
                                     <th className="px-4 py-3">Requested Branch</th>
                                     <th className="px-4 py-3">Status</th>
@@ -321,7 +373,7 @@ export default function BranchAccessPage() {
                             <tbody className="divide-y divide-slate-100/70 dark:divide-slate-700/60">
                                 {visibleRows.map((row) => (
                                     <tr key={row.id} className="text-sm">
-                                        {canApprove && (
+                                        {activeTab === 'pending' && canApprove && (
                                             <td className="px-2 py-4 text-center">
                                                 <button
                                                     type="button"
@@ -334,7 +386,7 @@ export default function BranchAccessPage() {
                                                 </button>
                                             </td>
                                         )}
-                                        {canCancel && (
+                                        {activeTab === 'pending' && canCancel && (
                                             <td className="px-2 py-4 text-center">
                                                 <button
                                                     type="button"

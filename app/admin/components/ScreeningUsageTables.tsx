@@ -39,13 +39,11 @@ function UsageTable({ title, rows }: { title: string; rows: UsageRow[] }) {
                             <th className="py-2 pr-4 font-bold text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wide text-right">Quota Limit</th>
                             <th className="py-2 pr-4 font-bold text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wide text-right">Usage Count</th>
                             <th className="py-2 pr-4 font-bold text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wide text-right">Remaining</th>
-                            <th className="py-2 pr-4 font-bold text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wide">Entered User</th>
-                            <th className="py-2 font-bold text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wide">Entered Date</th>
                         </tr>
                     </thead>
                     <tbody>
                         {rows.length === 0 && (
-                            <tr><td colSpan={7} className="py-6 text-center text-slate-400">No usage recorded yet.</td></tr>
+                            <tr><td colSpan={5} className="py-6 text-center text-slate-400">No usage recorded yet.</td></tr>
                         )}
                         {rows.map((r) => (
                             <tr key={`${r.service}-${r.year}-${r.month}`} className="border-b border-slate-100 dark:border-slate-800 last:border-0">
@@ -60,8 +58,6 @@ function UsageTable({ title, rows }: { title: string; rows: UsageRow[] }) {
                                 <td className={`py-2.5 pr-4 text-right tabular-nums font-bold ${(r.remaining ?? 0) === 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
                                     {(r.remaining ?? 0).toLocaleString()}
                                 </td>
-                                <td className="py-2.5 pr-4 text-slate-500 dark:text-slate-400 text-xs">{r.entered_user || '—'}</td>
-                                <td className="py-2.5 text-slate-500 dark:text-slate-400 text-xs">{r.entered_date || '—'}</td>
                             </tr>
                         ))}
                     </tbody>
@@ -70,7 +66,7 @@ function UsageTable({ title, rows }: { title: string; rows: UsageRow[] }) {
                             <tr className="border-t-2 border-slate-200 dark:border-slate-700">
                                 <td colSpan={3} className="py-2.5 font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wide">Total used</td>
                                 <td className="py-2.5 pr-4 text-right tabular-nums font-extrabold text-slate-900 dark:text-white">{totalUsed.toLocaleString()}</td>
-                                <td colSpan={3} />
+                                <td />
                             </tr>
                         </tfoot>
                     )}

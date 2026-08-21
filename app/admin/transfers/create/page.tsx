@@ -871,7 +871,7 @@ export default function CreateTransferPage() {
             }
 
             const requestId = data.request_id || data.request?.id;
-            const message = data.message || 'Sender belongs to another branch and requires approval.';
+            const message = data.message || 'Remitter belongs to another branch and requires approval.';
             setBranchAccessIssue({
                 blocked: true,
                 message,
@@ -939,7 +939,7 @@ export default function CreateTransferPage() {
 
         let verificationWarning = '';
         if (branchVeriffEnabled && !isVerified && !idExpired) {
-            verificationWarning = 'Sender is not verified yet. Transfer is allowed, but verification is recommended before proceeding.';
+            verificationWarning = 'Remitter is not verified yet. Transfer is allowed, but verification is recommended before proceeding.';
         }
 
         setSenderComplianceIssue({

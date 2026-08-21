@@ -234,9 +234,8 @@ export default function ApiTokensPage() {
                             <div className="rounded-xl bg-slate-100/70 px-4 py-3 text-sm dark:bg-slate-900/40"><span className="font-semibold text-slate-500 dark:text-slate-400">PEP and sanctions: </span><span className="font-bold text-slate-900 dark:text-white">{settings.veriff_aml_configured ? 'Configured' : 'Not configured'}</span></div>
                         </div>
 
-                        <div className="mt-5 grid gap-5 md:grid-cols-2">
+                        <div className="mt-5">
                             <QuotaCard title="This month" quota={{ usage: settings.veriff_monthly_usage, limit: settings.veriff_monthly_limit, remaining: settings.veriff_monthly_remaining }} />
-                            <QuotaCard title="This year" quota={{ usage: settings.veriff_yearly_usage, limit: settings.veriff_yearly_limit, remaining: settings.veriff_yearly_remaining }} />
                         </div>
                         <p className="mt-4 flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400"><Clock3 className="h-4 w-4" /> Last successful application call: {formatLastUsed(settings.veriff_last_used_at)}</p>
                     </section>
@@ -253,9 +252,8 @@ export default function ApiTokensPage() {
                             <StatusPill configured={settings.dilisense_configured} />
                         </div>
 
-                        <div className="mt-5 grid gap-5 md:grid-cols-2">
+                        <div className="mt-5">
                             <QuotaCard title="This month" quota={{ usage: settings.dilisense_monthly_usage, limit: settings.dilisense_monthly_limit, remaining: settings.dilisense_monthly_remaining }} />
-                            <QuotaCard title="This year" quota={{ usage: settings.dilisense_yearly_usage, limit: settings.dilisense_yearly_limit, remaining: settings.dilisense_yearly_remaining }} />
                         </div>
                         <p className="mt-4 flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400"><Clock3 className="h-4 w-4" /> Last successful application call: {formatLastUsed(settings.dilisense_last_used_at)}</p>
                     </section>
