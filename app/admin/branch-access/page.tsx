@@ -92,6 +92,14 @@ export default function BranchAccessPage() {
         isAlert: true,
     });
 
+    // Approving grants a sender permanent access to another branch, so the
+    // decision is confirmed with the sender and branch spelled out.
+    const [reviewModal, setReviewModal] = useState<{ isOpen: boolean; row: BranchAccessRow | null; action: 'approve' | 'reject' }>({
+        isOpen: false,
+        row: null,
+        action: 'approve',
+    });
+
     const userBranch = useMemo(() => {
         return (currentUser?.branch || currentUser?.branch_id || '').trim();
     }, [currentUser]);
@@ -201,6 +209,27 @@ export default function BranchAccessPage() {
             )}
 
             <ConfirmModal
+                isOpen={reviewModal.isOpen}
+                onClose={() => setReviewModal((prev) => ({ ...prev, isOpen: false }))}
+                onConfirm={() => {
+                    const { row, action } = reviewModal;
+                    setReviewModal((prev) => ({ ...prev, isOpen: false }));
+                    if (row) performReview(row.id, action);
+                }}
+                title={reviewModal.action === 'approve' ? 'Approve Branch Access' : 'Reject Branch Access'}
+                message={
+                    reviewModal.row
+                        ? (reviewModal.action === 'approve'
+                            ? `Approve ${reviewModal.row.sender_name || 'this sender'} for transfers from ${reviewModal.row.requested_branch_name || reviewModal.row.requested_branch_code || 'the requested branch'}?`
+                            : `Reject the request for ${reviewModal.row.sender_name || 'this sender'} to transfer from ${reviewModal.row.requested_branch_name || reviewModal.row.requested_branch_code || 'the requested branch'}?`)
+                        : ''
+                }
+                confirmText={reviewModal.action === 'approve' ? 'Approve' : 'Reject'}
+                cancelText="Cancel"
+                type={reviewModal.action === 'approve' ? 'success' : 'danger'}
+            />
+
+            <ConfirmModal
                 isOpen={confirmModal.isOpen}
                 onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
                 onConfirm={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
@@ -212,7 +241,7 @@ export default function BranchAccessPage() {
 
             <div className="flex items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Branch Access Flags</h1>
+                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Branch Access Requests</h1>
                     <p className="text-slate-500 dark:text-slate-300 mt-2">Approve or reject senders requesting transfer access from a different branch.</p>
                 </div>
                 <button
@@ -296,7 +325,7 @@ export default function BranchAccessPage() {
                                             <td className="px-2 py-4 text-center">
                                                 <button
                                                     type="button"
-                                                    onClick={() => performReview(row.id, 'approve')}
+                                                    onClick={() => setReviewModal({ isOpen: true, row, action: 'approve' })}
                                                     disabled={submitting === row.id || row.can_review === false}
                                                     className="p-2 rounded-xl text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 hover:shadow-md dark:text-emerald-400 dark:hover:bg-emerald-900/25 transition-all disabled:opacity-35 disabled:cursor-not-allowed"
                                                     title="Approve"
@@ -309,7 +338,7 @@ export default function BranchAccessPage() {
                                             <td className="px-2 py-4 text-center">
                                                 <button
                                                     type="button"
-                                                    onClick={() => performReview(row.id, 'reject')}
+                                                    onClick={() => setReviewModal({ isOpen: true, row, action: 'reject' })}
                                                     disabled={submitting === row.id || row.can_review === false}
                                                     className="p-2 rounded-xl text-rose-600 hover:bg-rose-50 hover:text-rose-700 hover:shadow-md dark:text-rose-400 dark:hover:bg-rose-900/25 transition-all disabled:opacity-35 disabled:cursor-not-allowed"
                                                     title="Reject"

@@ -1,0 +1,281 @@
+Login Page
+
+   1. Forgot password – develop this feature – tested and okay 2026-July-01 Hemal
+
+
+My/User Profile
+
+   1. Set a setting under user profile allowed to set default ‘Rows Per Page’ size and
+      this value be applied to all the pages in application when loading data in table
+      format. Default value 10 – tested and okay 2026-July-07 Dilmith
+
+   2. Table Font Size -> when this value is set make sure to set +1 or +2 size for table
+      header title. Also set the same front size for search area text – tested and okay
+      2026-July-03 Dilmith
+
+
+
+Role – tested and okay all the points below on 2026-Jul-11 Dilmith and Hemal
+
+   1. Make sure to have default these roles – even when a new application is setup for
+      new client, these roles should be exists.
+      Admin, Compliance Officer, Branch Manager, Sender Staff, Receiver Staff
+   2. Check all and uncheck all option is needed for this page. But remove the Delete
+      option. Put a Validate Roles this will should update the what ever new
+      permissions added to existing roles. By default admin role permissions should
+      be activated.
+   3. Instead of view, put ‘Edit’ button and make sure edit and delete buttons are
+      disable for system defined roles
+   4. When adding a new role, do not show the system defined toggle button. By
+      default system defined is false.
+   5. I can see ‘Description’ field in add mode, which is okay to have. place this
+      description field in table
+   6. I’ve added TEST1 role, but there is no permission set are created.
+   7. In Add Role mode, add a new dropdown to show existing roles. The field name
+      should be like ‘Duplicate/Copy from existing role’. This value should not be
+      stored in the database. When a role is selected, copy its active permissions to
+      the newly created role after it is created.
+   8. Maks sure to have Normal case ‘SEARCH’ AND ‘SYSTEM DEFINED’ text should be
+      corrected
+      Also make sure to follow the same design patten in all other pages for text
+      formatting.
+
+
+
+
+                                                                               Page 1 of 11
+Role Permissions – tested and okay all the points below on 2026-Jul-11 Dilmith and
+Hemal
+   1. No need to have add permission button
+   2. Role – point 4 is valid here and correct the text for one formatting
+   3. ‘Role’ field in search dropdown box is uncommon, please correct it
+   4. Page section, should rename as ‘Page’
+   5. Page key value shouldn’t be visible in this Role Permission page and you need to
+      have page title (new field) dropdown in the search. You can keep this field name
+      as ‘Page’
+   6. ‘Operation’ field in search make it as text box, remove the dropdown box
+   7. System defined permissions cannot be inactive or change the active value.
+      Based on Role system defined value, show permission record is system defined
+      or not. No need to have separate system defined in database table for
+      permission records
+   8. No need to show value Yes under tick . also system defined follow the same tick
+      option. Do no have mixed of showing one with words and other with checkbox -
+      tested and okay 2026-July-07 Dilmith
+
+
+
+
+   9. Put these four operations ‘VIEW_CREATED_BY’, ‘VIEW_CREATED_AT’,
+       ‘VIEW_UPDATED_BY’ and ‘VIEW_UPDATED_AT’ to all the pages have table and
+       make sure when these are checked then show those related columns in relevant
+       page table - tested and okay 2026-July-07 Dilmith
+   10. Test and show me the Add, Edit, View and Delete basic operation level are
+       working based on permission value.
+
+                                                                            Page 2 of 11
+Users
+   1. Remove the Export button tested and okay 2026-July-07 Dilmith
+   2. Edit mode - How to active and inactive the 2fa for user? tested and okay 2026-
+      July-07 Dilmith
+   3. Edit mode - How to add the user’s signature ? tested and okay 2026-July-07
+      Dilmith
+   4. Edit mode - Branch field is not correct, should display all the branches
+      From Status remove the suspended option or if you have done anything in the
+      application with suspended option, let me know.
+      Remove the reset password from here tested and okay 2026-July-07 Dilmith
+
+
+
+
+   5. Personal Details group should be come first, place the signature upload option
+      in this Personal Details group
+      After that Account Credentials and Access Details
+      Make sure to have Add and Edit mode fields in same design and structure – this
+      is applicable for all other pages in entire application.
+      tested and okay 2026-July-07 Dilmith
+
+
+
+
+                                                                            Page 3 of 11
+6. When a new user is created QR code should be generated automatically. But
+   even later there should be an option to generate new QR code if needed. tested
+   and okay 2026-July-07 Dilmith
+7. ‘Reset Password’ button not sure it is working or not tested and okay 2026-July-
+   07 Dilmith
+8. ‘View’ button rename to ‘Edit’ tested and okay 2026-July-07 Dilmith
+9. Don’t like these capital words for status, signature, system defined and 2fa
+   status columns. Bring a common standard format in the entire application to
+   show Active and Inactive words, No and Yes etc then follow the same patten in
+   all the pages. tested and okay 2026-July-07 Dilmith
+
+
+
+
+10. New 2FA QR is not working and View QR is not working tested and okay 2026-
+    July-07 Dilmith
+11. Move the System defined and signature columns before the reset password
+    column. tested and okay 2026-July-07 Dilmith
+12. User shouldn’t be able to delete if the user is associated with any other records
+    in the application - tested and okay 2026-July-07 Dilmith
+
+                                                                            Page 4 of 11
+   13. Try to keep the date and time in one line and also try to format the time with AM
+       or PM. This is applied for entire application.
+       Change the column title Created By, Created At , Updated By and Update At this
+       is applied to entire application. tested and okay 2026-July-07 Dilmith
+
+
+
+
+User Logs
+
+      1. Active session showing as Closed, when moving to another page and come
+         back to User Logs page. Please check
+
+
+
+
+      2. No need to show like this -> Sorted by signInTs (DESC) - tested and okay
+         2026-July-07 Dilmith
+
+      3. These Transfer Updates and Approvals columns working? If not, remove
+         these columns. What is this Activity score? If is not necessary remove it -
+         tested and okay 2026-July-07 Dilmith
+
+
+
+
+                                                                               Page 5 of 11
+      4. Explain this Risk column logic. If is not working correctly. Remove it. - tested
+         and okay 2026-July-07 Dilmith
+
+
+
+
+Countries
+      1. Give more space to Add Country button, so it will show in one line tested
+          and okay 2026-July-07 Dilmith
+
+
+
+
+      2. This Edit icon option is good and keeping beginning of the table is good.
+         But move the delete icon at the end of the table.
+         Use this type of icons in the entire application for table pages tested and
+         okay 2026-July-07 Dilmith
+
+
+
+
+                                                                               Page 6 of 11
+Banks
+        1. Other Application basic data pages noticed pop-up for edit mode and this
+           page showing inline edit mode. It is better to have one standard way in entire
+           application. tested and okay 2026-July-07 Dilmith
+
+
+
+
+API to be exposed
+       1. Latest Exchange rate should be exposed with API key or any other login
+           format. This information should be documented separately.
+
+Row version handling in Transfer page
+
+Dashboard
+     1. Default Dashboard is granted for each Role and individual cards needs to be
+        checked with permission before showing the cards in dashboard.
+
+
+
+
+                                                                               Page 7 of 11
+Remitter Page
+
+      1. Use one word, Remitter and do not use both remitter and sender
+      2. What is Suspended status, what is Branch in source? Remove the export
+         CSV button
+      3. Not sure what is Company column?
+
+
+
+
+      4. Need these new permission operations to remitters
+         MULTI_BRANCH, RE_SCREENING, BATCH_SCREENING
+
+
+
+
+      5. In Remitters page, when multi_branch is granted, then user should be able to
+         see a dropdown box with ‘sender’ branch list to use for searching purpose
+         Also, can see all the remitters added from different branches
+      6. Why both CREATE and ADD ? I think ‘ADD’ is not necessary right?
+         Are we using any of these Approve, Cancel and Export operations? If not you
+         can remove these
+
+
+
+
+                                                                           Page 8 of 11
+7. When contact number is exists for the same branch. Then indicate contact
+   number is already exists when creating a new remitter. It is okay to allow to
+   save the same contact number. Or in configuration setting, we can give a
+   option for the user to choose whether block with the same contact number or
+   allow to save the remitter. Based on we decide.
+
+   ‘Sender Id’ disable? Should be able to enter by the user and should be unique
+   per the branch and show the last ‘Sender Id’ saved next to it.
+
+   Selecting the branch dropdown box is only visible to user when
+   ‘MULTI_BRANCH’ option is allowed. If not, by default creating new remitters
+   will be assigned to user assigned branch.
+
+   Put a new Column ‘ID Status’. If the ID expire date is expired then status will
+   be ‘ID Expired’ (red) and if is valid, then ‘Valid ID’ (green). This ID Status is not
+   a database filed and it is just running field to show in the overview table.
+
+
+
+
+                                                                             Page 9 of 11
+       8. Show the mysql table structure for remitter
+
+Master data
+      1. Branch Page – when the default transaction type is ‘Receiver’, still the
+         ownership can be Own or Agent can be set
+      2. Branch page - Branch Ownership Type field functionality need to be
+         discussed and finalized
+      3. Transaction Setting page checked but didn’t do a test run
+      4. Show the mysql table structure for branch
+      5.
+
+
+
+Application Default Basic data
+      1. Following Role should be exists
+          Admin, Compliance Officer, Branch Manager, Sender Staff, Receiver Staff
+      2. User Admin and Admin Default profile values
+
+
+
+                                                                              Page 10 of 11
+  3. Application basic data pages Countries, Banks, Relationships and
+     Purposes
+  4. Application Default Settings values
+  5. Any Other setting values related to Mobile Controls
+  6. Installation guide document and related notes and supporting files
+  7. Etc, we’ll check together
+
+
+
+
+If anything is not clear contact me and for now, please implement all updates
+and corrections, test them well and show everything in the next call - testing is
+really important before showing the work to me
+
+
+
+
+                                                                          Page 11 of 11
+

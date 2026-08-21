@@ -1,7 +1,9 @@
 'use client';
 
 import React from 'react';
-import { FolderOpen, Users, X } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { ArrowUpRight, FolderOpen, Users, X } from 'lucide-react';
+import { ENDPOINTS } from '@/app/lib/api';
 
 const resolveAmlStatus = (r: any): string => {
     if (!r) return 'pending';
@@ -77,13 +79,60 @@ export type RemitterOverviewProps = {
  * The full remitter overview. Shared so the registration form and the
  * remitters list show a customer the same way.
  */
-export default function RemitterOverviewModal({ remitter, receivers = [], onClose, onOpenDocuments }: RemitterOverviewProps) {
-    if (!remitter) return null;
+type ActivityPeriod = { count: number; amount: number; limit?: number | null };
+type ActivityRow = { id: number; reference: string; amount: number; currency: string; status: string; created_at: string };
+type Activity = { currency: string; quarter: ActivityPeriod; year: ActivityPeriod; recent: ActivityRow[] };
 
-    return (
+const money = (amount: number, currency = 'GBP'): string => {
+    const symbol = currency === 'GBP' ? '\u00a3' : '';
+    return symbol + Number(amount || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        + (symbol ? '' : ' ' + currency);
+};
+
+const shortDate = (value: string): string => {
+    if (!value) return '-';
+    const d = new Date(String(value).replace(' ', 'T'));
+    if (isNaN(d.getTime())) return String(value).slice(0, 10);
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+};
+
+export default function RemitterOverviewModal({ remitter, receivers = [], onClose, onOpenDocuments }: RemitterOverviewProps) {
+    const [mounted, setMounted] = React.useState(false);
+    const [activity, setActivity] = React.useState<Activity | null>(null);
+    const [activityLoading, setActivityLoading] = React.useState(false);
+
+    React.useEffect(() => { setMounted(true); }, []);
+
+    const remitterId = remitter?.id;
+
+    React.useEffect(() => {
+        if (!remitterId) { setActivity(null); return; }
+
+        let cancelled = false;
+        setActivityLoading(true);
+        setActivity(null);
+
+        fetch(ENDPOINTS.REMITTERS.TRANSACTION_SUMMARY(remitterId))
+            .then((r) => (r.ok ? r.json() : null))
+            .then((data) => {
+                if (cancelled) return;
+                const payload = data?.data ?? data;
+                if (payload && (payload.quarter || payload.year)) setActivity(payload as Activity);
+            })
+            .catch(() => { /* the rest of the overview is still worth showing */ })
+            .finally(() => { if (!cancelled) setActivityLoading(false); });
+
+        return () => { cancelled = true; };
+    }, [remitterId]);
+
+    if (!remitter || !mounted) return null;
+
+    const lastTransfer = activity?.recent?.[0] ?? null;
+
+    return createPortal(
                 <div
                     onClick={() => onClose()}
-                    className="fixed inset-0 z-[1050] flex items-center justify-center p-4 transition-all duration-300 pointer-events-auto"
+                    className="fixed inset-0 z-[1200] flex items-center justify-center p-4 transition-all duration-300 pointer-events-auto"
                 >
                     <div
                         onClick={(e) => e.stopPropagation()}
@@ -284,6 +333,99 @@ export default function RemitterOverviewModal({ remitter, receivers = [], onClos
                             </div>
                         )}
 
+                        <div className="mt-4 rounded-2xl border border-slate-100/70 dark:border-slate-700/50 bg-slate-50/40 dark:bg-slate-900/30 p-4 space-y-3">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <ArrowUpRight className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                                    <h3 className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">
+                                        Transaction History
+                                    </h3>
+                                </div>
+                                {lastTransfer && (
+                                    <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                                        Last sent {shortDate(lastTransfer.created_at)}
+                                    </span>
+                                )}
+                            </div>
+
+                            {activityLoading && (
+                                <p className="text-xs text-slate-500 dark:text-slate-400">Loading activity...</p>
+                            )}
+
+                            {!activityLoading && !activity && (
+                                <p className="text-xs text-slate-500 dark:text-slate-400">Activity is unavailable for this remitter.</p>
+                            )}
+
+                            {!activityLoading && activity && (
+                                <>
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        <div className="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 shadow-xs">
+                                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Last 3 Months</p>
+                                            <p className="mt-1 text-lg font-extrabold text-slate-900 dark:text-white">
+                                                {money(activity.quarter?.amount ?? 0, activity.currency)}
+                                            </p>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                                {activity.quarter?.count ?? 0} {(activity.quarter?.count ?? 0) === 1 ? 'transaction' : 'transactions'}
+                                                {activity.quarter?.limit ? ` of ${money(activity.quarter.limit, activity.currency)} limit` : ''}
+                                            </p>
+                                        </div>
+
+                                        <div className="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 shadow-xs">
+                                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">This Year</p>
+                                            <p className="mt-1 text-lg font-extrabold text-slate-900 dark:text-white">
+                                                {money(activity.year?.amount ?? 0, activity.currency)}
+                                            </p>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                                {activity.year?.count ?? 0} {(activity.year?.count ?? 0) === 1 ? 'transaction' : 'transactions'}
+                                                {activity.year?.limit ? ` of ${money(activity.year.limit, activity.currency)} limit` : ''}
+                                            </p>
+                                        </div>
+
+                                        <div className="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 shadow-xs">
+                                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Most Recent</p>
+                                            <p className="mt-1 text-lg font-extrabold text-slate-900 dark:text-white">
+                                                {lastTransfer ? money(lastTransfer.amount, lastTransfer.currency) : '-'}
+                                            </p>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                                {lastTransfer ? (lastTransfer.reference || 'No reference') : 'No transactions yet'}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {activity.recent?.length > 0 && (
+                                        <div className="rounded-xl border border-slate-200/60 dark:border-slate-700/60 overflow-hidden bg-white dark:bg-slate-800">
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full text-xs">
+                                                    <thead className="bg-slate-50 dark:bg-slate-900/50">
+                                                        <tr className="text-left text-slate-500 dark:text-slate-400">
+                                                            <th className="px-3 py-2 font-bold uppercase tracking-wider">Date</th>
+                                                            <th className="px-3 py-2 font-bold uppercase tracking-wider">Reference</th>
+                                                            <th className="px-3 py-2 font-bold uppercase tracking-wider text-right">Amount</th>
+                                                            <th className="px-3 py-2 font-bold uppercase tracking-wider">Status</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-700/60">
+                                                        {activity.recent.map((row) => (
+                                                            <tr key={row.id}>
+                                                                <td className="px-3 py-2 text-slate-600 dark:text-slate-300 whitespace-nowrap">{shortDate(row.created_at)}</td>
+                                                                <td className="px-3 py-2 font-mono text-slate-500 dark:text-slate-400">{row.reference || '-'}</td>
+                                                                <td className="px-3 py-2 text-right font-bold text-slate-900 dark:text-white whitespace-nowrap">{money(row.amount, row.currency)}</td>
+                                                                <td className="px-3 py-2">
+                                                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 capitalize">
+                                                                        {String(row.status || '-').replace(/_/g, ' ')}
+                                                                    </span>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </div>
+
                         <div className="mt-6 flex justify-end">
                             <button
                                 type="button"
@@ -294,6 +436,7 @@ export default function RemitterOverviewModal({ remitter, receivers = [], onClos
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+        document.body
     );
 }

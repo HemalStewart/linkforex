@@ -92,7 +92,7 @@ const ADMIN_ROUTE_NAMES: Record<string, string> = {
     '/admin/transfers': 'Transfers',
     '/admin/remitters': 'Remitters',
     '/admin/receivers': 'Receivers',
-    '/admin/branch-access': 'Branch Access Flags',
+    '/admin/branch-access': 'Branch Access Requests',
     '/admin/support': 'Support',
     '/admin/branch-rates': 'Branch Rates',
     '/admin/branch-currency-rates': 'Branch Currency Rates',
@@ -1174,7 +1174,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 { name: 'Transfers', href: '/admin/transfers', icon: <ArrowRightLeft className="w-4 h-4" />, sections: ['MONEY_CHANGER', 'TELEX_TRANSFER', 'ACCOUNT_TRANSACTIONS', 'TRANSFERS'] },
                 { name: 'Remitters', href: '/admin/remitters', icon: <Users className="w-4 h-4" />, sections: ['SENDER_DETAILS', 'CUSTOMER', 'REMITTERS'] },
                 { name: 'Receivers', href: '/admin/receivers', icon: <UserCheck className="w-4 h-4" />, sections: ['RECEIVER_DETAILS', 'BENEFICIARIES', 'CUSTOMER', 'RECEIVERS'] },
-                { name: 'Branch Access Flags', href: '/admin/branch-access', badge: counts.branchAccessFlags > 0 ? counts.branchAccessFlags.toString() : undefined, icon: <AlertTriangle className="w-4 h-4" />, sections: ['BRANCH_ACCESS_REQUESTS'] },
+                { name: 'Branch Access', href: '/admin/branch-access', badge: counts.branchAccessFlags > 0 ? counts.branchAccessFlags.toString() : undefined, icon: <AlertTriangle className="w-4 h-4" />, sections: ['BRANCH_ACCESS_REQUESTS'] },
                 { name: 'Support', href: '/admin/support', icon: <MessageCircle className="w-4 h-4" />, badge: counts.supportOpen > 0 ? counts.supportOpen.toString() : undefined, sections: ['SUPPORT'] },
                 { name: 'Branch Rates', href: '/admin/branch-rates', icon: <Coins className="w-4 h-4" />, sections: ['BRANCH_CURRENCY_RATE', 'BRANCH_CURRENCY_RATES', 'MOBILE_EXCHANGE_RATES', 'MOBILE_APP_FLOW_SETTINGS'] },
             ]
