@@ -195,7 +195,7 @@ export default function BranchCurrencyRatesPage() {
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 pb-20 animate-fade-in-up">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Customer Cash Rates</h1>
                     <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">

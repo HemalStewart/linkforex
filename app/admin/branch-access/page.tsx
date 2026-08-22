@@ -258,7 +258,7 @@ export default function BranchAccessPage() {
                 isAlert={confirmModal.isAlert}
             />
 
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Branch Access Requests</h1>
                     <p className="text-slate-500 dark:text-slate-300 mt-2">Approve or reject remitters requesting transfer access from a different branch.</p>

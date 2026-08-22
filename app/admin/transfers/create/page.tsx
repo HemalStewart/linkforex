@@ -1527,7 +1527,7 @@ export default function CreateTransferPage() {
                 confirmText="OK"
             />
 
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <Link href="/admin/transfers" className="inline-flex items-center text-sm font-bold text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 transition-colors mb-2 group">
                         <ArrowLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
@@ -1820,7 +1820,7 @@ export default function CreateTransferPage() {
 
             {wizardStep === 1 ? (
             <div className="card-glass p-6 md:p-8 space-y-6">
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <h2 className="text-lg font-bold text-slate-900 dark:text-white">Sender Details</h2>
                     <div className="flex items-center gap-2">
                         <button

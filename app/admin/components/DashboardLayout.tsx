@@ -1395,7 +1395,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         <Menu className="w-5 h-5" />
                     </button>
 
-                    <div className="flex-1 min-w-0 max-w-xl">
+                    <div className="hidden md:block flex-1 min-w-0 max-w-xl">
                         <div className="relative group input-icon">
                             <span className="input-icon-left transition-all duration-300 group-focus-within:text-teal-500">
                                 <Search className="w-5 h-5" />
@@ -1415,14 +1415,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         </div>
                     </div>
 
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center gap-1.5 sm:gap-3 md:ml-0 ml-auto">
                         {canAdd && (
                             <Link
                                 href="/admin/transfers/create"
-                                className="glass-effect rounded-full px-3.5 py-2 text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 flex items-center space-x-2 hover:shadow-lg"
+                                className="glass-effect rounded-full p-2.5 md:px-3.5 md:py-2 text-slate-600 dark:text-slate-300 hover:text-teal-500 dark:hover:text-teal-300 transition-all duration-300 flex items-center gap-2 hover:shadow-lg shrink-0"
+                                title="New Transfer"
                             >
-                                <PlusCircle className="w-5 h-5" />
-                                <span className="font-semibold">New Transfer</span>
+                                <PlusCircle className="w-5 h-5 shrink-0" />
+                                <span className="font-semibold hidden md:inline whitespace-nowrap">New Transfer</span>
                             </Link>
                         )}
 
