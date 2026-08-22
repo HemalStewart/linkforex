@@ -185,7 +185,7 @@ export default function CurrenciesPage() {
                     {canAdd && (
                         <button
                             onClick={() => setAddModalOpen(true)}
-                            className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 rounded-full px-6"
+                            className="btn-primary flex items-center"
                         >
                             <PlusCircle className="w-5 h-5" />
                             <span>Add Currency</span>

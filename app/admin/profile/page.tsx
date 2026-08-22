@@ -791,7 +791,7 @@ export default function ProfilePage() {
                                     type="button"
                                     onClick={handlePhotoUpload}
                                     disabled={!photoFile || profilePhotoUploading}
-                                    className="btn-primary w-full disabled:opacity-60 inline-flex items-center justify-center gap-2 py-3"
+                                    className="btn-primary w-full disabled:opacity-60 inline-flex items-center justify-center gap-2"
                                 >
                                     {profilePhotoUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
                                     {profilePhotoUploading ? 'Uploading...' : 'Update Profile Picture'}
@@ -946,7 +946,7 @@ export default function ProfilePage() {
                                 <button
                                     type="button"
                                     onClick={handlePreferencesSave}
-                                    className="btn-primary inline-flex items-center gap-2 py-2.5 px-6 font-semibold"
+                                    className="btn-primary inline-flex items-center gap-2 font-semibold"
                                 >
                                     <Save className="w-4 h-4" />
                                     Save

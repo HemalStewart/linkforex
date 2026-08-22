@@ -398,7 +398,7 @@ export default function CreateBranchPage() {
                     <Link href="/admin/branches" className="glass-effect rounded-full px-6 py-3 text-sm font-bold text-slate-600 transition-colors dark:text-slate-300">
                         Cancel
                     </Link>
-                    <button type="submit" disabled={loading} className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40">
+                    <button type="submit" disabled={loading} className="btn-primary flex items-center">
                         <Save className="h-4 w-4" />
                         <span>{loading ? 'Saving...' : 'Save'}</span>
                     </button>

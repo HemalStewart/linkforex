@@ -654,7 +654,7 @@ export default function TransferDetailsPage() {
                                         type="button"
                                         onClick={handleSave}
                                         disabled={isSaving}
-                                        className="btn-primary flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-full border-0 bg-teal-500 hover:bg-teal-600 shadow-md text-white disabled:opacity-50"
+                                        className="btn-primary flex items-center gap-1.5 text-xs font-semibold bg-teal-500 hover:bg-teal-600 shadow-md disabled:opacity-50"
                                     >
                                         {isSaving ? (
                                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -676,7 +676,7 @@ export default function TransferDetailsPage() {
                                 <button
                                     type="button"
                                     onClick={() => setIsEditing(true)}
-                                    className="btn-primary flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-full border-0 bg-teal-500 hover:bg-teal-600 shadow-md text-white"
+                                    className="btn-primary flex items-center gap-1.5 text-xs font-semibold bg-teal-500 hover:bg-teal-600 shadow-md"
                                 >
                                     <Edit3 className="w-3.5 h-3.5" />
                                     Edit Transfer

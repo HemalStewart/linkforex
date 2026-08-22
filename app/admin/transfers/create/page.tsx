@@ -1835,7 +1835,7 @@ export default function CreateTransferPage() {
                         <Link
                             href="/admin/remitters/create?returnUrl=/admin/transfers/create"
                             onClick={persistTransferPageState}
-                            className="px-4 py-2 rounded-full btn-primary text-sm font-semibold inline-flex items-center gap-2"
+                            className="btn-primary text-sm font-semibold inline-flex items-center gap-2"
                         >
                             <Plus className="w-4 h-4" />
                             Add new sender
@@ -2152,7 +2152,7 @@ export default function CreateTransferPage() {
                     <Link
                         href={addReceiverHref}
                         onClick={persistTransferPageState}
-                        className="px-4 py-2 rounded-full btn-primary text-sm font-semibold inline-flex items-center gap-2"
+                        className="btn-primary text-sm font-semibold inline-flex items-center gap-2"
                     >
                         <Plus className="w-4 h-4" />
                         Add new receiver
@@ -2562,7 +2562,7 @@ export default function CreateTransferPage() {
                                     setWizardStep(4);
                                 }
                             }}
-                            className="btn-primary px-6 py-3 rounded-full text-sm font-bold inline-flex items-center gap-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40"
+                            className="btn-primary text-sm inline-flex items-center gap-2"
                         >
                             Next
                             <ChevronRight className="w-4 h-4" />
@@ -2572,7 +2572,7 @@ export default function CreateTransferPage() {
                             type="button"
                             onClick={handleSubmit}
                             disabled={saving}
-                            className="btn-primary px-6 py-3 rounded-full text-sm font-bold inline-flex items-center gap-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 disabled:opacity-60"
+                            className="btn-primary text-sm inline-flex items-center gap-2 disabled:opacity-60"
                         >
                             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                             {saving ? 'Creating Transfer...' : 'Save'}

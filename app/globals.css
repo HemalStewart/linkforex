@@ -428,6 +428,13 @@ html {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
+  /* Comfortable thumb target on a phone; unchanged on pointer devices. */
+  min-height: 2.75rem;
+}
+
+@media (pointer: fine) {
+  .btn-primary { min-height: 0; }
 }
 
 .btn-primary:hover {

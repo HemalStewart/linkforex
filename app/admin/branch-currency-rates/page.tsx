@@ -214,7 +214,7 @@ export default function BranchCurrencyRatesPage() {
                     {canAdd && (
                         <Link
                             href="/admin/branch-currency-rates/create"
-                            className="btn-primary px-5 py-3 rounded-full text-sm font-semibold inline-flex items-center gap-2"
+                            className="btn-primary text-sm font-semibold inline-flex items-center gap-2"
                         >
                             <PlusCircle className="w-4 h-4" />
                             Add Rate

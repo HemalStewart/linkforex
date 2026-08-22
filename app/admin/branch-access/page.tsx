@@ -266,7 +266,7 @@ export default function BranchAccessPage() {
                 <button
                     type="button"
                     onClick={fetchRows}
-                    className="btn-primary flex items-center space-x-2 rounded-full px-6 py-2.5 border-0 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 group text-white font-bold"
+                    className="btn-primary flex items-center group"
                 >
                     <RefreshCcw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
                     <span>Refresh</span>

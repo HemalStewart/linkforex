@@ -1163,13 +1163,13 @@ export default function RemittersPage() {
                         type="button"
                         onClick={() => void fetchRemitters()}
                         disabled={loading}
-                        className="btn-primary flex items-center space-x-2 rounded-full px-6 py-2.5"
+                        className="btn-primary flex items-center"
                     >
                         <RefreshCcw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
                         <span>Refresh</span>
                     </button>
                     {canAdd && (
-                        <Link href="/admin/remitters/create" className="btn-primary flex items-center space-x-2 rounded-full px-6 py-2.5">
+                        <Link href="/admin/remitters/create" className="btn-primary flex items-center">
                             <UserPlus className="w-5 h-5" />
                             <span>Add Remitter</span>
                         </Link>

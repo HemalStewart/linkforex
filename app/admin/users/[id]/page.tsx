@@ -723,7 +723,7 @@ export default function EditUserPage() {
                     <button
                         type="submit"
                         disabled={submitting}
-                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40"
+                        className="btn-primary flex items-center"
                     >
                         {submitting ? (
                             <>

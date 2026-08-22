@@ -220,7 +220,7 @@ export default function EditRolePage() {
                     <button
                         type="submit"
                         disabled={saving}
-                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40"
+                        className="btn-primary flex items-center"
                     >
                         <Save className="w-4 h-4" />
                         <span>{saving ? 'Saving...' : 'Save'}</span>

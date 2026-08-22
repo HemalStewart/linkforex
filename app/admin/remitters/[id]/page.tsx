@@ -1190,7 +1190,7 @@ export default function EditRemitterPage() {
                 <div className="flex items-center gap-3">
                     <Link
                         href={`/admin/transfers/create?senderId=${encodeURIComponent(id)}`}
-                        className="px-5 py-3 rounded-full text-sm font-bold transition-colors flex items-center space-x-2 btn-primary"
+                        className="text-sm transition-colors flex items-center btn-primary"
                     >
                         <ExternalLink className="w-4 h-4" />
                         <span>Start Transfer</span>
@@ -1557,7 +1557,7 @@ export default function EditRemitterPage() {
                     <button
                         type="submit"
                         disabled={submitting}
-                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40"
+                        className="btn-primary flex items-center"
                     >
                         <Save className="w-4 h-4" />
                         <span>{submitting ? 'Updating...' : (sharedAccess ? 'Owned by another branch' : 'Save')}</span>

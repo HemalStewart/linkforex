@@ -112,7 +112,7 @@ export default function WalletTransfersPage() {
                 </div>
                 <button
                     onClick={loadTransfers}
-                    className="btn-primary inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 hover:scale-105 active:scale-95 transition-all duration-150 group border-0 bg-gradient-to-r from-teal-500 to-teal-600 text-white"
+                    className="btn-primary inline-flex items-center gap-2 text-sm hover:scale-105 active:scale-95 transition-all duration-150 group"
                 >
                     <RefreshCw className={`h-4 w-4 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
                     Refresh
@@ -246,7 +246,7 @@ export default function WalletTransfersPage() {
                                             <button
                                                 onClick={() => saveRow(row)}
                                                 disabled={savingId === row.id}
-                                                className="btn-primary flex items-center gap-2 rounded-full px-4 py-2 text-xs"
+                                                className="btn-primary flex items-center gap-2 text-xs"
                                             >
                                                 <Save className="h-3.5 w-3.5" />
                                                 {savingId === row.id ? 'Saving...' : 'Update'}

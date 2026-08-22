@@ -243,7 +243,7 @@ export default function MobileAppFlowSettingsPage() {
                 <div className="flex items-center gap-3 shrink-0 mt-1">
                     <button
                         onClick={loadSettings}
-                        className="btn-primary inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 hover:scale-105 active:scale-95 transition-all duration-150 group border-0 bg-gradient-to-r from-teal-500 to-teal-600 text-white"
+                        className="btn-primary inline-flex items-center gap-2 text-sm hover:scale-105 active:scale-95 transition-all duration-150 group"
                         disabled={loading}
                     >
                         <RefreshCcw className={`h-4 w-4 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
@@ -585,7 +585,7 @@ export default function MobileAppFlowSettingsPage() {
 
                     {canEdit && (
                         <div className="flex justify-end pt-6 mt-6 border-t border-slate-100 dark:border-slate-800/60">
-                            <button onClick={saveSettings} className="btn-primary flex items-center gap-2 rounded-full px-6 py-2.5 text-sm shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 transition-all hover:-translate-y-0.5" disabled={savingSettings || loading}>
+                            <button onClick={saveSettings} className="btn-primary flex items-center gap-2 text-sm transition-all hover:-translate-y-0.5" disabled={savingSettings || loading}>
                                 <Save className="h-4 w-4" />
                                 {savingSettings ? 'Saving...' : 'Save'}
                             </button>

@@ -472,7 +472,7 @@ export default function UsersPage() {
                         <button
                             type="submit"
                             disabled={resetLoading}
-                            className="btn-primary px-4 py-2 rounded-full text-xs font-semibold disabled:opacity-50 flex items-center gap-1.5"
+                            className="btn-primary text-xs font-semibold disabled:opacity-50 flex items-center gap-1.5"
                         >
                             {resetLoading ? 'Setting...' : 'Set Password'}
                         </button>
@@ -487,7 +487,7 @@ export default function UsersPage() {
                 </div>
                 <div className="flex items-center space-x-4">
                     {canAdd && (
-                        <Link href="/admin/users/create" className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0 rounded-full px-6">
+                        <Link href="/admin/users/create" className="btn-primary flex items-center">
                             <UserPlus className="w-5 h-5" />
                             <span>Add User</span>
                         </Link>

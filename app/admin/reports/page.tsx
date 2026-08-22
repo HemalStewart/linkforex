@@ -156,7 +156,7 @@ export default function ReportsPage() {
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Reports & Analytics</h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Generate and download business reports</p>
                 </div>
-                <button className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0">
+                <button className="btn-primary flex items-center">
                     <Plus className="w-5 h-5" />
                     <span>Generate New Report</span>
                 </button>
@@ -270,7 +270,7 @@ export default function ReportsPage() {
                     </div>
 
                     <div className="flex justify-end pt-6 border-t border-slate-100 dark:border-slate-700/50">
-                        <button className="btn-primary w-full md:w-auto flex items-center justify-center space-x-2 shadow-lg shadow-teal-500/25">
+                        <button className="btn-primary w-full md:w-auto flex items-center justify-center">
                             <Download className="w-5 h-5" />
                             <span>Generate & Download</span>
                         </button>

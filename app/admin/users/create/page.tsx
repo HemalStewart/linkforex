@@ -550,7 +550,7 @@ export default function CreateUserPage() {
                     <button
                         type="submit"
                         disabled={creating}
-            className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 disabled:opacity-60 disabled:cursor-not-allowed"
+            className="btn-primary flex items-center disabled:opacity-60 disabled:cursor-not-allowed"
                     >
             <Save className="w-4 h-4" />
                         <span>{creating ? 'Creating User...' : 'Create User'}</span>

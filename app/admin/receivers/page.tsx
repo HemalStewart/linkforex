@@ -801,7 +801,7 @@ export default function ReceiversPage() {
                             <button
                                 type="button"
                                 onClick={() => void fetchReceivers()}
-                                className="btn-primary inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 hover:scale-105 active:scale-95 transition-all duration-150 group border-0 bg-gradient-to-r from-teal-500 to-teal-600 text-white whitespace-nowrap"
+                                className="btn-primary inline-flex items-center gap-2 text-sm hover:scale-105 active:scale-95 transition-all duration-150 group whitespace-nowrap"
                             >
                                 <RefreshCcw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
                                 <span>Refresh</span>
@@ -810,14 +810,14 @@ export default function ReceiversPage() {
                                 <button
                                     type="button"
                                     onClick={handleExportCsv}
-                                    className="btn-primary flex items-center space-x-2 rounded-full px-6 py-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 border-0 text-white text-sm whitespace-nowrap"
+                                    className="btn-primary flex items-center text-sm whitespace-nowrap"
                                 >
                                     <Download className="w-5 h-5" />
                                     <span>Export CSV</span>
                                 </button>
                             )}
                             {canAdd && (
-                                <Link href="/admin/receivers/create" className="btn-primary flex items-center space-x-2 rounded-full px-6 text-sm whitespace-nowrap">
+                                <Link href="/admin/receivers/create" className="btn-primary flex items-center text-sm whitespace-nowrap">
                                     <Plus className="w-5 h-5" />
                                     <span>Add Receiver</span>
                                 </Link>

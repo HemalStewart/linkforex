@@ -1542,7 +1542,7 @@ export default function TransfersPage() {
                     <button
                         type="button"
                         onClick={fetchData}
-                        className="btn-primary flex items-center space-x-2 rounded-full px-6 py-2.5 border-0 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 group text-white font-bold"
+                        className="btn-primary flex items-center group"
                     >
                         <RefreshCw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
                         <span>Refresh</span>
@@ -1551,14 +1551,14 @@ export default function TransfersPage() {
                         <button
                             type="button"
                             onClick={handleExportCsv}
-                            className="btn-primary flex items-center space-x-2 rounded-full px-6 py-2.5 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 border-0 text-white whitespace-nowrap"
+                            className="btn-primary flex items-center whitespace-nowrap"
                         >
                             <Download className="w-5 h-5" />
                             <span>Export CSV</span>
                         </button>
                     )}
                     {canAdd && (
-                        <Link href="/admin/transfers/create" className="btn-primary flex items-center gap-2 border-0 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40">
+                        <Link href="/admin/transfers/create" className="btn-primary flex items-center gap-2">
                             <PlusCircle className="w-4 h-4" />
                             <span>New Transfer</span>
                         </Link>

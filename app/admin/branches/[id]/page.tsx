@@ -624,7 +624,7 @@ export default function EditBranchPage() {
                         {isViewMode ? 'Back' : 'Cancel'}
                     </Link>
                     {!isReadOnly && (
-                        <button type="submit" disabled={saving} className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40">
+                        <button type="submit" disabled={saving} className="btn-primary flex items-center">
                             <Save className="h-4 w-4" />
                             <span>{saving ? 'Saving...' : 'Save'}</span>
                         </button>

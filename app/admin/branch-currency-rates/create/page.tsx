@@ -437,7 +437,7 @@ export default function CreateBranchCurrencyRatePage() {
                     <button
                         type="submit"
                         disabled={submitting}
-                        className="btn-primary px-6 py-2.5 rounded-full text-sm font-semibold inline-flex items-center gap-2 disabled:opacity-60"
+                        className="btn-primary text-sm font-semibold inline-flex items-center gap-2 disabled:opacity-60"
                     >
                         <Save className="w-4 h-4" />
                         {submitting ? 'Saving...' : 'Save Customer Cash Rate'}

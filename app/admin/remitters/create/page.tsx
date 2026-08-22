@@ -1426,7 +1426,7 @@ export default function CreateRemitterPage() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40"
+                        className="btn-primary flex items-center"
                     >
                         <Save className="w-4 h-4" />
                         <span>{loading ? 'Onboarding...' : 'Save'}</span>

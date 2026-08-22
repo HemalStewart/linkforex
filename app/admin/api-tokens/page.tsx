@@ -196,7 +196,7 @@ export default function ApiTokensPage() {
                     type="button"
                     onClick={() => void fetchSettings()}
                     disabled={loading}
-                    className="btn-primary inline-flex items-center justify-center gap-2 rounded-full border-0 bg-gradient-to-r from-teal-500 to-teal-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-teal-500/20 transition-all duration-150 hover:scale-105 hover:shadow-teal-500/40 active:scale-95 disabled:opacity-50"
+                    className="btn-primary inline-flex items-center justify-center gap-2 text-sm transition-all duration-150 hover:scale-105 active:scale-95 disabled:opacity-50"
                 >
                     <RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
                     Refresh

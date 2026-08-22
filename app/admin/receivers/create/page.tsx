@@ -637,7 +637,7 @@ export default function CreateReceiverPage() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40"
+                        className="btn-primary flex items-center"
                     >
                         {loading ? (
                             <>

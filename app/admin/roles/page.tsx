@@ -395,7 +395,7 @@ export default function RolesPage() {
                         <span>{validating ? 'Validating...' : 'Validate Roles'}</span>
                     </button>
                     {canAdd && (
-                        <Link href="/admin/roles/create" className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 rounded-full px-6 py-3">
+                        <Link href="/admin/roles/create" className="btn-primary flex items-center">
                             <PlusCircle className="w-5 h-5" />
                             <span>Add Role</span>
                         </Link>

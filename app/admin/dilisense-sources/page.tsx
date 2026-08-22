@@ -513,7 +513,7 @@ export default function DilisenseSourcesPage() {
                                     <button
                                         onClick={saveFuzzySetting}
                                         disabled={savingFuzzy}
-                                        className="btn-primary flex items-center space-x-2 bg-gradient-to-r from-teal-500 to-teal-600 border-0 text-sm whitespace-nowrap"
+                                        className="btn-primary flex items-center text-sm whitespace-nowrap"
                                     >
                                         {savingFuzzy ? (
                                             <>

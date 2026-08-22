@@ -436,7 +436,7 @@ export default function LogsPage() {
                 <div className="flex items-center gap-3">
                     <button
                         onClick={fetchLogs}
-                        className="btn-primary inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 hover:scale-105 active:scale-95 transition-all duration-150 group border-0 bg-gradient-to-r from-teal-500 to-teal-600 text-white"
+                        className="btn-primary inline-flex items-center gap-2 text-sm hover:scale-105 active:scale-95 transition-all duration-150 group"
                     >
                         <RefreshCw className={`w-4 h-4 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
                         <span>Refresh</span>
@@ -444,7 +444,7 @@ export default function LogsPage() {
                     {canExport && (
                         <button
                             onClick={exportCsv}
-                            className="btn-primary flex items-center gap-2 border-0 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40"
+                            className="btn-primary flex items-center gap-2"
                             disabled={sorted.length === 0}
                         >
                             <Download className="w-4 h-4" />

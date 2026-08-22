@@ -441,7 +441,7 @@ export default function EditDilisenseSourcePage() {
                         <button
                             type="submit"
                             disabled={saving}
-                            className="btn-primary flex items-center space-x-2 bg-gradient-to-r from-teal-500 to-teal-600 border-0 text-sm px-6 py-3"
+                            className="btn-primary flex items-center text-sm"
                         >
                             {saving ? (
                                 <>

@@ -383,7 +383,7 @@ export default function AdminForgotPasswordPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-primary w-full py-3.5 text-base font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-teal-500/25 hover:shadow-teal-500/40"
+                className="btn-primary w-full text-base disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <span className="flex items-center justify-center space-x-2">
@@ -437,7 +437,7 @@ export default function AdminForgotPasswordPage() {
               <button
                 type="submit"
                 disabled={loading || resending}
-                className="btn-primary w-full py-3.5 text-base font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-teal-500/25 hover:shadow-teal-500/40"
+                className="btn-primary w-full text-base disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <span className="flex items-center justify-center space-x-2">
@@ -546,7 +546,7 @@ export default function AdminForgotPasswordPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-primary w-full py-3.5 text-base font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-teal-500/25 hover:shadow-teal-500/40"
+                className="btn-primary w-full text-base disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <span className="flex items-center justify-center space-x-2">

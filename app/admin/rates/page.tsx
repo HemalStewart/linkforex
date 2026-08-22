@@ -147,14 +147,14 @@ export default function ExchangeRatesPage() {
                 <div className="flex items-center space-x-4">
                     <button
                         onClick={() => setAddModalOpen(true)}
-                        className="btn-primary flex items-center space-x-2 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 bg-gradient-to-r from-teal-500 to-teal-600 border-0"
+                        className="btn-primary flex items-center"
                     >
                         <PlusCircle className="w-5 h-5" />
                         <span>Add Rate</span>
                     </button>
                     <button
                         onClick={fetchRates}
-                        className="btn-primary inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-bold shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 hover:scale-105 active:scale-95 transition-all duration-150 group border-0 bg-gradient-to-r from-teal-500 to-teal-600 text-white"
+                        className="btn-primary inline-flex items-center gap-2 text-sm hover:scale-105 active:scale-95 transition-all duration-150 group"
                     >
                         <RefreshCw className={`w-5 h-5 group-hover:spin-slow ${loading ? 'animate-spin' : ''}`} />
                         <span>Refresh</span>
@@ -319,7 +319,7 @@ export default function ExchangeRatesPage() {
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="btn-primary flex items-center space-x-2 text-sm disabled:opacity-60"
+                            className="btn-primary flex items-center text-sm disabled:opacity-60"
                         >
                             {isSubmitting ? 'Saving...' : 'Save'}
                         </button>
