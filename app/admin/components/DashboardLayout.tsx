@@ -61,6 +61,7 @@ const ADMIN_ROUTE_NAMES: Record<string, string> = {
     '/admin/branches': 'Branches',
     '/admin/transaction-settings': 'Transaction Settings',
     '/admin/api-tokens': 'Screening Usage',
+    // Internal tool, deliberately not in the sidebar - reached by direct URL.
     '/admin/screening-usage-settings': 'Screening Quotas',
     '/admin/dilisense-sources': 'Dilisense Sources',
     '/admin/reports': 'Reports',
@@ -1161,7 +1162,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 { name: 'Branches', href: '/admin/branches', icon: <Building2 className="w-4 h-4" />, sections: ['BRANCH', 'BRANCHES'] },
                 { name: 'Transaction Settings', href: '/admin/transaction-settings', icon: <SlidersHorizontal className="w-4 h-4" />, sections: ['TRANSACTION_SETTINGS'] },
                 { name: 'Screening Usage', href: '/admin/api-tokens', icon: <Gauge className="w-4 h-4" />, sections: ['API_TOKENS'] },
-                { name: 'Screening Quotas', href: '/admin/screening-usage-settings', icon: <Gauge className="w-4 h-4" />, sections: ['API_TOKEN_QUOTAS'] },
                 { name: 'Dilisense Sources', href: '/admin/dilisense-sources', icon: <Database className="w-4 h-4" />, sections: ['DILISENSE_SOURCES'] },
             ]
         },
