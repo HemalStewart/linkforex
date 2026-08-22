@@ -1208,6 +1208,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 { name: 'Profile Review Queue', href: '/admin/mobile-users/control/profile-review-queue', icon: <UserCheck className="w-4 h-4" />, sections: ['MOBILE_PROFILE_REVIEW_QUEUE'] },
                 { name: 'Campaigns', href: '/admin/mobile-users/control/campaigns', icon: <Megaphone className="w-4 h-4" />, sections: ['MOBILE_CAMPAIGNS'] },
                 { name: 'Onboarding & Carousel', href: '/admin/mobile-users/control/in-app-ads', icon: <ImageIcon className="w-4 h-4" />, sections: ['MOBILE_ADS'] },
+                { name: 'Wallet Transfers', href: '/admin/mobile-users/control/wallet-transfers', icon: <TrendingUp className="w-4 h-4" />, sections: ['MOBILE_WALLET_TRANSFERS'] },
             ]
         },
         {

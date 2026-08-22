@@ -101,11 +101,12 @@ export const ADMIN_PAGES_CONFIG: AdminCategoryInfo[] = [
             { name: 'Overview', section: 'MOBILE_OVERVIEW', operations: ['VIEW'] },
             { name: 'Mobile Profiles', section: 'MOBILE_PROFILES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'PDF', 'EXPORT', ...AUDIT_OPS] },
             { name: 'App Flow Settings', section: 'MOBILE_FLOW_SETTINGS', operations: ['VIEW', 'EDIT'] },
-            { name: 'Customer Digital Rates', section: 'MOBILE_DIGITAL_RATES', operations: ['VIEW', ...AUDIT_OPS] },
+            { name: 'Customer Digital Rates', section: 'MOBILE_DIGITAL_RATES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
             { name: 'User Rates', section: 'MOBILE_USER_RATES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
-            { name: 'Profile Review Queue', section: 'MOBILE_PROFILE_REVIEW_QUEUE', operations: ['VIEW', ...AUDIT_OPS] },
+            { name: 'Profile Review Queue', section: 'MOBILE_PROFILE_REVIEW_QUEUE', operations: ['VIEW', 'APPROVE', 'CANCEL', 'PDF', ...AUDIT_OPS] },
             { name: 'Campaigns', section: 'MOBILE_CAMPAIGNS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
-            { name: 'Onboarding & Carousel', section: 'MOBILE_ADS', operations: ['VIEW', 'CREATE', 'DELETE', 'DISABLE', ...AUDIT_OPS] }
+            { name: 'Onboarding & Carousel', section: 'MOBILE_ADS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'DISABLE', ...AUDIT_OPS] }
+            ,{ name: 'Wallet Transfers', section: 'MOBILE_WALLET_TRANSFERS', operations: ['VIEW', 'EDIT', ...AUDIT_OPS] }
         ]
     },
     {
