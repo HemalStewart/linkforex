@@ -795,7 +795,7 @@ function isSenderBranch(branch: Branch): boolean {
     )
         .trim()
         .toLowerCase();
-    if (defaultType === 'sender' || defaultType === 'both') {
+    if (defaultType === 'remitter' || defaultType === 'both') {
         return true;
     }
 

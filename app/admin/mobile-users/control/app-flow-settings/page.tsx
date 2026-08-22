@@ -142,7 +142,7 @@ export default function MobileAppFlowSettingsPage() {
             key: 'enable_sanction_screening', 
             label: 'Enable Sanction Screening', 
             icon: <ShieldAlert className="h-5 w-5" />,
-            description: 'Automatically screens newly registered remitters and beneficiaries against PEP/Sanction blacklists.'
+            description: 'Automatically screens newly registered remitters and receivers against PEP/Sanction blacklists.'
         },
         { 
             key: 'lock_profile_after_verification', 

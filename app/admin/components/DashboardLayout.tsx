@@ -81,7 +81,7 @@ const ADMIN_ROUTE_NAMES: Record<string, string> = {
     '/admin/users': 'Users',
     '/admin/logs': 'User Logs',
     '/admin/settings': 'Settings',
-    '/admin/beneficiaries': 'Beneficiaries',
+    '/admin/beneficiaries': 'Receivers',
     '/admin/mobile-users': 'Mobile Users',
 };
 

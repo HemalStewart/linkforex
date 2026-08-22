@@ -60,7 +60,7 @@ const isSenderBranch = (branch: any): boolean => {
     const defaultType = String(branch?.default_transaction_type ?? branch?.branch_default_transaction_type ?? '')
         .trim()
         .toLowerCase();
-    return defaultType === 'sender' || defaultType === 'both';
+    return defaultType === 'remitter' || defaultType === 'both';
 };
 
 const branchOptionValue = (branch: any): string =>

@@ -460,7 +460,7 @@ function isSenderBranch(branch: Branch): boolean {
     )
         .trim()
         .toLowerCase();
-    if (defaultType === 'sender') {
+    if (defaultType === 'remitter') {
         return true;
     }
 

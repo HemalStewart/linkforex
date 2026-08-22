@@ -176,7 +176,7 @@ export default function BanksPage() {
             [
                 bank.name,
                 bank.bank_code,
-                senderFlag(bank) ? 'sender yes' : 'sender no',
+                senderFlag(bank) ? 'remitter yes' : 'remitter no',
                 receiverFlag(bank) ? 'receiver yes' : 'receiver no',
                 pickupFlag(bank) ? 'pickup yes' : 'pickup no',
             ]

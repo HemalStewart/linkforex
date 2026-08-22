@@ -693,7 +693,7 @@ export default function CreateTransferPage() {
                 const data = (await res.json()) as Remitter[];
                 setSenderResults(data);
             } catch (error) {
-                console.error('Failed to search senders', error);
+                console.error('Failed to search remitters', error);
             } finally {
                 setSenderSearching(false);
             }
@@ -997,7 +997,7 @@ export default function CreateTransferPage() {
                     setProcessedReturnRemitterId(senderId);
                     setWizardStep(2);
                 } catch (error) {
-                    console.error('Failed to load sender from wizard start', error);
+                    console.error('Failed to load remitter from wizard start', error);
                 }
             };
             fetchSender();
@@ -1016,7 +1016,7 @@ export default function CreateTransferPage() {
                 setProcessedReturnRemitterId(newRemitterId);
                 setWizardStep(2);
             } catch (error) {
-                console.error('Failed to load newly created sender', error);
+                console.error('Failed to load newly created remitter', error);
             }
         };
 
@@ -1114,7 +1114,7 @@ export default function CreateTransferPage() {
 
     const refreshSenderCompliance = useCallback(async () => {
         if (!formData.senderRecordId) {
-            setModal('No Sender Selected', 'Please select a sender first.', 'warning');
+            setModal('No Remitter Selected', 'Please select a remitter first.', 'warning');
             return;
         }
 
@@ -1122,23 +1122,23 @@ export default function CreateTransferPage() {
         try {
             const response = await fetch(withActingUser(ENDPOINTS.REMITTERS.DETAIL(formData.senderRecordId)));
             if (!response.ok) {
-                setModal('Refresh Failed', 'Unable to refresh sender screening status.', 'danger');
+                setModal('Refresh Failed', 'Unable to refresh remitter screening status.', 'danger');
                 return;
             }
             const sender = (await response.json()) as Remitter;
             await selectSender(sender);
-            setModal('Refreshed', 'Sender sanction and verification status refreshed.', 'info');
+            setModal('Refreshed', 'Remitter sanction and verification status refreshed.', 'info');
         } catch (error) {
-            console.error('Failed to refresh sender status', error);
-            setModal('Refresh Failed', 'Unable to refresh sender screening status.', 'danger');
+            console.error('Failed to refresh remitter status', error);
+            setModal('Refresh Failed', 'Unable to refresh remitter screening status.', 'danger');
         } finally {
             setRefreshingSenderChecks(false);
         }
     }, [formData.senderRecordId, selectSender, withActingUser]);
 
-    const triggerAmlAction = (actionName: string, person: 'Sender' | 'Receiver') => {
-        if (person === 'Sender' && !formData.senderRecordId) {
-            setModal('Missing Sender', 'Please select a sender first before running AML actions.', 'warning');
+    const triggerAmlAction = (actionName: string, person: 'Remitter' | 'Receiver') => {
+        if (person === 'Remitter' && !formData.senderRecordId) {
+            setModal('Missing Remitter', 'Please select a remitter first before running AML actions.', 'warning');
             return;
         }
         if (person === 'Receiver' && !formData.receiverRecordId) {
@@ -1146,11 +1146,11 @@ export default function CreateTransferPage() {
             return;
         }
 
-        if (person === 'Sender') setSenderAmlState('running');
+        if (person === 'Remitter') setSenderAmlState('running');
         if (person === 'Receiver') setReceiverAmlState('running');
 
         window.setTimeout(() => {
-            if (person === 'Sender') {
+            if (person === 'Remitter') {
                 setSenderAmlState('passed');
                 setFormData((prev) => ({ ...prev, senderVerified: 'yes' }));
             } else {
@@ -1164,7 +1164,7 @@ export default function CreateTransferPage() {
     const handleFindSenderByPostcode = async () => {
         const postcode = formData.senderPostcode.trim();
         if (!postcode) {
-            setModal('Missing Postcode', 'Enter sender postcode first.', 'warning');
+            setModal('Missing Postcode', 'Enter remitter postcode first.', 'warning');
             return;
         }
 
@@ -1173,23 +1173,23 @@ export default function CreateTransferPage() {
             const lookupUrl = withActingUser(`${ENDPOINTS.REMITTERS.LIST}?search=${encodeURIComponent(postcode)}&cross_branch_lookup=1`);
             const res = await fetch(lookupUrl);
             if (!res.ok) {
-                setModal('Search Failed', 'Unable to search sender by postcode.', 'danger');
+                setModal('Search Failed', 'Unable to search remitter by postcode.', 'danger');
                 return;
             }
 
             const matches = (await res.json()) as Remitter[];
             if (!matches.length) {
-                setModal('No Sender Found', `No sender found for postcode: ${postcode}.`, 'warning');
+                setModal('No Remitter Found', `No sender found for postcode: ${postcode}.`, 'warning');
                 return;
             }
 
             const exact = matches.find((item) => (item.postcode || '').trim().toLowerCase() === postcode.toLowerCase());
             const target = exact || matches[0];
             await selectSender(target);
-            setModal('Sender Found', `${target.name} selected from postcode search.`, 'info');
+            setModal('Remitter Found', `${target.name} selected from postcode search.`, 'info');
         } catch (error) {
             console.error('Postcode search failed', error);
-            setModal('Search Failed', 'Unable to search sender by postcode.', 'danger');
+            setModal('Search Failed', 'Unable to search remitter by postcode.', 'danger');
         } finally {
             setSenderSearching(false);
         }
@@ -1209,8 +1209,8 @@ export default function CreateTransferPage() {
         }
         if (!formData.customerRate || Number(formData.customerRate) <= 0) return 'Customer Rate must be greater than 0.';
         if (!formData.receiveAmount || Number(formData.receiveAmount) <= 0) return 'Receive Amount (£) must be greater than 0.';
-        if (!formData.senderRecordId) return 'Select a sender from existing records first.';
-        if (!formData.senderName.trim()) return 'Sender Name is required.';
+        if (!formData.senderRecordId) return 'Select a remitter from existing records first.';
+        if (!formData.senderName.trim()) return 'Remitter Name is required.';
         if (!formData.receiverRecordId) return 'Select a receiver from existing records first.';
         if (!formData.receiverName.trim()) return 'Receiver Name is required.';
         if (!formData.receiverAddress.trim()) return 'Receiver Address is required.';
@@ -1361,7 +1361,7 @@ export default function CreateTransferPage() {
     const handleSubmit = async () => {
         if (senderComplianceIssue.idExpired) {
             setModal(
-                'Expired Sender ID',
+                'Expired Remitter ID',
                 `Sender ID expired${senderComplianceIssue.idExpiry ? ` on ${senderComplianceIssue.idExpiry}` : ''}. Update ID and re-verify before creating transfer.`,
                 'warning'
             );
@@ -1963,7 +1963,7 @@ export default function CreateTransferPage() {
                         <div className="mt-3 space-y-2">
                             {recentTransfers.length === 0 ? (
                                 <div className="text-sm text-slate-500 dark:text-slate-300">
-                                    {formData.senderRecordId ? 'No recent transfers found.' : 'Select a sender to view recent transfers.'}
+                                    {formData.senderRecordId ? 'No recent transfers found.' : 'Select a remitter to view recent transfers.'}
                                 </div>
                             ) : (
                                 recentTransfers.map((transfer) => (
@@ -1992,7 +1992,7 @@ export default function CreateTransferPage() {
                         <button
                             type="button"
                             key={action}
-                            onClick={() => triggerAmlAction(action, 'Sender')}
+                            onClick={() => triggerAmlAction(action, 'Remitter')}
                             className="px-3 py-1.5 rounded-full glass-effect text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-300"
                         >
                             {action}
@@ -2548,7 +2548,7 @@ export default function CreateTransferPage() {
                             onClick={async () => {
                                 if (wizardStep === 1) {
                                     if (!formData.senderRecordId) {
-                                        setModal('Missing Information', 'Please select a sender to continue.', 'warning');
+                                        setModal('Missing Information', 'Please select a remitter to continue.', 'warning');
                                         return;
                                     }
                                     setWizardStep(2);
@@ -2556,7 +2556,7 @@ export default function CreateTransferPage() {
                                 }
                                 if (wizardStep === 2) {
                                     if (!formData.receiverRecordId) {
-                                        setModal('Missing Information', 'Please select a beneficiary to continue.', 'warning');
+                                        setModal('Missing Information', 'Please select a receiver to continue.', 'warning');
                                         return;
                                     }
                                     setWizardStep(3);

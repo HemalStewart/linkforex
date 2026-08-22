@@ -34,7 +34,7 @@ export default function BeneficiariesPage() {
                 setBeneficiaries(data);
             }
         } catch (error) {
-            console.error('Failed to fetch beneficiaries', error);
+            console.error('Failed to fetch receivers', error);
         } finally {
             setLoading(false);
         }

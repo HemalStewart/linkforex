@@ -296,7 +296,7 @@ export default function CreateRemitterPage() {
     const tabs = [
         { id: 'general', label: 'General Details' },
         { id: 'kyc', label: 'KYC Documents' },
-        { id: 'receivers', label: 'Beneficiaries' },
+        { id: 'receivers', label: 'Receivers' },
     ];
 
     const currentTabIndex = tabs.findIndex(t => t.id === activeTab);
