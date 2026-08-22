@@ -18,7 +18,7 @@ const SERVICES = [
 type Allocation = { service: string; year: number; month: number; quota_limit: number };
 
 export default function ScreeningUsageSettingsPage() {
-    const { canEdit } = usePagePermissions('API_TOKENS');
+    const { canEdit } = usePagePermissions('API_TOKEN_QUOTAS');
     const now = useMemo(() => new Date(), []);
 
     // Next month is the common case, so the form opens on it.
