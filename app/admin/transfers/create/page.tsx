@@ -1534,7 +1534,7 @@ export default function CreateTransferPage() {
                         Back to Transfers
                     </Link>
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Create Transfer</h1>
-                    <p className="text-slate-500 dark:text-slate-300 mt-2">Transfer, sender, and receiver details in one workflow.</p>
+                    <p className="text-slate-500 dark:text-slate-300 mt-2">Transfer, remitter, and receiver details in one workflow.</p>
                 </div>
                 <button
                     type="button"
@@ -1830,7 +1830,7 @@ export default function CreateTransferPage() {
             {wizardStep === 1 ? (
             <div className="card-glass p-6 md:p-8 space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">Sender Details</h2>
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">Remitter Details</h2>
                     <div className="flex flex-wrap items-center gap-2">
                         <button
                             type="button"
@@ -1847,18 +1847,18 @@ export default function CreateTransferPage() {
                             className="btn-primary text-sm font-semibold inline-flex items-center gap-2"
                         >
                             <Plus className="w-4 h-4" />
-                            Add new sender
+                            Add new remitter
                         </Link>
                     </div>
                 </div>
 
                 <div>
-                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Sender Id <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Remitter Id <span className="text-red-500">*</span></label>
                     <div className="relative input-icon">
                         <span className="input-icon-left"><Search className="w-5 h-5" /></span>
                         <input
                             className="input-glass w-full"
-                            placeholder="Search sender by name, id, or phone"
+                            placeholder="Search remitter by name, id, or phone"
                             value={senderSearch}
                             onChange={(event) => setSenderSearch(event.target.value)}
                         />
@@ -1930,7 +1930,7 @@ export default function CreateTransferPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/60 bg-white/60 dark:bg-slate-900/40 p-4">
                         <div className="text-xs font-bold text-slate-500 dark:text-slate-300">
-                            Sender Summary
+                            Remitter Summary
                         </div>
                         <div className="mt-3 space-y-2 text-sm text-slate-700 dark:text-slate-200">
                             <div className="flex items-center gap-2">
@@ -2000,15 +2000,15 @@ export default function CreateTransferPage() {
                     ))}
                 </div>
                 <div className="text-xs font-semibold">
-                    {senderAmlState === 'running' && <span className="text-amber-600 dark:text-amber-300">Sender AML check is running...</span>}
-                    {senderAmlState === 'passed' && <span className="text-teal-600 dark:text-teal-300">Sender AML check passed.</span>}
-                    {senderAmlState === 'failed' && <span className="text-red-600 dark:text-red-300">Sender AML check failed.</span>}
-                    {senderAmlState === 'idle' && <span className="text-slate-500 dark:text-slate-300">Run AML checks to verify sender profile.</span>}
+                    {senderAmlState === 'running' && <span className="text-amber-600 dark:text-amber-300">Remitter AML check is running...</span>}
+                    {senderAmlState === 'passed' && <span className="text-teal-600 dark:text-teal-300">Remitter AML check passed.</span>}
+                    {senderAmlState === 'failed' && <span className="text-red-600 dark:text-red-300">Remitter AML check failed.</span>}
+                    {senderAmlState === 'idle' && <span className="text-slate-500 dark:text-slate-300">Run AML checks to verify remitter profile.</span>}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Sender Verified</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Remitter Verified</label>
                         <select
                             className="input-glass w-full"
                             value={formData.senderVerified}
@@ -2020,7 +2020,7 @@ export default function CreateTransferPage() {
                     </div>
 
                     <div className="xl:col-span-2">
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Sender Name <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Remitter Name <span className="text-red-500">*</span></label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><User className="w-5 h-5" /></span>
                             <input
@@ -2032,7 +2032,7 @@ export default function CreateTransferPage() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Sender Date Of Birth</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Remitter Date Of Birth</label>
                         <div className="flex items-center gap-2">
                             <input
                                 type="date"
@@ -2046,7 +2046,7 @@ export default function CreateTransferPage() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Sender Place of Birth</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Remitter Place of Birth</label>
                         <input
                             className="input-glass w-full"
                             value={formData.senderPlaceOfBirth}
@@ -2055,7 +2055,7 @@ export default function CreateTransferPage() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Sender Contacts</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Remitter Contacts</label>
                         <div className="relative input-icon">
                             <span className="input-icon-left"><Phone className="w-5 h-5" /></span>
                             <input
@@ -2067,7 +2067,7 @@ export default function CreateTransferPage() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Sender Postcode</label>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Remitter Postcode</label>
                         <div className="flex items-center gap-2">
                             <input
                                 className="input-glass w-full"
@@ -2474,25 +2474,25 @@ export default function CreateTransferPage() {
                     <h2 className="text-lg font-bold text-slate-900 dark:text-white">Confirm Transfer</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/60 bg-white/60 dark:bg-slate-900/40 p-4">
-                            <div className="text-xs font-bold text-slate-500 dark:text-slate-300">Sender</div>
+                            <div className="text-xs font-bold text-slate-500 dark:text-slate-300">Remitter</div>
                             <div className="mt-2 text-sm text-slate-700 dark:text-slate-200 space-y-1">
                                 <div className="font-semibold">{formData.senderName || '-'}</div>
                                 <div>{formData.senderContacts || '-'}</div>
                                 <div>{formData.senderId || '-'}</div>
                             </div>
                             <button type="button" onClick={() => setWizardStep(1)} className="mt-3 text-xs font-bold text-teal-600 hover:text-teal-700 dark:text-teal-300 dark:hover:text-teal-200">
-                                Edit sender
+                                Edit remitter
                             </button>
                         </div>
                         <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/60 bg-white/60 dark:bg-slate-900/40 p-4">
-                            <div className="text-xs font-bold text-slate-500 dark:text-slate-300">Beneficiary</div>
+                            <div className="text-xs font-bold text-slate-500 dark:text-slate-300">Receiver</div>
                             <div className="mt-2 text-sm text-slate-700 dark:text-slate-200 space-y-1">
                                 <div className="font-semibold">{formData.receiverName || '-'}</div>
                                 <div>{formData.receiverContacts || '-'}</div>
                                 <div>{formData.receiverBank || '-'}</div>
                             </div>
                             <button type="button" onClick={() => setWizardStep(2)} className="mt-3 text-xs font-bold text-teal-600 hover:text-teal-700 dark:text-teal-300 dark:hover:text-teal-200">
-                                Edit beneficiary
+                                Edit receiver
                             </button>
                         </div>
                         <div className="md:col-span-2 rounded-2xl border border-slate-100/70 dark:border-slate-700/60 bg-white/60 dark:bg-slate-900/40 p-4">

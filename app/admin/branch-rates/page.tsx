@@ -521,7 +521,7 @@ export default function BranchRatesPage() {
 
                     <label className="flex items-center gap-3 text-sm font-semibold text-slate-700 dark:text-slate-300">
                         <ToggleSwitch
-                            label="Apply to all sender branches"
+                            label="Apply to all remitter branches"
                             value={form.applyToAll ? 'yes' : 'no'}
                             onChange={(value) =>
                                 setForm((prev) => ({
@@ -548,7 +548,7 @@ export default function BranchRatesPage() {
                 <div>
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Branch Rates</h1>
                     <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">
-                        Customer cash + digital rates managed per sender branch.
+                        Customer cash + digital rates managed per remitter branch.
                     </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">

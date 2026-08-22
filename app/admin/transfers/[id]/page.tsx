@@ -815,7 +815,7 @@ export default function TransferDetailsPage() {
                 <>
                     <DetailCard title="Transfer Overview" rows={overviewRows} />
                     {mobileWalletTransfer && <DetailCard title="Wallet Funding" rows={walletRows} />}
-                    <DetailCard title="Sender Details" rows={senderRows} />
+                    <DetailCard title="Remitter Details" rows={senderRows} />
                     <DetailCard title="Receiver Details" rows={receiverRows} />
                     <DetailCard title="Documents" rows={documentRows} />
                 </>

@@ -92,8 +92,8 @@ export default function BeneficiariesPage() {
             {/* Page Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Beneficiaries</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Manage global beneficiary accounts</p>
+                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Receivers</h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Manage global receiver accounts</p>
                 </div>
                 <div className="flex items-center space-x-3">
                     <button onClick={fetchBeneficiaries} className="px-5 py-3 rounded-2xl border-0 glass-effect text-slate-700 dark:text-slate-300 font-bold hover:shadow-lg transition-all group">
@@ -117,7 +117,7 @@ export default function BeneficiariesPage() {
                             </span>
                             <input
                                 type="search"
-                                placeholder="Beneficiary, bank, account number"
+                                placeholder="Receiver, bank, account number"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="input-glass w-full text-sm"
@@ -132,13 +132,13 @@ export default function BeneficiariesPage() {
                 <div className="px-6 py-4 border-b border-slate-100/70 dark:border-slate-700/60 flex items-center space-x-3">
                     <Users className="w-6 h-6 text-slate-400" />
                     <div>
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">All Beneficiaries</h2>
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">All Receivers</h2>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Showing {totalRows === 0 ? 0 : startIndex + 1} to {endIndex} of {totalRows}</p>
                     </div>
                 </div>
                 <div className="table-scroll">
                     {loading ? (
-                        <div className="p-12 text-center text-slate-500 animate-pulse">Loading beneficiaries...</div>
+                        <div className="p-12 text-center text-slate-500 animate-pulse">Loading receivers...</div>
                     ) : (
                         <table className="table-shell">
                             <thead className="table-head">
@@ -278,7 +278,7 @@ export default function BeneficiariesPage() {
                                 {!loading && pagedBeneficiaries.length === 0 && (
                                     <tr>
                                         <td colSpan={dynamicColSpan} className="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
-                                            No beneficiaries found.
+                                            No receivers found.
                                         </td>
                                     </tr>
                                 )}

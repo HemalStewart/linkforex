@@ -1185,7 +1185,7 @@ export default function EditRemitterPage() {
                         Back to Remitters
                     </Link>
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Remitter Details</h1>
-                    <p className="text-slate-500 dark:text-slate-300 mt-2">Field view and edit for sender profile</p>
+                    <p className="text-slate-500 dark:text-slate-300 mt-2">Field view and edit for remitter profile</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                     <Link

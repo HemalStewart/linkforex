@@ -802,12 +802,12 @@ export default function TransfersPage() {
     <tr><th>Other Transaction Id</th><td>${row.otherTransactionId}</td></tr>
   </table>
 
-  <h2>Sender</h2>
+  <h2>Remitter</h2>
   <table>
-    <tr><th>Sender Id</th><td>${row.senderId}</td></tr>
-    <tr><th>Sender Name</th><td>${row.senderName}</td></tr>
-    <tr><th>Sender Contacts</th><td>${row.senderContacts}</td></tr>
-    <tr><th>Sender Address</th><td>${row.senderAddress}</td></tr>
+    <tr><th>Remitter Id</th><td>${row.senderId}</td></tr>
+    <tr><th>Remitter Name</th><td>${row.senderName}</td></tr>
+    <tr><th>Remitter Contacts</th><td>${row.senderContacts}</td></tr>
+    <tr><th>Remitter Address</th><td>${row.senderAddress}</td></tr>
     <tr><th>Date Of Birth</th><td>${row.senderDob}</td></tr>
   </table>
 

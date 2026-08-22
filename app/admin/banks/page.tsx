@@ -373,7 +373,7 @@ export default function BanksPage() {
                 <div>
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Banks</h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">
-                        Manage sender, receiver, and cash pickup banks used by mobile + admin flows.
+                        Manage remitter, receiver, and cash pickup banks used by mobile + admin flows.
                     </p>
                 </div>
                 <div className="flex items-center space-x-3">
@@ -448,7 +448,7 @@ export default function BanksPage() {
                                     </th>
                                     <th className="px-6 py-5 text-center text-xs font-bold text-slate-500 dark:text-slate-400">
                                         <button onClick={() => toggleSort('sender_bank')} className="mx-auto flex items-center gap-1">
-                                            <span>Sender Bank</span>
+                                            <span>Remitter Bank</span>
                                             <span>{sortIndicator('sender_bank')}</span>
                                         </button>
                                     </th>
@@ -564,7 +564,7 @@ export default function BanksPage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
                         <div>
                             <ToggleSwitch
-                                label="Sender Bank"
+                                label="Remitter Bank"
                                 align="start"
                                 value={form.sender_bank ? 'yes' : 'no'}
                                 onChange={(value) =>
@@ -604,7 +604,7 @@ export default function BanksPage() {
                     </div>
                     <div className="flex items-center gap-2">
                         <span className="text-xs text-slate-500 dark:text-slate-400">
-                            `Receiver Bank` is used for beneficiary bank list in app. `Cash Pickup Bank` is used for pickup bank list.
+                            `Receiver Bank` is used for receiver bank list in app. `Cash Pickup Bank` is used for pickup bank list.
                         </span>
                     </div>
                     <div className="dialog-actions pt-4">

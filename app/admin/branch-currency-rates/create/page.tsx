@@ -335,7 +335,7 @@ export default function CreateBranchCurrencyRatePage() {
                 </p>
                 {branches.length === 0 && (
                     <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700 dark:border-amber-700/60 dark:bg-amber-900/20 dark:text-amber-300">
-                        No sender branches are configured. Enable sender branch flag in branch settings first.
+                        No remitter branches are configured. Enable remitter branch flag in branch settings first.
                     </p>
                 )}
             </div>

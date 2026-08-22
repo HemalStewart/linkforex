@@ -272,7 +272,7 @@ export default function RelationshipsPage() {
                 <div>
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Relationships</h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">
-                        Maintain relationship labels used in beneficiary and transfer flows.
+                        Maintain relationship labels used in receiver and transfer flows.
                     </p>
                 </div>
                 <div className="flex items-center space-x-3">

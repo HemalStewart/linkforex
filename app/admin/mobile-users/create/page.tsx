@@ -538,9 +538,9 @@ export default function CreateRemitterPage() {
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <FormInput label="Sender ID *" name="sender_id" placeholder="Enter Sender ID" required />
+                                <FormInput label="Remitter ID *" name="sender_id" placeholder="Enter Remitter ID" required />
 
-                                        <FormInput label="Sender Name *" name="sender_name" placeholder="Full Name" required />
+                                        <FormInput label="Remitter Name *" name="sender_name" placeholder="Full Name" required />
                                         <FormInput label="Date of Birth *" name="date_of_birth" type="date" required />
                                         <FormInput label="Place of Birth" name="place_of_birth" placeholder="City, Country" />
                                         <FormSelect label="Occupation *" name="occupation" options={occupations} defaultValue={occupations[0]} />
@@ -600,7 +600,7 @@ export default function CreateRemitterPage() {
                     {activeTab === 'receivers' && (
                         <div className="space-y-6 animate-fade-in">
                             <div className="bg-teal-50 dark:bg-teal-900/20 p-4 rounded-lg border border-teal-200 dark:border-teal-800 text-sm text-teal-700 dark:text-teal-300">
-                                Please add at least one receiver (Beneficiary) for this remitter.
+                                Please add at least one receiver (Receiver) for this remitter.
                             </div>
 
                             {receivers.map((receiver, index) => (

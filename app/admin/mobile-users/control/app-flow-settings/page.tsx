@@ -524,7 +524,7 @@ export default function MobileAppFlowSettingsPage() {
                         </label>
 
                         <div className="md:col-span-2 mt-2 rounded-2xl border border-cyan-200/70 bg-cyan-50/60 p-3 text-xs text-cyan-900 dark:border-cyan-900/40 dark:bg-cyan-950/20 dark:text-cyan-100">
-                            Beneficiary AML screening can use a separate Veriff AML integration. If left blank, beneficiary screening falls back to the main Veriff KYC credentials above.
+                            Receiver AML screening can use a separate Veriff AML integration. If left blank, receiver screening falls back to the main Veriff KYC credentials above.
                         </div>
 
                         <label className="text-xs font-bold text-slate-500 md:col-span-2">

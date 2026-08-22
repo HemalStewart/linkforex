@@ -144,7 +144,7 @@ export default function WalletTransfersPage() {
                                 value={search}
                                 onChange={(event) => setSearch(event.target.value)}
                                 className="input-glass w-full py-2.5 pl-10 text-sm normal-case"
-                                placeholder="Search by reference, remitter, beneficiary, or wallet hash"
+                                placeholder="Search by reference, remitter, receiver, or wallet hash"
                             />
                         </div>
                     </label>
@@ -157,7 +157,7 @@ export default function WalletTransfersPage() {
                         <thead className="bg-slate-50/80 dark:bg-slate-900/40">
                             <tr className="text-left text-xs font-bold text-slate-500">
                                 <th className="px-4 py-3">Transfer</th>
-                                <th className="px-4 py-3">Sender</th>
+                                <th className="px-4 py-3">Remitter</th>
                                 <th className="px-4 py-3">Recipient</th>
                                 <th className="px-4 py-3">Amounts</th>
                                 <th className="px-4 py-3">Wallet Proof</th>

@@ -368,7 +368,7 @@ export default function CreateBranchPage() {
                         <SelectField label="Default Transaction Type" value={formData.default_transaction_type} onChange={(value) => updateField('default_transaction_type', value)} icon={<ArrowRightLeft className="h-5 w-5" />} required>
                             <option value="">Select transaction type</option>
                             <option value="Receiver">Receiver</option>
-                            <option value="Sender">Sender</option>
+                            <option value="Sender">Remitter</option>
                         </SelectField>
                         <TextField label="Daily Transfer Limit" type="number" value={formData.day_transfer_limit} onChange={(value) => updateField('day_transfer_limit', value)} placeholder="100000" icon={<Coins className="h-5 w-5" />} />
                         <SelectField label="Branch Ownership Type" value={formData.branch_ownership_type} onChange={(value) => updateField('branch_ownership_type', value as 'Own' | 'Agent')} icon={<Store className="h-5 w-5" />}>

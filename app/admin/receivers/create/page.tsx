@@ -321,7 +321,7 @@ export default function CreateReceiverPage() {
                     Back to Receivers
                 </Link>
                 <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Add New Receiver</h1>
-                <p className="text-slate-500 dark:text-slate-400 mt-2">Link a new beneficiary to an existing remitter.</p>
+                <p className="text-slate-500 dark:text-slate-400 mt-2">Link a new receiver to an existing remitter.</p>
             </div>
 
             <form onSubmit={handleSubmit} className="card-glass p-8 relative overflow-hidden">
