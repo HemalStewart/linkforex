@@ -1229,9 +1229,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 />
             )}
 
-            <aside className={`flex flex-col glass-effect-strong border border-white/20 dark:border-white/10 transition-transform duration-300 lg:transition-all lg:duration-500 ease-in-out my-3 ml-3 rounded-[18px] shadow-lg
+            <aside className={`flex flex-col shell-chrome shell-sidebar transition-transform duration-300 lg:transition-all lg:duration-500 ease-in-out
                 fixed inset-y-0 left-0 z-40 w-64 ${mobileNavOpen ? 'translate-x-0' : '-translate-x-[110%]'}
-                lg:static lg:z-20 lg:translate-x-0 ${sidebarOpen ? 'lg:w-64' : 'lg:w-20'} lg:animate-slide-in-left`}>
+                lg:static lg:z-20 lg:translate-x-0 ${sidebarOpen ? 'lg:w-64' : 'lg:w-20'}`}>
                 {/* Logo + Toggle */}
                 <div className="h-16 flex items-center px-4 border-b border-white/10 dark:border-white/10">
                     <button
@@ -1384,7 +1384,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col h-full overflow-hidden relative">
                 {/* Top Header */}
-                <header className="h-14 glass-effect-strong border border-white/20 dark:border-white/10 flex items-center justify-between gap-2 px-3 sm:px-4 z-10 animate-slide-down backdrop-blur-3xl m-3 rounded-[18px] shadow-sm">
+                <header className="h-14 shell-chrome shell-header flex items-center justify-between gap-2 px-3 sm:px-4 lg:px-6 z-10 shrink-0">
                     <button
                         type="button"
                         onClick={() => setMobileNavOpen(true)}
@@ -1558,7 +1558,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </header>
 
                 {/* Main Page Scrollable Area */}
-                <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden px-4 pb-4 pt-0 relative no-scrollbar">
+                <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden px-4 lg:px-6 pb-4 pt-4 relative no-scrollbar">
                     {children}
                 </main>
             </div>
