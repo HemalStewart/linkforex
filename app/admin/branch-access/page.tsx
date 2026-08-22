@@ -31,6 +31,16 @@ type BranchAccessRow = {
     note?: string;
 };
 
+// Approved and rejected are opposite outcomes and must not look alike.
+const statusTone = (status?: string): 'yes' | 'danger' | 'warning' | 'neutral' => {
+    switch (String(status || '').toLowerCase()) {
+        case 'approved': return 'yes';
+        case 'rejected': return 'danger';
+        case 'pending':  return 'warning';
+        default:         return 'neutral';
+    }
+};
+
 export default function BranchAccessPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('BRANCH_ACCESS_REQUESTS');
     const { canApprove, canCancel } = usePagePermissions('BRANCH_ACCESS_REQUESTS');
@@ -349,9 +359,11 @@ export default function BranchAccessPage() {
                 ) : visibleRows.length === 0 ? (
                     <div className="rounded-2xl border border-slate-200/70 dark:border-slate-700/60 bg-slate-50/70 dark:bg-slate-900/40 px-4 py-6 text-sm text-slate-500 dark:text-slate-300 flex items-center gap-2">
                         <AlertTriangle className="w-4 h-4" />
-                        {rows.length === 0
-                            ? 'No cross-branch access requests yet.'
-                            : 'No requests match your search.'}
+                        {searchQuery.trim() || statusFilter !== 'all'
+                            ? 'No requests match your search.'
+                            : activeTab === 'pending'
+                                ? 'No requests are waiting for review.'
+                                : 'No requests have been reviewed yet.'}
                     </div>
                 ) : (
                     <div className="table-scroll rounded-2xl border border-slate-200/70 dark:border-slate-700/60">
@@ -365,7 +377,6 @@ export default function BranchAccessPage() {
                                     <th className="px-4 py-3">Branch</th>
                                     <th className="px-4 py-3">Requested Branch</th>
                                     <th className="px-4 py-3">Status</th>
-                                    <th className="px-4 py-3">Requested By</th>
                                     {showCreatedBy && <th className="px-4 py-3">Created By</th>}
                                     {showCreatedAt && <th className="px-4 py-3">Created At</th>}
                                     {showUpdatedBy && <th className="px-4 py-3">Updated By</th>}
@@ -418,7 +429,7 @@ export default function BranchAccessPage() {
                                         <td className="px-4 py-3 text-slate-700 dark:text-slate-200">{row.origin_branch_name || row.origin_branch_code}</td>
                                         <td className="px-4 py-3 text-slate-700 dark:text-slate-200">{row.requested_branch_name || row.requested_branch_code}</td>
                                         <td className="px-4 py-3">
-                                            <Badge type="warning">
+                                            <Badge type={statusTone(row.status)}>
                                                 {row.status}
                                             </Badge>
                                             {row.can_review === false ? (
@@ -427,7 +438,6 @@ export default function BranchAccessPage() {
                                                 </p>
                                             ) : null}
                                         </td>
-                                        <td className="px-4 py-3 text-slate-500 dark:text-slate-300">{row.requested_by_username || '-'}</td>
                                         {showCreatedBy && <td className="px-4 py-3 text-slate-500 dark:text-slate-300">{row.entered_user || row.created_by || row.requested_by_username || '—'}</td>}
                                         {showCreatedAt && (
                                             <td className="px-4 py-3 text-slate-500 dark:text-slate-300 whitespace-nowrap">
