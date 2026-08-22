@@ -376,12 +376,12 @@ export default function RolesPage() {
             />
 
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Roles</h1>
                     <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">Manage roles for system users</p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                     <button
                         onClick={handleValidateRoles}
                         disabled={validating}

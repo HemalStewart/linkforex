@@ -1178,7 +1178,7 @@ export default function EditRemitterPage() {
                 </div>
             )}
 
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <Link href="/admin/remitters" className="inline-flex items-center text-sm font-bold text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 transition-colors mb-2 group">
                         <ArrowLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
@@ -1187,7 +1187,7 @@ export default function EditRemitterPage() {
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Remitter Details</h1>
                     <p className="text-slate-500 dark:text-slate-300 mt-2">Field view and edit for sender profile</p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                     <Link
                         href={`/admin/transfers/create?senderId=${encodeURIComponent(id)}`}
                         className="text-sm transition-colors flex items-center btn-primary"

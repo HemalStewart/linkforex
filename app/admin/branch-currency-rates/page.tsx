@@ -202,7 +202,7 @@ export default function BranchCurrencyRatesPage() {
                         Add-only branch currency rates for cash operations.
                     </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                     <button
                         type="button"
                         onClick={fetchData}

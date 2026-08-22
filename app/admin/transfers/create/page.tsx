@@ -1554,7 +1554,12 @@ export default function CreateTransferPage() {
             </div>
 
             <div className="card-glass p-4 md:p-5">
-                <div className="flex flex-wrap items-center gap-3">
+                <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    Step {wizardStep} of 4 &middot; {['Remitter', 'Receiver', 'Details', 'Confirm'][wizardStep - 1]}
+                </p>
+                {/* One row that scrolls rather than wrapping: four pills stacked
+                    2x2 read as tags, not as a sequence. */}
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
                     {([
                         { step: 1 as const, label: 'Remitter' },
                         { step: 2 as const, label: 'Receiver' },
@@ -1564,13 +1569,16 @@ export default function CreateTransferPage() {
                         const active = wizardStep === item.step;
                         const done = wizardStep > item.step;
                         return (
+                            <React.Fragment key={item.step}>
+                            {item.step > 1 && (
+                                <span aria-hidden="true" className={`h-px w-4 sm:w-8 shrink-0 ${done || active ? 'bg-teal-400' : 'bg-slate-300 dark:bg-slate-700'}`} />
+                            )}
                             <button
-                                key={item.step}
                                 type="button"
                                 onClick={() => {
                                     if (done) setWizardStep(item.step);
                                 }}
-                                className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-colors ${
+                                className={`inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-colors ${
                                     active
                                         ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/30'
                                         : done
@@ -1587,10 +1595,11 @@ export default function CreateTransferPage() {
                                             ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300'
                                             : 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-600'
                                 }`}>
-                                    {item.step}
+                                    {done ? '\u2713' : item.step}
                                 </span>
-                                {item.label}
+                                <span className="whitespace-nowrap">{item.label}</span>
                             </button>
+                            </React.Fragment>
                         );
                     })}
                 </div>
@@ -1822,7 +1831,7 @@ export default function CreateTransferPage() {
             <div className="card-glass p-6 md:p-8 space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <h2 className="text-lg font-bold text-slate-900 dark:text-white">Sender Details</h2>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                         <button
                             type="button"
                             onClick={() => void refreshSenderCompliance()}

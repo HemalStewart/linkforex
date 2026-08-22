@@ -159,7 +159,7 @@ export default function MobileUserRatesPage() {
                         Optional per-user digital rate overrides. If an override exists, it will be returned to the app when rates are requested with that user&apos;s email.
                     </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                     <button
                         type="button"
                         onClick={() => void fetchData()}

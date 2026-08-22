@@ -1153,12 +1153,12 @@ export default function RemittersPage() {
                 </div>
             )}
 
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Remitters</h1>
                     <p className="text-slate-500 dark:text-slate-300 mt-2 font-medium">Manage remitter profiles for branch and mobile app</p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                     <button
                         type="button"
                         onClick={() => void fetchRemitters()}

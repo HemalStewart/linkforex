@@ -551,7 +551,7 @@ export default function BranchRatesPage() {
                         Customer cash + digital rates managed per sender branch.
                     </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                     <button
                         type="button"
                         onClick={() => void fetchData()}
