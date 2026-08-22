@@ -220,7 +220,7 @@ export default function EditDilisenseSourcePage() {
     }
 
     return (
-        <div className="max-w-4xl mx-auto space-y-8 animate-fade-in pb-20">
+        <div className="max-w-7xl mx-auto space-y-8 animate-fade-in pb-20">
             <ConfirmModal
                 isOpen={confirmModal.isOpen}
                 onClose={() => {

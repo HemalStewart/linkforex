@@ -426,7 +426,7 @@ export default function EditReceiverPage() {
 
     if (notFound) {
         return (
-            <div className="max-w-3xl mx-auto p-12 text-center space-y-4">
+            <div className="max-w-7xl mx-auto p-12 text-center space-y-4">
                 <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Receiver not found</h1>
                 <p className="text-slate-500 dark:text-slate-300">This receiver link is invalid or the record no longer exists.</p>
                 <Link
