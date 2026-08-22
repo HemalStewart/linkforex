@@ -12,15 +12,6 @@
   --background-solid: #f6fbfb;
   --foreground: #0f172a;
 
-  /* Shell chrome - deliberately separate from card surfaces */
-  --chrome-bg: #ffffff;
-  --chrome-line: rgba(15, 23, 42, 0.10);
-  --chrome-ink: #334155;
-  --chrome-ink-strong: #0f172a;
-  --chrome-hover: rgba(15, 23, 42, 0.05);
-  --chrome-active-bg: rgba(13, 148, 136, 0.10);
-  --chrome-active-ink: #0d9488;
-
   /* Surface + Lines */
   --surface-1: rgba(255, 255, 255, 0.72);
   --surface-2: rgba(255, 255, 255, 0.9);
@@ -62,15 +53,6 @@
   --background: linear-gradient(180deg, #071a1a 0%, #0b1f1f 45%, #0c2323 100%);
   --background-solid: #0b1c1c;
   --foreground: #f8fafc;
-
-  /* Shell chrome - deliberately separate from card surfaces */
-  --chrome-bg: #0d1418;
-  --chrome-line: rgba(255, 255, 255, 0.07);
-  --chrome-ink: #94a3b8;
-  --chrome-ink-strong: #f1f5f9;
-  --chrome-hover: rgba(255, 255, 255, 0.06);
-  --chrome-active-bg: rgba(45, 212, 191, 0.14);
-  --chrome-active-ink: #5eead4;
 
   /* Surface + Lines */
   --surface-1: rgba(13, 27, 27, 0.7);
@@ -1199,30 +1181,3 @@ body.modal-open nav {
   overflow: hidden !important;
 }
 
-
-/* ---------------------------------------------------------------
-   Admin shell: flush chrome
-   The sidebar and header used to float as rounded glass cards with a
-   margin on every side. They now meet the edges of the window and are
-   separated by a hairline instead of a shadow.
-   --------------------------------------------------------------- */
-.shell-chrome {
-  background: var(--chrome-bg);
-  color: var(--chrome-ink);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  box-shadow: none;
-}
-
-.shell-sidebar {
-  border-right: 1px solid var(--chrome-line);
-}
-
-.shell-header {
-  border-bottom: 1px solid var(--chrome-line);
-}
-
-.shell-chrome .nav-item-active {
-  background: var(--chrome-active-bg);
-  color: var(--chrome-active-ink);
-}
