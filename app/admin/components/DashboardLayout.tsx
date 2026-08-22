@@ -10,45 +10,7 @@ import { clearStoredUser, getStoredAdminSessionToken, getStoredUserRaw } from '@
 import { isPrivilegedUser as getIsPrivilegedUser, usePagePermissions, checkPermission } from '@/app/lib/permissions';
 import { applyThemePreference, getStoredThemePreference, resolveTheme, type ThemePreference, type ResolvedTheme } from '@/app/lib/theme';
 import ConfirmModal from './ConfirmModal';
-import {
-    LayoutGrid,
-    Layers,
-    Users,
-    UserCheck,
-    ShieldCheck,
-    Settings,
-    Shield,
-    Building2,
-    Briefcase,
-    Database,
-    Globe,
-    Coins,
-    Cpu,
-    BarChart3,
-    LogOut,
-    ChevronLeft,
-    ChevronRight,
-    ChevronDown,
-    Moon,
-    Monitor,
-    Search,
-    Bell,
-    PlusCircle,
-    ArrowRightLeft,
-    FileText,
-    AlertTriangle,
-    Sun,
-    User,
-    MessageCircle,
-    ListChecks,
-    SlidersHorizontal,
-    Smartphone,
-    Info,
-    TrendingUp,
-    Megaphone,
-    Image as ImageIcon,
-    Gauge
-} from 'lucide-react';
+import { AlertTriangle, ArrowRightLeft, BarChart3, Bell, Briefcase, Building2, ChevronDown, ChevronLeft, ChevronRight, Coins, Cpu, Database, FileText, Gauge, Globe, Image as ImageIcon, Info, Layers, LayoutGrid, ListChecks, LogOut, Megaphone, Menu, MessageCircle, Monitor, Moon, PlusCircle, Search, Settings, Shield, ShieldCheck, SlidersHorizontal, Smartphone, Sun, TrendingUp, User, UserCheck, Users } from 'lucide-react';
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
@@ -179,6 +141,10 @@ const getPageTitleFromPath = (path: string): string => {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const { canAdd } = usePagePermissions('TRANSFERS');
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    // Below lg the sidebar leaves the flow and slides over the content, so a
+    // phone gets the full width instead of losing 5rem to a rail it cannot use.
+    const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
     const [globalSearch, setGlobalSearch] = useState('');
     const [notificationMenuOpen, setNotificationMenuOpen] = useState(false);
     const [themeMenuOpen, setThemeMenuOpen] = useState(false);
@@ -292,6 +258,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     });
 
     const pathname = usePathname();
+
+    // Tapping a link should close the drawer, not leave it covering the page.
+    React.useEffect(() => {
+        setMobileNavOpen(false);
+    }, [pathname]);
+
+    // The drawer is always full width, so its labels show even when the
+    // desktop rail is collapsed.
+    const navExpanded = mobileNavOpen || sidebarOpen;
     const router = useRouter();
     const isLoginPage = pathname.startsWith('/admin/login');
     const isForgotPasswordPage = pathname.startsWith('/admin/forgot-password');
@@ -1246,15 +1221,25 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <div className="fixed inset-0 bg-gradient-to-b from-teal-50 via-teal-50 to-teal-100 dark:from-teal-950 dark:via-teal-950 dark:to-teal-900 -z-10"></div>
 
             {/* Sidebar - Thin, iOS-style */}
-            <aside className={`flex flex-col glass-effect-strong border border-white/20 dark:border-white/10 transition-all duration-500 ease-in-out my-3 ml-3 rounded-[18px] shadow-lg z-20 ${sidebarOpen ? 'w-64' : 'w-20'} animate-slide-in-left`}>
+            {mobileNavOpen && (
+                <div
+                    onClick={() => setMobileNavOpen(false)}
+                    className="fixed inset-0 z-30 bg-slate-900/40 backdrop-blur-sm lg:hidden"
+                    aria-hidden="true"
+                />
+            )}
+
+            <aside className={`flex flex-col glass-effect-strong border border-white/20 dark:border-white/10 transition-transform duration-300 lg:transition-all lg:duration-500 ease-in-out my-3 ml-3 rounded-[18px] shadow-lg
+                fixed inset-y-0 left-0 z-40 w-64 ${mobileNavOpen ? 'translate-x-0' : '-translate-x-[110%]'}
+                lg:static lg:z-20 lg:translate-x-0 ${sidebarOpen ? 'lg:w-64' : 'lg:w-20'} lg:animate-slide-in-left`}>
                 {/* Logo + Toggle */}
                 <div className="h-16 flex items-center px-4 border-b border-white/10 dark:border-white/10">
                     <button
                         onClick={() => setSidebarOpen(!sidebarOpen)}
-                        className={`w-full flex items-center ${sidebarOpen ? 'justify-between' : 'justify-center'} rounded-full px-3 py-1.5 glass-effect hover:bg-white/70 dark:hover:bg-white/5 transition-all duration-300`}
-                        aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+                        className={`w-full flex items-center ${navExpanded ? 'justify-between' : 'justify-center'} rounded-full px-3 py-1.5 glass-effect hover:bg-white/70 dark:hover:bg-white/5 transition-all duration-300`}
+                        aria-label={navExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
                     >
-                        <div className={`flex items-center space-x-3 transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2 w-0 overflow-hidden'}`}>
+                        <div className={`flex items-center space-x-3 transition-all duration-300 ${navExpanded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2 w-0 overflow-hidden'}`}>
                             <Image
                                 src={resolvedTheme === 'dark' ? '/logo-dark-theme.png' : '/logo-removebg-preview.png'}
                                 alt="LinkForex"
@@ -1264,8 +1249,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                 priority
                             />
                         </div>
-                        <div className={`flex items-center justify-center transition-all duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-100'}`}>
-                            {sidebarOpen ? <ChevronLeft className="w-5 h-5 text-slate-500" /> : <ChevronRight className="w-5 h-5 text-slate-500" />}
+                        <div className={`flex items-center justify-center transition-all duration-300 ${navExpanded ? 'opacity-100' : 'opacity-100'}`}>
+                            {navExpanded ? <ChevronLeft className="w-5 h-5 text-slate-500" /> : <ChevronRight className="w-5 h-5 text-slate-500" />}
                         </div>
                     </button>
                 </div>
@@ -1301,8 +1286,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                             return (
                                 <div key={item.name} className="mb-1.5 stagger-item" style={{ animationDelay: `${idx * 0.05}s` }}>
                                     <button
-                                        onClick={() => sidebarOpen ? toggleMenu(item.name) : setSidebarOpen(true)}
-                                        className={`w-full flex items-center ${sidebarOpen ? 'justify-between px-4' : 'justify-center px-2'} py-2.5 rounded-full transition-all duration-300 group ${isActive
+                                        onClick={() => navExpanded ? toggleMenu(item.name) : setSidebarOpen(true)}
+                                        className={`w-full flex items-center ${navExpanded ? 'justify-between px-4' : 'justify-center px-2'} py-2.5 rounded-full transition-all duration-300 group ${isActive
                                             ? 'glass-effect text-teal-700 dark:text-teal-300 font-semibold shadow-sm ring-1 ring-teal-500/20'
                                             : 'text-slate-600 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-white/5 hover:text-teal-600 dark:hover:text-teal-300'
                                             }`}
@@ -1311,15 +1296,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                             <span className={`transition-all duration-300 ${isActive ? 'text-teal-500 scale-110' : 'group-hover:text-teal-500 group-hover:scale-110'}`}>
                                                 {item.icon}
                                             </span>
-                                            {sidebarOpen && <span className="tracking-wide text-[14px] whitespace-nowrap overflow-hidden text-ellipsis">{item.name}</span>}
+                                            {navExpanded && <span className="tracking-wide text-[14px] whitespace-nowrap overflow-hidden text-ellipsis">{item.name}</span>}
                                         </div>
-                                        {sidebarOpen && (
+                                        {navExpanded && (
                                             <ChevronRight className={`w-4 h-5 text-slate-400 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`} strokeWidth={2.5} />
                                         )}
                                     </button>
 
                                     {/* Submenu Items */}
-                                    {sidebarOpen && isExpanded && (
+                                    {navExpanded && isExpanded && (
                                         <div className="mt-1.5 ml-4 pl-4 border-l border-teal-200/60 dark:border-teal-800/50 space-y-1 animate-slide-down">
                                             {(() => {
                                                 const hasExactChildActive = visibleChildren.some(c => {
@@ -1377,7 +1362,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                             <Link
                                 key={item.name}
                                 href={item.href!}
-                                className={`flex items-center ${sidebarOpen ? 'justify-between px-4' : 'justify-center px-2'} py-2.5 rounded-full transition-all duration-300 mb-1.5 group hover-lift stagger-item ${isActive
+                                className={`flex items-center ${navExpanded ? 'justify-between px-4' : 'justify-center px-2'} py-2.5 rounded-full transition-all duration-300 mb-1.5 group hover-lift stagger-item ${isActive
                                     ? 'bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-sm shadow-teal-500/30'
                                     : 'text-slate-600 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-white/5 hover:text-teal-600 dark:hover:text-teal-300'
                                     }`}
@@ -1387,7 +1372,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                     <span className={`transition-all duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`}>
                                         {item.icon}
                                     </span>
-                                    {sidebarOpen && <span className="font-bold tracking-wide text-[14px]">{item.name}</span>}
+                                    {navExpanded && <span className="font-bold tracking-wide text-[14px]">{item.name}</span>}
                                 </div>
                             </Link>
                         );
@@ -1399,8 +1384,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col h-full overflow-hidden relative">
                 {/* Top Header */}
-                <header className="h-14 glass-effect-strong border border-white/20 dark:border-white/10 flex items-center justify-between px-4 z-10 animate-slide-down backdrop-blur-3xl m-3 rounded-[18px] shadow-sm">
-                    <div className="flex-1 max-w-xl">
+                <header className="h-14 glass-effect-strong border border-white/20 dark:border-white/10 flex items-center justify-between gap-2 px-3 sm:px-4 z-10 animate-slide-down backdrop-blur-3xl m-3 rounded-[18px] shadow-sm">
+                    <button
+                        type="button"
+                        onClick={() => setMobileNavOpen(true)}
+                        className="lg:hidden shrink-0 p-2 -ml-1 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-white/60 dark:hover:bg-white/10 transition"
+                        aria-label="Open menu"
+                        aria-expanded={mobileNavOpen}
+                    >
+                        <Menu className="w-5 h-5" />
+                    </button>
+
+                    <div className="flex-1 min-w-0 max-w-xl">
                         <div className="relative group input-icon">
                             <span className="input-icon-left transition-all duration-300 group-focus-within:text-teal-500">
                                 <Search className="w-5 h-5" />
