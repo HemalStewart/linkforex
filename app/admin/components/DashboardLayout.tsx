@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import GlobalSearch from './GlobalSearch';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
@@ -146,7 +147,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     // phone gets the full width instead of losing 5rem to a rail it cannot use.
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-    const [globalSearch, setGlobalSearch] = useState('');
     const [notificationMenuOpen, setNotificationMenuOpen] = useState(false);
     const [themeMenuOpen, setThemeMenuOpen] = useState(false);
     const [themePreference, setThemePreference] = useState<ThemePreference>('system');
@@ -1395,25 +1395,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         <Menu className="w-5 h-5" />
                     </button>
 
-                    <div className="hidden md:block flex-1 min-w-0 max-w-xl">
-                        <div className="relative group input-icon">
-                            <span className="input-icon-left transition-all duration-300 group-focus-within:text-teal-500">
-                                <Search className="w-5 h-5" />
-                            </span>
-                            <input
-                                type="text"
-                                placeholder="Search everything..."
-                                className="input-glass w-full pr-4 py-2.5 text-sm transition-all duration-300"
-                                value={globalSearch}
-                                onChange={(e) => setGlobalSearch(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                        router.push(`/admin/transfers?search=${encodeURIComponent(globalSearch)}`);
-                                    }
-                                }}
-                            />
-                        </div>
-                    </div>
+                    <GlobalSearch className="hidden md:block flex-1 min-w-0 max-w-xl" />
 
                     <div className="flex items-center gap-1.5 sm:gap-3 md:ml-0 ml-auto">
                         {canAdd && (
