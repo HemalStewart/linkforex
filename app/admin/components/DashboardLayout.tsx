@@ -76,7 +76,7 @@ const ADMIN_ROUTE_NAMES: Record<string, string> = {
     '/admin/banks': 'Banks',
     '/admin/relationships': 'Relationships',
     '/admin/purposes': 'Purposes',
-    '/admin/roles': 'Role',
+    '/admin/roles': 'Roles',
     '/admin/permission-groups': 'Role Permissions',
     '/admin/users': 'Users',
     '/admin/logs': 'User Logs',
@@ -1201,7 +1201,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             name: 'System Users',
             icon: <Users className="w-5 h-5" />,
             children: [
-                { name: 'Role', href: '/admin/roles', icon: <Shield className="w-4 h-4" />, sections: ['SYSGROUPS', 'ROLES'] },
+                { name: 'Roles', href: '/admin/roles', icon: <Shield className="w-4 h-4" />, sections: ['SYSGROUPS', 'ROLES'] },
                 { name: 'Role Permissions', href: '/admin/permission-groups', icon: <ShieldCheck className="w-4 h-4" />, sections: ['SYSGROUPS_PERMISSION', 'PERMISSION_GROUPS'] },
                 { name: 'Users', href: '/admin/users', icon: <Users className="w-4 h-4" />, sections: ['SYSUSERS', 'SYSTEM_USERS'] },
                 { name: 'User Logs', href: '/admin/logs', icon: <FileText className="w-4 h-4" />, sections: ['SYSUSERS_LOG', 'SYSRECORD_LOGS', 'AUDIT_LOGS'] },

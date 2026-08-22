@@ -84,7 +84,7 @@ export const ADMIN_PAGES_CONFIG: AdminCategoryInfo[] = [
         pages: [
             { name: 'Branches', section: 'BRANCHES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
             { name: 'Transaction Settings', section: 'TRANSACTION_SETTINGS', operations: ['VIEW', 'EDIT'] },
-            { name: 'Screening Usage', section: 'API_TOKENS', operations: ['VIEW', 'EDIT'] },
+            { name: 'Screening Usage & Quotas', section: 'API_TOKENS', operations: ['VIEW', 'EDIT'] },
             { name: 'Dilisense Sources', section: 'DILISENSE_SOURCES', operations: ['VIEW', 'EDIT', 'DELETE', 'EDIT_FUZZY_SEARCH', 'SYNC_SOURCES', ...AUDIT_OPS] },
             { name: 'Currencies', section: 'CURRENCIES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] }
         ]
@@ -122,7 +122,7 @@ export const ADMIN_PAGES_CONFIG: AdminCategoryInfo[] = [
     {
         category: 'System Users',
         pages: [
-            { name: 'Role', section: 'ROLES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
+            { name: 'Roles', section: 'ROLES', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', ...AUDIT_OPS] },
             { name: 'Role Permissions', section: 'PERMISSION_GROUPS', operations: ['VIEW', 'EDIT', ...AUDIT_OPS] },
             { name: 'Users', section: 'SYSTEM_USERS', operations: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'RESET_PASSWORD', ...AUDIT_OPS] },
             { name: 'User Logs', section: 'AUDIT_LOGS', operations: ['VIEW', 'EXPORT'] }
