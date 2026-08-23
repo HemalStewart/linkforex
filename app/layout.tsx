@@ -63,6 +63,9 @@ export default function RootLayout({
           var resolved = preference === 'system' ? getSystemTheme() : preference;
           document.documentElement.classList.toggle('dark', resolved === 'dark');
           document.documentElement.style.colorScheme = resolved;
+          // Paint the ground before the stylesheet arrives, otherwise the
+          // browser shows its own dark canvas for a frame on a hard refresh.
+          document.documentElement.style.backgroundColor = resolved === 'dark' ? '#0a1717' : '#f4f7f7';
         };
 
         apply(getPreference());
