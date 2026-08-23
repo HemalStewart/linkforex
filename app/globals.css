@@ -8,13 +8,13 @@
 
 :root {
   /* Light Mode - iOS-inspired, thin + airy */
-  --background: linear-gradient(180deg, #eefcf9 0%, #f6fffd 45%, #f9fbfb 100%);
-  --background-solid: #f6fbfb;
+  --background: #f4f7f7;
+  --background-solid: #f4f7f7;
   --foreground: #0f172a;
 
   /* Surface + Lines */
-  --surface-1: rgba(255, 255, 255, 0.72);
-  --surface-2: rgba(255, 255, 255, 0.9);
+  --surface-1: #ffffff;
+  --surface-2: #ffffff;
   --line-1: rgba(15, 23, 42, 0.08);
   --line-2: rgba(15, 23, 42, 0.14);
   --shadow-1: rgba(15, 23, 42, 0.08);
@@ -50,13 +50,13 @@
 
 :root.dark {
   /* Dark Mode - Deep Teal */
-  --background: linear-gradient(180deg, #071a1a 0%, #0b1f1f 45%, #0c2323 100%);
-  --background-solid: #0b1c1c;
+  --background: #0a1717;
+  --background-solid: #0a1717;
   --foreground: #f8fafc;
 
   /* Surface + Lines */
-  --surface-1: rgba(13, 27, 27, 0.7);
-  --surface-2: rgba(15, 32, 32, 0.92);
+  --surface-1: #0f2020;
+  --surface-2: #112525;
   --line-1: rgba(255, 255, 255, 0.08);
   --line-2: rgba(255, 255, 255, 0.16);
   --shadow-1: rgba(0, 0, 0, 0.45);
@@ -1181,3 +1181,40 @@ body.modal-open nav {
   overflow: hidden !important;
 }
 
+
+/* ---------------------------------------------------------------
+   Flat theme
+   Solid grounds, bordered panels and flush chrome, in place of the
+   frosted-glass treatment. Teal stays as the accent only.
+   --------------------------------------------------------------- */
+.card-glass,
+.glass-effect,
+.glass-effect-strong {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.card-glass {
+  background: var(--surface-1);
+  border: 1px solid var(--line-1);
+  border-radius: 22px;
+  box-shadow: none;
+}
+
+.card-glass:hover {
+  transform: none;
+  border-color: var(--line-2);
+  box-shadow: none;
+}
+
+/* Chrome meets the window edges and is divided by a hairline. */
+.shell-chrome {
+  background: var(--surface-2);
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+
+.shell-sidebar { border-right: 1px solid var(--line-1); }
+.shell-header  { border-bottom: 1px solid var(--line-1); }
