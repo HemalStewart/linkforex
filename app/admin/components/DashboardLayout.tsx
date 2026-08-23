@@ -1256,7 +1256,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </div>
 
                 {/* Navigation */}
-                <nav className="flex-1 px-3 py-3 space-y-1.5 overflow-y-auto no-scrollbar">
+                <nav className="shell-sidebar-body flex-1 px-3 py-3 space-y-1.5 overflow-y-auto no-scrollbar">
                     {navigation.map((item, idx) => {
                         if (!item.children && !canViewSections(item.sections)) {
                             return null;

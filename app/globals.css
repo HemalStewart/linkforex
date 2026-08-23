@@ -1216,7 +1216,11 @@ body.modal-open nav {
   margin: 0;
 }
 
-.shell-sidebar { border-right: 1px solid var(--line-1); }
+/* No right border on the aside itself: it would cross the header band and
+   break the single line running along the top of the shell. The divider is
+   carried by the nav below the logo instead. */
+.shell-sidebar { border-right: 0; }
+.shell-sidebar-body { border-right: 1px solid var(--line-1); }
 .shell-header  { border-bottom: 1px solid var(--line-1); }
 
 /* A hairline that reads the same in both themes. border-white/10 is
