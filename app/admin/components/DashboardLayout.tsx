@@ -1233,7 +1233,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 fixed inset-y-0 left-0 z-40 w-64 ${mobileNavOpen ? 'translate-x-0' : '-translate-x-[110%]'}
                 lg:static lg:z-20 lg:translate-x-0 ${sidebarOpen ? 'lg:w-64' : 'lg:w-20'}`}>
                 {/* Logo + Toggle */}
-                <div className="h-14 shrink-0 flex items-center px-4 border-b chrome-divider">
+                <div className="h-14 shrink-0 flex items-center px-4">
                     <button
                         onClick={() => setSidebarOpen(!sidebarOpen)}
                         className={`w-full flex items-center ${navExpanded ? 'justify-between' : 'justify-center'} rounded-full px-3 py-1.5 glass-effect hover:bg-white/70 dark:hover:bg-white/5 transition-all duration-300`}
