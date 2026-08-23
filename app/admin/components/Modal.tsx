@@ -59,7 +59,7 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
 
                 <div className={`
                     relative transform overflow-hidden glass-effect-strong rounded-[18px] text-left shadow-lg transition-all sm:my-8 w-full ${sizeClasses[size]}
-                    border border-white/20 dark:border-white/10 animate-scale-in
+                    border chrome-divider animate-scale-in
                 `}>
                     <div className="px-8 pt-8 pb-8">
                         {title && (

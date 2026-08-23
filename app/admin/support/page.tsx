@@ -552,25 +552,25 @@ export default function SupportPage() {
                 ) : (
                     <div className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="p-4 rounded-2xl glass-effect border border-white/20">
+                            <div className="p-4 rounded-2xl glass-effect border chrome-divider">
                                 <p className="text-xs text-slate-400">Status</p>
                                 <p className="mt-2 font-semibold text-slate-900 dark:text-white">
                                     {toLabelCase(normalizeText(selectedTicket.status, 'open'))}
                                 </p>
                             </div>
-                            <div className="p-4 rounded-2xl glass-effect border border-white/20">
+                            <div className="p-4 rounded-2xl glass-effect border chrome-divider">
                                 <p className="text-xs text-slate-400">Priority</p>
                                 <p className="mt-2 font-semibold text-slate-900 dark:text-white">
                                     {toLabelCase(normalizeText(selectedTicket.priority, 'normal'))}
                                 </p>
                             </div>
-                            <div className="p-4 rounded-2xl glass-effect border border-white/20">
+                            <div className="p-4 rounded-2xl glass-effect border chrome-divider">
                                 <p className="text-xs text-slate-400">Message Type</p>
                                 <p className="mt-2 font-semibold text-slate-900 dark:text-white">
                                     {normalizeText(selectedTicket.message_type)}
                                 </p>
                             </div>
-                            <div className="p-4 rounded-2xl glass-effect border border-white/20">
+                            <div className="p-4 rounded-2xl glass-effect border chrome-divider">
                                 <p className="text-xs text-slate-400">Last message</p>
                                 <p className="mt-2 font-semibold text-slate-900 dark:text-white">
                                     {formatDateTime(selectedTicket.last_message_at || selectedTicket.updated_at)}

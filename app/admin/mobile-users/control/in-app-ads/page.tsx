@@ -439,7 +439,7 @@ export default function MobileInAppAdsPage() {
                                 {filteredAds.map((ad) => (
                                     <tr key={ad.id}>
                                         <td className="w-[84px]">
-                                            <div className="h-11 w-[72px] overflow-hidden rounded-xl border border-white/20 bg-white/30 dark:bg-white/5">
+                                            <div className="h-11 w-[72px] overflow-hidden rounded-xl border chrome-divider bg-white/30 dark:bg-white/5">
                                                 {ad.image_url ? (
                                                     // Bust cache for recently updated assets.
                                                     <img

@@ -574,7 +574,7 @@ export default function DashboardPage() {
                         Operational summary, live performance trends, queue health, and customer distribution.
                     </p>
                 </div>
-                <div className="grid w-full grid-cols-3 rounded-2xl border border-white/20 dark:border-white/10 bg-white/45 dark:bg-white/5 p-1 xl:w-[340px]">
+                <div className="grid w-full grid-cols-3 rounded-2xl border chrome-divider bg-white/45 dark:bg-white/5 p-1 xl:w-[340px]">
                     {([
                         ['7d', 'Last 7 Days'],
                         ['30d', 'Last 30 Days'],
@@ -604,7 +604,7 @@ export default function DashboardPage() {
                                 <div>
                                     <p className="text-sm font-bold text-slate-600 dark:text-slate-300">{card.title}</p>
                                 </div>
-                                <div className="rounded-full border border-white/20 bg-white/45 p-2 dark:bg-white/5">
+                                <div className="rounded-full border chrome-divider bg-white/45 p-2 dark:bg-white/5">
                                     <Icon className="h-4 w-4 text-slate-500 dark:text-slate-300" />
                                 </div>
                             </div>
@@ -648,7 +648,7 @@ export default function DashboardPage() {
 
                 {canViewTransfers && (
                 <div className="card-glass overflow-hidden lg:col-span-3">
-                    <div className="border-b border-white/20 p-6 dark:border-slate-700/50">
+                    <div className="border-b chrome-divider p-6 dark:border-slate-700/50">
                         <h2 className="text-xl font-extrabold text-gradient-blue tracking-tight">Recent Activity</h2>
                         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Latest transactions in the selected window.</p>
                     </div>
@@ -819,7 +819,7 @@ export default function DashboardPage() {
                             </div>
                             <div className="space-y-4">
                                 {kycBreakdown.map((item) => (
-                                    <div key={item.name} className="rounded-xl border border-white/20 bg-white/35 p-3 dark:border-white/10 dark:bg-white/5">
+                                    <div key={item.name} className="rounded-xl border chrome-divider bg-white/35 p-3 dark:chrome-divider dark:bg-white/5">
                                         <div className="mb-2 flex items-center justify-between gap-2">
                                             <div className="flex items-center gap-2">
                                                 <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />

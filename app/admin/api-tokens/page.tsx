@@ -114,7 +114,7 @@ function QuotaCard({ title, quota }: { title: string; quota: Quota }) {
     const progress = quotaProgress(quota);
 
     return (
-        <div className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 dark:border-white/10 dark:bg-slate-950/20">
+        <div className="rounded-2xl border border-slate-200/70 bg-white/60 p-5 dark:chrome-divider dark:bg-slate-950/20">
             <div className="flex items-center justify-between gap-3 text-sm font-bold">
                 <span className="text-slate-600 dark:text-slate-300">{title}</span>
                 <span className="text-slate-900 dark:text-white">{progress.label}</span>
@@ -218,7 +218,7 @@ export default function ApiTokensPage() {
             ) : (
                 <div className="space-y-8">
                     <section className="card-glass overflow-hidden p-6">
-                        <div className="flex flex-col gap-4 border-b border-slate-200/70 pb-5 dark:border-white/10 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="flex flex-col gap-4 border-b border-slate-200/70 pb-5 dark:chrome-divider sm:flex-row sm:items-start sm:justify-between">
                             <div className="flex items-start gap-3">
                                 <div className="rounded-2xl bg-teal-500/10 p-3 text-teal-600 dark:text-teal-300"><ScanFace className="h-6 w-6" /></div>
                                 <div>
@@ -241,7 +241,7 @@ export default function ApiTokensPage() {
                     </section>
 
                     <section className="card-glass overflow-hidden p-6">
-                        <div className="flex flex-col gap-4 border-b border-slate-200/70 pb-5 dark:border-white/10 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="flex flex-col gap-4 border-b border-slate-200/70 pb-5 dark:chrome-divider sm:flex-row sm:items-start sm:justify-between">
                             <div className="flex items-start gap-3">
                                 <div className="rounded-2xl bg-sky-500/10 p-3 text-sky-600 dark:text-sky-300"><SearchCheck className="h-6 w-6" /></div>
                                 <div>

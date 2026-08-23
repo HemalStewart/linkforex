@@ -131,7 +131,7 @@ export default function GlobalSearch({ className = '' }: { className?: string })
             </div>
 
             {open && query.trim().length >= 2 && (
-                <div className="absolute left-0 right-0 mt-2 z-50 glass-effect-strong rounded-2xl border border-white/20 dark:border-white/10 shadow-xl overflow-hidden max-h-[70vh] overflow-y-auto">
+                <div className="absolute left-0 right-0 mt-2 z-50 glass-effect-strong rounded-2xl border chrome-divider shadow-xl overflow-hidden max-h-[70vh] overflow-y-auto">
                     {hits.length === 0 ? (
                         <p className="px-4 py-3 text-sm text-slate-500 dark:text-slate-400">
                             {loading ? 'Searching...' : `Nothing found for "${query.trim()}".`}

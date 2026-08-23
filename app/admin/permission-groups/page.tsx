@@ -320,7 +320,7 @@ export default function PermissionGroupsPage() {
         const tableMinWidthClass = displayOps.length > 3 ? 'min-w-[700px]' : 'min-w-full';
 
         return (
-            <div key={cat.category} className="card-glass overflow-hidden shadow-lg border border-white/20 dark:border-white/10 rounded-2xl flex flex-col h-full">
+            <div key={cat.category} className="card-glass overflow-hidden shadow-lg border chrome-divider rounded-2xl flex flex-col h-full">
                 <div className="px-6 py-4 bg-slate-50/50 dark:bg-slate-800/40 border-b border-slate-100/70 dark:border-slate-700/60 flex items-center justify-between">
                     <h2 className="text-md font-bold text-slate-800 dark:text-white tracking-wide">{cat.category}</h2>
                     <Badge type="info" className="text-xs font-semibold">{`${cat.pages.length} Pages`}</Badge>

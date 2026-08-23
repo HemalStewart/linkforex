@@ -274,7 +274,7 @@ export default function AdminLoginPage() {
         </div>
 
         {/* Card Container */}
-        <div className="glass-effect-strong rounded-[2.5rem] shadow-2xl p-8 border border-white/60 dark:border-slate-700/60 hover-lift backdrop-blur-3xl">
+        <div className="glass-effect-strong rounded-[2.5rem] shadow-2xl p-8 border chrome-divider dark:border-slate-700/60 hover-lift backdrop-blur-3xl">
           {!require2FA ? (
             <form className="space-y-6" onSubmit={handleLogin}>
               {/* Email Input */}

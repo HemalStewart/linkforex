@@ -1218,3 +1218,8 @@ body.modal-open nav {
 
 .shell-sidebar { border-right: 1px solid var(--line-1); }
 .shell-header  { border-bottom: 1px solid var(--line-1); }
+
+/* A hairline that reads the same in both themes. border-white/10 is
+   invisible on a light surface and visible on a dark one, so a divider
+   written that way only appears in dark mode. */
+.chrome-divider   { border-color: var(--line-1) !important; }

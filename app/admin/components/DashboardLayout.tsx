@@ -1233,7 +1233,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 fixed inset-y-0 left-0 z-40 w-64 ${mobileNavOpen ? 'translate-x-0' : '-translate-x-[110%]'}
                 lg:static lg:z-20 lg:translate-x-0 ${sidebarOpen ? 'lg:w-64' : 'lg:w-20'}`}>
                 {/* Logo + Toggle */}
-                <div className="h-16 flex items-center px-4 border-b border-white/10 dark:border-white/10">
+                <div className="h-16 flex items-center px-4 border-b chrome-divider">
                     <button
                         onClick={() => setSidebarOpen(!sidebarOpen)}
                         className={`w-full flex items-center ${navExpanded ? 'justify-between' : 'justify-center'} rounded-full px-3 py-1.5 glass-effect hover:bg-white/70 dark:hover:bg-white/5 transition-all duration-300`}
@@ -1426,7 +1426,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                 )}
                             </button>
                             {themeMenuOpen && (
-                                <div className="absolute right-0 mt-2 w-56 glass-effect-strong rounded-[16px] shadow-lg overflow-hidden animate-scale-in border border-white/20 dark:border-white/10 z-30">
+                                <div className="absolute right-0 mt-2 w-56 glass-effect-strong rounded-[16px] shadow-lg overflow-hidden animate-scale-in border chrome-divider z-30">
                                     <div className="p-2">
                                         <button
                                             onClick={() => handleThemeChange('system')}
@@ -1484,8 +1484,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                 )}
                             </button>
                             {notificationMenuOpen && (
-                                <div className="absolute right-0 mt-2 w-80 glass-effect-strong rounded-[16px] shadow-lg overflow-hidden animate-scale-in border border-white/20 dark:border-white/10 z-30">
-                                    <div className="px-4 py-3 border-b border-white/10 dark:border-white/10">
+                                <div className="absolute right-0 mt-2 w-80 glass-effect-strong rounded-[16px] shadow-lg overflow-hidden animate-scale-in border chrome-divider z-30">
+                                    <div className="px-4 py-3 border-b chrome-divider">
                                         <p className="text-sm font-bold text-slate-900 dark:text-white">Notifications</p>
                                     </div>
                                     <div className="p-4">
