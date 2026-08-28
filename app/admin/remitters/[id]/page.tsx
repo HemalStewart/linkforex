@@ -429,9 +429,6 @@ export default function EditRemitterPage() {
             branch: (isPrivilegedUser || canMultiBranch) ? formData.branch : (scopedBranchCode || formData.branch),
             name: formData.sender_name,
             sender_name: formData.sender_name,
-            // Mobile status is chosen on the form. It only falls back to the
-            // account status for records saved before the field existed.
-            active: formData.active || (formData.status === 'active' ? 'active' : 'inactive'),
         };
 
         Object.entries(basePayload).forEach(([key, value]) => {
@@ -1534,8 +1531,8 @@ export default function EditRemitterPage() {
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Status</label>
                             <select
                                 className="input-glass w-full py-3 px-4 cursor-pointer text-sm"
-                                value={formData.active || ''}
-                                onChange={(e) => setFormData({ ...formData, active: e.target.value })}
+                                value={formData.status || ''}
+                                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                             >
                                 <option value="">Select Status</option>
                                 <option value="active">Active</option>
