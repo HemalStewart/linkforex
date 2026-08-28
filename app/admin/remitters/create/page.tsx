@@ -56,13 +56,6 @@ type SelectOption = string | {
     label: string;
 };
 
-const isSenderBranch = (branch: any): boolean => {
-    const defaultType = String(branch?.default_transaction_type ?? branch?.branch_default_transaction_type ?? '')
-        .trim()
-        .toLowerCase();
-    return defaultType === 'remitter' || defaultType === 'both';
-};
-
 const branchOptionValue = (branch: any): string =>
     String(branch?.code || branch?.transaction_prefix || branch?.name || branch?.id || '').trim();
 
@@ -445,10 +438,8 @@ export default function CreateRemitterPage() {
 
         const source = branches;
         const scoped = (isPrivilegedUser || canMultiBranch) ? source : source.filter((branch) => branchMatchesAdminScope(branch, currentUser));
-        const senderBranches = scoped.filter(isSenderBranch);
-        const filtered = senderBranches;
         const seen = new Set<string>();
-        const options = filtered
+        const options = scoped
             .map((branch) => {
                 const optionValue = branchOptionValue(branch);
                 const optionLabel = branchOptionLabel(branch, optionValue);
