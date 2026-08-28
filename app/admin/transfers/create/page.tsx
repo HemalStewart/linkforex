@@ -204,6 +204,33 @@ const amlActions = [
     'Dilisense API Search'
 ];
 
+const wizardSteps = [
+    {
+        step: 1 as const,
+        label: 'Remitter',
+        description: 'Select and verify the sending customer',
+        icon: User,
+    },
+    {
+        step: 2 as const,
+        label: 'Receiver',
+        description: 'Choose the beneficiary and payout profile',
+        icon: Building2,
+    },
+    {
+        step: 3 as const,
+        label: 'Transfer details',
+        description: 'Set the rate, amount and payment method',
+        icon: Wallet,
+    },
+    {
+        step: 4 as const,
+        label: 'Review & confirm',
+        description: 'Check the complete transfer before saving',
+        icon: Shield,
+    },
+];
+
 const toDateTimeLocal = (date: Date): string => {
     const pad = (value: number) => String(value).padStart(2, '0');
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
@@ -1513,9 +1540,12 @@ export default function CreateTransferPage() {
     const addReceiverHref = formData.senderRecordId
         ? `/admin/receivers/create?returnUrl=/admin/transfers/create&customer_id=${encodeURIComponent(formData.senderRecordId)}`
         : '/admin/receivers/create?returnUrl=/admin/transfers/create';
+    const currentStep = wizardSteps[wizardStep - 1];
+    const CurrentStepIcon = currentStep.icon;
+    const wizardProgress = `${((wizardStep - 1) / (wizardSteps.length - 1)) * 100}%`;
 
     return (
-        <div className="max-w-7xl mx-auto space-y-8 pb-20 animate-fade-in-up">
+        <div className="w-full max-w-none space-y-6 pb-28 animate-fade-in-up">
             <ConfirmModal
                 isOpen={confirmModal.isOpen}
                 onClose={onModalClose}
@@ -1527,87 +1557,121 @@ export default function CreateTransferPage() {
                 confirmText="OK"
             />
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <Link href="/admin/transfers" className="inline-flex items-center text-sm font-bold text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 transition-colors mb-2 group">
-                        <ArrowLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
-                        Back to Transfers
-                    </Link>
-                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Create Transfer</h1>
-                    <p className="text-slate-500 dark:text-slate-300 mt-2">Transfer, remitter, and receiver details in one workflow.</p>
-                </div>
-                <button
-                    type="button"
-                    onClick={() => {
-                        setFormData((prev) => ({
-                            ...prev,
-                            invoiceNo: generateCode('LFX'),
-                            transactionId: generateCode('LFX'),
-                            otherTransactionId: ''
-                        }));
-                    }}
-                    className="px-5 py-2.5 rounded-full glass-effect text-sm font-semibold text-slate-600 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300 flex items-center gap-2"
-                >
-                    <RefreshCcw className="w-4 h-4" />
-                    Regenerate IDs
-                </button>
-            </div>
+            <section className="relative overflow-hidden rounded-[28px] border border-[var(--line-1)] bg-[var(--surface-1)] shadow-[0_18px_55px_-40px_rgba(15,23,42,0.65)]">
+                <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-teal-400 via-teal-500 to-cyan-500" />
+                <div className="grid gap-6 px-6 py-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:px-8">
+                    <div className="min-w-0">
+                        <Link href="/admin/transfers" className="group mb-3 inline-flex items-center text-sm font-bold text-slate-500 transition-colors hover:text-teal-600 dark:text-slate-400 dark:hover:text-teal-300">
+                            <ArrowLeft className="mr-1.5 h-4 w-4 transition-transform group-hover:-translate-x-1" />
+                            Transfers
+                        </Link>
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-teal-500 text-white shadow-lg shadow-teal-500/20">
+                                <HandCoins className="h-7 w-7" />
+                            </div>
+                            <div>
+                                <div className="mb-1 flex flex-wrap items-center gap-2">
+                                    <h1 className="text-3xl font-black tracking-tight text-slate-950 dark:text-white">New Transfer</h1>
+                                    <span className="rounded-full bg-teal-50 px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-[0.14em] text-teal-700 dark:bg-teal-950/50 dark:text-teal-300">
+                                        Draft
+                                    </span>
+                                </div>
+                                <p className="max-w-2xl text-sm font-medium text-slate-500 dark:text-slate-400">
+                                    Build a compliant remittance from customer selection through final review.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
 
-            <div className="card-glass p-4 md:p-5">
-                <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    Step {wizardStep} of 4 &middot; {['Remitter', 'Receiver', 'Details', 'Confirm'][wizardStep - 1]}
-                </p>
-                {/* One row that scrolls rather than wrapping: four pills stacked
-                    2x2 read as tags, not as a sequence. */}
-                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-                    {([
-                        { step: 1 as const, label: 'Remitter' },
-                        { step: 2 as const, label: 'Receiver' },
-                        { step: 3 as const, label: 'Details' },
-                        { step: 4 as const, label: 'Confirm' },
-                    ]).map((item) => {
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:min-w-[460px]">
+                        <div className="rounded-2xl border border-[var(--line-1)] bg-slate-50/70 px-4 py-3 dark:bg-white/[0.03]">
+                            <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-400">Invoice</p>
+                            <p className="mt-1 truncate text-sm font-bold text-slate-800 dark:text-slate-100">{formData.invoiceNo || '-'}</p>
+                        </div>
+                        <div className="rounded-2xl border border-[var(--line-1)] bg-slate-50/70 px-4 py-3 dark:bg-white/[0.03]">
+                            <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-400">Amount</p>
+                            <p className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">£{Number(formData.receiveAmount || 0).toFixed(2)}</p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setFormData((prev) => ({
+                                    ...prev,
+                                    invoiceNo: generateCode('LFX'),
+                                    transactionId: generateCode('LFX'),
+                                    otherTransactionId: ''
+                                }));
+                            }}
+                            className="col-span-2 inline-flex items-center justify-center gap-2 rounded-2xl border border-[var(--line-1)] bg-slate-50/70 px-4 py-3 text-sm font-bold text-slate-600 transition-colors hover:border-teal-300 hover:text-teal-700 dark:bg-white/[0.03] dark:text-slate-300 dark:hover:text-teal-300 sm:col-span-1"
+                        >
+                            <RefreshCcw className="h-4 w-4" />
+                            New IDs
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section className="overflow-hidden rounded-[28px] border border-[var(--line-1)] bg-[var(--surface-1)] shadow-[0_16px_45px_-38px_rgba(15,23,42,0.65)]">
+                <div className="flex flex-col gap-4 border-b border-[var(--line-1)] px-6 py-5 md:flex-row md:items-center md:justify-between md:px-8">
+                    <div className="flex items-center gap-3">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-teal-50 text-teal-700 dark:bg-teal-950/50 dark:text-teal-300">
+                            <CurrentStepIcon className="h-5 w-5" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-teal-600 dark:text-teal-400">Step {wizardStep} of {wizardSteps.length}</p>
+                            <h2 className="mt-0.5 text-lg font-extrabold text-slate-900 dark:text-white">{currentStep.label}</h2>
+                        </div>
+                    </div>
+                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{currentStep.description}</p>
+                </div>
+
+                <div className="relative grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
+                    <div className="absolute left-0 right-0 top-0 h-0.5 bg-slate-100 dark:bg-white/[0.05]">
+                        <div className="h-full bg-teal-500 transition-[width] duration-500" style={{ width: wizardProgress }} />
+                    </div>
+                    {wizardSteps.map((item) => {
                         const active = wizardStep === item.step;
                         const done = wizardStep > item.step;
+                        const StepIcon = item.icon;
                         return (
-                            <React.Fragment key={item.step}>
-                            {item.step > 1 && (
-                                <span aria-hidden="true" className={`h-px w-4 sm:w-8 shrink-0 ${done || active ? 'bg-teal-400' : 'bg-slate-300 dark:bg-slate-700'}`} />
-                            )}
                             <button
+                                key={item.step}
                                 type="button"
                                 onClick={() => {
                                     if (done) setWizardStep(item.step);
                                 }}
-                                className={`inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-colors ${
+                                className={`group relative flex min-h-[106px] items-center gap-4 border-b border-[var(--line-1)] px-6 py-5 text-left transition-colors sm:[&:nth-child(odd)]:border-r xl:border-b-0 xl:border-r xl:last:border-r-0 ${
                                     active
-                                        ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/30'
+                                        ? 'bg-teal-50/80 dark:bg-teal-950/25'
                                         : done
-                                            ? 'glass-effect text-slate-700 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-300'
-                                            : 'glass-effect text-slate-400 dark:text-slate-500 cursor-not-allowed'
+                                            ? 'hover:bg-slate-50 dark:hover:bg-white/[0.03]'
+                                            : 'cursor-not-allowed'
                                 }`}
                                 disabled={!done}
                                 title={done ? 'Edit this step' : 'Complete previous steps first'}
                             >
-                                <span className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-extrabold ${
+                                <span className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition-colors ${
                                     active
-                                        ? 'bg-white/20 text-white'
+                                        ? 'bg-teal-500 text-white shadow-md shadow-teal-500/20'
                                         : done
-                                            ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300'
-                                            : 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-600'
+                                            ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300'
+                                            : 'bg-slate-100 text-slate-400 dark:bg-white/[0.05] dark:text-slate-500'
                                 }`}>
-                                    {done ? '\u2713' : item.step}
+                                    {done ? <span className="text-base font-black">✓</span> : <StepIcon className="h-5 w-5" />}
                                 </span>
-                                <span className="whitespace-nowrap">{item.label}</span>
+                                <span className="min-w-0">
+                                    <span className={`block text-sm font-extrabold ${active || done ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'}`}>{item.label}</span>
+                                    <span className="mt-1 block text-xs font-medium leading-5 text-slate-500 dark:text-slate-400">{item.description}</span>
+                                </span>
                             </button>
-                            </React.Fragment>
                         );
                     })}
                 </div>
-            </div>
+            </section>
 
             {wizardStep === 3 ? (
             <>
-            <div className="card-glass p-6 md:p-8 space-y-6">
+            <div className="rounded-[28px] border border-[var(--line-1)] bg-[var(--surface-1)] p-6 shadow-[0_18px_50px_-42px_rgba(15,23,42,0.65)] md:p-8 space-y-6">
                 <div className="flex items-center justify-between">
                     <h2 className="text-lg font-bold text-slate-900 dark:text-white">Transfer Setup</h2>
                 </div>
@@ -1746,7 +1810,7 @@ export default function CreateTransferPage() {
                 </div>
             </div>
 
-            <div className="card-glass p-6 md:p-8 space-y-6">
+            <div className="rounded-[28px] border border-[var(--line-1)] bg-[var(--surface-1)] p-6 shadow-[0_18px_50px_-42px_rgba(15,23,42,0.65)] md:p-8 space-y-6">
                 <div className="flex items-center justify-between">
                     <h2 className="text-lg font-bold text-slate-900 dark:text-white">Transaction Details</h2>
                 </div>
@@ -1828,7 +1892,7 @@ export default function CreateTransferPage() {
             ) : null}
 
             {wizardStep === 1 ? (
-            <div className="card-glass p-6 md:p-8 space-y-6">
+            <div className="rounded-[28px] border border-[var(--line-1)] bg-[var(--surface-1)] p-6 shadow-[0_18px_50px_-42px_rgba(15,23,42,0.65)] md:p-8 space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <h2 className="text-lg font-bold text-slate-900 dark:text-white">Remitter Details</h2>
                     <div className="flex flex-wrap items-center gap-2">
@@ -2155,7 +2219,7 @@ export default function CreateTransferPage() {
             ) : null}
 
             {wizardStep === 2 ? (
-            <div className="card-glass p-6 md:p-8 space-y-6">
+            <div className="rounded-[28px] border border-[var(--line-1)] bg-[var(--surface-1)] p-6 shadow-[0_18px_50px_-42px_rgba(15,23,42,0.65)] md:p-8 space-y-6">
                 <div className="flex items-center justify-between gap-3">
                     <h2 className="text-lg font-bold text-slate-900 dark:text-white">Receiver Details</h2>
                     <Link
@@ -2470,7 +2534,7 @@ export default function CreateTransferPage() {
             ) : null}
 
             {wizardStep === 4 ? (
-                <div className="card-glass p-6 md:p-8 space-y-6">
+                <div className="rounded-[28px] border border-[var(--line-1)] bg-[var(--surface-1)] p-6 shadow-[0_18px_50px_-42px_rgba(15,23,42,0.65)] md:p-8 space-y-6">
                     <h2 className="text-lg font-bold text-slate-900 dark:text-white">Confirm Transfer</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="rounded-2xl border border-slate-100/70 dark:border-slate-700/60 bg-white/60 dark:bg-slate-900/40 p-4">
@@ -2519,13 +2583,19 @@ export default function CreateTransferPage() {
                 </div>
             ) : null}
 
-            <div className="flex items-center justify-between gap-4">
+            <div className="sticky bottom-4 z-30 flex items-center justify-between gap-4 rounded-[24px] border border-[var(--line-2)] bg-white/95 px-4 py-3 shadow-[0_20px_50px_-20px_rgba(15,23,42,0.35)] backdrop-blur-xl dark:bg-[#0f2020]/95 md:px-5">
                 <Link
                     href="/admin/transfers"
-                    className="px-6 py-3 rounded-full glass-effect text-slate-600 dark:text-slate-300 font-bold text-sm transition-colors"
+                    className="rounded-full px-4 py-3 text-sm font-bold text-slate-500 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-white md:px-6"
                 >
                     Cancel
                 </Link>
+                <div className="hidden min-w-0 flex-1 items-center justify-center gap-3 md:flex">
+                    <div className="h-1.5 w-32 overflow-hidden rounded-full bg-slate-100 dark:bg-white/[0.07]">
+                        <div className="h-full rounded-full bg-teal-500 transition-[width] duration-500" style={{ width: `${(wizardStep / wizardSteps.length) * 100}%` }} />
+                    </div>
+                    <span className="truncate text-xs font-bold text-slate-500 dark:text-slate-400">{currentStep.label}</span>
+                </div>
                 <div className="flex items-center gap-3">
                     <button
                         type="button"
@@ -2538,7 +2608,7 @@ export default function CreateTransferPage() {
                             });
                         }}
                         disabled={wizardStep === 1}
-                        className="px-6 py-3 rounded-full glass-effect text-slate-700 dark:text-slate-200 font-bold text-sm disabled:opacity-50"
+                        className="rounded-full border border-[var(--line-2)] px-5 py-3 text-sm font-bold text-slate-700 transition-colors hover:border-teal-300 hover:text-teal-700 disabled:opacity-40 dark:text-slate-200 dark:hover:text-teal-300 md:px-6"
                     >
                         Back
                     </button>
