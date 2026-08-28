@@ -26,6 +26,7 @@ type DuplicateMatch = {
     sender_id?: string;
     phone?: string;
     email?: string;
+    id_type?: string;
     id_number?: string;
     branch?: string;
     status?: string;
@@ -324,6 +325,7 @@ export default function CreateRemitterPage() {
         date_of_birth: '',
         telephone: '',
         email: '',
+        id_type: 'Passport',
         id_no: '',
         postcode: '',
         address_1: '',
@@ -524,6 +526,7 @@ export default function CreateRemitterPage() {
         if (signals.email?.trim()) params.set('email', signals.email.trim());
         if (signals.date_of_birth?.trim()) params.set('dob', signals.date_of_birth.trim());
         if (signals.telephone?.trim()) params.set('phone', signals.telephone.trim());
+        if (signals.id_type?.trim()) params.set('id_type', signals.id_type.trim());
         if (signals.id_no?.trim()) params.set('id_no', signals.id_no.trim());
         if (signals.postcode?.trim()) params.set('postcode', signals.postcode.trim());
         if (signals.address_1?.trim()) params.set('address_1', signals.address_1.trim());
@@ -587,6 +590,7 @@ export default function CreateRemitterPage() {
         const typedName = (duplicateFormSignals.sender_name || '').trim().toLowerCase();
         const typedPhone = (duplicateFormSignals.telephone || '').replace(/\D+/g, '');
         const typedEmail = (duplicateFormSignals.email || '').trim().toLowerCase();
+        const typedIdType = (duplicateFormSignals.id_type || '').trim().toLowerCase();
         const typedIdNo = (duplicateFormSignals.id_no || '').trim().toLowerCase();
 
         for (const match of possibleDuplicates) {
@@ -594,6 +598,7 @@ export default function CreateRemitterPage() {
             const matchName = (match.name || '').trim().toLowerCase();
             const matchPhone = (match.phone || '').replace(/\D+/g, '');
             const matchEmail = (match.email || '').trim().toLowerCase();
+            const matchIdType = (match.id_type || '').trim().toLowerCase();
             const matchIdNo = (match.id_number || '').trim().toLowerCase();
 
             if (typedSenderId && matchSenderId && typedSenderId === matchSenderId && !warnings.sender_id) {
@@ -608,7 +613,7 @@ export default function CreateRemitterPage() {
             if (typedEmail && matchEmail && typedEmail === matchEmail && !warnings.email) {
                 warnings.email = `Already existing Email Address (${match.email})`;
             }
-            if (typedIdNo && matchIdNo && typedIdNo === matchIdNo && !warnings.id_no) {
+            if (typedIdType && typedIdNo && matchIdType === typedIdType && matchIdNo === typedIdNo && !warnings.id_no) {
                 warnings.id_no = `Already existing ID Number (${match.id_number})`;
             }
         }
@@ -1377,7 +1382,10 @@ export default function CreateRemitterPage() {
                             required
                             Icon={CreditCard}
                             value={idType}
-                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setIdType(e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                                setIdType(e.target.value);
+                                setDuplicateFormSignals((prev) => ({ ...prev, id_type: e.target.value }));
+                            }}
                         />
                         <FormInput
                             label="ID Number"
