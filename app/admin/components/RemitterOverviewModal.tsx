@@ -4,6 +4,7 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowUpRight, FolderOpen, Users, X } from 'lucide-react';
 import { ENDPOINTS } from '@/app/lib/api';
+import { getBranchDisplayName } from '@/app/lib/adminUserScope';
 
 const resolveAmlStatus = (r: any): string => {
     if (!r) return 'pending';
@@ -183,7 +184,9 @@ export default function RemitterOverviewModal({ remitter, receivers = [], onClos
                                 <p className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Identity & Contact</p>
                                 <div>
                                     <p className="text-xs text-slate-400">Branch</p>
-                                    <p className="text-sm font-bold text-slate-900 dark:text-white">{remitter.branch_name || '-'}</p>
+                                    <p className="text-sm font-bold text-slate-900 dark:text-white">
+                                        {getBranchDisplayName(remitter.branch_name, remitter.branch)}
+                                    </p>
                                 </div>
                                 <div>
                                     <p className="text-xs text-slate-400">Reference ID</p>

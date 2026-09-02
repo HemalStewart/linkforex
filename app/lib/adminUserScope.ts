@@ -6,6 +6,7 @@ export type StoredAdminUser = {
     system_defined?: string;
     branch?: string;
     branch_id?: string | number;
+    branch_name?: string;
 };
 
 export const getCurrentAdminUser = (): StoredAdminUser | null => getStoredUser<StoredAdminUser>();
@@ -24,6 +25,27 @@ export const normalizeAdminBranchCode = (value?: string | number | null): string
     if (upper.startsWith('LON')) return 'LFX';
     if (upper.startsWith('MAN') || upper.startsWith('BHM')) return 'BLF';
     return upper;
+};
+
+export const getBranchDisplayName = (
+    name?: string | number | null,
+    code?: string | number | null
+): string => {
+    const rawName = String(name ?? '').trim();
+    const rawCode = String(code ?? '').trim();
+    const normalizedCode = normalizeAdminBranchCode(rawCode || rawName);
+
+    if (normalizedCode === 'LFX') return 'LONDON';
+    if (normalizedCode === 'BLF') return 'BIRMINGHAM';
+
+    const displayValue = rawName || rawCode;
+    if (!displayValue || displayValue === '-') return '-';
+
+    return displayValue
+        .replace(/\s*\([^)]*\)\s*$/, '')
+        .split(/\s+-\s+/)[0]
+        .trim()
+        .toUpperCase();
 };
 
 export const getAdminBranchCode = (user: StoredAdminUser | null = getCurrentAdminUser()): string => {

@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useRowsPerPage } from '@/app/lib/uiPreferences';
 import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
-import { getCurrentAdminUser, withActingUserParam } from '@/app/lib/adminUserScope';
+import { getBranchDisplayName, getCurrentAdminUser, withActingUserParam } from '@/app/lib/adminUserScope';
 import { openPdfReport } from '@/app/lib/openPdfReport';
 import RemitterOverviewModal from '@/app/admin/components/RemitterOverviewModal';
 import ConfirmModal from '../components/ConfirmModal';
@@ -381,7 +381,7 @@ export default function RemittersPage() {
                 ...r,
                 shared_access: Boolean(r.shared_access),
                 company: r.company || r.company_name || 'Link Forex Ltd',
-                branch_name: r.branch_name || branchesMap.get(r.branch) || r.branch || '-',
+                branch_name: getBranchDisplayName(r.branch_name || branchesMap.get(r.branch), r.branch),
                 sender_id: r.sender_id || '-',
                 sender_name: r.sender_name || r.name || '-',
                 active: (r.status || 'inactive').toLowerCase() === 'active' ? 'Active' : 'Inactive',
@@ -1232,7 +1232,7 @@ export default function RemittersPage() {
                             >
                                 <option value="all">All</option>
                                 {branches.map((b: any) => {
-                                    const displayName = String(b.name || b.branch_name || b.code || '').replace(/\s*\([^)]*\)\s*$/, '').trim();
+                                    const displayName = getBranchDisplayName(b.name || b.branch_name, b.code);
                                     return (
                                         <option key={b.id || b.code} value={b.code || b.name}>
                                             {displayName}

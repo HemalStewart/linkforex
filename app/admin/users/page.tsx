@@ -15,6 +15,7 @@ import SortIndicator from '../components/SortIndicator';
 import { Search, UserPlus, Trash2, Users, UserCheck, User, Shield, QrCode, Eye, RotateCcw, ChevronRight, Edit2, Lock, EyeOff } from 'lucide-react';
 import Modal from '../components/Modal';
 import { useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
+import { getBranchDisplayName } from '@/app/lib/adminUserScope';
 
 export default function UsersPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('SYSTEM_USERS');
@@ -59,6 +60,7 @@ export default function UsersPage() {
                     const data = await res.json();
                     const mappedData = data.map((u: any) => ({
                         ...u,
+                        branch_name: getBranchDisplayName(u.branch_name, u.branch || u.branch_id),
                         lastLogin: u.last_login || 'Never',
                         joinedDate: u.created_at ? new Date(u.created_at).toLocaleDateString() : '-'
                     }));
@@ -217,6 +219,7 @@ export default function UsersPage() {
                 u.username,
                 u.name,
                 u.email,
+                u.branch_name,
                 u.status,
                 u.signature ? 'yes' : 'no',
                 u.system_defined,
@@ -243,6 +246,8 @@ export default function UsersPage() {
                 return user.name || '';
             case 'status':
                 return user.status || '';
+            case 'branch_name':
+                return user.branch_name || '';
             case 'signature':
                 return user.signature ? 'yes' : 'no';
             case 'system_defined':
@@ -563,6 +568,11 @@ export default function UsersPage() {
                                     </button>
                                 </th>
                                 <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
+                                    <button onClick={() => toggleSort('branch_name')} className="flex items-center gap-1">
+                                        Branch <span className="text-slate-400 dark:text-slate-300">{sortIndicator('branch_name')}</span>
+                                    </button>
+                                </th>
+                                <th className="px-4 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-300">
                                     <button onClick={() => toggleSort('status')} className="flex items-center gap-1">
                                         Status <span className="text-slate-400 dark:text-slate-300">{sortIndicator('status')}</span>
                                     </button>
@@ -648,6 +658,7 @@ export default function UsersPage() {
                                         )}
                                         <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{user.username || '-'}</td>
                                         <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{user.name || '-'}</td>
+                                        <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{user.branch_name || '-'}</td>
                                         <td className="px-4 py-4">
                                             <Badge type={(user.status || 'inactive').toLowerCase()}>
                                                 {user.status || '-'}

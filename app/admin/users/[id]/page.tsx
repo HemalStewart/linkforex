@@ -11,7 +11,7 @@ import Modal from '../../components/Modal';
 import { resolveUploadsUrl } from '@/app/lib/uploads';
 import { ArrowLeft, User, Mail, Shield, Building, Save, Loader2, ChevronRight, Lock, MapPin, Phone, FileSignature, RotateCcw } from 'lucide-react';
 import { usePagePermissions } from '@/app/lib/permissions';
-import { getCurrentAdminUser, getAdminBranchCode, isPrivilegedAdminUser } from '@/app/lib/adminUserScope';
+import { getBranchDisplayName, getCurrentAdminUser, getAdminBranchCode, isPrivilegedAdminUser } from '@/app/lib/adminUserScope';
 
 const generateBase32Secret = (length = 16): string => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
@@ -611,7 +611,7 @@ export default function EditUserPage() {
                                 <option value="">Select Branch...</option>
                                 {branches.map((b: any) => (
                                     <option key={b.id} value={b.code || b.name}>
-                                        {b.name} ({b.code})
+                                        {getBranchDisplayName(b.name, b.code)}
                                     </option>
                                 ))}
                             </select>

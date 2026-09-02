@@ -10,7 +10,7 @@ import { validatePassword } from '@/app/lib/validation';
 import { showToast, queueToast } from '@/app/lib/toast';
 import { ArrowLeft, User, Mail, Lock, Shield, Building, Save, MapPin, Phone, FileSignature, ChevronRight, Eye, EyeOff } from 'lucide-react';
 import { usePagePermissions } from '@/app/lib/permissions';
-import { getCurrentAdminUser, getAdminBranchCode, isPrivilegedAdminUser } from '@/app/lib/adminUserScope';
+import { getBranchDisplayName, getCurrentAdminUser, getAdminBranchCode, isPrivilegedAdminUser } from '@/app/lib/adminUserScope';
 
 export default function CreateUserPage() {
     const router = useRouter();
@@ -496,7 +496,7 @@ export default function CreateUserPage() {
                 <option value="">Select Branch...</option>
                 {branches.map((b: any) => (
                     <option key={b.id} value={b.code || b.name}>
-                        {b.name} ({b.code})
+                        {getBranchDisplayName(b.name, b.code)}
                     </option>
                 ))}
               </select>

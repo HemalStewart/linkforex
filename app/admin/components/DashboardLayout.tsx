@@ -8,6 +8,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { ENDPOINTS, isApiRequestUrl } from '@/app/lib/api';
 import { resolveUploadsUrl } from '@/app/lib/uploads';
 import { clearStoredUser, getStoredAdminSessionToken, getStoredUserRaw } from '@/app/lib/authStorage';
+import { getBranchDisplayName } from '@/app/lib/adminUserScope';
 import { isPrivilegedUser as getIsPrivilegedUser, usePagePermissions, checkPermission } from '@/app/lib/permissions';
 import { applyThemePreference, getStoredThemePreference, resolveTheme, type ThemePreference, type ResolvedTheme } from '@/app/lib/theme';
 import ConfirmModal from './ConfirmModal';
@@ -178,16 +179,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             return toTitleCase(currentUser?.role, 'Guest');
         }
 
-        let rawName = userBranchVal;
-        const upperVal = userBranchVal.toUpperCase();
-        if (upperVal === 'LFX' || upperVal === 'LON001' || upperVal.startsWith('LON')) {
-            rawName = 'London - Link Forex Ltd';
-        } else if (upperVal === 'BLF' || upperVal === 'MAN001' || upperVal === 'BHM001' || upperVal.startsWith('MAN') || upperVal.startsWith('BHM')) {
-            rawName = 'Birmingham - Premier Link';
-        }
-
-        const parts = rawName.split('-');
-        return parts[0].trim();
+        return getBranchDisplayName(currentUser?.branch_name, currentUser?.branch || currentUser?.branch_id);
     }, [userBranchVal, currentUser]);
     const profilePhotoUrl = resolveProfilePhotoUrl(currentUser);
     const notificationMenuRef = React.useRef<HTMLDivElement | null>(null);
