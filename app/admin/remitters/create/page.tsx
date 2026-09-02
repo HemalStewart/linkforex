@@ -12,9 +12,11 @@ import {
     withActingUserParam,
 } from '@/app/lib/adminUserScope';
 import ConfirmModal from '../../components/ConfirmModal';
+import Modal from '../../components/Modal';
 import RemitterOverviewModal from '@/app/admin/components/RemitterOverviewModal';
 import PostcodeLookup, { AddressData } from '@/app/admin/components/PostcodeLookup';
 import { showToast, queueToast } from '@/app/lib/toast';
+import { routeKeyOf } from '@/app/lib/routeKeys';
 import {
     User, Calendar, MapPin, Briefcase, Phone, Building, CreditCard, Globe, FileText, Upload, Trash2, Plus, ArrowLeft, CheckCircle, Shield, Layers, Save, Users, AlertCircle, RefreshCcw, Eye, X
 } from 'lucide-react';
@@ -22,6 +24,7 @@ import { usePagePermissions } from '@/app/lib/permissions';
 
 type DuplicateMatch = {
     id: number;
+    route_key?: string;
     name: string;
     sender_id?: string;
     phone?: string;
@@ -337,11 +340,15 @@ export default function CreateRemitterPage() {
         message: string;
         matches: DuplicateMatch[];
         payload: any | null;
+        blocking: boolean;
+        blockedFields: string[];
     }>({
         isOpen: false,
         message: '',
         matches: [],
         payload: null,
+        blocking: false,
+        blockedFields: [],
     });
 
     const [confirmModal, setConfirmModal] = useState({
@@ -649,6 +656,7 @@ export default function CreateRemitterPage() {
             const duplicateData = await res.json() as {
                 error?: string; message?: string; matches?: DuplicateMatch[];
                 origin_branch?: string; matched_field?: string; request_created?: boolean;
+                blocked_fields?: string[];
             };
 
             // The customer already exists at another branch. A second record must not
@@ -677,6 +685,8 @@ export default function CreateRemitterPage() {
                 message: duplicateData.message || 'Possible matching remitter already exists.',
                 matches,
                 payload,
+                blocking: duplicateData.error === 'duplicate_not_allowed',
+                blockedFields: Array.isArray(duplicateData.blocked_fields) ? duplicateData.blocked_fields : [],
             });
             return { blockedByDuplicate: true };
         }
@@ -711,9 +721,10 @@ export default function CreateRemitterPage() {
     const openRemitterOverview = async (match: DuplicateMatch) => {
         setViewRemitter(match);
         setViewRemitterReceivers([]);
+        const routeKey = routeKeyOf(match);
         try {
             const [full, recs] = await Promise.all([
-                fetch(withActingUserParam(ENDPOINTS.REMITTERS.DETAIL(match.id), currentUser)).then(r => r.ok ? r.json() : null),
+                fetch(withActingUserParam(ENDPOINTS.REMITTERS.DETAIL(routeKey), currentUser)).then(r => r.ok ? r.json() : null),
                 fetch(withActingUserParam(`${ENDPOINTS.BENEFICIARIES.LIST}?customer_id=${match.id}`, currentUser)).then(r => r.ok ? r.json() : []),
             ]);
             if (full) setViewRemitter(full?.data ?? full);
@@ -997,7 +1008,7 @@ export default function CreateRemitterPage() {
     };
 
     const handleConfirmDuplicateCreate = async () => {
-        if (!duplicateModal.payload) return;
+        if (!duplicateModal.payload || duplicateModal.blocking) return;
 
         setDuplicateModal((prev) => ({ ...prev, isOpen: false }));
         setLoading(true);
@@ -1071,18 +1082,114 @@ export default function CreateRemitterPage() {
                 confirmText="Send Request"
                 cancelText="Cancel"
             />
-            <ConfirmModal
+            <Modal
                 isOpen={duplicateModal.isOpen}
-                onClose={() => setDuplicateModal({ isOpen: false, message: '', matches: [], payload: null })}
-                onConfirm={handleConfirmDuplicateCreate}
-                title="Possible Existing Remitter Found"
-                message={duplicateModal.message || 'Potential match found. Please review before creating a duplicate profile.'}
-                type="warning"
-                isAlert={false}
-                confirmText="Create Anyway"
-                cancelText="Review Details"
-                loading={loading}
-            />
+                onClose={() => setDuplicateModal({
+                    isOpen: false,
+                    message: '',
+                    matches: [],
+                    payload: null,
+                    blocking: false,
+                    blockedFields: [],
+                })}
+                title={duplicateModal.blocking ? 'Duplicate Remitter Not Allowed' : 'Possible Existing Remitter Found'}
+                size="lg"
+            >
+                <div className="space-y-5">
+                    <div className={`rounded-xl border p-4 ${duplicateModal.blocking
+                        ? 'border-red-200 bg-red-50 dark:border-red-800/60 dark:bg-red-950/30'
+                        : 'border-amber-200 bg-amber-50 dark:border-amber-800/60 dark:bg-amber-950/30'}`}>
+                        <div className="flex items-start gap-3">
+                            {duplicateModal.blocking
+                                ? <Shield className="mt-0.5 h-5 w-5 shrink-0 text-red-600 dark:text-red-400" />
+                                : <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />}
+                            <div>
+                                <p className="font-bold text-slate-900 dark:text-white">
+                                    {duplicateModal.message || 'Potential match found. Please review before creating a duplicate profile.'}
+                                </p>
+                                {duplicateModal.blockedFields.length > 0 && (
+                                    <p className="mt-1 text-xs font-semibold text-red-700 dark:text-red-300">
+                                        Blocked field{duplicateModal.blockedFields.length > 1 ? 's' : ''}: {duplicateModal.blockedFields.map((field) => field.replaceAll('_', ' ')).join(', ')}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p className="text-sm font-extrabold text-slate-900 dark:text-white">Duplicate rules</p>
+                        <div className="mt-2 grid gap-2 text-xs text-slate-600 dark:text-slate-300 sm:grid-cols-2">
+                            <p className="rounded-lg bg-slate-100 p-3 dark:bg-slate-800"><strong>Blocked:</strong> Reference ID already used in any branch.</p>
+                            <p className="rounded-lg bg-slate-100 p-3 dark:bg-slate-800"><strong>Blocked:</strong> Active remitter with the same mobile number.</p>
+                            <p className="rounded-lg bg-slate-100 p-3 dark:bg-slate-800"><strong>Blocked:</strong> Active remitter with the same ID type and ID number.</p>
+                            <p className="rounded-lg bg-slate-100 p-3 dark:bg-slate-800"><strong>Review:</strong> Similar name, date of birth, email, or address.</p>
+                        </div>
+                    </div>
+
+                    {duplicateModal.matches.length > 0 && (
+                        <div className="space-y-3">
+                            <p className="text-sm font-extrabold text-slate-900 dark:text-white">Matching records</p>
+                            {duplicateModal.matches.map((match) => (
+                                <div key={`modal-duplicate-${match.id}`} className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+                                    <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+                                        <div className="space-y-2">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <span className="font-extrabold text-slate-900 dark:text-white">{match.name || 'Unnamed remitter'}</span>
+                                                {match.status && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-600 dark:bg-slate-800 dark:text-slate-300">{match.status}</span>}
+                                            </div>
+                                            <div className="grid gap-x-5 gap-y-1 text-xs text-slate-600 dark:text-slate-300 sm:grid-cols-2">
+                                                {match.sender_id && <span><strong>Reference:</strong> {match.sender_id}</span>}
+                                                {match.branch && <span><strong>Branch:</strong> {match.branch}</span>}
+                                                {match.phone && <span><strong>Mobile:</strong> {match.phone}</span>}
+                                                {match.email && <span><strong>Email:</strong> {match.email}</span>}
+                                                {match.id_number && <span><strong>{match.id_type || 'ID'}:</strong> {match.id_number}</span>}
+                                            </div>
+                                            {Array.isArray(match.reasons) && match.reasons.length > 0 && (
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {match.reasons.map((reason, index) => (
+                                                        <span key={`${match.id}-reason-${index}`} className="rounded-md bg-amber-100 px-2 py-1 text-[10px] font-bold text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">{reason}</span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setDuplicateModal((previous) => ({ ...previous, isOpen: false }));
+                                                void openRemitterOverview(match);
+                                            }}
+                                            className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-teal-200 bg-teal-50 px-3 py-2 text-xs font-bold text-teal-700 transition-colors hover:bg-teal-100 dark:border-teal-800 dark:bg-teal-950/50 dark:text-teal-300"
+                                        >
+                                            <Eye className="h-3.5 w-3.5" />
+                                            View Existing
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    <div className="flex justify-end gap-3 border-t border-slate-200 pt-4 dark:border-slate-700">
+                        <button
+                            type="button"
+                            onClick={() => setDuplicateModal((previous) => ({ ...previous, isOpen: false }))}
+                            className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+                        >
+                            {duplicateModal.blocking ? 'Close' : 'Review Form'}
+                        </button>
+                        {!duplicateModal.blocking && (
+                            <button
+                                type="button"
+                                onClick={() => void handleConfirmDuplicateCreate()}
+                                disabled={loading}
+                                className="rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                {loading ? 'Creating...' : 'Create Anyway'}
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </Modal>
 
             {/* Header */}
             <div className="mb-8">
@@ -1219,7 +1326,7 @@ export default function CreateRemitterPage() {
                                                     <div className="space-y-1">
                                                         <div className="flex flex-wrap items-center gap-2">
                                                             <span className="font-bold text-sm text-slate-900 dark:text-white">{match.name}</span>
-                                                            {match.sender_id && <span className="text-xs font-mono bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-slate-600 dark:text-slate-300">ID: {match.sender_id}</span>}
+                                                            {match.sender_id && <span className="text-xs font-mono bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-slate-600 dark:text-slate-300">Reference: {match.sender_id}</span>}
                                                         </div>
                                                         <div className="text-xs text-slate-600 dark:text-slate-300 flex flex-wrap gap-x-4 gap-y-1">
                                                             {match.phone && <span><strong>Phone:</strong> {match.phone}</span>}
