@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Activity, AlertCircle, Clock3, Download, RefreshCw, Search, ShieldAlert, UserCheck } from 'lucide-react';
+import { Activity, AlertCircle, Clock3, Download, LogOut, RefreshCw, Search, ShieldAlert, UserCheck } from 'lucide-react';
 import { formatDateTime } from '@/app/lib/dateUtils';
 import { ENDPOINTS } from '@/app/lib/api';
 import { useRowsPerPage } from '@/app/lib/uiPreferences';
@@ -9,6 +9,7 @@ import { getStoredUser } from '@/app/lib/authStorage';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
 import { useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
+import { showToast } from '@/app/lib/toast';
 
 type LogRow = {
     id: number;
@@ -160,11 +161,12 @@ const escapeCsv = (value: unknown): string => {
 
 export default function LogsPage() {
     const { showCreatedBy, showCreatedAt, showUpdatedBy, showUpdatedAt } = useAuditColumns('AUDIT_LOGS');
-    const { canExport } = usePagePermissions('AUDIT_LOGS');
+    const { canEdit, canExport } = usePagePermissions('AUDIT_LOGS');
     const [logs, setLogs] = useState<LogRow[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [timeTicker, setTimeTicker] = useState(Date.now());
+    const [closingLogId, setClosingLogId] = useState<number | null>(null);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -207,6 +209,27 @@ export default function LogsPage() {
             setLoading(false);
         }
     }, []);
+
+    const closeSession = async (row: SessionLog) => {
+        if (!window.confirm(`Close the active session for ${row.username}?`)) return;
+
+        setClosingLogId(row.logId);
+        try {
+            const res = await fetch(ENDPOINTS.LOGS.CLOSE(row.logId), { method: 'POST' });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                throw new Error(data?.messages?.error || data?.message || 'Could not close this session.');
+            }
+
+            showToast('Session closed', `Session #${row.logId} was closed successfully.`, 'success');
+            await fetchLogs();
+        } catch (closeError) {
+            const message = closeError instanceof Error ? closeError.message : 'Could not close this session.';
+            showToast('Unable to close session', message, 'danger');
+        } finally {
+            setClosingLogId(null);
+        }
+    };
 
     useEffect(() => {
         fetchLogs();
@@ -555,7 +578,7 @@ export default function LogsPage() {
                 </div>
 
                 <div className="table-scroll">
-                    <table className="table-shell min-w-[1320px]">
+                    <table className="table-shell min-w-[1450px]">
                         <thead className="table-head">
                             <tr>
                                 <th>#</th>
@@ -600,24 +623,25 @@ export default function LogsPage() {
                                     </button>
                                 </th>
                                 <th>Sign-off Note</th>
+                                {canEdit && <th>Actions</th>}
                             </tr>
                         </thead>
                         <tbody className="table-body">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={10} className="px-6 py-12 text-center text-slate-500 dark:text-slate-300">
+                                    <td colSpan={canEdit ? 11 : 10} className="px-6 py-12 text-center text-slate-500 dark:text-slate-300">
                                         Loading session logs...
                                     </td>
                                 </tr>
                             ) : error ? (
                                 <tr>
-                                    <td colSpan={10} className="px-6 py-12 text-center text-red-500 font-semibold">
+                                    <td colSpan={canEdit ? 11 : 10} className="px-6 py-12 text-center text-red-500 font-semibold">
                                         {error}
                                     </td>
                                 </tr>
                             ) : paged.length === 0 ? (
                                 <tr>
-                                    <td colSpan={10} className="px-6 py-12 text-center text-slate-500 dark:text-slate-300">
+                                    <td colSpan={canEdit ? 11 : 10} className="px-6 py-12 text-center text-slate-500 dark:text-slate-300">
                                         No logs found for the selected filters.
                                     </td>
                                 </tr>
@@ -662,6 +686,21 @@ export default function LogsPage() {
                                             ) : (row.ip || '-')}
                                         </td>
                                         <td className="text-sm text-slate-600 dark:text-slate-300 min-w-[280px]">{row.signOffNote || '-'}</td>
+                                        {canEdit && (
+                                            <td>
+                                                {row.status === 'Active' ? (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => void closeSession(row)}
+                                                        disabled={closingLogId === row.logId}
+                                                        className="inline-flex items-center gap-2 rounded-full border border-red-300 px-3 py-1.5 text-xs font-bold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-500/50 dark:text-red-300 dark:hover:bg-red-500/10"
+                                                    >
+                                                        <LogOut className="h-3.5 w-3.5" />
+                                                        {closingLogId === row.logId ? 'Closing...' : 'Close Session'}
+                                                    </button>
+                                                ) : '-'}
+                                            </td>
+                                        )}
                                     </tr>
                                 ))
                             )}

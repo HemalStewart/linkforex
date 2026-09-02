@@ -114,6 +114,7 @@ export const ENDPOINTS = {
         CREATE: `${API_BASE_URL}/logs`,
         DETAIL: (id: string | number) => `${API_BASE_URL}/logs/${id}`,
         SIGNOFF: `${API_BASE_URL}/logs/signoff`,
+        CLOSE: (id: string | number) => `${API_BASE_URL}/logs/${id}/close`,
         RESUME: (id: string | number) => `${API_BASE_URL}/logs/${id}/resume`,
         HEARTBEAT: `${API_BASE_URL}/logs/heartbeat`,
     },
