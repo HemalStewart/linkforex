@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import ConfirmModal from '../../components/ConfirmModal';
 import { showToast, queueToast } from '@/app/lib/toast';
+import { getBranchDisplayName } from '@/app/lib/adminUserScope';
 import { FileText, CheckCircle, Eye } from 'lucide-react';
 
 // --- HELPER COMPONENTS (Reused) ---
@@ -520,8 +521,8 @@ export default function CreateRemitterPage() {
                                         className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition-shadow transition-colors"
                                     >
                                         {branches.length > 0 ? branches.map((b: any) => (
-                                            <option key={b.id} value={b.code || b.name}>{b.name} ({b.code})</option>
-                                        )) : <option value="LON001">London - Link Forex Ltd</option>}
+                                            <option key={b.id} value={b.code || b.name}>{getBranchDisplayName(b.name, b.code)}</option>
+                                        )) : <option value="LON001">LONDON</option>}
                                     </select>
                                 </div>
                                 <div className="flex items-center">
