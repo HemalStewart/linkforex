@@ -8,6 +8,7 @@ import { useRowsPerPage } from '@/app/lib/uiPreferences';
 import { getStoredUser } from '@/app/lib/authStorage';
 import Pagination from '../components/ui/Pagination';
 import SortIndicator from '../components/SortIndicator';
+import ConfirmModal from '../components/ConfirmModal';
 import { useAuditColumns, usePagePermissions } from '@/app/lib/permissions';
 import { showToast } from '@/app/lib/toast';
 
@@ -167,6 +168,7 @@ export default function LogsPage() {
     const [error, setError] = useState<string | null>(null);
     const [timeTicker, setTimeTicker] = useState(Date.now());
     const [closingLogId, setClosingLogId] = useState<number | null>(null);
+    const [sessionToClose, setSessionToClose] = useState<SessionLog | null>(null);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -211,8 +213,6 @@ export default function LogsPage() {
     }, []);
 
     const closeSession = async (row: SessionLog) => {
-        if (!window.confirm(`Close the active session for ${row.username}?`)) return;
-
         setClosingLogId(row.logId);
         try {
             const res = await fetch(ENDPOINTS.LOGS.CLOSE(row.logId), { method: 'POST' });
@@ -222,6 +222,7 @@ export default function LogsPage() {
             }
 
             showToast('Session closed', `Session #${row.logId} was closed successfully.`, 'success');
+            setSessionToClose(null);
             await fetchLogs();
         } catch (closeError) {
             const message = closeError instanceof Error ? closeError.message : 'Could not close this session.';
@@ -449,6 +450,23 @@ export default function LogsPage() {
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-up pb-20">
+            <ConfirmModal
+                isOpen={sessionToClose !== null}
+                onClose={() => {
+                    if (closingLogId === null) setSessionToClose(null);
+                }}
+                onConfirm={() => {
+                    if (sessionToClose) void closeSession(sessionToClose);
+                }}
+                title="Close active session"
+                message={sessionToClose
+                    ? `Close session #${sessionToClose.logId} for ${sessionToClose.username}? The user will need to sign in again.`
+                    : ''}
+                confirmText="Close Session"
+                cancelText="Keep Active"
+                type="danger"
+                loading={closingLogId !== null}
+            />
             <div className="flex items-start justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">User Logs</h1>
@@ -691,7 +709,7 @@ export default function LogsPage() {
                                                 {row.status === 'Active' ? (
                                                     <button
                                                         type="button"
-                                                        onClick={() => void closeSession(row)}
+                                                        onClick={() => setSessionToClose(row)}
                                                         disabled={closingLogId === row.logId}
                                                         className="inline-flex items-center gap-2 rounded-full border border-red-300 px-3 py-1.5 text-xs font-bold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-500/50 dark:text-red-300 dark:hover:bg-red-500/10"
                                                     >
