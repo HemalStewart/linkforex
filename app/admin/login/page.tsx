@@ -122,7 +122,6 @@ export default function AdminLoginPage() {
         }
         if (data.log_id && typeof window !== 'undefined') {
           sessionStorage.setItem('admin_log_id', String(data.log_id));
-          sessionStorage.setItem('fresh_login', 'true');
         }
         // Redirect
         router.push('/admin/dashboard');
@@ -194,7 +193,6 @@ export default function AdminLoginPage() {
         }
         if (data.log_id && typeof window !== 'undefined') {
           sessionStorage.setItem('admin_log_id', String(data.log_id));
-          sessionStorage.setItem('fresh_login', 'true');
         }
         router.push('/admin/dashboard');
       } else {

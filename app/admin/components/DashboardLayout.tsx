@@ -195,7 +195,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const originalFetchRef = React.useRef<typeof window.fetch | null>(null);
     const signOffSentRef = React.useRef(false);
     const forcedLogoutRef = React.useRef(false);
-    const hasCheckedTabDuplicateRef = React.useRef(false);
     const [currentTabId, setCurrentTabId] = useState<string>(() => {
         if (typeof window === 'undefined') return '';
         let id = sessionStorage.getItem('current_tab_id');
@@ -664,93 +663,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             router.replace('/admin/login');
         }
     }, [pathname, router, isPublicPage]);
-
-    // Tab duplication & Session duplication detection
-    React.useEffect(() => {
-        if (isPublicPage || !currentUser || hasCheckedTabDuplicateRef.current) return;
-        hasCheckedTabDuplicateRef.current = true;
-
-        const checkTabSession = async () => {
-            const isFreshLogin = sessionStorage.getItem('fresh_login') === 'true';
-            if (isFreshLogin) {
-                // Fresh login: we already created the log on the backend login endpoint.
-                sessionStorage.removeItem('fresh_login');
-                return;
-            }
-
-            const isReload = typeof window !== 'undefined' && (
-                (performance.getEntriesByType && 
-                 performance.getEntriesByType('navigation')[0] && 
-                 (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming).type === 'reload') ||
-                (performance.navigation && performance.navigation.type === 1)
-            );
-
-            // Chrome duplicated tabs copy sessionStorage AND report navigation type as 'reload'.
-            // If it is a real reload, the beforeunload event must have written the unloading flag.
-            // If no unloading flag is present, this is a duplicated tab.
-            let isDuplicatedTab = false;
-            if (isReload && currentTabId) {
-                try {
-                    const unloadingFlag = localStorage.getItem('tab_unloading_' + currentTabId);
-                    if (!unloadingFlag) {
-                        isDuplicatedTab = true;
-                    }
-                } catch (e) {
-                    console.error('Error checking unloading flag for duplicate check:', e);
-                }
-            }
-
-            const storedLogId = sessionStorage.getItem('admin_log_id');
-
-            if (isReload && !isDuplicatedTab && storedLogId) {
-                // Page Reload: Remove unloading flag to prevent other tabs from signing us off
-                try {
-                    localStorage.removeItem('tab_unloading_' + currentTabId);
-                } catch {}
-
-                // Page Reload: Resume the existing session log on the backend
-                try {
-                    await fetch(ENDPOINTS.LOGS.RESUME(storedLogId), {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' }
-                    });
-                } catch (err) {
-                    console.error('Failed to resume session log:', err);
-                }
-                return;
-            }
-
-            // Since it's a duplicated tab, new tab, or fresh login:
-            // For a duplicated tab, sessionStorage copied 'current_tab_id' and 'admin_log_id'.
-            // Since this is a duplicate tab, we MUST generate a NEW tabId and a NEW log!
-            const newTabId = 'tab_' + Math.random().toString(36).substring(2, 15);
-            sessionStorage.setItem('current_tab_id', newTabId);
-            setCurrentTabId(newTabId);
-
-            // We register a new user log on the backend so that each tab session has its own log entry.
-            try {
-                const res = await fetch(ENDPOINTS.LOGS.CREATE, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        user_id: currentUser.id,
-                        username: currentUser.username || currentUser.email || currentUser.name
-                    })
-                });
-
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.log_id) {
-                        sessionStorage.setItem('admin_log_id', String(data.log_id));
-                    }
-                }
-            } catch (err) {
-                console.error('Failed to register session log for tab:', err);
-            }
-        };
-
-        checkTabSession();
-    }, [isPublicPage, currentUser, currentTabId]);
 
     // Multi-tab unload/refresh coordination listener
     React.useEffect(() => {
