@@ -367,6 +367,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         }
 
         if (typeof window !== 'undefined') {
+            const reason = signOffNote.toLowerCase().includes('unauthorized')
+                ? 'You were signed out because your role does not have permission to access that page.'
+                : 'Your session is no longer active. Please sign in again.';
+            sessionStorage.setItem('admin_logout_reason', reason);
             sessionStorage.removeItem('admin_log_id');
         }
 

@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getStoredUserRaw, getStoredAdminSessionToken, setStoredAdminSession, setStoredUser } from '@/app/lib/authStorage';
 import ConfirmModal from '../components/ConfirmModal';
-import { Mail, Lock, Loader2, Eye, EyeOff, Shield, ArrowLeft } from 'lucide-react';
+import { AlertTriangle, Mail, Lock, Loader2, Eye, EyeOff, Shield, ArrowLeft } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -27,6 +27,7 @@ export default function AdminLoginPage() {
   const [require2FA, setRequire2FA] = React.useState(false);
   const [twofaEmail, setTwofaEmail] = React.useState('');
   const [twofaCode, setTwofaCode] = React.useState('');
+  const [logoutReason, setLogoutReason] = React.useState('');
 
   // Check if already logged in
   React.useEffect(() => {
@@ -34,6 +35,12 @@ export default function AdminLoginPage() {
     const token = getStoredAdminSessionToken();
     if (user && token) {
       router.replace('/admin/dashboard');
+    }
+
+    const pendingLogoutReason = sessionStorage.getItem('admin_logout_reason');
+    if (pendingLogoutReason) {
+      setLogoutReason(pendingLogoutReason);
+      sessionStorage.removeItem('admin_logout_reason');
     }
 
     const savedGeneral = localStorage.getItem('generalSettings');
@@ -273,6 +280,12 @@ export default function AdminLoginPage() {
 
         {/* Card Container */}
         <div className="glass-effect-strong rounded-[2.5rem] shadow-2xl p-8 border chrome-divider dark:border-slate-700/60 hover-lift backdrop-blur-3xl">
+          {logoutReason && !require2FA && (
+            <div className="mb-5 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>{logoutReason}</span>
+            </div>
+          )}
           {!require2FA ? (
             <form className="space-y-6" onSubmit={handleLogin}>
               {/* Email Input */}
