@@ -742,7 +742,7 @@ export default function RemittersPage() {
         { key: 'id_expire_date', label: 'ID Expire Date' },
         { key: 'verification_state', label: 'AML Verifications' },
         { key: 'active', label: 'Mobile Status' },
-        { key: 'place_of_birth', label: 'Country of Birth' },
+        { key: 'place_of_birth', label: 'Place of Birth' },
         { key: 'telephone', label: 'Mobile number' },
         { key: 'postcode', label: 'Postcode' },
         { key: 'address_1', label: 'Address 1' },
@@ -840,7 +840,7 @@ export default function RemittersPage() {
                                 <FileText className="mx-auto h-12 w-12 text-slate-300 dark:text-slate-600 mb-3" />
                                 <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">No Dilisense reports run yet</h4>
                                 <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto">
-                                    Click "New Check" above to query Dilisense name screening.
+                                    Click &quot;New Check&quot; above to query Dilisense name screening.
                                 </p>
                             </div>
                         ) : (

@@ -422,16 +422,6 @@ export default function CreateRemitterPage() {
         }));
     }, [countries]);
 
-    const countryOfBirthOptions = React.useMemo<SelectOption[]>(() => {
-        return [
-            { value: '', label: 'Select Country of Birth' },
-            ...countries.map((c: any) => ({
-                value: c.name,
-                label: c.name,
-            })),
-        ];
-    }, [countries]);
-
     const occupationOptions = React.useMemo<SelectOption[]>(() => {
         return [
             { value: '', label: 'Select Occupation' },
@@ -1281,7 +1271,12 @@ export default function CreateRemitterPage() {
                                 { value: 'Prefer not to say', label: 'Prefer not to say' },
                             ]}
                         />
-                        <FormSelect label="Country of Birth" name="place_of_birth" Icon={Globe} options={countryOfBirthOptions} />
+                        <FormInput
+                            label="Place of Birth"
+                            name="place_of_birth"
+                            placeholder="City, Country"
+                            Icon={MapPin}
+                        />
                         <FormSelect label="Occupation" name="occupation" Icon={Briefcase} options={occupationOptions} required />
                         <FormInput
                             label="Mobile number"

@@ -197,7 +197,7 @@ export default function RemitterOverviewModal({ remitter, receivers = [], onClos
                                     <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{remitter.dob || '-'}</p>
                                 </div>
                                 <div>
-                                    <p className="text-xs text-slate-400">Country of Birth</p>
+                                    <p className="text-xs text-slate-400">Place of Birth</p>
                                     <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{remitter.place_of_birth || '-'}</p>
                                 </div>
                             </div>

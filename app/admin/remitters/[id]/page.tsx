@@ -865,7 +865,7 @@ export default function EditRemitterPage() {
                                 <FileText className="mx-auto h-12 w-12 text-slate-300 dark:text-slate-600 mb-3" />
                                 <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">No Dilisense reports run yet</h4>
                                 <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto">
-                                    Click "New Check" above to query Dilisense name screening.
+                                    Click &quot;New Check&quot; above to query Dilisense name screening.
                                 </p>
                             </div>
                         ) : (
@@ -1296,17 +1296,17 @@ export default function EditRemitterPage() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Country of Birth</label>
-                            <select
-                                className="input-glass w-full py-3 px-4 cursor-pointer text-sm"
-                                value={formData.place_of_birth}
-                                onChange={(e) => setFormData({ ...formData, place_of_birth: e.target.value })}
-                            >
-                                <option value="">Select Country of Birth</option>
-                                {countries.map((c: any) => (
-                                    <option key={c.id} value={c.name}>{c.name}</option>
-                                ))}
-                            </select>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Place of Birth</label>
+                            <div className="relative input-icon">
+                                <span className="input-icon-left"><MapPin className="w-5 h-5" /></span>
+                                <input
+                                    type="text"
+                                    className="input-glass w-full"
+                                    placeholder="City, Country"
+                                    value={formData.place_of_birth}
+                                    onChange={(e) => setFormData({ ...formData, place_of_birth: e.target.value })}
+                                />
+                            </div>
                         </div>
                         <div>
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 ml-1">Occupation</label>
