@@ -733,6 +733,7 @@ export default function RemittersPage() {
 
     const columns = [
         { key: 'branch_name', label: 'Branch' },
+        { key: 'registration_source', label: 'Source' },
         { key: 'sender_id', label: 'Reference ID' },
         { key: 'sender_name', label: 'Remitter Name' },
         { key: 'dob', label: 'Date Of Birth' },
@@ -1396,6 +1397,9 @@ export default function RemittersPage() {
                                                     </span>
                                                 ) : null}
                                             </div>
+                                        </td>
+                                        <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                                            {String(row.registration_source || '').trim().toLowerCase() === 'mobile_app' ? 'Mobile App' : 'Branch Admin'}
                                         </td>
                                         <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">{row.sender_id || '-'}</td>
                                         <td className="px-4 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{row.sender_name || '-'}</td>

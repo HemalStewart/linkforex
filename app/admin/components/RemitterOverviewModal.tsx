@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { ArrowUpRight, FolderOpen, Users, X } from 'lucide-react';
 import { ENDPOINTS } from '@/app/lib/api';
 import { getBranchDisplayName } from '@/app/lib/adminUserScope';
+import { routeKeyOf } from '@/app/lib/routeKeys';
 
 const resolveAmlStatus = (r: any): string => {
     if (!r) return 'pending';
@@ -81,8 +82,44 @@ export type RemitterOverviewProps = {
  * remitters list show a customer the same way.
  */
 type ActivityPeriod = { count: number; amount: number; limit?: number | null };
-type ActivityRow = { id: number; reference: string; amount: number; currency: string; status: string; created_at: string };
+type ActivityRow = {
+    id: number;
+    reference: string;
+    amount: number;
+    currency: string;
+    destination_amount?: number;
+    destination_currency?: string;
+    from_branch?: string;
+    to_branch?: string;
+    receiver_name?: string;
+    status: string;
+    created_at: string;
+};
 type Activity = { currency: string; quarter: ActivityPeriod; year: ActivityPeriod; recent: ActivityRow[] };
+
+const sourceLabel = (source: unknown): string => {
+    const normalized = String(source || '').trim().toLowerCase();
+    if (normalized === 'mobile_app') return 'Mobile App';
+    if (normalized === 'branch' || normalized === 'web' || normalized === 'admin') return 'Branch Admin';
+    return normalized ? statusLabel(normalized) : '-';
+};
+
+const veriffStatus = (remitter: any): { label: string; className: string } => {
+    const raw = String(remitter?.veriff_decision || remitter?.veriff_status || remitter?.kyc_status || '').trim().toLowerCase();
+    if (['approved', 'verified', 'pass', 'passed', 'clear'].includes(raw)) {
+        return { label: 'Approved', className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' };
+    }
+    if (['declined', 'rejected', 'failed', 'fail'].includes(raw)) {
+        return { label: 'Declined', className: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300' };
+    }
+    if (['resubmission', 'resubmit'].includes(raw)) {
+        return { label: 'Resubmission', className: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' };
+    }
+    if (raw && !['not_started', 'not started'].includes(raw)) {
+        return { label: statusLabel(raw), className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' };
+    }
+    return { label: 'Not Started', className: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300' };
+};
 
 const money = (amount: number, currency = 'GBP'): string => {
     const symbol = currency === 'GBP' ? '\u00a3' : '';
@@ -112,7 +149,8 @@ export default function RemitterOverviewModal({ remitter, receivers = [], onClos
 
     React.useEffect(() => { setMounted(true); }, []);
 
-    const remitterId = remitter?.id;
+    const remitterId = routeKeyOf(remitter);
+    const isMobileProfile = String(remitter?.registration_source || '').trim().toLowerCase() === 'mobile_app';
 
     React.useEffect(() => {
         if (!remitterId) { setActivity(null); return; }
@@ -191,6 +229,10 @@ export default function RemitterOverviewModal({ remitter, receivers = [], onClos
                                 <div>
                                     <p className="text-xs text-slate-400">Reference ID</p>
                                     <p className="text-sm font-bold text-slate-900 dark:text-white">{remitter.sender_id || '-'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-slate-400">Registration Source</p>
+                                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{sourceLabel(remitter.registration_source)}</p>
                                 </div>
                                 <div>
                                     <p className="text-xs text-slate-400">Date of Birth</p>
@@ -297,6 +339,15 @@ export default function RemitterOverviewModal({ remitter, receivers = [], onClos
                                         );
                                     })()}
                                 </div>
+                                {isMobileProfile && (
+                                    <div className="flex items-center justify-between gap-2">
+                                        <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Veriff Screening</span>
+                                        {(() => {
+                                            const result = veriffStatus(remitter);
+                                            return <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${result.className}`}>{result.label}</span>;
+                                        })()}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -411,18 +462,24 @@ export default function RemitterOverviewModal({ remitter, receivers = [], onClos
                                                 <table className="w-full text-xs">
                                                     <thead className="bg-slate-50 dark:bg-slate-900/50">
                                                         <tr className="text-left text-slate-500 dark:text-slate-400">
+                                                            <th className="px-3 py-2 font-bold uppercase tracking-wider">From Branch</th>
+                                                            <th className="px-3 py-2 font-bold uppercase tracking-wider">To Branch</th>
                                                             <th className="px-3 py-2 font-bold uppercase tracking-wider">Date</th>
-                                                            <th className="px-3 py-2 font-bold uppercase tracking-wider">Reference</th>
+                                                            <th className="px-3 py-2 font-bold uppercase tracking-wider">Reference No.</th>
                                                             <th className="px-3 py-2 font-bold uppercase tracking-wider text-right">Amount</th>
+                                                            <th className="px-3 py-2 font-bold uppercase tracking-wider">Receiver Name</th>
                                                             <th className="px-3 py-2 font-bold uppercase tracking-wider">Status</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody className="divide-y divide-slate-100 dark:divide-slate-700/60">
                                                         {activity.recent.map((row) => (
                                                             <tr key={row.id}>
+                                                                <td className="px-3 py-2 font-semibold text-slate-600 dark:text-slate-300 whitespace-nowrap">{row.from_branch || '-'}</td>
+                                                                <td className="px-3 py-2 font-semibold text-slate-600 dark:text-slate-300 whitespace-nowrap">{row.to_branch || '-'}</td>
                                                                 <td className="px-3 py-2 text-slate-600 dark:text-slate-300 whitespace-nowrap">{shortDate(row.created_at)}</td>
                                                                 <td className="px-3 py-2 font-mono text-slate-500 dark:text-slate-400">{row.reference || '-'}</td>
                                                                 <td className="px-3 py-2 text-right font-bold text-slate-900 dark:text-white whitespace-nowrap">{money(row.amount, row.currency)}</td>
+                                                                <td className="px-3 py-2 font-semibold text-slate-700 dark:text-slate-200 whitespace-nowrap">{row.receiver_name || '-'}</td>
                                                                 <td className="px-3 py-2">
                                                                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 capitalize">
                                                                         {statusLabel(row.status)}
