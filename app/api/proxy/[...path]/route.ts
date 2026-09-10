@@ -7,7 +7,9 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const HOP_BY_HOP_HEADERS = new Set([
+    'accept-encoding',
     'connection',
+    'content-encoding',
     'content-length',
     'host',
     'keep-alive',
